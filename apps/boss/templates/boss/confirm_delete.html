@@ -1,0 +1,55 @@
+{% extends "boss/base.html" %}
+
+{% block title %}O'chirish — Zenko BOSS{% endblock %}
+{% block page_title %}O'chirish{% endblock %}
+
+{% block extra_css %}
+<style>
+    .delete-wrapper { display: flex; justify-content: center; padding: 40px 0; }
+    .delete-card {
+        width: 100%; max-width: 460px;
+        background: var(--white); border-radius: 16px;
+        border: 1px solid var(--gray-200);
+        padding: 36px 32px 28px; text-align: center;
+        box-shadow: 0 1px 3px rgba(0,0,0,.04), 0 6px 24px rgba(0,0,0,.03);
+    }
+    .delete-card .icon-danger {
+        width: 56px; height: 56px; margin: 0 auto 20px;
+        background: #FEE2E2; border-radius: 50%;
+        display: flex; align-items: center; justify-content: center;
+        color: #EF4444;
+    }
+    .delete-card .icon-danger svg { width: 28px; height: 28px; }
+    .delete-card h3 { font-size: 18px; font-weight: 700; color: var(--black); margin-bottom: 8px; }
+    .delete-card p { font-size: 14px; color: var(--gray-500); margin-bottom: 24px; line-height: 1.5; }
+    .delete-card .object-name {
+        display: inline-block; padding: 6px 16px;
+        background: #FEF2F2; border: 1px solid #FECACA;
+        border-radius: 8px; font-weight: 600; color: #DC2626;
+        margin-bottom: 24px;
+    }
+    .delete-card .btn-row { display: flex; gap: 10px; justify-content: center; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="delete-wrapper">
+    <div class="delete-card">
+        <div class="icon-danger">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z"/>
+            </svg>
+        </div>
+        <h3>O'chirishni tasdiqlaysizmi?</h3>
+        <p>Bu amalni qaytarib bo'lmaydi. Quyidagi element butunlay o'chiriladi:</p>
+        <div class="object-name">{{ object }}</div>
+        <form method="post">
+            {% csrf_token %}
+            <div class="btn-row">
+                <a href="{{ cancel_url }}" class="btn btn-secondary">Bekor qilish</a>
+                <button type="submit" class="btn btn-danger">Ha, o'chirish</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

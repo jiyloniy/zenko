@@ -1,0 +1,229 @@
+{% extends "ceo/base.html" %}
+
+{% block title %}{{ title }} — Zenko CEO{% endblock %}
+{% block page_title %}{{ title }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .shift-form-wrapper {
+        display: flex;
+        justify-content: center;
+        padding: 20px 0;
+    }
+
+    .shift-card {
+        width: 100%;
+        max-width: 580px;
+        background: var(--white);
+        border-radius: 16px;
+        border: 1px solid var(--gray-200);
+        padding: 36px 32px 28px;
+        box-shadow: 0 1px 3px rgba(0,0,0,.04), 0 6px 24px rgba(0,0,0,.03);
+    }
+
+    .shift-card .form-header {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        margin-bottom: 28px;
+        padding-bottom: 20px;
+        border-bottom: 1px solid var(--gray-200);
+    }
+
+    .shift-card .form-header .icon-box {
+        width: 44px;
+        height: 44px;
+        background: var(--orange-light);
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--orange);
+        flex-shrink: 0;
+    }
+
+    .shift-card .form-header .icon-box svg { width: 22px; height: 22px; }
+
+    .shift-card .form-header .header-text h3 {
+        font-size: 17px;
+        font-weight: 700;
+        color: var(--black);
+        margin-bottom: 2px;
+    }
+
+    .shift-card .form-header .header-text p {
+        font-size: 13px;
+        color: var(--gray-500);
+        font-weight: 400;
+    }
+
+    .time-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 16px;
+    }
+
+    .time-input-wrap {
+        position: relative;
+    }
+
+    .time-input-wrap .form-control {
+        padding-right: 38px;
+        font-variant-numeric: tabular-nums;
+        letter-spacing: 1px;
+        font-weight: 500;
+    }
+
+    .time-input-wrap .time-icon {
+        position: absolute;
+        right: 12px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: var(--gray-300);
+        pointer-events: none;
+    }
+
+    .time-input-wrap .time-icon svg { width: 18px; height: 18px; }
+
+    .section-label {
+        font-size: 12px;
+        font-weight: 600;
+        color: var(--orange);
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        margin-bottom: 12px;
+        margin-top: 4px;
+    }
+
+    .shift-card .form-actions {
+        margin-top: 8px;
+        padding-top: 20px;
+        border-top: 1px solid var(--gray-200);
+    }
+
+    @media (max-width: 480px) {
+        .shift-card { padding: 24px 18px 20px; }
+        .time-grid { grid-template-columns: 1fr; }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="shift-form-wrapper">
+    <div class="shift-card">
+        <div class="form-header">
+            <div class="icon-box">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/></svg>
+            </div>
+            <div class="header-text">
+                <h3>{{ title }}</h3>
+                <p>Smena ish vaqtlari va tanaffus vaqtlarini belgilang</p>
+            </div>
+        </div>
+
+        {% if form.errors %}
+        <div class="form-errors">
+            <strong>Xatoliklar:</strong>
+            <ul>
+            {% for field in form %}
+                {% for error in field.errors %}<li>{{ field.label }}: {{ error }}</li>{% endfor %}
+            {% endfor %}
+            </ul>
+        </div>
+        {% endif %}
+
+        <form method="post">
+            {% csrf_token %}
+
+            {% if branch %}
+            <div class="form-group">
+                <label>Filial</label>
+                <input type="text" class="form-control" value="{{ branch.name }}" disabled
+                       style="background:#F9FAFB;color:#6B7280;cursor:not-allowed;">
+            </div>
+            {% endif %}
+
+            <div class="form-group">
+                <label for="id_name">Nomi</label>
+                <input type="text" name="name" id="id_name" class="form-control"
+                       value="{{ form.name.value|default:'' }}" required placeholder="Masalan: Kunduzgi">
+            </div>
+
+            <div class="section-label">Ish vaqti</div>
+            <div class="time-grid">
+                <div class="form-group">
+                    <label for="id_start_time">Boshlanish</label>
+                    <div class="time-input-wrap">
+                        {{ form.start_time }}
+                        <span class="time-icon">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/></svg>
+                        </span>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="id_end_time">Tugash</label>
+                    <div class="time-input-wrap">
+                        {{ form.end_time }}
+                        <span class="time-icon">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/></svg>
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="section-label">Tanaffus vaqti</div>
+            <div class="time-grid">
+                <div class="form-group">
+                    <label for="id_break_start">Boshlanish</label>
+                    <div class="time-input-wrap">
+                        {{ form.break_start }}
+                        <span class="time-icon">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/></svg>
+                        </span>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="id_break_end">Tugash</label>
+                    <div class="time-input-wrap">
+                        {{ form.break_end }}
+                        <span class="time-icon">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/></svg>
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="id_description">Tavsif</label>
+                <textarea name="description" id="id_description" class="form-control" rows="3"
+                          placeholder="Smena haqida qo'shimcha ma'lumot...">{{ form.description.value|default:'' }}</textarea>
+            </div>
+
+            <div class="form-actions">
+                <button type="submit" class="btn btn-primary">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5"/></svg>
+                    Saqlash
+                </button>
+                <a href="{{ cancel_url }}" class="btn btn-secondary">Bekor qilish</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+// Auto-format time inputs: adds ":" after 2 digits, blocks invalid chars
+document.querySelectorAll('input[pattern]').forEach(input => {
+    input.addEventListener('input', function(e) {
+        let v = this.value.replace(/[^0-9]/g, '');
+        if (v.length >= 3) v = v.slice(0,2) + ':' + v.slice(2,4);
+        this.value = v;
+    });
+    input.addEventListener('keydown', function(e) {
+        if (e.key === 'Backspace' && this.value.length === 4 && this.value[2] === ':') {
+            this.value = this.value.slice(0,2);
+            e.preventDefault();
+        }
+    });
+});
+</script>
+{% endblock %}

@@ -1,0 +1,60 @@
+{% extends "boss/base.html" %}
+
+{% block title %}Filiallar — Zenko BOSS{% endblock %}
+{% block page_title %}Filiallar{% endblock %}
+
+{% block topbar_actions %}
+<a href="{% url 'boss:branch_create' %}" class="btn btn-primary btn-sm">
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>
+    Yangi filial
+</a>
+{% endblock %}
+
+{% block content %}
+<div class="card">
+    {% if branches %}
+    <div class="table-wrapper">
+        <table>
+            <thead>
+                <tr>
+                    <th>Nomi</th>
+                    <th>Manzil</th>
+                    <th>Telefon</th>
+                    <th>CEO</th>
+                    <th>Holati</th>
+                    <th>Amallar</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for b in branches %}
+                <tr>
+                    <td><strong>{{ b.name }}</strong></td>
+                    <td>{{ b.address|default:"—" }}</td>
+                    <td>{{ b.phone|default:"—" }}</td>
+                    <td>{{ b.ceo_users.0.name|default:"—" }}</td>
+                    <td>
+                        {% if b.is_active %}
+                        <span class="badge badge-green">Faol</span>
+                        {% else %}
+                        <span class="badge badge-red">Nofaol</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <div class="actions-cell">
+                            <a href="{% url 'boss:branch_update' b.pk %}" class="btn btn-sm btn-secondary">Tahrirlash</a>
+                            <a href="{% url 'boss:branch_delete' b.pk %}" class="btn btn-sm btn-danger">O'chirish</a>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="empty-state">
+        <p>Hali filiallar qo'shilmagan</p>
+        <a href="{% url 'boss:branch_create' %}" class="btn btn-primary">Filial qo'shish</a>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

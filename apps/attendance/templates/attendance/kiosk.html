@@ -1,0 +1,652 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Davomat — Zenko</title>
+    <style>
+        :root {
+            --green: #22C55E;
+            --green-dark: #16A34A;
+            --green-light: #F0FDF4;
+            --orange: #F97316;
+            --orange-dark: #EA580C;
+            --orange-light: #FFF7ED;
+            --blue: #3B82F6;
+            --blue-light: #EFF6FF;
+            --red: #EF4444;
+            --red-light: #FEF2F2;
+            --purple: #8B5CF6;
+            --purple-light: #F5F3FF;
+            --bg: #0A0F1C;
+            --card-bg: #111827;
+            --border: #1F2937;
+            --white: #FFFFFF;
+            --gray: #9CA3AF;
+            --text: #F9FAFB;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            overflow: hidden;
+        }
+
+        /* Animated background */
+        .bg-animation {
+            position: fixed;
+            inset: 0;
+            z-index: -1;
+            overflow: hidden;
+        }
+        .bg-animation .orb {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(80px);
+            opacity: .15;
+            animation: float 8s ease-in-out infinite;
+        }
+        .bg-animation .orb:nth-child(1) { width: 300px; height: 300px; background: var(--green); top: -50px; left: -50px; animation-delay: 0s; }
+        .bg-animation .orb:nth-child(2) { width: 250px; height: 250px; background: var(--orange); bottom: -50px; right: -50px; animation-delay: -3s; }
+        .bg-animation .orb:nth-child(3) { width: 200px; height: 200px; background: var(--blue); top: 50%; left: 50%; animation-delay: -5s; }
+        @keyframes float {
+            0%, 100% { transform: translate(0, 0) scale(1); }
+            33% { transform: translate(30px, -30px) scale(1.1); }
+            66% { transform: translate(-20px, 20px) scale(.9); }
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 24px;
+            animation: fadeInDown .6s ease;
+        }
+        @keyframes fadeInDown {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .header .logo {
+            width: 56px; height: 56px;
+            background: linear-gradient(135deg, var(--green), var(--blue));
+            border-radius: 16px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 26px;
+            font-weight: 800;
+            color: var(--white);
+            margin-bottom: 12px;
+            box-shadow: 0 0 40px rgba(34, 197, 94, .25);
+            animation: logoGlow 3s ease-in-out infinite;
+        }
+        @keyframes logoGlow {
+            0%, 100% { box-shadow: 0 0 40px rgba(34, 197, 94, .25); }
+            50% { box-shadow: 0 0 60px rgba(59, 130, 246, .35); }
+        }
+        .header h1 {
+            font-size: 28px;
+            font-weight: 800;
+            color: var(--white);
+            margin-bottom: 6px;
+        }
+        .header p { color: var(--gray); font-size: 15px; }
+
+        .scanner-container {
+            width: 100%;
+            max-width: 440px;
+            background: var(--card-bg);
+            border-radius: 24px;
+            border: 1px solid var(--border);
+            overflow: hidden;
+            box-shadow: 0 20px 60px rgba(0,0,0,.5);
+            animation: fadeInUp .6s ease .2s both;
+        }
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .scanner-box {
+            position: relative;
+            width: 100%;
+            aspect-ratio: 1;
+            background: #000;
+            overflow: hidden;
+        }
+
+        .scanner-box #reader { width: 100% !important; height: 100% !important; }
+        .scanner-box #reader video { width: 100% !important; height: 100% !important; object-fit: cover !important; }
+        #reader img[alt="Info icon"] { display: none !important; }
+        #reader__dashboard { display: none !important; }
+        #reader__scan_region > img { display: none !important; }
+
+        .scan-overlay {
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+            z-index: 10;
+        }
+        .scan-overlay::before {
+            content: '';
+            position: absolute;
+            top: 50%; left: 50%;
+            width: 200px; height: 200px;
+            transform: translate(-50%, -50%);
+            border: 3px solid var(--green);
+            border-radius: 20px;
+            box-shadow: 0 0 0 9999px rgba(0,0,0,.55);
+            animation: pulse-border 2.5s infinite;
+        }
+        /* Corner accents */
+        .scan-overlay .corner {
+            position: absolute;
+            width: 30px; height: 30px;
+            z-index: 12;
+        }
+        .scan-overlay .corner::before, .scan-overlay .corner::after {
+            content: '';
+            position: absolute;
+            background: var(--green);
+            border-radius: 2px;
+        }
+        .scan-overlay .corner-tl { top: calc(50% - 100px); left: calc(50% - 100px); }
+        .scan-overlay .corner-tl::before { width: 30px; height: 4px; top: 0; left: 0; }
+        .scan-overlay .corner-tl::after { width: 4px; height: 30px; top: 0; left: 0; }
+        .scan-overlay .corner-tr { top: calc(50% - 100px); right: calc(50% - 100px); }
+        .scan-overlay .corner-tr::before { width: 30px; height: 4px; top: 0; right: 0; }
+        .scan-overlay .corner-tr::after { width: 4px; height: 30px; top: 0; right: 0; }
+        .scan-overlay .corner-bl { bottom: calc(50% - 100px); left: calc(50% - 100px); }
+        .scan-overlay .corner-bl::before { width: 30px; height: 4px; bottom: 0; left: 0; }
+        .scan-overlay .corner-bl::after { width: 4px; height: 30px; bottom: 0; left: 0; }
+        .scan-overlay .corner-br { bottom: calc(50% - 100px); right: calc(50% - 100px); }
+        .scan-overlay .corner-br::before { width: 30px; height: 4px; bottom: 0; right: 0; }
+        .scan-overlay .corner-br::after { width: 4px; height: 30px; bottom: 0; right: 0; }
+
+        @keyframes pulse-border {
+            0%, 100% { border-color: var(--green); box-shadow: 0 0 0 9999px rgba(0,0,0,.55), 0 0 20px rgba(34,197,94,.2); }
+            50% { border-color: #86EFAC; box-shadow: 0 0 0 9999px rgba(0,0,0,.55), 0 0 40px rgba(34,197,94,.4); }
+        }
+
+        .scan-line {
+            position: absolute;
+            top: 50%; left: 50%;
+            width: 180px;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, var(--green), transparent);
+            transform: translate(-50%, -50%);
+            animation: scan-move 2s ease-in-out infinite;
+            z-index: 11;
+        }
+        @keyframes scan-move {
+            0%, 100% { margin-top: -80px; }
+            50% { margin-top: 80px; }
+        }
+
+        .status-bar {
+            padding: 16px 20px;
+            text-align: center;
+            border-top: 1px solid var(--border);
+        }
+        .status-bar .status-text {
+            font-size: 14px;
+            color: var(--gray);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        .status-bar .status-text .dot {
+            width: 8px; height: 8px;
+            background: var(--green);
+            border-radius: 50%;
+            animation: blink 1.5s infinite;
+        }
+        @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: .3; } }
+
+        /* Result overlay */
+        .result-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,.85);
+            backdrop-filter: blur(16px);
+            z-index: 100;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .result-overlay.show { display: flex; animation: fadeIn .3s ease; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+        .result-card {
+            background: var(--card-bg);
+            border-radius: 24px;
+            border: 1px solid var(--border);
+            padding: 36px 28px;
+            max-width: 420px;
+            width: 100%;
+            text-align: center;
+            animation: scaleIn .4s cubic-bezier(.175,.885,.32,1.275);
+        }
+        @keyframes scaleIn {
+            from { transform: scale(.8); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+
+        .result-icon {
+            width: 80px; height: 80px;
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 16px;
+            position: relative;
+        }
+        .result-icon.success { background: var(--green-light); }
+        .result-icon.success.checkout { background: var(--orange-light); }
+        .result-icon.error { background: var(--red-light); }
+        .result-icon.overtime { background: var(--purple-light); }
+        .result-icon svg { width: 40px; height: 40px; }
+        .result-icon.success svg { color: var(--green); }
+        .result-icon.success.checkout svg { color: var(--orange); }
+        .result-icon.error svg { color: var(--red); }
+        .result-icon.overtime svg { color: var(--purple); }
+
+        /* User photo in result */
+        .result-photo {
+            width: 100px; height: 100px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 4px solid rgba(255,255,255,.1);
+            margin-bottom: 16px;
+            animation: scaleIn .4s cubic-bezier(.175,.885,.32,1.275);
+            box-shadow: 0 4px 20px rgba(0,0,0,.3);
+        }
+        .result-photo.checkin { border-color: rgba(34,197,94,.4); }
+        .result-photo.checkout { border-color: rgba(249,115,22,.4); }
+        .result-photo.overtime { border-color: rgba(139,92,246,.4); }
+
+        /* Ripple effect */
+        .result-icon::after {
+            content: '';
+            position: absolute;
+            inset: -8px;
+            border-radius: 50%;
+            border: 2px solid currentColor;
+            opacity: 0;
+            animation: ripple 1.5s ease-out infinite;
+        }
+        .result-icon.success::after { border-color: var(--green); }
+        .result-icon.success.checkout::after { border-color: var(--orange); }
+        .result-icon.error::after { border-color: var(--red); }
+        @keyframes ripple {
+            0% { transform: scale(1); opacity: .5; }
+            100% { transform: scale(1.5); opacity: 0; }
+        }
+
+        .result-badge {
+            display: inline-block;
+            padding: 4px 14px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 12px;
+        }
+        .badge-checkin { background: var(--green-light); color: var(--green); }
+        .badge-checkout { background: var(--orange-light); color: var(--orange); }
+        .badge-overtime { background: var(--purple-light); color: var(--purple); }
+        .badge-early { background: var(--red-light); color: var(--red); }
+
+        .result-card h2 { font-size: 22px; font-weight: 700; margin-bottom: 6px; }
+        .result-card .result-msg { font-size: 14px; color: var(--gray); margin-bottom: 16px; }
+
+        .result-details {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        .result-detail-item {
+            background: rgba(255,255,255,.04);
+            border-radius: 12px;
+            padding: 12px;
+            border: 1px solid rgba(255,255,255,.06);
+            transition: transform .2s;
+        }
+        .result-detail-item:hover { transform: translateY(-2px); }
+        .result-detail-item .label { font-size: 10px; color: var(--gray); text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 4px; }
+        .result-detail-item .value { font-size: 17px; font-weight: 700; }
+
+        .early-warning {
+            background: rgba(239, 68, 68, .1);
+            border: 1px solid rgba(239, 68, 68, .2);
+            border-radius: 12px;
+            padding: 10px 16px;
+            margin-bottom: 16px;
+            font-size: 13px;
+            color: #FCA5A5;
+        }
+
+        .shift-info {
+            background: rgba(59, 130, 246, .08);
+            border: 1px solid rgba(59, 130, 246, .15);
+            border-radius: 12px;
+            padding: 10px 16px;
+            margin-bottom: 16px;
+            font-size: 13px;
+            color: #93C5FD;
+        }
+
+        .btn-close-result {
+            background: linear-gradient(135deg, var(--green), var(--blue));
+            color: var(--white);
+            border: none;
+            padding: 12px 36px;
+            border-radius: 12px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all .2s;
+            box-shadow: 0 4px 15px rgba(34,197,94,.3);
+        }
+        .btn-close-result:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(34,197,94,.4); }
+
+        .time-display {
+            position: fixed;
+            top: 16px;
+            right: 16px;
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 10px 18px;
+            font-size: 13px;
+            color: var(--gray);
+            backdrop-filter: blur(10px);
+            animation: fadeInDown .6s ease .4s both;
+            z-index: 50;
+        }
+        .time-display .time { font-size: 22px; font-weight: 800; color: var(--white); letter-spacing: 1px; }
+
+        /* Progress bar for auto-close */
+        .auto-close-bar {
+            width: 100%;
+            height: 3px;
+            background: rgba(255,255,255,.1);
+            border-radius: 2px;
+            margin-top: 16px;
+            overflow: hidden;
+        }
+        .auto-close-bar .progress {
+            height: 100%;
+            background: linear-gradient(90deg, var(--green), var(--blue));
+            border-radius: 2px;
+            animation: shrink 5s linear forwards;
+        }
+        @keyframes shrink { from { width: 100%; } to { width: 0%; } }
+    </style>
+</head>
+<body>
+    <div class="bg-animation">
+        <div class="orb"></div>
+        <div class="orb"></div>
+        <div class="orb"></div>
+    </div>
+
+    <div class="time-display">
+        <div class="time" id="clock">--:--</div>
+        <div id="dateDisplay"></div>
+    </div>
+
+    <div class="header">
+        <h1>QR kodni kameraga ko'rsating</h1>
+    </div>
+
+    <div class="scanner-container">
+        <div class="scanner-box">
+            <div id="reader"></div>
+            <div class="scan-overlay">
+                <div class="corner corner-tl"></div>
+                <div class="corner corner-tr"></div>
+                <div class="corner corner-bl"></div>
+                <div class="corner corner-br"></div>
+            </div>
+            <div class="scan-line"></div>
+        </div>
+        <div class="status-bar">
+            <div class="status-text">
+                <span class="dot"></span>
+                <span id="statusText">Kamera tayyor — QR kodni ko'rsating</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Result Overlay -->
+    <div class="result-overlay" id="resultOverlay">
+        <div class="result-card">
+            <img class="result-photo" id="resultPhoto" style="display:none" alt="Hodim rasmi">
+            <div class="result-icon" id="resultIcon">
+                <!-- Check-in icon -->
+                <svg id="checkinSvg" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5"/></svg>
+                <!-- Check-out icon -->
+                <svg id="checkoutSvg" style="display:none" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0 0 13.5 3h-6a2.25 2.25 0 0 0-2.25 2.25v13.5A2.25 2.25 0 0 0 7.5 21h6a2.25 2.25 0 0 0 2.25-2.25V15m3 0 3-3m0 0-3-3m3 3H9"/></svg>
+                <!-- Error icon -->
+                <svg id="errorSvg" style="display:none" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12"/></svg>
+            </div>
+            <div id="resultBadge"></div>
+            <h2 id="resultTitle"></h2>
+            <p class="result-msg" id="resultMsg"></p>
+            <div id="earlyWarning"></div>
+            <div id="shiftInfo"></div>
+            <div class="result-details" id="resultDetails"></div>
+            <button class="btn-close-result" onclick="closeResult()">Davom etish</button>
+            <div class="auto-close-bar" id="autoCloseBar"><div class="progress"></div></div>
+        </div>
+    </div>
+
+    <!-- Hidden canvas for photo capture -->
+    <canvas id="photoCanvas" style="display:none"></canvas>
+
+    <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+    <script>
+        // Clock
+        function updateClock() {
+            const now = new Date();
+            document.getElementById('clock').textContent = now.toLocaleTimeString('uz', {hour:'2-digit', minute:'2-digit', second:'2-digit'});
+            document.getElementById('dateDisplay').textContent = now.toLocaleDateString('uz', {year:'numeric', month:'long', day:'numeric'});
+        }
+        updateClock();
+        setInterval(updateClock, 1000);
+
+        // Scanner
+        let scanning = true;
+        let autoCloseTimer = null;
+        const html5QrCode = new Html5Qrcode('reader');
+
+        html5QrCode.start(
+            { facingMode: 'environment' },
+            { fps: 10, qrbox: { width: 200, height: 200 }, aspectRatio: 1.0 },
+            onScanSuccess,
+            () => {}
+        ).catch(err => {
+            document.getElementById('statusText').textContent = 'Kamerani yoqib bo\'lmadi: ' + err;
+        });
+
+        function capturePhoto() {
+            // Kameradan rasm olish
+            const video = document.querySelector('#reader video');
+            if (!video) return '';
+            const canvas = document.getElementById('photoCanvas');
+            canvas.width = Math.min(video.videoWidth, 480);
+            canvas.height = Math.min(video.videoHeight, 480);
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+            return canvas.toDataURL('image/jpeg', 0.7);
+        }
+
+        function onScanSuccess(decodedText) {
+            if (!scanning) return;
+            scanning = false;
+            document.getElementById('statusText').textContent = 'Tekshirilmoqda...';
+
+            // QR skanerlanganda darhol rasm olish
+            const photoData = capturePhoto();
+
+            const formData = new URLSearchParams();
+            formData.append('token', decodedText);
+            if (photoData) formData.append('photo', photoData);
+
+            fetch('{% url "attendance:api_scan" %}', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+                body: formData.toString()
+            })
+            .then(r => r.json())
+            .then(data => {
+                // Rasmni natijada ko'rsatish uchun saqlash
+                data._localPhoto = photoData;
+                showResult(data);
+            })
+            .catch(() => showResult({ok: false, msg: 'Tarmoq xatosi yuz berdi'}));
+        }
+
+        function showResult(data) {
+            const overlay = document.getElementById('resultOverlay');
+            const icon = document.getElementById('resultIcon');
+            const title = document.getElementById('resultTitle');
+            const msg = document.getElementById('resultMsg');
+            const details = document.getElementById('resultDetails');
+            const badge = document.getElementById('resultBadge');
+            const earlyWarning = document.getElementById('earlyWarning');
+            const shiftInfo = document.getElementById('shiftInfo');
+            const photoEl = document.getElementById('resultPhoto');
+
+            earlyWarning.innerHTML = '';
+            shiftInfo.innerHTML = '';
+            badge.innerHTML = '';
+
+            // Hide all SVGs
+            document.getElementById('checkinSvg').style.display = 'none';
+            document.getElementById('checkoutSvg').style.display = 'none';
+            document.getElementById('errorSvg').style.display = 'none';
+
+            // Hodim rasmini ko'rsatish
+            const localPhoto = data._localPhoto || '';
+            if (data.ok && localPhoto) {
+                photoEl.src = localPhoto;
+                photoEl.style.display = 'block';
+                const isCheckoutP = data.action === 'check_out';
+                const isOvertimeP = data.is_overtime;
+                photoEl.className = 'result-photo ' + (isCheckoutP ? 'checkout' : isOvertimeP ? 'overtime' : 'checkin');
+                icon.style.display = 'none';
+            } else {
+                photoEl.style.display = 'none';
+                icon.style.display = '';
+            }
+
+            // Hide all SVGs
+            document.getElementById('checkinSvg').style.display = 'none';
+            document.getElementById('checkoutSvg').style.display = 'none';
+            document.getElementById('errorSvg').style.display = 'none';
+
+            if (data.ok) {
+                const isCheckout = data.action === 'check_out';
+                const isOvertime = data.is_overtime;
+                const isEarly = data.is_early;
+
+                if (isCheckout) {
+                    icon.className = 'result-icon success checkout';
+                    document.getElementById('checkoutSvg').style.display = '';
+
+                    if (isEarly) {
+                        badge.innerHTML = '<span class="result-badge badge-early">Erta ketdi</span>';
+                        earlyWarning.innerHTML = '<div class="early-warning">⚠️ Siz smena tugashidan oldin chiqyapsiz</div>';
+                    } else {
+                        badge.innerHTML = '<span class="result-badge badge-checkout">Chiqish</span>';
+                    }
+                } else {
+                    if (isOvertime) {
+                        icon.className = 'result-icon overtime';
+                        badge.innerHTML = '<span class="result-badge badge-overtime">Qo\'shimcha smena</span>';
+                    } else {
+                        icon.className = 'result-icon success';
+                        badge.innerHTML = '<span class="result-badge badge-checkin">Kirish</span>';
+                    }
+                    document.getElementById('checkinSvg').style.display = '';
+                }
+
+                title.textContent = data.user_name || 'Muvaffaqiyat!';
+                msg.textContent = data.msg;
+
+                let detailsHtml = `
+                    <div class="result-detail-item">
+                        <div class="label">Vaqt</div>
+                        <div class="value">${data.time || '--:--'}</div>
+                    </div>
+                    <div class="result-detail-item">
+                        <div class="label">Smena</div>
+                        <div class="value">${data.shift || '—'}</div>
+                    </div>
+                `;
+
+                if (isCheckout && data.worked) {
+                    detailsHtml += `
+                        <div class="result-detail-item">
+                            <div class="label">Ishlagan vaqt</div>
+                            <div class="value" style="font-size:14px;">${data.worked}</div>
+                        </div>
+                    `;
+                }
+
+                detailsHtml += `
+                    <div class="result-detail-item">
+                        <div class="label">Holat</div>
+                        <div class="value" style="color:${isEarly ? 'var(--red)' : isOvertime ? 'var(--purple)' : 'var(--green)'}">${data.status || '—'}</div>
+                    </div>
+                `;
+
+                details.innerHTML = detailsHtml;
+
+                // Check-in bo'lganda, shift_end ko'rsatish
+                if (!isCheckout && data.shift_end) {
+                    shiftInfo.innerHTML = `<div class="shift-info">🕐 Smena tugash vaqti: <strong>${data.shift_end}</strong>. Vaqtida ketsangiz, chiqish avtomatik belgilanadi.</div>`;
+                }
+            } else {
+                icon.className = 'result-icon error';
+                document.getElementById('errorSvg').style.display = '';
+                title.textContent = 'Xatolik';
+                msg.textContent = data.msg;
+                details.innerHTML = '';
+                badge.innerHTML = '';
+            }
+
+            overlay.classList.add('show');
+
+            // Reset auto-close bar animation
+            const bar = document.getElementById('autoCloseBar');
+            bar.innerHTML = '<div class="progress"></div>';
+
+            // Auto-close
+            clearTimeout(autoCloseTimer);
+            autoCloseTimer = setTimeout(() => {
+                if (overlay.classList.contains('show')) closeResult();
+            }, 5000);
+        }
+
+        function closeResult() {
+            clearTimeout(autoCloseTimer);
+            document.getElementById('resultOverlay').classList.remove('show');
+            document.getElementById('statusText').textContent = 'Kamera tayyor — QR kodni ko\'rsating';
+            scanning = true;
+        }
+    </script>
+</body>
+</html>

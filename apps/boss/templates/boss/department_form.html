@@ -1,0 +1,89 @@
+{% extends "boss/base.html" %}
+
+{% block title %}{{ title }} — Zenko BOSS{% endblock %}
+{% block page_title %}{{ title }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .form-wrapper { display: flex; justify-content: center; padding: 20px 0; }
+    .form-card {
+        width: 100%; max-width: 520px;
+        background: var(--white); border-radius: 16px;
+        border: 1px solid var(--gray-200);
+        padding: 36px 32px 28px;
+        box-shadow: 0 1px 3px rgba(0,0,0,.04), 0 6px 24px rgba(0,0,0,.03);
+    }
+    .form-card .form-header {
+        display: flex; align-items: center; gap: 14px;
+        margin-bottom: 28px; padding-bottom: 20px;
+        border-bottom: 1px solid var(--gray-200);
+    }
+    .form-card .form-header .icon-box {
+        width: 44px; height: 44px;
+        background: var(--primary-light); border-radius: 12px;
+        display: flex; align-items: center; justify-content: center;
+        color: var(--primary); flex-shrink: 0;
+    }
+    .form-card .form-header .icon-box svg { width: 22px; height: 22px; }
+    .form-card .form-header .header-text h3 { font-size: 17px; font-weight: 700; color: var(--black); margin-bottom: 2px; }
+    .form-card .form-header .header-text p { font-size: 13px; color: var(--gray-500); }
+    .form-card .form-actions { margin-top: 8px; padding-top: 20px; border-top: 1px solid var(--gray-200); }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="form-wrapper">
+    <div class="form-card">
+        <div class="form-header">
+            <div class="icon-box">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 21h16.5M4.5 3h15M5.25 3v18m13.5-18v18M9 6.75h1.5m-1.5 3h1.5m-1.5 3h1.5m3-6H15m-1.5 3H15m-1.5 3H15M9 21v-3.375c0-.621.504-1.125 1.125-1.125h3.75c.621 0 1.125.504 1.125 1.125V21"/></svg>
+            </div>
+            <div class="header-text">
+                <h3>{{ title }}</h3>
+                <p>Bo'lim nomi, filial va tavsifini kiriting</p>
+            </div>
+        </div>
+
+        {% if form.errors %}
+        <div class="form-errors">
+            <strong>Xatoliklar:</strong>
+            <ul>
+            {% for field in form %}
+                {% for error in field.errors %}<li>{{ field.label }}: {{ error }}</li>{% endfor %}
+            {% endfor %}
+            </ul>
+        </div>
+        {% endif %}
+
+        <form method="post">
+            {% csrf_token %}
+            <div class="form-group">
+                <label for="id_name">Nomi</label>
+                <input type="text" name="name" id="id_name" class="form-control"
+                       value="{{ form.name.value|default:'' }}" required placeholder="Masalan: Ishlab chiqarish">
+            </div>
+            <div class="form-group">
+                <label for="id_branch">Filial</label>
+                <select name="branch" id="id_branch" class="form-control">
+                    <option value="">— Tanlanmagan —</option>
+                    {% for b in branches %}
+                    <option value="{{ b.pk }}" {% if object.branch_id|stringformat:"s" == b.pk|stringformat:"s" %}selected{% endif %}>{{ b.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="id_description">Tavsif</label>
+                <textarea name="description" id="id_description" class="form-control" rows="3"
+                          placeholder="Bo'lim haqida qisqacha...">{{ form.description.value|default:'' }}</textarea>
+            </div>
+            <div class="form-actions">
+                <button type="submit" class="btn btn-primary">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width:16px;height:16px"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5"/></svg>
+                    Saqlash
+                </button>
+                <a href="{{ cancel_url }}" class="btn btn-secondary">Bekor qilish</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

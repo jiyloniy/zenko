@@ -1,0 +1,206 @@
+{% extends "ceo/base.html" %}
+
+{% block title %}Barcha QR kodlar — Zenko CEO{% endblock %}
+{% block page_title %}QR kodlar{% endblock %}
+
+{% block topbar_actions %}
+<button onclick="window.print()" class="btn btn-primary">
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6.72 13.829c-.24.03-.48.062-.72.096m.72-.096a42.415 42.415 0 0 1 10.56 0m-10.56 0L6.34 18m10.94-4.171c.24.03.48.062.72.096m-.72-.096L17.66 18m0 0 .229 2.523a1.125 1.125 0 0 1-1.12 1.227H7.231c-.662 0-1.18-.568-1.12-1.227L6.34 18m11.318 0h1.091A2.25 2.25 0 0 0 21 15.75V9.456c0-1.081-.768-2.015-1.837-2.175a48.055 48.055 0 0 0-1.913-.247M6.34 18H5.25A2.25 2.25 0 0 1 3 15.75V9.456c0-1.081.768-2.015 1.837-2.175a48.041 48.041 0 0 1 1.913-.247m10.5 0a48.536 48.536 0 0 0-10.5 0m10.5 0V3.375c0-.621-.504-1.125-1.125-1.125h-8.25c-.621 0-1.125.504-1.125 1.125v3.659M18 10.5h.008v.008H18V10.5Zm-3 0h.008v.008H15V10.5Z"/></svg>
+    Hammasini print
+</button>
+<a href="{% url 'ceo:user_list' %}" class="btn btn-secondary">Orqaga</a>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .qr-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+        gap: 20px;
+    }
+    .qr-mini-card {
+        background: var(--white);
+        border-radius: 20px;
+        border: 1px solid var(--gray-200);
+        overflow: hidden;
+        text-align: center;
+        transition: all .3s;
+    }
+    .qr-mini-card:hover { box-shadow: 0 6px 20px rgba(0,0,0,.08); transform: translateY(-3px); }
+
+    .qr-mini-card .card-top {
+        background: var(--black);
+        padding: 16px 12px;
+        color: var(--white);
+    }
+    .qr-mini-card .card-top .name {
+        font-size: 16px;
+        font-weight: 800;
+        letter-spacing: .3px;
+    }
+
+    .qr-mini-card .card-body { padding: 18px; }
+    .qr-mini-card .card-body img {
+        width: 150px; height: 150px;
+        border-radius: 12px;
+        border: 2px solid var(--gray-200);
+    }
+
+    .qr-mini-card .card-footer {
+        padding: 12px;
+        background: var(--gray-100);
+    }
+    .qr-brand-mini {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+    }
+    .qr-brand-mini .b-icon {
+        width: 22px; height: 22px;
+        background: var(--orange);
+        border-radius: 6px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 800;
+        color: var(--white);
+        font-size: 11px;
+    }
+    .qr-brand-mini .b-text {
+        font-size: 14px;
+        font-weight: 800;
+        color: var(--black);
+        letter-spacing: 2px;
+        text-transform: uppercase;
+    }
+
+    /* Filter Bar */
+    .filter-bar {
+        background: var(--white);
+        border-radius: 14px;
+        border: 1px solid var(--gray-200);
+        padding: 16px 24px;
+        margin-bottom: 24px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        flex-wrap: wrap;
+        animation: slideDown .4s ease both;
+    }
+    @keyframes slideDown { from { opacity:0; transform:translateY(-10px); } to { opacity:1; transform:translateY(0); } }
+    .filter-bar .f-label {
+        font-size: 13px;
+        font-weight: 600;
+        color: var(--gray-700);
+    }
+    .filter-bar select,
+    .filter-bar input[type="text"] {
+        padding: 8px 14px;
+        border: 1px solid var(--gray-200);
+        border-radius: 8px;
+        font-size: 13px;
+        background: var(--white);
+        color: var(--black);
+        min-width: 160px;
+        transition: border-color .2s;
+    }
+    .filter-bar select:focus,
+    .filter-bar input:focus { outline: none; border-color: var(--orange); }
+    .filter-bar .f-btn {
+        padding: 8px 18px;
+        border-radius: 8px;
+        font-size: 13px;
+        font-weight: 600;
+        border: none;
+        background: var(--orange);
+        color: var(--white);
+        cursor: pointer;
+        transition: background .2s;
+    }
+    .filter-bar .f-btn:hover { background: var(--orange-hover); }
+    .filter-bar .f-clear {
+        padding: 8px 14px;
+        border-radius: 8px;
+        font-size: 13px;
+        font-weight: 500;
+        border: 1px solid var(--gray-200);
+        background: var(--white);
+        color: var(--gray-700);
+        cursor: pointer;
+        text-decoration: none;
+        transition: all .2s;
+    }
+    .filter-bar .f-clear:hover { background: var(--gray-100); }
+    .filter-count {
+        font-size: 13px;
+        color: var(--gray-500);
+        margin-left: auto;
+    }
+    .filter-count strong { color: var(--orange); font-weight: 700; }
+
+    @media print {
+        .sidebar, .topbar, .topbar-actions, .filter-bar { display: none !important; }
+        .main { margin-left: 0 !important; }
+        .content { padding: 10px !important; }
+        body { background: white !important; }
+        .qr-grid { grid-template-columns: repeat(3, 1fr); gap: 12px; }
+        .qr-mini-card { break-inside: avoid; box-shadow: none; border: 1px solid #ccc; }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Filter Bar -->
+<form method="get" class="filter-bar">
+    <span class="f-label">Filter:</span>
+    <select name="department">
+        <option value="">Barcha bo'limlar</option>
+        {% for dept in departments %}
+        <option value="{{ dept.pk }}" {% if filter_dept == dept.pk|stringformat:"d" %}selected{% endif %}>{{ dept.name }}</option>
+        {% endfor %}
+    </select>
+    <select name="shift">
+        <option value="">Barcha smenalar</option>
+        {% for s in shifts %}
+        <option value="{{ s.pk }}" {% if filter_shift == s.pk|stringformat:"d" %}selected{% endif %}>{{ s.name }}</option>
+        {% endfor %}
+    </select>
+    <input type="text" name="q" value="{{ filter_search }}" placeholder="Ism bo'yicha qidirish...">
+    <button type="submit" class="f-btn">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width:14px;height:14px;vertical-align:middle;margin-right:4px"><path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z"/></svg>
+        Qidirish
+    </button>
+    {% if filter_dept or filter_shift or filter_search %}
+    <a href="{% url 'ceo:qr_cards_all' %}" class="f-clear">Tozalash</a>
+    {% endif %}
+    <span class="filter-count"><strong>{{ user_cards|length }}</strong> hodim</span>
+</form>
+
+{% if user_cards %}
+<div class="qr-grid">
+    {% for card in user_cards %}
+    <div class="qr-mini-card">
+        <div class="card-top">
+            <div class="name">{{ card.user.name }}</div>
+        </div>
+        <div class="card-body">
+            <img src="{% url 'attendance:qr_image' card.user.pk %}" alt="QR">
+        </div>
+        <div class="card-footer">
+            <div class="qr-brand-mini">
+                <div class="b-icon">Z</div>
+                <div class="b-text">Zenko</div>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% else %}
+<div class="card">
+    <div class="empty-state">
+        <p>Hodimlar topilmadi</p>
+    </div>
+</div>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,305 @@
+{% extends "ceo/base.html" %}
+
+{% block title %}{{ shift.name }} — Statistika{% endblock %}
+{% block page_title %}{{ shift.name }} — smena statistikasi{% endblock %}
+
+{% block topbar_actions %}
+<a href="{% url 'ceo:attendance_stats' %}?period={{ period }}&from_date={{ from_date }}&to_date={{ to_date }}" class="btn btn-secondary">
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width:16px;height:16px"><path stroke-linecap="round" stroke-linejoin="round" d="M9 15 3 9m0 0 6-6M3 9h12a6 6 0 0 1 0 12h-3"/></svg>
+    Orqaga
+</a>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    @keyframes fadeInUp { from { opacity:0; transform:translateY(20px); } to { opacity:1; transform:translateY(0); } }
+    @keyframes slideDown { from { opacity:0; transform:translateY(-10px); } to { opacity:1; transform:translateY(0); } }
+    @keyframes countPop { from { opacity:0; transform:scale(.5); } to { opacity:1; transform:scale(1); } }
+    @keyframes progressFill { from { width:0%; } }
+    @keyframes barGrow { from { height:0; } }
+
+    .anim-up { animation: fadeInUp .5s ease both; }
+
+    /* Header Card */
+    .shift-header {
+        background: linear-gradient(135deg, var(--black) 0%, #2D2D2D 100%);
+        border-radius: 16px;
+        padding: 28px 32px;
+        color: var(--white);
+        margin-bottom: 24px;
+        animation: fadeInUp .5s ease both;
+        display: flex;
+        align-items: center;
+        gap: 24px;
+    }
+    .shift-icon {
+        width: 64px; height: 64px;
+        background: var(--orange);
+        border-radius: 16px;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 28px; font-weight: 800;
+        flex-shrink: 0;
+    }
+    .shift-meta h2 { font-size: 22px; font-weight: 800; margin-bottom: 4px; }
+    .shift-meta .sub { opacity: .7; font-size: 14px; }
+    .shift-badge {
+        margin-left: auto;
+        background: rgba(255,255,255,.15);
+        padding: 8px 20px;
+        border-radius: 12px;
+        text-align: center;
+    }
+    .shift-badge .big { font-size: 28px; font-weight: 800; display: block; }
+    .shift-badge .lbl { font-size: 11px; opacity: .7; }
+
+    /* Period Selector */
+    .period-bar {
+        background: var(--white);
+        border-radius: 14px;
+        border: 1px solid var(--gray-200);
+        padding: 16px 24px;
+        margin-bottom: 24px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        flex-wrap: wrap;
+        animation: slideDown .4s ease both;
+    }
+    .period-bar .label { font-size: 13px; font-weight: 600; color: var(--gray-700); }
+    .period-btn {
+        padding: 7px 18px; border-radius: 8px; font-size: 13px; font-weight: 600;
+        border: 1px solid var(--gray-200); background: var(--white); color: var(--gray-700);
+        cursor: pointer; text-decoration: none; transition: all .2s;
+    }
+    .period-btn:hover { background: var(--gray-100); }
+    .period-btn.active { background: var(--orange); color: var(--white); border-color: var(--orange); }
+    .period-custom { display:flex; align-items:center; gap:8px; margin-left:auto; }
+    .period-custom input { padding:6px 10px; border:1px solid var(--gray-200); border-radius:8px; font-size:12px; }
+    .period-custom input:focus { outline:none; border-color:var(--orange); }
+    .period-custom button { padding:6px 14px; border-radius:8px; font-size:12px; font-weight:600; border:none; background:var(--orange); color:var(--white); cursor:pointer; }
+
+    /* Stats Cards */
+    .stats-row {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+        gap: 14px;
+        margin-bottom: 24px;
+    }
+    .s-card {
+        background: var(--white); border-radius: 14px; border: 1px solid var(--gray-200);
+        padding: 18px 16px; position:relative; overflow:hidden;
+        transition: all .3s; animation: fadeInUp .5s ease both;
+    }
+    .s-card:hover { transform:translateY(-4px); box-shadow:0 8px 25px rgba(0,0,0,.08); }
+    .s-card::before { content:''; position:absolute; top:0; left:0; width:4px; height:100%; border-radius:4px 0 0 4px; }
+    .s-card.c-green::before { background:#22C55E; }
+    .s-card.c-orange::before { background:#F97316; }
+    .s-card.c-red::before { background:#EF4444; }
+    .s-card.c-purple::before { background:#8B5CF6; }
+    .s-card.c-teal::before { background:#14B8A6; }
+    .s-card.c-blue::before { background:#3B82F6; }
+    .s-card .s-val { font-size:24px; font-weight:800; color:var(--black); animation:countPop .6s ease both; }
+    .s-card .s-lbl { font-size:11px; color:var(--gray-500); font-weight:500; margin-top:4px; }
+
+    /* Rate Bar */
+    .rate-box {
+        background: var(--white); border-radius: 14px; border: 1px solid var(--gray-200);
+        padding: 20px 24px; margin-bottom: 24px; animation: fadeInUp .5s ease .3s both;
+    }
+    .rate-box .r-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; }
+    .rate-box .r-header h4 { font-size:13px; font-weight:600; color:var(--gray-700); }
+    .rate-box .r-header .r-val { font-size:22px; font-weight:800; color:var(--orange); }
+    .r-bar { height:10px; background:var(--gray-100); border-radius:10px; overflow:hidden; }
+    .r-bar .r-fill { height:100%; border-radius:10px; background:linear-gradient(90deg,#F97316,#F59E0B); animation:progressFill 1.2s ease .5s both; }
+
+    /* Employee Table */
+    .emp-section {
+        background: var(--white); border-radius: 14px; border: 1px solid var(--gray-200);
+        padding: 24px; margin-bottom: 24px; animation: fadeInUp .5s ease .4s both;
+    }
+    .emp-section h3 { font-size:15px; font-weight:700; margin-bottom:20px; color:var(--black); display:flex; align-items:center; gap:8px; }
+    .emp-section h3 .badge { background:var(--orange-light); color:var(--orange); padding:2px 10px; border-radius:12px; font-size:11px; font-weight:700; }
+
+    .emp-table { width:100%; border-collapse:collapse; }
+    .emp-table th {
+        text-align:left; padding:10px 12px; font-size:11px; font-weight:600;
+        color:var(--gray-500); text-transform:uppercase; letter-spacing:.5px;
+        border-bottom:2px solid var(--gray-200);
+    }
+    .emp-table td { padding:12px; font-size:13px; border-bottom:1px solid var(--gray-100); }
+    .emp-table tr:hover td { background:var(--gray-100); }
+    .emp-table .name-cell { display:flex; align-items:center; gap:10px; }
+    .emp-table .avatar {
+        width:32px; height:32px; border-radius:50%; background:var(--orange-light);
+        color:var(--orange); display:flex; align-items:center; justify-content:center;
+        font-weight:700; font-size:12px; flex-shrink:0;
+    }
+    .emp-table .name-text { font-weight:600; color:var(--black); }
+    .emp-table .name-sub { font-size:11px; color:var(--gray-500); }
+    .tag { display:inline-block; padding:2px 8px; border-radius:6px; font-size:10px; font-weight:600; }
+    .tag.green { background:#F0FDF4; color:#22C55E; }
+    .tag.orange { background:#FFF7ED; color:#F97316; }
+    .tag.red { background:#FEF2F2; color:#EF4444; }
+    .rate-pill { font-weight:800; font-size:14px; color:var(--orange); }
+
+    /* Chart */
+    .chart-section {
+        background: var(--white); border-radius: 14px; border: 1px solid var(--gray-200);
+        padding: 24px; margin-bottom: 24px; animation: fadeInUp .5s ease .5s both;
+    }
+    .chart-section h3 { font-size:15px; font-weight:700; margin-bottom:20px; color:var(--black); }
+    .chart-bars { display:flex; align-items:flex-end; gap:10px; height:160px; padding:0 8px; overflow-x:auto; }
+    .chart-col { flex:1; min-width:36px; display:flex; flex-direction:column; align-items:center; gap:4px; height:100%; justify-content:flex-end; }
+    .bar-stack { width:100%; max-width:40px; display:flex; flex-direction:column; justify-content:flex-end; border-radius:6px 6px 2px 2px; overflow:hidden; animation:barGrow .8s ease both; }
+    .bar-seg { transition:height .5s ease; }
+    .bar-seg.present { background:#22C55E; }
+    .bar-seg.late { background:#F97316; }
+    .bar-count { font-size:11px; font-weight:700; color:var(--black); }
+    .bar-label { font-size:10px; color:var(--gray-500); }
+    .bar-date { font-size:9px; color:var(--gray-500); }
+    .chart-legend { display:flex; gap:16px; margin-top:16px; justify-content:center; }
+    .legend-item { display:flex; align-items:center; gap:6px; font-size:12px; color:var(--gray-700); }
+    .legend-dot { width:10px; height:10px; border-radius:3px; }
+    .legend-dot.green { background:#22C55E; }
+    .legend-dot.orange { background:#F97316; }
+
+    .empty-box { text-align:center; padding:40px; color:var(--gray-500); font-size:14px; }
+
+    @media (max-width: 768px) {
+        .shift-header { flex-direction:column; text-align:center; }
+        .shift-badge { margin-left:0; }
+        .stats-row { grid-template-columns: repeat(2, 1fr); }
+        .emp-table { font-size:12px; }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Shift Header -->
+<div class="shift-header">
+    <div class="shift-icon">{{ shift.name|make_list|first }}</div>
+    <div class="shift-meta">
+        <h2>{{ shift.name }}</h2>
+        <div class="sub">{{ shift.start_time|time:"H:i" }} — {{ shift.end_time|time:"H:i" }} &nbsp;|&nbsp; {{ total_emp }} hodim</div>
+    </div>
+    <div class="shift-badge">
+        <span class="big">{{ rate }}%</span>
+        <span class="lbl">Davomat</span>
+    </div>
+</div>
+
+<!-- Period -->
+<div class="period-bar">
+    <span class="label">Davr:</span>
+    <a href="?period=today" class="period-btn {% if period == 'today' %}active{% endif %}">Bugun</a>
+    <a href="?period=week" class="period-btn {% if period == 'week' %}active{% endif %}">Hafta</a>
+    <a href="?period=month" class="period-btn {% if period == 'month' %}active{% endif %}">Oy</a>
+    <form method="get" class="period-custom">
+        <input type="hidden" name="period" value="custom">
+        <input type="date" name="from_date" value="{{ from_date }}">
+        <span style="color:var(--gray-500)">—</span>
+        <input type="date" name="to_date" value="{{ to_date }}">
+        <button type="submit">Qo'llash</button>
+    </form>
+</div>
+
+<!-- Stats Cards -->
+<div class="stats-row">
+    <div class="s-card c-blue" style="animation-delay:.1s"><div class="s-val">{{ total }}</div><div class="s-lbl">Jami yozuv</div></div>
+    <div class="s-card c-green" style="animation-delay:.15s"><div class="s-val">{{ present }}</div><div class="s-lbl">Keldi</div></div>
+    <div class="s-card c-orange" style="animation-delay:.2s"><div class="s-val">{{ late }}</div><div class="s-lbl">Kechikdi</div></div>
+    <div class="s-card c-red" style="animation-delay:.25s"><div class="s-val">{{ early_leave }}</div><div class="s-lbl">Erta ketdi</div></div>
+    <div class="s-card c-purple" style="animation-delay:.3s"><div class="s-val">{{ overtime }}</div><div class="s-lbl">Qo'shimcha</div></div>
+    <div class="s-card c-teal" style="animation-delay:.35s"><div class="s-val">{{ active_now }}</div><div class="s-lbl">Hozir ishda</div></div>
+</div>
+
+<!-- Rate Bar -->
+<div class="rate-box">
+    <div class="r-header">
+        <h4>O'z vaqtida kelish darajasi</h4>
+        <span class="r-val">{{ rate }}%</span>
+    </div>
+    <div class="r-bar">
+        <div class="r-fill" style="width:{{ rate }}%"></div>
+    </div>
+</div>
+
+<!-- Employee Table -->
+<div class="emp-section">
+    <h3>
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width:18px;height:18px"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19.128a9.38 9.38 0 0 0 2.625.372 9.337 9.337 0 0 0 4.121-.952 4.125 4.125 0 0 0-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 0 1 8.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0 1 11.964-3.07M12 6.375a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0Zm8.25 2.25a2.625 2.625 0 1 1-5.25 0 2.625 2.625 0 0 1 5.25 0Z"/></svg>
+        Hodimlar
+        <span class="badge">{{ emp_stats|length }}</span>
+    </h3>
+    {% if emp_stats %}
+    <table class="emp-table">
+        <thead>
+            <tr>
+                <th>#</th>
+                <th>Hodim</th>
+                <th>Jami</th>
+                <th>Keldi</th>
+                <th>Kechikdi</th>
+                <th>Erta ketdi</th>
+                <th>Daraja</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for e in emp_stats %}
+            <tr>
+                <td>{{ forloop.counter }}</td>
+                <td>
+                    <div class="name-cell">
+                        <div class="avatar">{{ e.user.name|make_list|first }}</div>
+                        <div>
+                            <div class="name-text">{{ e.user.name }}</div>
+                            <div class="name-sub">{{ e.user.department.name|default:"—" }}</div>
+                        </div>
+                    </div>
+                </td>
+                <td>{{ e.total }}</td>
+                <td><span class="tag green">{{ e.present }}</span></td>
+                <td><span class="tag orange">{{ e.late }}</span></td>
+                <td><span class="tag red">{{ e.early_leave }}</span></td>
+                <td><span class="rate-pill">{{ e.rate }}%</span></td>
+                <td>
+                    <a href="{% url 'ceo:user_stats_detail' e.user.pk %}?period={{ period }}&from_date={{ from_date }}&to_date={{ to_date }}" style="color:var(--orange);font-size:12px;font-weight:600;text-decoration:none;">Batafsil →</a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <div class="empty-box">Bu smenada hodimlar topilmadi</div>
+    {% endif %}
+</div>
+
+<!-- Daily Trend -->
+{% if daily %}
+<div class="chart-section">
+    <h3>📊 Kunlik trend</h3>
+    <div class="chart-bars">
+        {% for day in daily %}
+        <div class="chart-col" style="animation-delay:{{ forloop.counter0 }}50ms">
+            <div class="bar-count">{{ day.total }}</div>
+            <div class="bar-stack" style="height:{{ day.total|floatformat:0 }}%;max-height:100%;">
+                {% if day.present %}
+                <div class="bar-seg present" style="height:{% widthratio day.present max_daily 140 %}px; min-height:4px;"></div>
+                {% endif %}
+                {% if day.late %}
+                <div class="bar-seg late" style="height:{% widthratio day.late max_daily 140 %}px; min-height:4px;"></div>
+                {% endif %}
+            </div>
+            <div class="bar-label">{{ day.day_name }}</div>
+            <div class="bar-date">{{ day.date|date:"d.m" }}</div>
+        </div>
+        {% endfor %}
+    </div>
+    <div class="chart-legend">
+        <div class="legend-item"><span class="legend-dot green"></span> Keldi</div>
+        <div class="legend-item"><span class="legend-dot orange"></span> Kechikdi</div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}

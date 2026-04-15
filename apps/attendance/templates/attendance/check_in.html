@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kirish — Zenko Davomat</title>
+    <style>
+        :root {
+            --primary: #22C55E;
+            --primary-dark: #16A34A;
+            --primary-light: #F0FDF4;
+            --bg: #0A0F1C;
+            --card-bg: #111827;
+            --border: #1F2937;
+            --white: #FFFFFF;
+            --gray: #9CA3AF;
+            --text: #F9FAFB;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 32px;
+        }
+        .header .logo {
+            width: 60px; height: 60px;
+            background: var(--primary);
+            border-radius: 16px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+            font-weight: 800;
+            color: var(--white);
+            margin-bottom: 16px;
+            box-shadow: 0 0 40px rgba(34, 197, 94, .3);
+        }
+        .header h1 {
+            font-size: 32px;
+            font-weight: 800;
+            color: var(--white);
+            margin-bottom: 8px;
+        }
+        .header p { color: var(--gray); font-size: 16px; }
+
+        .scanner-container {
+            width: 100%;
+            max-width: 480px;
+            background: var(--card-bg);
+            border-radius: 24px;
+            border: 1px solid var(--border);
+            overflow: hidden;
+            box-shadow: 0 20px 60px rgba(0,0,0,.4);
+        }
+
+        .scanner-box {
+            position: relative;
+            width: 100%;
+            aspect-ratio: 1;
+            background: #000;
+            overflow: hidden;
+        }
+
+        .scanner-box #reader {
+            width: 100% !important;
+            height: 100% !important;
+        }
+        .scanner-box #reader video {
+            width: 100% !important;
+            height: 100% !important;
+            object-fit: cover !important;
+        }
+        #reader img[alt="Info icon"] { display: none !important; }
+        #reader__dashboard { display: none !important; }
+        #reader__scan_region > img { display: none !important; }
+
+        .scan-overlay {
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+            z-index: 10;
+        }
+        .scan-overlay::before {
+            content: '';
+            position: absolute;
+            top: 50%; left: 50%;
+            width: 220px; height: 220px;
+            transform: translate(-50%, -50%);
+            border: 3px solid var(--primary);
+            border-radius: 24px;
+            box-shadow: 0 0 0 9999px rgba(0,0,0,.5);
+            animation: pulse-border 2s infinite;
+        }
+        @keyframes pulse-border {
+            0%, 100% { border-color: var(--primary); box-shadow: 0 0 0 9999px rgba(0,0,0,.5), 0 0 20px rgba(34,197,94,.3); }
+            50% { border-color: #86EFAC; box-shadow: 0 0 0 9999px rgba(0,0,0,.5), 0 0 30px rgba(34,197,94,.5); }
+        }
+
+        .scan-line {
+            position: absolute;
+            top: 50%; left: 50%;
+            width: 200px;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, var(--primary), transparent);
+            transform: translate(-50%, -50%);
+            animation: scan-move 2s ease-in-out infinite;
+            z-index: 11;
+        }
+        @keyframes scan-move {
+            0%, 100% { margin-top: -90px; }
+            50% { margin-top: 90px; }
+        }
+
+        .status-bar {
+            padding: 20px 24px;
+            text-align: center;
+        }
+        .status-bar .status-text {
+            font-size: 15px;
+            color: var(--gray);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        .status-bar .status-text .dot {
+            width: 8px; height: 8px;
+            background: var(--primary);
+            border-radius: 50%;
+            animation: blink 1.5s infinite;
+        }
+        @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: .3; } }
+
+        /* Result overlay */
+        .result-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,.8);
+            backdrop-filter: blur(12px);
+            z-index: 100;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .result-overlay.show { display: flex; }
+
+        .result-card {
+            background: var(--card-bg);
+            border-radius: 24px;
+            border: 1px solid var(--border);
+            padding: 40px 32px;
+            max-width: 400px;
+            width: 100%;
+            text-align: center;
+        }
+
+        .result-icon {
+            width: 80px; height: 80px;
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+        .result-icon.success { background: var(--primary-light); }
+        .result-icon.error { background: #FEF2F2; }
+        .result-icon svg { width: 40px; height: 40px; }
+        .result-icon.success svg { color: var(--primary); }
+        .result-icon.error svg { color: #EF4444; }
+
+        .result-card h2 { font-size: 22px; font-weight: 700; margin-bottom: 8px; }
+        .result-card .result-msg { font-size: 15px; color: var(--gray); margin-bottom: 20px; }
+
+        .result-details {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+        .result-detail-item {
+            background: rgba(255,255,255,.05);
+            border-radius: 12px;
+            padding: 12px;
+        }
+        .result-detail-item .label { font-size: 11px; color: var(--gray); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px; }
+        .result-detail-item .value { font-size: 18px; font-weight: 700; }
+
+        .btn-close-result {
+            background: var(--primary);
+            color: var(--white);
+            border: none;
+            padding: 12px 32px;
+            border-radius: 12px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background .2s;
+        }
+        .btn-close-result:hover { background: var(--primary-dark); }
+
+        .time-display {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 10px 18px;
+            font-size: 14px;
+            color: var(--gray);
+        }
+        .time-display .time { font-size: 20px; font-weight: 700; color: var(--white); }
+
+        .nav-link-bottom {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: var(--gray);
+            text-decoration: none;
+            font-size: 14px;
+            padding: 10px 24px;
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            transition: all .2s;
+        }
+        .nav-link-bottom:hover { color: var(--white); border-color: var(--primary); }
+    </style>
+</head>
+<body>
+    <div class="time-display">
+        <div class="time" id="clock">--:--</div>
+        <div id="dateDisplay"></div>
+    </div>
+
+    <div class="header">
+        <div class="logo">Z</div>
+        <h1>Kirish</h1>
+        <p>QR kodni kameraga ko'rsating</p>
+    </div>
+
+    <div class="scanner-container">
+        <div class="scanner-box">
+            <div id="reader"></div>
+            <div class="scan-overlay"></div>
+            <div class="scan-line"></div>
+        </div>
+        <div class="status-bar">
+            <div class="status-text">
+                <span class="dot"></span>
+                <span id="statusText">Kamera tayyor — QR kodni ko'rsating</span>
+            </div>
+        </div>
+    </div>
+
+    <a href="{% url 'attendance:check_out' %}" class="nav-link-bottom">Chiqish sahifasiga o'tish →</a>
+
+    <!-- Result Overlay -->
+    <div class="result-overlay" id="resultOverlay">
+        <div class="result-card">
+            <div class="result-icon" id="resultIcon">
+                <svg id="successSvg" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5"/></svg>
+                <svg id="errorSvg" style="display:none" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12"/></svg>
+            </div>
+            <h2 id="resultTitle"></h2>
+            <p class="result-msg" id="resultMsg"></p>
+            <div class="result-details" id="resultDetails"></div>
+            <button class="btn-close-result" onclick="closeResult()">Davom etish</button>
+        </div>
+    </div>
+
+    <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+    <script>
+        // Clock
+        function updateClock() {
+            const now = new Date();
+            document.getElementById('clock').textContent = now.toLocaleTimeString('uz', {hour:'2-digit', minute:'2-digit'});
+            document.getElementById('dateDisplay').textContent = now.toLocaleDateString('uz', {year:'numeric', month:'long', day:'numeric'});
+        }
+        updateClock();
+        setInterval(updateClock, 1000);
+
+        // Scanner
+        let scanning = true;
+        const html5QrCode = new Html5Qrcode('reader');
+
+        html5QrCode.start(
+            { facingMode: 'environment' },
+            { fps: 10, qrbox: { width: 220, height: 220 }, aspectRatio: 1.0 },
+            onScanSuccess,
+            () => {}
+        ).catch(err => {
+            document.getElementById('statusText').textContent = 'Kamerani yoqib bo\'lmadi: ' + err;
+        });
+
+        function onScanSuccess(decodedText) {
+            if (!scanning) return;
+            scanning = false;
+            document.getElementById('statusText').textContent = 'Tekshirilmoqda...';
+
+            fetch('{% url "attendance:api_check_in" %}', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+                body: 'token=' + encodeURIComponent(decodedText)
+            })
+            .then(r => r.json())
+            .then(data => {
+                showResult(data);
+            })
+            .catch(() => {
+                showResult({ok: false, msg: 'Tarmoq xatosi yuz berdi'});
+            });
+        }
+
+        function showResult(data) {
+            const overlay = document.getElementById('resultOverlay');
+            const icon = document.getElementById('resultIcon');
+            const title = document.getElementById('resultTitle');
+            const msg = document.getElementById('resultMsg');
+            const details = document.getElementById('resultDetails');
+
+            if (data.ok) {
+                icon.className = 'result-icon success';
+                document.getElementById('successSvg').style.display = '';
+                document.getElementById('errorSvg').style.display = 'none';
+                title.textContent = data.user_name || 'Muvaffaqiyat!';
+                msg.textContent = data.msg;
+                details.innerHTML = `
+                    <div class="result-detail-item">
+                        <div class="label">Vaqt</div>
+                        <div class="value">${data.time || '--:--'}</div>
+                    </div>
+                    <div class="result-detail-item">
+                        <div class="label">Smena</div>
+                        <div class="value">${data.shift || '—'}</div>
+                    </div>
+                    <div class="result-detail-item">
+                        <div class="label">Holat</div>
+                        <div class="value" style="color:var(--primary)">${data.status || 'Keldi'}</div>
+                    </div>
+                    <div class="result-detail-item">
+                        <div class="label">Sana</div>
+                        <div class="value">${new Date().toLocaleDateString('uz')}</div>
+                    </div>
+                `;
+            } else {
+                icon.className = 'result-icon error';
+                document.getElementById('successSvg').style.display = 'none';
+                document.getElementById('errorSvg').style.display = '';
+                title.textContent = 'Xatolik';
+                msg.textContent = data.msg;
+                details.innerHTML = '';
+            }
+            overlay.classList.add('show');
+        }
+
+        function closeResult() {
+            document.getElementById('resultOverlay').classList.remove('show');
+            document.getElementById('statusText').textContent = 'Kamera tayyor — QR kodni ko\'rsating';
+            scanning = true;
+        }
+
+        // Auto-close result after 5 seconds
+        const observer = new MutationObserver(() => {
+            const overlay = document.getElementById('resultOverlay');
+            if (overlay.classList.contains('show')) {
+                setTimeout(() => { if (overlay.classList.contains('show')) closeResult(); }, 5000);
+            }
+        });
+        observer.observe(document.getElementById('resultOverlay'), {attributes: true});
+    </script>
+</body>
+</html>

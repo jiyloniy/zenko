@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kirish — Zenko CRM</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Inter', system-ui, sans-serif;
+            min-height: 100vh;
+            display: grid;
+            place-items: center;
+            background: #09090B;
+            color: #FAFAFA;
+            overflow: hidden;
+        }
+
+        /* Animated gradient background */
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background:
+                radial-gradient(ellipse 600px 400px at 20% 80%, rgba(245,130,32,.06) 0%, transparent 70%),
+                radial-gradient(ellipse 500px 500px at 80% 20%, rgba(245,130,32,.04) 0%, transparent 70%);
+            pointer-events: none;
+        }
+
+        .card {
+            width: 380px;
+            padding: 44px 36px 40px;
+            background: rgba(255,255,255,.03);
+            border: 1px solid rgba(255,255,255,.06);
+            border-radius: 24px;
+            backdrop-filter: blur(20px);
+            position: relative;
+        }
+
+        /* Top accent line */
+        .card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 50%;
+            transform: translateX(-50%);
+            width: 60px;
+            height: 3px;
+            background: #F58220;
+            border-radius: 0 0 4px 4px;
+        }
+
+        /* Brand */
+        .brand {
+            text-align: center;
+            margin-bottom: 36px;
+        }
+
+        .brand-mark {
+            width: 48px;
+            height: 48px;
+            background: linear-gradient(135deg, #F58220, #E06A10);
+            border-radius: 14px;
+            display: inline-grid;
+            place-items: center;
+            font-weight: 900;
+            font-size: 20px;
+            color: #fff;
+            margin-bottom: 14px;
+            box-shadow: 0 8px 24px rgba(245,130,32,.25);
+        }
+
+        .brand-name {
+            font-size: 20px;
+            font-weight: 800;
+            letter-spacing: 5px;
+            color: #FAFAFA;
+        }
+
+        .brand-label {
+            font-size: 9px;
+            font-weight: 700;
+            letter-spacing: 5px;
+            color: #F58220;
+            text-transform: uppercase;
+            margin-top: 3px;
+        }
+
+        /* Error */
+        .error-msg {
+            background: rgba(239,68,68,.06);
+            border: 1px solid rgba(239,68,68,.15);
+            border-radius: 12px;
+            padding: 10px 16px;
+            margin-bottom: 20px;
+            color: #f87171;
+            font-size: 13px;
+            text-align: center;
+            font-weight: 500;
+        }
+
+        /* Fields */
+        .field {
+            position: relative;
+            margin-bottom: 14px;
+        }
+
+        .field input {
+            width: 100%;
+            padding: 13px 16px 13px 44px;
+            background: rgba(255,255,255,.04);
+            border: 1.5px solid rgba(255,255,255,.08);
+            border-radius: 14px;
+            color: #FAFAFA;
+            font-family: inherit;
+            font-size: 14px;
+            font-weight: 500;
+            outline: none;
+            transition: border-color .25s, box-shadow .25s, background .25s;
+        }
+
+        .field input:hover {
+            border-color: rgba(255,255,255,.14);
+            background: rgba(255,255,255,.05);
+        }
+
+        .field input:focus {
+            border-color: #F58220;
+            background: rgba(245,130,32,.04);
+            box-shadow: 0 0 0 3px rgba(245,130,32,.1);
+        }
+
+        .field input::placeholder {
+            color: #52525B;
+            font-weight: 400;
+        }
+
+        .ico {
+            position: absolute;
+            left: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #52525B;
+            pointer-events: none;
+            transition: color .25s;
+        }
+
+        .field input:focus ~ .ico { color: #F58220; }
+
+        .ico svg { width: 17px; height: 17px; display: block; }
+
+        /* Submit */
+        .submit {
+            width: 100%;
+            padding: 13px;
+            margin-top: 10px;
+            background: linear-gradient(135deg, #F58220, #E06A10);
+            color: #fff;
+            border: none;
+            border-radius: 14px;
+            font-family: inherit;
+            font-size: 14px;
+            font-weight: 700;
+            letter-spacing: .5px;
+            cursor: pointer;
+            transition: transform .15s, box-shadow .25s;
+            box-shadow: 0 4px 16px rgba(245,130,32,.25);
+        }
+
+        .submit:hover {
+            box-shadow: 0 6px 24px rgba(245,130,32,.35);
+            transform: translateY(-1px);
+        }
+
+        .submit:active { transform: scale(.98) translateY(0); }
+
+        /* Footer */
+        .footer {
+            text-align: center;
+            margin-top: 24px;
+            font-size: 11px;
+            color: #3F3F46;
+            font-weight: 500;
+        }
+
+        @media (max-width: 420px) {
+            .card {
+                width: calc(100vw - 32px);
+                padding: 36px 24px 32px;
+                border-radius: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <div class="brand">
+            <div class="brand-name">ZENKO</div>
+            <div class="brand-label">CRM</div>
+        </div>
+
+        {% if error %}
+        <div class="error-msg">{{ error }}</div>
+        {% endif %}
+
+        <form method="post">
+            {% csrf_token %}
+            <div class="field">
+                <input type="text" name="username" placeholder="Username" autofocus required>
+                <span class="ico">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z"/></svg>
+                </span>
+            </div>
+            <div class="field">
+                <input type="password" name="password" placeholder="Parol" required>
+                <span class="ico">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 1 0-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 0 0 2.25-2.25v-6.75a2.25 2.25 0 0 0-2.25-2.25H6.75a2.25 2.25 0 0 0-2.25 2.25v6.75a2.25 2.25 0 0 0 2.25 2.25Z"/></svg>
+                </span>
+            </div>
+            <button type="submit" class="submit">Kirish</button>
+        </form>
+
+        <div class="footer">Zenko CRM &copy; 2026</div>
+    </div>
+</body>
+</html>

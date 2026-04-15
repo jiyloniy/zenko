@@ -1,0 +1,62 @@
+{% extends "boss/base.html" %}
+
+{% block title %}Smenalar — Zenko BOSS{% endblock %}
+{% block page_title %}Smenalar{% endblock %}
+
+{% block topbar_actions %}
+<a href="{% url 'boss:shift_create' %}" class="btn btn-primary btn-sm">
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>
+    Yangi smena
+</a>
+{% endblock %}
+
+{% block content %}
+<div class="card">
+    {% if shifts %}
+    <div class="table-wrapper">
+        <table>
+            <thead>
+                <tr>
+                    <th>Nomi</th>
+                    <th>Ish vaqti</th>
+                    <th>Tanaffus</th>
+                    <th>Filial</th>
+                    <th>Amallar</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for s in shifts %}
+                <tr>
+                    <td><strong>{{ s.name }}</strong></td>
+                    <td>{{ s.start_time|time:"H:i" }} — {{ s.end_time|time:"H:i" }}</td>
+                    <td>
+                        {% if s.break_start and s.break_end %}
+                        {{ s.break_start|time:"H:i" }} — {{ s.break_end|time:"H:i" }}
+                        {% else %}—{% endif %}
+                    </td>
+                    <td>
+                        {% if s.branch %}
+                        <span class="badge badge-purple">{{ s.branch.name }}</span>
+                        {% else %}
+                        <span class="badge badge-gray">—</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <div class="actions-cell">
+                            <a href="{% url 'boss:shift_update' s.pk %}" class="btn btn-sm btn-secondary">Tahrirlash</a>
+                            <a href="{% url 'boss:shift_delete' s.pk %}" class="btn btn-sm btn-danger">O'chirish</a>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="empty-state">
+        <p>Hali smenalar qo'shilmagan</p>
+        <a href="{% url 'boss:shift_create' %}" class="btn btn-primary">Smena qo'shish</a>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

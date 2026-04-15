@@ -1,0 +1,54 @@
+{% extends "ceo/base.html" %}
+
+{% block title %}Bo'limlar — Zenko CEO{% endblock %}
+{% block page_title %}Bo'limlar{% endblock %}
+
+{% block topbar_actions %}
+<a href="{% url 'ceo:department_create' %}" class="btn btn-primary">
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>
+    Yangi bo'lim
+</a>
+{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="table-wrapper">
+        <table>
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Nomi</th>
+                    <th>Tavsif</th>
+                    <th>Hodimlar soni</th>
+                    <th>Yaratilgan</th>
+                    <th>Amallar</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for dep in departments %}
+                <tr>
+                    <td>{{ forloop.counter }}</td>
+                    <td><strong>{{ dep.name }}</strong></td>
+                    <td>{{ dep.description|default:"—"|truncatewords:8 }}</td>
+                    <td><span class="badge badge-orange">{{ dep.users.count }}</span></td>
+                    <td>{{ dep.created_at|date:"d.m.Y" }}</td>
+                    <td>
+                        <div class="actions-cell">
+                            <a href="{% url 'ceo:department_update' dep.pk %}" class="btn btn-secondary btn-sm">Tahrirlash</a>
+                            <a href="{% url 'ceo:department_delete' dep.pk %}" class="btn btn-danger btn-sm">O'chirish</a>
+                        </div>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="6">
+                    <div class="empty-state">
+                        <p>Hali bo'limlar qo'shilmagan</p>
+                        <a href="{% url 'ceo:department_create' %}" class="btn btn-primary">Birinchi bo'limni qo'shing</a>
+                    </div>
+                </td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

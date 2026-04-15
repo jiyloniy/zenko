@@ -1,0 +1,56 @@
+{% extends "boss/base.html" %}
+
+{% block title %}Bo'limlar — Zenko BOSS{% endblock %}
+{% block page_title %}Bo'limlar{% endblock %}
+
+{% block topbar_actions %}
+<a href="{% url 'boss:department_create' %}" class="btn btn-primary btn-sm">
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>
+    Yangi bo'lim
+</a>
+{% endblock %}
+
+{% block content %}
+<div class="card">
+    {% if departments %}
+    <div class="table-wrapper">
+        <table>
+            <thead>
+                <tr>
+                    <th>Nomi</th>
+                    <th>Filial</th>
+                    <th>Tavsif</th>
+                    <th>Amallar</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for d in departments %}
+                <tr>
+                    <td><strong>{{ d.name }}</strong></td>
+                    <td>
+                        {% if d.branch %}
+                        <span class="badge badge-purple">{{ d.branch.name }}</span>
+                        {% else %}
+                        <span class="badge badge-gray">—</span>
+                        {% endif %}
+                    </td>
+                    <td>{{ d.description|default:"—" }}</td>
+                    <td>
+                        <div class="actions-cell">
+                            <a href="{% url 'boss:department_update' d.pk %}" class="btn btn-sm btn-secondary">Tahrirlash</a>
+                            <a href="{% url 'boss:department_delete' d.pk %}" class="btn btn-sm btn-danger">O'chirish</a>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="empty-state">
+        <p>Hali bo'limlar qo'shilmagan</p>
+        <a href="{% url 'boss:department_create' %}" class="btn btn-primary">Bo'lim qo'shish</a>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

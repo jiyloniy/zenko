@@ -1,0 +1,345 @@
+{% extends "ceo/base.html" %}
+
+{% block title %}{{ title }} — Zenko CEO{% endblock %}
+{% block page_title %}{{ title }}{% endblock %}
+
+{% block topbar_actions %}
+<a href="{% url 'ceo:attendance_list' %}" class="btn btn-secondary">
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width:16px;height:16px"><path stroke-linecap="round" stroke-linejoin="round" d="M9 15 3 9m0 0 6-6M3 9h12a6 6 0 0 1 0 12h-3"/></svg>
+    Orqaga
+</a>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    @keyframes fadeInUp { from { opacity:0; transform:translateY(20px); } to { opacity:1; transform:translateY(0); } }
+
+    .form-card {
+        background: var(--white);
+        border-radius: 16px;
+        border: 1px solid var(--gray-200);
+        padding: 32px;
+        max-width: 640px;
+        animation: fadeInUp .5s ease both;
+    }
+    .form-card h2 {
+        font-size: 18px;
+        font-weight: 700;
+        margin-bottom: 24px;
+        padding-bottom: 16px;
+        border-bottom: 1px solid var(--gray-200);
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+    .form-card h2 .icon {
+        width: 36px; height: 36px;
+        background: var(--orange-light);
+        color: var(--orange);
+        border-radius: 10px;
+        display: flex; align-items: center; justify-content: center;
+    }
+    .form-card h2 .icon svg { width: 18px; height: 18px; }
+
+    .form-group {
+        margin-bottom: 20px;
+    }
+    .form-group label {
+        display: block;
+        font-size: 13px;
+        font-weight: 600;
+        color: var(--gray-700);
+        margin-bottom: 6px;
+    }
+    .form-group select,
+    .form-group input[type="date"],
+    .form-group input[type="datetime-local"] {
+        width: 100%;
+        padding: 10px 14px;
+        border: 1px solid var(--gray-200);
+        border-radius: 10px;
+        font-size: 14px;
+        color: var(--black);
+        background: var(--white);
+        transition: border-color .2s, box-shadow .2s;
+    }
+    .form-group select:focus,
+    .form-group input:focus {
+        outline: none;
+        border-color: var(--orange);
+        box-shadow: 0 0 0 3px rgba(245, 130, 32, .1);
+    }
+
+    .form-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 16px;
+    }
+
+    .checkbox-group {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 12px 16px;
+        background: #F5F3FF;
+        border-radius: 10px;
+        border: 1px solid #E9E5FF;
+    }
+    .checkbox-group input[type="checkbox"] {
+        width: 18px; height: 18px;
+        accent-color: #8B5CF6;
+    }
+    .checkbox-group label {
+        margin-bottom: 0 !important;
+        color: #7C3AED;
+        font-weight: 600;
+    }
+
+    .form-actions {
+        display: flex;
+        gap: 12px;
+        margin-top: 28px;
+        padding-top: 20px;
+        border-top: 1px solid var(--gray-200);
+    }
+    .btn-save {
+        padding: 10px 28px;
+        border-radius: 10px;
+        font-size: 14px;
+        font-weight: 600;
+        border: none;
+        background: var(--orange);
+        color: var(--white);
+        cursor: pointer;
+        transition: background .2s;
+    }
+    .btn-save:hover { background: var(--orange-hover); }
+    .btn-cancel {
+        padding: 10px 28px;
+        border-radius: 10px;
+        font-size: 14px;
+        font-weight: 500;
+        border: 1px solid var(--gray-200);
+        background: var(--white);
+        color: var(--gray-700);
+        text-decoration: none;
+        transition: all .2s;
+    }
+    .btn-cancel:hover { background: var(--gray-100); }
+
+    .error-list {
+        background: #FEF2F2;
+        border: 1px solid #FECACA;
+        border-radius: 10px;
+        padding: 12px 16px;
+        margin-bottom: 20px;
+        color: #DC2626;
+        font-size: 13px;
+    }
+    .error-list ul { margin: 0; padding-left: 20px; }
+
+    {% if edit_mode %}
+    .delete-section {
+        margin-top: 24px;
+        padding-top: 20px;
+        border-top: 1px solid var(--gray-200);
+    }
+    .btn-delete {
+        padding: 8px 20px;
+        border-radius: 8px;
+        font-size: 13px;
+        font-weight: 600;
+        border: 1px solid #FECACA;
+        background: #FEF2F2;
+        color: #DC2626;
+        cursor: pointer;
+        transition: all .2s;
+    }
+    .btn-delete:hover { background: #FEE2E2; }
+    {% endif %}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="form-card">
+    <h2>
+        <span class="icon">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5"/></svg>
+        </span>
+        {{ title }}
+    </h2>
+
+    {% if form.errors %}
+    <div class="error-list">
+        <ul>
+        {% for field in form %}
+            {% for error in field.errors %}
+            <li><strong>{{ field.label }}:</strong> {{ error }}</li>
+            {% endfor %}
+        {% endfor %}
+        {% for error in form.non_field_errors %}
+        <li>{{ error }}</li>
+        {% endfor %}
+        </ul>
+    </div>
+    {% endif %}
+
+    <form method="post">
+        {% csrf_token %}
+
+        <div class="form-group">
+            <label for="id_user">Hodim</label>
+            {{ form.user }}
+        </div>
+
+        <div class="form-row">
+            <div class="form-group">
+                <label for="id_shift">Smena</label>
+                {{ form.shift }}
+            </div>
+            <div class="form-group">
+                <label for="id_date">Sana</label>
+                {{ form.date }}
+            </div>
+        </div>
+
+        <div class="form-row">
+            <div class="form-group">
+                <label for="id_check_in">Kirish vaqti</label>
+                {{ form.check_in }}
+            </div>
+            <div class="form-group">
+                <label for="id_check_out">Chiqish vaqti</label>
+                {{ form.check_out }}
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label for="id_status">Holat</label>
+            {{ form.status }}
+        </div>
+
+        <div class="form-group">
+            <div class="checkbox-group">
+                {{ form.is_overtime }}
+                <label for="id_is_overtime">Qo'shimcha smena</label>
+            </div>
+        </div>
+
+        <div class="form-actions">
+            <button type="submit" class="btn-save">
+                {% if edit_mode %}Saqlash{% else %}Qo'shish{% endif %}
+            </button>
+            <a href="{% url 'ceo:attendance_list' %}" class="btn-cancel">Bekor qilish</a>
+        </div>
+    </form>
+
+    {% if edit_mode %}
+    <div class="delete-section">
+        <form method="post" action="{% url 'ceo:attendance_delete' attendance.pk %}" onsubmit="return confirm('Haqiqatan ham o\'chirmoqchimisiz?')">
+            {% csrf_token %}
+            <button type="submit" class="btn-delete">🗑 Davomatni o'chirish</button>
+        </form>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+{% if users_json %}
+<script>
+(function() {
+    const usersData = JSON.parse('{{ users_json|escapejs }}');
+    const userSelect = document.getElementById('id_user');
+    const shiftSelect = document.getElementById('id_shift');
+    const dateInput = document.getElementById('id_date');
+    const checkInInput = document.getElementById('id_check_in');
+    const checkOutInput = document.getElementById('id_check_out');
+    const statusSelect = document.getElementById('id_status');
+
+    if (!userSelect) return;
+
+    // Bugungi sanani to'ldirish (agar bo'sh bo'lsa)
+    if (dateInput && !dateInput.value) {
+        const today = new Date();
+        dateInput.value = today.toISOString().split('T')[0];
+    }
+
+    function autoFill() {
+        const userId = userSelect.value;
+        if (!userId || !usersData[userId]) return;
+
+        const u = usersData[userId];
+        const dateVal = dateInput.value;
+        if (!dateVal) return;
+
+        // Smenani to'ldirish
+        if (shiftSelect && u.shift_id && !shiftSelect.value) {
+            shiftSelect.value = u.shift_id;
+        }
+
+        // Check-in va Check-out vaqtlarini to'ldirish
+        if (u.shift_start && checkInInput && !checkInInput.value) {
+            checkInInput.value = dateVal + 'T' + u.shift_start;
+        }
+        if (u.shift_end && checkOutInput && !checkOutInput.value) {
+            checkOutInput.value = dateVal + 'T' + u.shift_end;
+        }
+
+        // Kechikish tekshirish va statusni belgilash
+        autoDetectStatus();
+    }
+
+    function autoDetectStatus() {
+        if (!checkInInput || !checkInInput.value || !shiftSelect) return;
+        const userId = userSelect.value;
+        if (!userId || !usersData[userId]) return;
+        const u = usersData[userId];
+        if (!u.shift_start) return;
+
+        const dateVal = dateInput.value;
+        if (!dateVal) return;
+
+        const shiftStart = new Date(dateVal + 'T' + u.shift_start);
+        const checkIn = new Date(checkInInput.value);
+
+        if (statusSelect) {
+            // Agar status hali default holatda bo'lsa
+            if (statusSelect.value === 'present' || statusSelect.value === 'late') {
+                if (checkIn > shiftStart) {
+                    statusSelect.value = 'late';
+                } else {
+                    statusSelect.value = 'present';
+                }
+            }
+        }
+    }
+
+    userSelect.addEventListener('change', function() {
+        // Yangi hodim tanlanganda — yangi qiymatlar bilan to'ldirish
+        if (shiftSelect) shiftSelect.value = '';
+        if (checkInInput) checkInInput.value = '';
+        if (checkOutInput) checkOutInput.value = '';
+        if (statusSelect) statusSelect.value = 'present';
+        autoFill();
+    });
+
+    if (dateInput) {
+        dateInput.addEventListener('change', function() {
+            // Sana o'zgarganda check_in/out ni yangilash
+            const userId = userSelect.value;
+            if (!userId || !usersData[userId]) return;
+            const u = usersData[userId];
+            const dateVal = dateInput.value;
+            if (!dateVal) return;
+            if (u.shift_start && checkInInput) checkInInput.value = dateVal + 'T' + u.shift_start;
+            if (u.shift_end && checkOutInput) checkOutInput.value = dateVal + 'T' + u.shift_end;
+            autoDetectStatus();
+        });
+    }
+
+    if (checkInInput) checkInInput.addEventListener('change', autoDetectStatus);
+})();
+</script>
+{% endif %}
+{% endblock %}

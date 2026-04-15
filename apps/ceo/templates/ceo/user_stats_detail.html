@@ -1,0 +1,494 @@
+{% extends "ceo/base.html" %}
+
+{% block title %}{{ employee.name }} — Statistika{% endblock %}
+{% block page_title %}{{ employee.name }} — shaxsiy statistika{% endblock %}
+
+{% block topbar_actions %}
+<a href="{% url 'ceo:attendance_stats' %}?period={{ period }}&from_date={{ from_date }}&to_date={{ to_date }}" class="btn btn-secondary">
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width:16px;height:16px"><path stroke-linecap="round" stroke-linejoin="round" d="M9 15 3 9m0 0 6-6M3 9h12a6 6 0 0 1 0 12h-3"/></svg>
+    Orqaga
+</a>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    @keyframes fadeInUp { from { opacity:0; transform:translateY(20px); } to { opacity:1; transform:translateY(0); } }
+    @keyframes slideDown { from { opacity:0; transform:translateY(-10px); } to { opacity:1; transform:translateY(0); } }
+    @keyframes countPop { from { opacity:0; transform:scale(.5); } to { opacity:1; transform:scale(1); } }
+    @keyframes progressFill { from { width:0%; } }
+    @keyframes barGrow { from { height:0; } }
+    @keyframes pulse { 0%,100% { opacity:1; } 50% { opacity:.5; } }
+
+    /* Profile Header */
+    .profile-header {
+        background: linear-gradient(135deg, #7C3AED 0%, #A855F7 100%);
+        border-radius: 16px;
+        padding: 28px 32px;
+        color: var(--white);
+        margin-bottom: 24px;
+        animation: fadeInUp .5s ease both;
+        display: flex;
+        align-items: center;
+        gap: 24px;
+    }
+    .profile-avatar {
+        width: 72px; height: 72px;
+        background: rgba(255,255,255,.2);
+        border-radius: 50%;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 30px; font-weight: 800;
+        flex-shrink: 0;
+        border: 3px solid rgba(255,255,255,.3);
+    }
+    .profile-info h2 { font-size: 22px; font-weight: 800; margin-bottom: 6px; }
+    .profile-tags { display: flex; gap: 8px; flex-wrap: wrap; }
+    .p-tag {
+        background: rgba(255,255,255,.15);
+        padding: 4px 12px;
+        border-radius: 8px;
+        font-size: 12px;
+        font-weight: 600;
+    }
+    .profile-stats {
+        margin-left: auto;
+        display: flex;
+        gap: 16px;
+    }
+    .profile-stats .p-item {
+        background: rgba(255,255,255,.15);
+        padding: 10px 20px;
+        border-radius: 12px;
+        text-align: center;
+    }
+    .profile-stats .big { font-size: 24px; font-weight: 800; display: block; }
+    .profile-stats .lbl { font-size: 11px; opacity: .7; }
+
+    /* Period */
+    .period-bar {
+        background: var(--white); border-radius: 14px; border: 1px solid var(--gray-200);
+        padding: 16px 24px; margin-bottom: 24px;
+        display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+        animation: slideDown .4s ease both;
+    }
+    .period-bar .label { font-size: 13px; font-weight: 600; color: var(--gray-700); }
+    .period-btn {
+        padding: 7px 18px; border-radius: 8px; font-size: 13px; font-weight: 600;
+        border: 1px solid var(--gray-200); background: var(--white); color: var(--gray-700);
+        cursor: pointer; text-decoration: none; transition: all .2s;
+    }
+    .period-btn:hover { background: var(--gray-100); }
+    .period-btn.active { background: var(--orange); color: var(--white); border-color: var(--orange); }
+    .period-custom { display:flex; align-items:center; gap:8px; margin-left:auto; }
+    .period-custom input { padding:6px 10px; border:1px solid var(--gray-200); border-radius:8px; font-size:12px; }
+    .period-custom input:focus { outline:none; border-color:var(--orange); }
+    .period-custom button { padding:6px 14px; border-radius:8px; font-size:12px; font-weight:600; border:none; background:var(--orange); color:var(--white); cursor:pointer; }
+
+    /* Stats Cards */
+    .stats-row {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+        gap: 14px;
+        margin-bottom: 24px;
+    }
+    .s-card {
+        background: var(--white); border-radius: 14px; border: 1px solid var(--gray-200);
+        padding: 18px 16px; position:relative; overflow:hidden;
+        transition: all .3s; animation: fadeInUp .5s ease both;
+    }
+    .s-card:hover { transform:translateY(-4px); box-shadow:0 8px 25px rgba(0,0,0,.08); }
+    .s-card::before { content:''; position:absolute; top:0; left:0; width:4px; height:100%; border-radius:4px 0 0 4px; }
+    .s-card.c-green::before { background:#22C55E; }
+    .s-card.c-orange::before { background:#F97316; }
+    .s-card.c-red::before { background:#EF4444; }
+    .s-card.c-purple::before { background:#8B5CF6; }
+    .s-card.c-blue::before { background:#3B82F6; }
+    .s-card.c-pink::before { background:#EC4899; }
+    .s-card.c-yellow::before { background:#EAB308; }
+    .s-card .s-val { font-size:24px; font-weight:800; color:var(--black); animation:countPop .6s ease both; }
+    .s-card .s-lbl { font-size:11px; color:var(--gray-500); font-weight:500; margin-top:4px; }
+
+    /* Hours + Rate row */
+    .info-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 16px;
+        margin-bottom: 24px;
+    }
+    .hours-card {
+        background: var(--white); border-radius: 14px; border: 1px solid var(--gray-200);
+        padding: 20px 24px; animation: fadeInUp .5s ease .3s both;
+        display: flex; align-items: center; gap: 20px;
+    }
+    .hours-card .h-icon {
+        width: 50px; height: 50px; border-radius: 14px;
+        display: flex; align-items: center; justify-content: center;
+    }
+    .hours-card .h-icon svg { width: 24px; height: 24px; }
+    .hours-card .h-val { font-size: 22px; font-weight: 800; color: var(--black); }
+    .hours-card .h-lbl { font-size: 11px; color: var(--gray-500); margin-top: 2px; }
+
+    .rate-box {
+        background: var(--white); border-radius: 14px; border: 1px solid var(--gray-200);
+        padding: 20px 24px; animation: fadeInUp .5s ease .35s both;
+    }
+    .rate-box .r-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; }
+    .rate-box .r-header h4 { font-size:13px; font-weight:600; color:var(--gray-700); }
+    .rate-box .r-header .r-val { font-size:22px; font-weight:800; color:#7C3AED; }
+    .r-bar { height:10px; background:var(--gray-100); border-radius:10px; overflow:hidden; }
+    .r-bar .r-fill { height:100%; border-radius:10px; background:linear-gradient(90deg,#7C3AED,#A855F7); animation:progressFill 1.2s ease .5s both; }
+
+    /* Daily Records Table */
+    .records-section {
+        background: var(--white); border-radius: 14px; border: 1px solid var(--gray-200);
+        padding: 24px; margin-bottom: 24px; animation: fadeInUp .5s ease .4s both;
+    }
+    .records-section h3 { font-size:15px; font-weight:700; margin-bottom:20px; color:var(--black); display:flex; align-items:center; gap:8px; }
+    .records-section h3 .badge { background:#F5F3FF; color:#7C3AED; padding:2px 10px; border-radius:12px; font-size:11px; font-weight:700; }
+
+    .rec-table { width:100%; border-collapse:collapse; }
+    .rec-table th {
+        text-align:left; padding:10px 12px; font-size:11px; font-weight:600;
+        color:var(--gray-500); text-transform:uppercase; letter-spacing:.5px;
+        border-bottom:2px solid var(--gray-200);
+    }
+    .rec-table td { padding:12px; font-size:13px; border-bottom:1px solid var(--gray-100); }
+    .rec-table tr:hover td { background:#FAFAFA; }
+
+    .status-badge {
+        display: inline-flex; align-items: center; gap: 4px;
+        padding: 3px 10px; border-radius: 8px;
+        font-size: 11px; font-weight: 600;
+    }
+    .status-badge.present { background: #F0FDF4; color: #22C55E; }
+    .status-badge.late { background: #FFF7ED; color: #F97316; }
+    .status-badge.early_leave { background: #FEF2F2; color: #EF4444; }
+    .status-badge.absent { background: #FEF2F2; color: #EF4444; }
+    .status-badge.half_day { background: #FEFCE8; color: #EAB308; }
+
+    .time-cell { font-family: 'Courier New', monospace; font-weight: 600; font-size: 13px; }
+    .overtime-badge {
+        background: #F5F3FF; color: #8B5CF6;
+        padding: 2px 8px; border-radius: 6px;
+        font-size: 10px; font-weight: 700;
+    }
+
+    /* Chart */
+    .chart-section {
+        background: var(--white); border-radius: 14px; border: 1px solid var(--gray-200);
+        padding: 24px; margin-bottom: 24px; animation: fadeInUp .5s ease .5s both;
+    }
+    .chart-section h3 { font-size:15px; font-weight:700; margin-bottom:20px; color:var(--black); }
+    .chart-bars { display:flex; align-items:flex-end; gap:10px; height:160px; padding:0 8px; overflow-x:auto; }
+    .chart-col { flex:1; min-width:36px; display:flex; flex-direction:column; align-items:center; gap:4px; height:100%; justify-content:flex-end; }
+    .bar-stack { width:100%; max-width:40px; display:flex; flex-direction:column; justify-content:flex-end; border-radius:6px 6px 2px 2px; overflow:hidden; animation:barGrow .8s ease both; }
+    .bar-seg { transition:height .5s ease; }
+    .bar-seg.present { background:#22C55E; }
+    .bar-seg.late { background:#F97316; }
+    .bar-count { font-size:11px; font-weight:700; color:var(--black); }
+    .bar-label { font-size:10px; color:var(--gray-500); }
+    .bar-date { font-size:9px; color:var(--gray-500); }
+    .chart-legend { display:flex; gap:16px; margin-top:16px; justify-content:center; }
+    .legend-item { display:flex; align-items:center; gap:6px; font-size:12px; color:var(--gray-700); }
+    .legend-dot { width:10px; height:10px; border-radius:3px; }
+    .legend-dot.green { background:#22C55E; }
+    .legend-dot.orange { background:#F97316; }
+
+    .empty-box { text-align:center; padding:40px; color:var(--gray-500); font-size:14px; }
+
+    /* ── Heatmap ── */
+    .heatmap-section {
+        background: var(--white); border-radius: 14px; border: 1px solid var(--gray-200);
+        padding: 24px; margin-bottom: 24px; animation: fadeInUp .5s ease .28s both;
+    }
+    .heatmap-section h3 { font-size:15px; font-weight:700; margin-bottom:16px; color:var(--black); display:flex; align-items:center; gap:8px; }
+    .heatmap-grid { display:grid; grid-template-columns:repeat(13, 1fr); gap:3px; }
+    .heatmap-cell {
+        aspect-ratio:1; border-radius:3px; background:var(--gray-100);
+        position:relative; cursor:pointer; transition:transform .15s;
+    }
+    .heatmap-cell:hover { transform:scale(1.4); z-index:2; }
+    .heatmap-cell.lvl-1 { background:#dcfce7; }
+    .heatmap-cell.lvl-2 { background:#86efac; }
+    .heatmap-cell.lvl-3 { background:#22c55e; }
+    .heatmap-cell.lvl-4 { background:#15803d; }
+    .heatmap-cell.ot-1 { background:#ede9fe; }
+    .heatmap-cell.ot-2 { background:#c4b5fd; }
+    .heatmap-cell.ot-3 { background:#8b5cf6; }
+    .heatmap-cell.ot-4 { background:#6d28d9; }
+    .heatmap-cell .hm-tip {
+        display:none; position:absolute; bottom:calc(100% + 6px); left:50%; transform:translateX(-50%);
+        background:var(--black); color:var(--white); font-size:10px; padding:4px 8px;
+        border-radius:6px; white-space:nowrap; z-index:10; pointer-events:none;
+    }
+    .heatmap-cell:hover .hm-tip { display:block; }
+    .heatmap-legend { display:flex; align-items:center; gap:6px; margin-top:12px; font-size:11px; color:var(--gray-500); }
+    .heatmap-legend .hl-box { width:12px; height:12px; border-radius:2px; }
+    .heatmap-tabs { display:flex; gap:8px; margin-bottom:14px; }
+    .hm-tab {
+        padding:5px 14px; border-radius:8px; font-size:12px; font-weight:600;
+        border:1px solid var(--gray-200); background:var(--white); color:var(--gray-700);
+        cursor:pointer; transition:all .2s;
+    }
+    .hm-tab.active { background:#7C3AED; color:var(--white); border-color:#7C3AED; }
+    .hm-tab:hover:not(.active) { background:var(--gray-100); }
+
+    /* OT hours card */
+    .ot-hours-card {
+        background: var(--white); border-radius: 14px; border: 1px solid var(--gray-200);
+        padding: 20px 24px; margin-bottom: 24px; animation: fadeInUp .5s ease .26s both;
+        display: flex; align-items: center; gap: 20px; flex-wrap: wrap;
+    }
+
+    @media (max-width: 768px) {
+        .profile-header { flex-direction:column; text-align:center; }
+        .profile-stats { margin-left:0; justify-content:center; }
+        .profile-tags { justify-content:center; }
+        .stats-row { grid-template-columns: repeat(2, 1fr); }
+        .info-row { grid-template-columns: 1fr; }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Profile Header -->
+<div class="profile-header">
+    <div class="profile-avatar">{{ employee.name|make_list|first }}</div>
+    <div class="profile-info">
+        <h2>{{ employee.name }}</h2>
+        <div class="profile-tags">
+            {% if employee.role %}<span class="p-tag">{{ employee.role.name }}</span>{% endif %}
+            {% if employee.department %}<span class="p-tag">{{ employee.department.name }}</span>{% endif %}
+            {% if employee.shift %}<span class="p-tag">{{ employee.shift.name }}</span>{% endif %}
+        </div>
+    </div>
+    <div class="profile-stats">
+        <div class="p-item">
+            <span class="big">{{ rate }}%</span>
+            <span class="lbl">Davomat</span>
+        </div>
+        <div class="p-item">
+            <span class="big">{{ hours }}<span style="font-size:14px;opacity:.7">s</span></span>
+            <span class="lbl">Ishlangan</span>
+        </div>
+    </div>
+</div>
+
+<!-- Period -->
+<div class="period-bar">
+    <span class="label">Davr:</span>
+    <a href="?period=today" class="period-btn {% if period == 'today' %}active{% endif %}">Bugun</a>
+    <a href="?period=week" class="period-btn {% if period == 'week' %}active{% endif %}">Hafta</a>
+    <a href="?period=month" class="period-btn {% if period == 'month' %}active{% endif %}">Oy</a>
+    <form method="get" class="period-custom">
+        <input type="hidden" name="period" value="custom">
+        <input type="date" name="from_date" value="{{ from_date }}">
+        <span style="color:var(--gray-500)">—</span>
+        <input type="date" name="to_date" value="{{ to_date }}">
+        <button type="submit">Qo'llash</button>
+    </form>
+</div>
+
+<!-- Stats Cards -->
+<div class="stats-row">
+    <div class="s-card c-blue" style="animation-delay:.1s"><div class="s-val">{{ total }}</div><div class="s-lbl">Jami yozuv</div></div>
+    <div class="s-card c-green" style="animation-delay:.12s"><div class="s-val">{{ present }}</div><div class="s-lbl">Keldi</div></div>
+    <div class="s-card c-orange" style="animation-delay:.14s"><div class="s-val">{{ late }}</div><div class="s-lbl">Kechikdi</div></div>
+    <div class="s-card c-red" style="animation-delay:.16s"><div class="s-val">{{ early_leave }}</div><div class="s-lbl">Erta ketdi</div></div>
+    <div class="s-card c-pink" style="animation-delay:.18s"><div class="s-val">{{ absent }}</div><div class="s-lbl">Kelmadi</div></div>
+    <div class="s-card c-yellow" style="animation-delay:.2s"><div class="s-val">{{ half_day }}</div><div class="s-lbl">Yarim kun</div></div>
+    <div class="s-card c-purple" style="animation-delay:.22s"><div class="s-val">{{ overtime }}</div><div class="s-lbl">Qo'shimcha</div></div>
+</div>
+
+<!-- Hours + Rate -->
+<div class="info-row">
+    <div class="hours-card">
+        <div class="h-icon" style="background:#EFF6FF; color:#3B82F6;">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/></svg>
+        </div>
+        <div>
+            <div class="h-val">{{ hours }}<span style="font-size:14px; color:var(--gray-500)">s</span> {{ minutes }}<span style="font-size:14px; color:var(--gray-500)">d</span></div>
+            <div class="h-lbl">Jami ishlangan vaqt</div>
+        </div>
+        <div style="width:1px; height:40px; background:var(--gray-200); margin:0 8px;"></div>
+        <div>
+            <div class="h-val">{{ avg_per_day }}<span style="font-size:14px; color:var(--gray-500)"> soat/kun</span></div>
+            <div class="h-lbl">O'rtacha kunlik</div>
+        </div>
+    </div>
+    <div class="rate-box" style="margin-bottom:0;">
+        <div class="r-header">
+            <h4>O'z vaqtida kelish darajasi</h4>
+            <span class="r-val">{{ rate }}%</span>
+        </div>
+        <div class="r-bar">
+            <div class="r-fill" style="width:{{ rate }}%"></div>
+        </div>
+    </div>
+</div>
+
+<!-- Overtime Hours -->
+<div class="ot-hours-card">
+    <div class="h-icon" style="width:50px;height:50px;border-radius:14px;display:flex;align-items:center;justify-content:center;background:#F5F3FF; color:#8B5CF6;flex-shrink:0;">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width:24px;height:24px"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>
+    </div>
+    <div>
+        <div style="font-size:22px;font-weight:800;color:var(--black)">{{ ot_hours }}<span style="font-size:14px;color:var(--gray-500)">s</span> {{ ot_minutes }}<span style="font-size:14px;color:var(--gray-500)">d</span></div>
+        <div style="font-size:11px;color:var(--gray-500)">Qo'shimcha ishlangan vaqt</div>
+    </div>
+    <div style="width:1px;height:40px;background:var(--gray-200);margin:0 8px;"></div>
+    <div>
+        <div style="font-size:22px;font-weight:800;color:var(--black)">{{ overtime }}<span style="font-size:14px;color:var(--gray-500)"> marta</span></div>
+        <div style="font-size:11px;color:var(--gray-500)">Qo'shimcha smena soni</div>
+    </div>
+</div>
+
+<!-- Heatmap -->
+<div class="heatmap-section">
+    <h3>🗓 Davomat xaritasi (90 kun)</h3>
+    <div class="heatmap-tabs">
+        <button class="hm-tab active" onclick="showHeatmap('main', this)">Asosiy</button>
+        <button class="hm-tab" onclick="showHeatmap('overtime', this)">Qo'shimcha</button>
+    </div>
+    <div id="heatmap-main" class="heatmap-grid"></div>
+    <div id="heatmap-overtime" class="heatmap-grid" style="display:none"></div>
+    <div id="heatmap-legend-main" class="heatmap-legend">
+        <span>Kam</span>
+        <span class="hl-box" style="background:var(--gray-100)"></span>
+        <span class="hl-box" style="background:#dcfce7"></span>
+        <span class="hl-box" style="background:#86efac"></span>
+        <span class="hl-box" style="background:#22c55e"></span>
+        <span class="hl-box" style="background:#15803d"></span>
+        <span>Ko'p</span>
+    </div>
+    <div id="heatmap-legend-overtime" class="heatmap-legend" style="display:none">
+        <span>Kam</span>
+        <span class="hl-box" style="background:var(--gray-100)"></span>
+        <span class="hl-box" style="background:#ede9fe"></span>
+        <span class="hl-box" style="background:#c4b5fd"></span>
+        <span class="hl-box" style="background:#8b5cf6"></span>
+        <span class="hl-box" style="background:#6d28d9"></span>
+        <span>Ko'p</span>
+    </div>
+</div>
+
+<!-- Daily Trend Chart -->
+{% if daily %}
+<div class="chart-section">
+    <h3>📊 Kunlik trend</h3>
+    <div class="chart-bars">
+        {% for day in daily %}
+        <div class="chart-col" style="animation-delay:{{ forloop.counter0 }}50ms">
+            <div class="bar-count">{{ day.total }}</div>
+            <div class="bar-stack" style="height:{{ day.total|floatformat:0 }}%;max-height:100%;">
+                {% if day.present %}
+                <div class="bar-seg present" style="height:{% widthratio day.present max_daily 140 %}px; min-height:4px;"></div>
+                {% endif %}
+                {% if day.late %}
+                <div class="bar-seg late" style="height:{% widthratio day.late max_daily 140 %}px; min-height:4px;"></div>
+                {% endif %}
+            </div>
+            <div class="bar-label">{{ day.day_name }}</div>
+            <div class="bar-date">{{ day.date|date:"d.m" }}</div>
+        </div>
+        {% endfor %}
+    </div>
+    <div class="chart-legend">
+        <div class="legend-item"><span class="legend-dot green"></span> Keldi</div>
+        <div class="legend-item"><span class="legend-dot orange"></span> Kechikdi</div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Daily Records Table -->
+<div class="records-section">
+    <h3>
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width:18px;height:18px"><path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5"/></svg>
+        Kunlik yozuvlar
+        <span class="badge">{{ daily_records|length }}</span>
+    </h3>
+    {% if daily_records %}
+    <table class="rec-table">
+        <thead>
+            <tr>
+                <th>Sana</th>
+                <th>Smena</th>
+                <th>Kirish</th>
+                <th>Chiqish</th>
+                <th>Status</th>
+                <th>Qo'shimcha</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for rec in daily_records %}
+            <tr>
+                <td style="font-weight:600;">{{ rec.date|date:"d.m.Y" }}</td>
+                <td style="font-size:12px; color:var(--gray-500);">{{ rec.shift.name|default:"—" }}</td>
+                <td class="time-cell">{% if rec.check_in %}{{ rec.check_in|time:"H:i" }}{% else %}<span style="color:var(--gray-300);">—</span>{% endif %}</td>
+                <td class="time-cell">{% if rec.check_out %}{{ rec.check_out|time:"H:i" }}{% else %}<span style="color:var(--gray-300);">—</span>{% endif %}</td>
+                <td>
+                    <span class="status-badge {{ rec.status }}">
+                        {% if rec.status == 'present' %}✓ Keldi
+                        {% elif rec.status == 'late' %}⏰ Kechikdi
+                        {% elif rec.status == 'early_leave' %}↗ Erta ketdi
+                        {% elif rec.status == 'absent' %}✗ Kelmadi
+                        {% elif rec.status == 'half_day' %}½ Yarim kun
+                        {% endif %}
+                    </span>
+                </td>
+                <td>
+                    {% if rec.is_overtime %}<span class="overtime-badge">+ Qo'shimcha</span>{% else %}<span style="color:var(--gray-300);">—</span>{% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <div class="empty-box">Yozuvlar topilmadi</div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+{{ heatmap_data|json_script:"heatmap-data" }}
+<script>
+(function() {
+    const data = JSON.parse(document.getElementById('heatmap-data').textContent);
+    const mainGrid = document.getElementById('heatmap-main');
+    const otGrid = document.getElementById('heatmap-overtime');
+    if (!data || !mainGrid) return;
+
+    const maxCount = Math.max(...data.map(d => d.count), 1);
+    const maxOt = Math.max(...data.map(d => d.overtime), 1);
+
+    function lvl(val, mx) {
+        if (val === 0) return '';
+        const r = val / mx;
+        if (r <= 0.25) return 1;
+        if (r <= 0.5) return 2;
+        if (r <= 0.75) return 3;
+        return 4;
+    }
+
+    data.forEach(function(d) {
+        const c1 = document.createElement('div');
+        c1.className = 'heatmap-cell' + (d.count ? ' lvl-' + lvl(d.count, maxCount) : '');
+        c1.innerHTML = '<span class="hm-tip">' + d.date + ': ' + d.count + ' yozuv</span>';
+        mainGrid.appendChild(c1);
+
+        const c2 = document.createElement('div');
+        c2.className = 'heatmap-cell' + (d.overtime ? ' ot-' + lvl(d.overtime, maxOt) : '');
+        c2.innerHTML = '<span class="hm-tip">' + d.date + ': ' + d.overtime + ' qo\'shimcha</span>';
+        otGrid.appendChild(c2);
+    });
+})();
+
+function showHeatmap(type, btn) {
+    document.getElementById('heatmap-main').style.display = type === 'main' ? 'grid' : 'none';
+    document.getElementById('heatmap-overtime').style.display = type === 'overtime' ? 'grid' : 'none';
+    document.getElementById('heatmap-legend-main').style.display = type === 'main' ? 'flex' : 'none';
+    document.getElementById('heatmap-legend-overtime').style.display = type === 'overtime' ? 'flex' : 'none';
+    document.querySelectorAll('.hm-tab').forEach(function(t) { t.classList.remove('active'); });
+    btn.classList.add('active');
+}
+</script>
+{% endblock %}

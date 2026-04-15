@@ -1,0 +1,726 @@
+{% extends "ceo/base.html" %}
+
+{% block title %}Davomat — Zenko CEO{% endblock %}
+{% block page_title %}Davomat{% endblock %}
+
+{% block topbar_actions %}
+<a href="{% url 'ceo:attendance_create' %}" class="btn btn-primary">
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width:16px;height:16px"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>
+    Qo'lda qo'shish
+</a>
+<a href="{% url 'ceo:attendance_bulk' %}" class="btn btn-secondary">
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width:16px;height:16px"><path stroke-linecap="round" stroke-linejoin="round" d="M18 18.72a9.094 9.094 0 0 0 3.741-.479 3 3 0 0 0-4.682-2.72m.94 3.198.001.031c0 .225-.012.447-.037.666A11.944 11.944 0 0 1 12 21c-2.17 0-4.207-.576-5.963-1.584A6.062 6.062 0 0 1 6 18.719m12 0a5.971 5.971 0 0 0-.941-3.197m0 0A5.995 5.995 0 0 0 12 12.75a5.995 5.995 0 0 0-5.058 2.772m0 0a3 3 0 0 0-4.681 2.72 8.986 8.986 0 0 0 3.74.477m.94-3.197a5.971 5.971 0 0 0-.94 3.197M15 6.75a3 3 0 1 1-6 0 3 3 0 0 1 6 0Zm6 3a2.25 2.25 0 1 1-4.5 0 2.25 2.25 0 0 1 4.5 0Zm-13.5 0a2.25 2.25 0 1 1-4.5 0 2.25 2.25 0 0 1 4.5 0Z"/></svg>
+    Ommaviy
+</a>
+<a href="{% url 'attendance:kiosk' %}" class="btn btn-secondary" target="_blank">
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width:16px;height:16px"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 4.875c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-4.5A1.125 1.125 0 0 1 3.75 9.375v-4.5Z"/></svg>
+    Skaner
+</a>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* ── Animations ── */
+    @keyframes fadeInUp {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes fadeInLeft {
+        from { opacity: 0; transform: translateX(-20px); }
+        to { opacity: 1; transform: translateX(0); }
+    }
+    @keyframes slideDown {
+        from { opacity: 0; transform: translateY(-10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes countUp {
+        from { opacity: 0; transform: scale(.5); }
+        to { opacity: 1; transform: scale(1); }
+    }
+    @keyframes pulse {
+        0%, 100% { transform: scale(1); }
+        50% { transform: scale(1.05); }
+    }
+    @keyframes progressFill {
+        from { width: 0%; }
+    }
+    @keyframes rowAppear {
+        from { opacity: 0; transform: translateX(-10px); }
+        to { opacity: 1; transform: translateX(0); }
+    }
+    .animate-fadeInUp { animation: fadeInUp .5s ease both; }
+    .animate-fadeInLeft { animation: fadeInLeft .5s ease both; }
+
+    /* ── Stats Grid ── */
+    .att-stats {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+        gap: 16px;
+        margin-bottom: 24px;
+    }
+    .att-stat {
+        background: var(--white);
+        border-radius: 14px;
+        border: 1px solid var(--gray-200);
+        padding: 18px 20px;
+        position: relative;
+        overflow: hidden;
+        transition: all .3s cubic-bezier(.4,0,.2,1);
+        animation: fadeInUp .5s ease both;
+    }
+    .att-stat:nth-child(1) { animation-delay: .05s; }
+    .att-stat:nth-child(2) { animation-delay: .1s; }
+    .att-stat:nth-child(3) { animation-delay: .15s; }
+    .att-stat:nth-child(4) { animation-delay: .2s; }
+    .att-stat:nth-child(5) { animation-delay: .25s; }
+    .att-stat:nth-child(6) { animation-delay: .3s; }
+    .att-stat:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 8px 25px rgba(0,0,0,.08);
+    }
+    .att-stat::before {
+        content: '';
+        position: absolute;
+        top: 0; left: 0;
+        width: 4px; height: 100%;
+        border-radius: 4px 0 0 4px;
+    }
+    .att-stat.green::before { background: #22C55E; }
+    .att-stat.orange::before { background: #F97316; }
+    .att-stat.red::before { background: #EF4444; }
+    .att-stat.blue::before { background: #3B82F6; }
+    .att-stat.purple::before { background: #8B5CF6; }
+    .att-stat.teal::before { background: #14B8A6; }
+
+    .att-stat .stat-icon {
+        width: 38px; height: 38px;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 10px;
+    }
+    .att-stat .stat-icon svg { width: 20px; height: 20px; }
+    .att-stat.green .stat-icon { background: #F0FDF4; color: #22C55E; }
+    .att-stat.orange .stat-icon { background: #FFF7ED; color: #F97316; }
+    .att-stat.red .stat-icon { background: #FEF2F2; color: #EF4444; }
+    .att-stat.blue .stat-icon { background: #EFF6FF; color: #3B82F6; }
+    .att-stat.purple .stat-icon { background: #F5F3FF; color: #8B5CF6; }
+    .att-stat.teal .stat-icon { background: #F0FDFA; color: #14B8A6; }
+
+    .att-stat .stat-value {
+        font-size: 26px;
+        font-weight: 800;
+        color: var(--black);
+        animation: countUp .6s ease both;
+        line-height: 1;
+    }
+    .att-stat .stat-label {
+        font-size: 12px;
+        color: var(--gray-500);
+        font-weight: 500;
+        margin-top: 4px;
+    }
+
+    /* ── Attendance Rate Bar ── */
+    .rate-section {
+        background: var(--white);
+        border-radius: 14px;
+        border: 1px solid var(--gray-200);
+        padding: 20px 24px;
+        margin-bottom: 24px;
+        animation: fadeInUp .5s ease .35s both;
+    }
+    .rate-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 12px;
+    }
+    .rate-header h4 { font-size: 14px; font-weight: 600; color: var(--gray-700); }
+    .rate-header .rate-value { font-size: 22px; font-weight: 800; color: var(--orange); }
+    .rate-bar {
+        height: 10px;
+        background: var(--gray-100);
+        border-radius: 10px;
+        overflow: hidden;
+    }
+    .rate-bar .fill {
+        height: 100%;
+        border-radius: 10px;
+        background: linear-gradient(90deg, #F97316, #F59E0B);
+        animation: progressFill 1.2s ease both;
+        animation-delay: .5s;
+    }
+
+    /* ── Shift Stats ── */
+    .shift-stats {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+        gap: 14px;
+        margin-bottom: 24px;
+    }
+    .shift-stat-card {
+        background: var(--white);
+        border-radius: 14px;
+        border: 1px solid var(--gray-200);
+        padding: 18px 20px;
+        animation: fadeInUp .5s ease both;
+        transition: all .3s;
+    }
+    .shift-stat-card:hover { box-shadow: 0 4px 15px rgba(0,0,0,.06); }
+    .shift-stat-card .shift-name {
+        font-size: 14px;
+        font-weight: 700;
+        color: var(--black);
+        margin-bottom: 4px;
+    }
+    .shift-stat-card .shift-time {
+        font-size: 12px;
+        color: var(--gray-500);
+        margin-bottom: 12px;
+    }
+    .shift-stat-card .shift-counts {
+        display: flex;
+        gap: 12px;
+    }
+    .shift-stat-card .shift-counts .sc-item {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 13px;
+        font-weight: 600;
+    }
+    .shift-stat-card .shift-counts .sc-dot {
+        width: 8px; height: 8px;
+        border-radius: 50%;
+    }
+    .sc-dot.green { background: #22C55E; }
+    .sc-dot.orange { background: #F97316; }
+    .sc-dot.purple { background: #8B5CF6; }
+
+    /* ── Filters ── */
+    .filters-card {
+        background: var(--white);
+        border-radius: 14px;
+        border: 1px solid var(--gray-200);
+        padding: 20px 24px;
+        margin-bottom: 24px;
+        animation: slideDown .4s ease .4s both;
+    }
+    .filters-row {
+        display: flex;
+        gap: 12px;
+        flex-wrap: wrap;
+        align-items: end;
+    }
+    .filter-group { display: flex; flex-direction: column; gap: 4px; flex: 1; min-width: 140px; }
+    .filter-group label {
+        font-size: 11px;
+        font-weight: 600;
+        color: var(--gray-500);
+        text-transform: uppercase;
+        letter-spacing: .5px;
+    }
+    .filter-group select,
+    .filter-group input {
+        padding: 8px 12px;
+        border: 1px solid var(--gray-200);
+        border-radius: 8px;
+        font-size: 13px;
+        background: var(--white);
+        color: var(--black);
+        transition: border-color .2s, box-shadow .2s;
+    }
+    .filter-group select:focus,
+    .filter-group input:focus {
+        outline: none;
+        border-color: var(--orange);
+        box-shadow: 0 0 0 3px rgba(249,115,22,.1);
+    }
+    .filter-actions { display: flex; gap: 8px; align-items: end; }
+    .btn-filter {
+        padding: 8px 20px;
+        border-radius: 8px;
+        font-size: 13px;
+        font-weight: 600;
+        border: none;
+        cursor: pointer;
+        background: var(--orange);
+        color: var(--white);
+        height: 36px;
+        transition: all .2s;
+    }
+    .btn-filter:hover { background: var(--orange-hover); transform: translateY(-1px); }
+    .btn-clear {
+        padding: 8px 16px;
+        border-radius: 8px;
+        font-size: 13px;
+        font-weight: 600;
+        border: 1px solid var(--gray-200);
+        cursor: pointer;
+        background: var(--white);
+        color: var(--gray-700);
+        height: 36px;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        transition: all .2s;
+    }
+    .btn-clear:hover { background: var(--gray-100); }
+
+    /* ── Table ── */
+    .att-table-card {
+        background: var(--white);
+        border-radius: 14px;
+        border: 1px solid var(--gray-200);
+        overflow: hidden;
+        animation: fadeInUp .5s ease .5s both;
+    }
+    .att-table-header {
+        padding: 20px 24px 16px;
+        border-bottom: 1px solid var(--gray-200);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    .att-table-header h3 { font-size: 16px; font-weight: 700; }
+    .att-table-header .count-badge {
+        background: var(--orange-light);
+        color: var(--orange);
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: 700;
+    }
+
+    .att-table { width: 100%; border-collapse: collapse; font-size: 14px; }
+    .att-table th {
+        text-align: left;
+        padding: 12px 16px;
+        font-weight: 600;
+        color: var(--gray-500);
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: .5px;
+        background: var(--gray-100);
+    }
+    .att-table td {
+        padding: 14px 16px;
+        border-bottom: 1px solid var(--gray-200);
+        color: var(--gray-700);
+    }
+    .att-table tbody tr {
+        animation: rowAppear .3s ease both;
+        transition: background .2s;
+    }
+    .att-table tbody tr:nth-child(1) { animation-delay: .55s; }
+    .att-table tbody tr:nth-child(2) { animation-delay: .6s; }
+    .att-table tbody tr:nth-child(3) { animation-delay: .65s; }
+    .att-table tbody tr:nth-child(4) { animation-delay: .7s; }
+    .att-table tbody tr:nth-child(5) { animation-delay: .75s; }
+    .att-table tbody tr:nth-child(6) { animation-delay: .8s; }
+    .att-table tbody tr:nth-child(7) { animation-delay: .85s; }
+    .att-table tbody tr:nth-child(8) { animation-delay: .9s; }
+    .att-table tbody tr:nth-child(9) { animation-delay: .95s; }
+    .att-table tbody tr:nth-child(10) { animation-delay: 1s; }
+    .att-table tbody tr:hover { background: #FFFBF5; }
+    .att-table tbody tr.overtime-row { background: #FAFAFE; }
+    .att-table tbody tr.overtime-row:hover { background: #F5F3FF; }
+
+    .badge-status {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: 600;
+        transition: transform .2s;
+    }
+    .badge-status:hover { transform: scale(1.05); }
+    .badge-present { background: #F0FDF4; color: #22C55E; }
+    .badge-late { background: #FFF7ED; color: #F97316; }
+    .badge-absent { background: #FEF2F2; color: #EF4444; }
+    .badge-half_day { background: #EFF6FF; color: #3B82F6; }
+    .badge-early_leave { background: #FEF2F2; color: #EF4444; }
+
+    .badge-overtime {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        padding: 2px 8px;
+        border-radius: 6px;
+        font-size: 10px;
+        font-weight: 700;
+        background: #F5F3FF;
+        color: #8B5CF6;
+        text-transform: uppercase;
+        letter-spacing: .5px;
+    }
+
+    .time-cell {
+        font-family: 'Consolas', 'Monaco', monospace;
+        font-size: 13px;
+        font-weight: 600;
+    }
+    .time-cell.in { color: #22C55E; }
+    .time-cell.out { color: #F97316; }
+
+    .user-cell {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+    .user-avatar {
+        width: 32px; height: 32px;
+        border-radius: 8px;
+        background: var(--orange-light);
+        color: var(--orange);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+        font-size: 13px;
+        flex-shrink: 0;
+        overflow: hidden;
+    }
+    .user-avatar img {
+        width: 100%; height: 100%;
+        object-fit: cover;
+    }
+    .user-info .user-name { font-weight: 600; color: var(--black); font-size: 13px; }
+    .user-info .user-dept { font-size: 11px; color: var(--gray-500); }
+
+    .worked-cell {
+        font-size: 12px;
+        color: var(--gray-700);
+        font-weight: 500;
+    }
+
+    /* ── Row Actions ── */
+    .row-actions {
+        display: flex;
+        gap: 6px;
+        align-items: center;
+    }
+    .row-actions a, .row-actions button {
+        width: 30px; height: 30px;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border: 1px solid var(--gray-200);
+        background: var(--white);
+        color: var(--gray-500);
+        cursor: pointer;
+        transition: all .2s;
+        text-decoration: none;
+    }
+    .row-actions a:hover { background: #EFF6FF; color: #3B82F6; border-color: #93C5FD; }
+    .row-actions button:hover { background: #FEF2F2; color: #EF4444; border-color: #FCA5A5; }
+    .row-actions svg { width: 14px; height: 14px; }
+
+    /* ── Mark Absent Card ── */
+    .mark-absent-card {
+        background: var(--white);
+        border-radius: 14px;
+        border: 1px solid var(--gray-200);
+        padding: 16px 24px;
+        margin-bottom: 24px;
+        animation: fadeInUp .5s ease .45s both;
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        flex-wrap: wrap;
+    }
+    .mark-absent-card .mark-label {
+        font-size: 13px;
+        font-weight: 600;
+        color: var(--gray-700);
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    .mark-absent-card .mark-label svg { width: 18px; height: 18px; color: #EF4444; }
+    .mark-absent-card input[type="date"] {
+        padding: 7px 12px;
+        border: 1px solid var(--gray-200);
+        border-radius: 8px;
+        font-size: 13px;
+    }
+    .mark-absent-card button {
+        padding: 7px 18px;
+        border-radius: 8px;
+        font-size: 13px;
+        font-weight: 600;
+        border: none;
+        cursor: pointer;
+        background: #EF4444;
+        color: var(--white);
+        transition: all .2s;
+    }
+    .mark-absent-card button:hover { background: #DC2626; transform: translateY(-1px); }
+
+    /* Pagination */
+    .pagination {
+        display: flex;
+        gap: 8px;
+        justify-content: center;
+        padding: 20px;
+        border-top: 1px solid var(--gray-200);
+    }
+    .pagination a, .pagination span {
+        padding: 6px 14px;
+        border-radius: 8px;
+        font-size: 13px;
+        font-weight: 500;
+        text-decoration: none;
+        transition: all .2s;
+    }
+    .pagination a { color: var(--gray-700); border: 1px solid var(--gray-200); }
+    .pagination a:hover { background: var(--orange); color: var(--white); border-color: var(--orange); }
+    .pagination .current { color: var(--gray-500); }
+
+    @media (max-width: 768px) {
+        .att-stats { grid-template-columns: repeat(2, 1fr); }
+        .shift-stats { grid-template-columns: 1fr; }
+        .filter-group { min-width: 100%; }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Statistics Cards -->
+<div class="att-stats">
+    <div class="att-stat green">
+        <div class="stat-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5"/></svg>
+        </div>
+        <div class="stat-value">{{ present_today }}</div>
+        <div class="stat-label">Keldi</div>
+    </div>
+    <div class="att-stat orange">
+        <div class="stat-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/></svg>
+        </div>
+        <div class="stat-value">{{ late_today }}</div>
+        <div class="stat-label">Kechikdi</div>
+    </div>
+    <div class="att-stat red">
+        <div class="stat-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0 0 13.5 3h-6a2.25 2.25 0 0 0-2.25 2.25v13.5A2.25 2.25 0 0 0 7.5 21h6a2.25 2.25 0 0 0 2.25-2.25V15m3 0 3-3m0 0-3-3m3 3H9"/></svg>
+        </div>
+        <div class="stat-value">{{ early_leave_today }}</div>
+        <div class="stat-label">Erta ketdi</div>
+    </div>
+    <div class="att-stat purple">
+        <div class="stat-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>
+        </div>
+        <div class="stat-value">{{ overtime_today }}</div>
+        <div class="stat-label">Qo'shimcha</div>
+    </div>
+    <div class="att-stat teal">
+        <div class="stat-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19.128a9.38 9.38 0 0 0 2.625.372 9.337 9.337 0 0 0 4.121-.952 4.125 4.125 0 0 0-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 0 1 8.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0 1 11.964-3.07M12 6.375a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0Zm8.25 2.25a2.625 2.625 0 1 1-5.25 0 2.625 2.625 0 0 1 5.25 0Z"/></svg>
+        </div>
+        <div class="stat-value">{{ active_now }}</div>
+        <div class="stat-label">Hozir ishda</div>
+    </div>
+    <div class="att-stat blue">
+        <div class="stat-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 0 1 3 19.875v-6.75ZM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V8.625ZM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V4.125Z"/></svg>
+        </div>
+        <div class="stat-value">{{ total_today }}</div>
+        <div class="stat-label">Jami bugun</div>
+    </div>
+</div>
+
+<!-- Attendance Rate -->
+<div class="rate-section">
+    <div class="rate-header">
+        <h4>Bugungi davomat darajasi ({{ total_today }}/{{ total_employees }} hodim)</h4>
+        <span class="rate-value">{{ attendance_rate }}%</span>
+    </div>
+    <div class="rate-bar">
+        <div class="fill" style="width: {{ attendance_rate }}%"></div>
+    </div>
+</div>
+
+<!-- Shift Stats -->
+{% if shift_stats %}
+<div class="shift-stats">
+    {% for ss in shift_stats %}
+    <div class="shift-stat-card" style="animation-delay: {{ forloop.counter0 }}00ms">
+        <div class="shift-name">{{ ss.shift.name }}</div>
+        <div class="shift-time">{{ ss.shift.start_time|time:"H:i" }} — {{ ss.shift.end_time|time:"H:i" }}</div>
+        <div class="shift-counts">
+            <div class="sc-item"><span class="sc-dot green"></span> {{ ss.present }} keldi</div>
+            <div class="sc-item"><span class="sc-dot orange"></span> {{ ss.late }} kechikdi</div>
+            <div class="sc-item"><span class="sc-dot purple"></span> {{ ss.overtime }} qo'shimcha</div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% endif %}
+
+<!-- Filters -->
+<div class="filters-card">
+    <form method="get" class="filters-row">
+        <div class="filter-group">
+            <label>Sana</label>
+            <input type="date" name="date" value="{{ filter_date }}">
+        </div>
+        <div class="filter-group">
+            <label>Holat</label>
+            <select name="status">
+                <option value="">Hammasi</option>
+                {% for val, label in status_choices %}
+                <option value="{{ val }}" {% if filter_status == val %}selected{% endif %}>{{ label }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="filter-group">
+            <label>Hodim</label>
+            <select name="user">
+                <option value="">Hammasi</option>
+                {% for u in users %}
+                <option value="{{ u.pk }}" {% if filter_user == u.pk|stringformat:"s" %}selected{% endif %}>{{ u.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="filter-group">
+            <label>Smena</label>
+            <select name="shift">
+                <option value="">Hammasi</option>
+                {% for s in shifts %}
+                <option value="{{ s.pk }}" {% if filter_shift == s.pk|stringformat:"s" %}selected{% endif %}>{{ s.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="filter-group">
+            <label>Turi</label>
+            <select name="overtime">
+                <option value="">Hammasi</option>
+                <option value="0" {% if filter_overtime == "0" %}selected{% endif %}>Asosiy</option>
+                <option value="1" {% if filter_overtime == "1" %}selected{% endif %}>Qo'shimcha</option>
+            </select>
+        </div>
+        <div class="filter-actions">
+            <button type="submit" class="btn-filter">Filtrlash</button>
+            <a href="{% url 'ceo:attendance_list' %}" class="btn-clear">Tozalash</a>
+        </div>
+    </form>
+</div>
+
+<!-- Mark Absent -->
+<div class="mark-absent-card">
+    <div class="mark-label">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M18.364 18.364A9 9 0 0 0 5.636 5.636m12.728 12.728A9 9 0 0 1 5.636 5.636m12.728 12.728L5.636 5.636"/></svg>
+        Kelmaganlarni belgilash
+    </div>
+    <form method="post" action="{% url 'ceo:mark_absent' %}" style="display:flex;gap:10px;align-items:center;">
+        {% csrf_token %}
+        <input type="date" name="date" value="{{ filter_date|default:today_iso }}" required>
+        <button type="submit" onclick="return confirm('Kelmaganlarni &quot;Kelmadi&quot; deb belgilamoqchimisiz?')">Belgilash</button>
+    </form>
+</div>
+
+<!-- Table -->
+<div class="att-table-card">
+    <div class="att-table-header">
+        <h3>Davomat jadvali</h3>
+        <span class="count-badge">{{ attendances|length }} yozuv</span>
+    </div>
+    <div class="table-wrapper">
+        <table class="att-table">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Hodim</th>
+                    <th>Sana</th>
+                    <th>Smena</th>
+                    <th>Kirish</th>
+                    <th>Chiqish</th>
+                    <th>Ishlagan</th>
+                    <th>Holat</th>
+                    <th>Amallar</th>
+            </thead>
+            <tbody>
+                {% for att in attendances %}
+                <tr class="{% if att.is_overtime %}overtime-row{% endif %}">
+                    <td>{{ forloop.counter }}</td>
+                    <td>
+                        <div class="user-cell">
+                            <div class="user-avatar">{% if att.photo %}<img src="{{ att.photo.url }}" alt="">{% else %}{{ att.user.name|make_list|first }}{% endif %}</div>
+                            <div class="user-info">
+                                <div class="user-name">{{ att.user.name }}</div>
+                                <div class="user-dept">{{ att.user.department|default:"—" }}</div>
+                            </div>
+                        </div>
+                    </td>
+                    <td>{{ att.date|date:"d.m.Y" }}</td>
+                    <td>
+                        {% if att.shift %}
+                        <span class="badge badge-orange">{{ att.shift.name }}</span>
+                        {% else %}—{% endif %}
+                        {% if att.is_overtime %}
+                        <span class="badge-overtime">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width:10px;height:10px"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>
+                            Qo'shimcha
+                        </span>
+                        {% endif %}
+                    </td>
+                    <td class="time-cell in">{{ att.check_in|date:"H:i"|default:"—" }}</td>
+                    <td class="time-cell out">{{ att.check_out|date:"H:i"|default:"—" }}</td>
+                    <td class="worked-cell">{{ att.worked_hours_display }}</td>
+                    <td>
+                        <span class="badge-status badge-{{ att.status }}">
+                            {% if att.status == 'present' %}✓{% endif %}
+                            {% if att.status == 'late' %}⏰{% endif %}
+                            {% if att.status == 'early_leave' %}↗{% endif %}
+                            {% if att.status == 'absent' %}✗{% endif %}
+                            {% if att.status == 'half_day' %}½{% endif %}
+                            {{ att.get_status_display }}
+                        </span>
+                    </td>
+                    <td>
+                        <div class="row-actions">
+                            <a href="{% url 'ceo:attendance_update' att.pk %}" title="Tahrirlash">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125"/></svg>
+                            </a>
+                            <form method="post" action="{% url 'ceo:attendance_delete' att.pk %}" style="margin:0">
+                                {% csrf_token %}
+                                <button type="submit" title="O'chirish" onclick="return confirm('O\'chirishni tasdiqlaysizmi?')">
+                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0"/></svg>
+                                </button>
+                            </form>
+                        </div>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="9">
+                    <div class="empty-state">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5"/></svg>
+                        <p>Davomat yozuvlari topilmadi</p>
+                    </div>
+                </td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    {% if is_paginated %}
+    <div class="pagination">
+        {% if page_obj.has_previous %}
+        <a href="?page={{ page_obj.previous_page_number }}&date={{ filter_date }}&status={{ filter_status }}&user={{ filter_user }}&shift={{ filter_shift }}&overtime={{ filter_overtime }}">← Oldingi</a>
+        {% endif %}
+        <span class="current">{{ page_obj.number }} / {{ page_obj.paginator.num_pages }}</span>
+        {% if page_obj.has_next %}
+        <a href="?page={{ page_obj.next_page_number }}&date={{ filter_date }}&status={{ filter_status }}&user={{ filter_user }}&shift={{ filter_shift }}&overtime={{ filter_overtime }}">Keyingi →</a>
+        {% endif %}
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
