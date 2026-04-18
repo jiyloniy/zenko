@@ -632,7 +632,7 @@ let camOk = false;
   const empty = document.getElementById('camEmpty');
   try {
     const s = await navigator.mediaDevices.getUserMedia({
-      video:{ facingMode:'user', width:{ideal:1280}, height:{ideal:720} },
+      video:{ facingMode:{ exact: 'environment' }, width:{ideal:1280}, height:{ideal:720} },
       audio:false
     });
     vid.srcObject = s;
@@ -640,8 +640,23 @@ let camOk = false;
     camOk = true;
     empty.style.display = 'none';
     vid.style.display   = 'block';
+    vid.style.transform = 'scaleX(1)'; // Orqa kamera uchun mirror yo‘q
   } catch(e){
-    console.warn('Camera:', e.message);
+    // Agar orqa kamera topilmasa, old kameraga qaytadi
+    try {
+      const s = await navigator.mediaDevices.getUserMedia({
+        video:{ facingMode:'user', width:{ideal:1280}, height:{ideal:720} },
+        audio:false
+      });
+      vid.srcObject = s;
+      await vid.play();
+      camOk = true;
+      empty.style.display = 'none';
+      vid.style.display   = 'block';
+      vid.style.transform = 'scaleX(-1)'; // Old kamera uchun mirror
+    } catch(e2){
+      console.warn('Camera:', e2.message);
+    }
   }
 })();
 

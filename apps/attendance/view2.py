@@ -57,7 +57,7 @@ TELEGRAM_BOT_TOKEN  = '8723846245:AAFMLFT1gyYIh0FYfBJN-AOCmXcWf49l6pg'
 TELEGRAM_CHANNEL_ID = -1003457723502
 
 # Smena boshlanishidan bu daqiqa ichida kelish — "vaqtida" hisoblanadi
-LATE_GRACE_MINUTES = 5
+LATE_GRACE_MINUTES = 15
 
 # Smena tugashidan keyin bu daqiqa ichida skanerlash —
 # check_out = smena end_time yoziladi (kiyim almashish vaqti)
