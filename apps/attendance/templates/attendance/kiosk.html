@@ -94,11 +94,11 @@ html,body{
   inset:0;
   background:
     linear-gradient(to bottom,
-      rgba(8,10,13,.55) 0%,
-      transparent 25%,
-      transparent 55%,
-      rgba(8,10,13,.75) 80%,
-      rgba(8,10,13,.98) 100%
+      rgba(8,10,13,.25) 0%,
+      transparent 40%,
+      transparent 75%,
+      rgba(8,10,13,.38) 92%,
+      rgba(8,10,13,.60) 100%
     );
   pointer-events:none;
   z-index:2;
@@ -126,13 +126,22 @@ html,body{
   display:flex;align-items:center;gap:10px;
 }
 .brand-logo{
-  width:34px;height:34px;
+  width:54px;
+  height:54px;
   background:var(--g);
-  border-radius:9px;
-  display:flex;align-items:center;justify-content:center;
+  border-radius:14px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
   flex-shrink:0;
 }
 .brand-logo svg{width:18px;height:18px;color:#000;}
+/* Make the SVG inside the logo bigger */
+.brand-logo svg{
+  width:32px;
+  height:32px;
+  color:#000;
+}
 .brand-name{
   font-size:15px;font-weight:700;
   color:#fff;letter-spacing:.3px;
@@ -538,7 +547,7 @@ html,body{
     <!-- Status chip -->
     <div class="status-chip">
       <div class="s-dot idle" id="sDot"></div>
-      <span class="s-msg" id="sMsg">QR kodni skanerga tutsin...</span>
+      <span class="s-msg" id="sMsg">QR kodni skanerga tuting...</span>
     </div>
 
   </div>
