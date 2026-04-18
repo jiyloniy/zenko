@@ -169,9 +169,11 @@ html,body{
 .clock-wrap{text-align:right;}
 .clock-time{
   font-family:var(--mono);
-  font-size:18px;font-weight:500;
-  color:#fff;letter-spacing:2px;
-  line-height:1;
+  font-size:38px;
+  font-weight:700;
+  color:#fff;
+  letter-spacing:2px;
+  line-height:1.1;
   text-shadow:0 1px 10px rgba(0,0,0,.7);
 }
 .clock-date{
@@ -230,13 +232,14 @@ html,body{
   bottom:18px;left:50%;
   transform:translateX(-50%);
   z-index:5;
-  display:flex;align-items:center;gap:7px;
-  padding:6px 14px;
-  background:rgba(8,10,13,.75);
-  border:1px solid var(--b2);
-  border-radius:30px;
-  backdrop-filter:blur(12px);
+  display:flex;align-items:center;gap:10px;
+  padding:7px 20px;
+  background:rgba(8,10,13,.82);
+  border:1.5px solid var(--b2);
+  border-radius:22px;
+  backdrop-filter:blur(10px);
   white-space:nowrap;
+  box-shadow:0 1px 10px 0 rgba(0,0,0,0.13);
 }
 .s-dot{
   width:6px;height:6px;border-radius:50%;flex-shrink:0;
@@ -246,8 +249,12 @@ html,body{
 .s-dot.ok   {background:var(--g);}
 .s-dot.error{background:var(--red);}
 .s-msg{
-  font-size:11px;font-family:var(--mono);
-  color:rgba(255,255,255,.65);letter-spacing:.3px;
+  font-size:22px;
+  font-family:var(--mono);
+  color:rgba(255,255,255,.85);
+  letter-spacing:.5px;
+  font-weight:600;
+  text-shadow:0 1px 8px rgba(0,0,0,.25);
 }
 
 /* ════════════════════════════════════════
@@ -605,7 +612,7 @@ html,body{
 /* ── CONFIG ──────────────────────────────────── */
 const BRANCH_ID   = '{{ kiosk_branch_id|default:"" }}';
 const API_URL     = '{% url "attendance:api_scan" %}';
-const CLOSE_MS    = 3000;
+const CLOSE_MS    = 1000;
 
 /* ── CLOCK ───────────────────────────────────── */
 (function(){
