@@ -1,0 +1,138 @@
+{% extends "ceo/base.html" %}
+
+{% block title %}{{ stage_name }} — {{ order.name }}{% endblock %}
+{% block page_title %}{{ order.name }} → {{ stage_name }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .form-card {
+        max-width: 640px;
+        margin: 0 auto;
+        background: var(--white);
+        border-radius: 12px;
+        border: 1px solid var(--gray-200);
+        overflow: hidden;
+    }
+    .form-header {
+        background: var(--black);
+        color: var(--white);
+        padding: 20px 28px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+    .form-header .icon {
+        width: 40px;
+        height: 40px;
+        background: var(--orange);
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    .form-header .icon svg { width: 20px; height: 20px; color: var(--white); }
+    .form-header h2 { font-size: 18px; font-weight: 700; }
+    .form-header small { color: var(--gray-300); font-size: 13px; }
+    .form-body { padding: 28px; }
+    .two-col {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 16px;
+    }
+    @media (max-width: 600px) {
+        .two-col { grid-template-columns: 1fr; }
+        .form-body { padding: 20px; }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="form-card">
+    <div class="form-header">
+        <div class="icon">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M11.42 15.17 17.25 21A2.652 2.652 0 0 0 21 17.25l-5.877-5.877M11.42 15.17l2.496-3.03c.317-.384.74-.626 1.208-.766M11.42 15.17l-4.655 5.653a2.548 2.548 0 1 1-3.586-3.586l5.653-4.657m5.014-2.024-.001-.463a4.5 4.5 0 0 1 3.015-4.243l2.387-.796a4.5 4.5 0 0 0-3.015 4.243 4.5 4.5 0 0 1-2.386.796Z"/></svg>
+        </div>
+        <div>
+            <h2>{{ stage_name }}</h2>
+            <small>{{ order.name }} — {{ order.quantity }} dona</small>
+        </div>
+    </div>
+    <div class="form-body">
+        {% if form.errors %}
+        <div class="form-errors">
+            <strong>Xatoliklar:</strong>
+            <ul>
+            {% for field in form %}
+                {% for error in field.errors %}<li>{{ field.label }}: {{ error }}</li>{% endfor %}
+            {% endfor %}
+            {% for error in form.non_field_errors %}<li>{{ error }}</li>{% endfor %}
+            </ul>
+        </div>
+        {% endif %}
+
+        <form method="post">
+            {% csrf_token %}
+
+            <div class="form-group">
+                <label for="id_status">Holati</label>
+                <select name="status" id="id_status" class="form-control">
+                    {% for val, label in form.fields.status.choices %}
+                    <option value="{{ val }}" {% if form.status.value == val %}selected{% endif %}>{{ label }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            {% for field in form %}
+                {% if field.name != 'status' and field.name != 'note' and field.name != 'started_at' and field.name != 'finished_at' and field.name != 'worker' %}
+                <div class="form-group">
+                    <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                    {{ field }}
+                </div>
+                {% endif %}
+            {% endfor %}
+
+            {% if form.fields.worker %}
+            <div class="form-group">
+                <label for="id_worker">Ishchi</label>
+                <select name="worker" id="id_worker" class="form-control">
+                    <option value="">— Tanlanmagan —</option>
+                    {% for val, label in form.fields.worker.choices %}
+                    {% if val %}
+                    <option value="{{ val }}" {% if form.worker.value|stringformat:"s" == val|stringformat:"s" %}selected{% endif %}>{{ label }}</option>
+                    {% endif %}
+                    {% endfor %}
+                </select>
+            </div>
+            {% endif %}
+
+            <div class="two-col">
+                {% if form.fields.started_at %}
+                <div class="form-group">
+                    <label for="id_started_at">Boshlangan vaqt</label>
+                    <input type="datetime-local" name="started_at" id="id_started_at" class="form-control" value="{{ form.started_at.value|default:'' }}">
+                </div>
+                {% endif %}
+                {% if form.fields.finished_at %}
+                <div class="form-group">
+                    <label for="id_finished_at">Tugallangan vaqt</label>
+                    <input type="datetime-local" name="finished_at" id="id_finished_at" class="form-control" value="{{ form.finished_at.value|default:'' }}">
+                </div>
+                {% endif %}
+            </div>
+
+            <div class="form-group">
+                <label for="id_note">Izoh</label>
+                <textarea name="note" id="id_note" class="form-control" rows="2">{{ form.note.value|default:'' }}</textarea>
+            </div>
+
+            <div class="form-actions">
+                <button type="submit" class="btn btn-primary">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5"/></svg>
+                    Saqlash
+                </button>
+                <a href="{% url 'order:order_detail' order.pk %}" class="btn btn-secondary">Bekor qilish</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

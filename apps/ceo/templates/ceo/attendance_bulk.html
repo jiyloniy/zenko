@@ -1,7 +1,7 @@
 {% extends "ceo/base.html" %}
 
 {% block title %}Ommaviy davomat — Zenko CEO{% endblock %}
-{% block page_title %}Ommaviy davomat belgilash{% endblock %}
+{% block page_title %}Ommaviy davomat{% endblock %}
 
 {% block topbar_actions %}
 <a href="{% url 'ceo:attendance_list' %}" class="btn btn-secondary">
@@ -21,6 +21,7 @@
         border: 1px solid var(--gray-200);
         padding: 32px;
         animation: fadeInUp .5s ease both;
+        max-width: 920px;
     }
     .bulk-header {
         display: flex;
@@ -31,52 +32,106 @@
         border-bottom: 1px solid var(--gray-200);
     }
     .bulk-header .icon {
-        width: 40px; height: 40px;
-        background: #EFF6FF;
-        color: #3B82F6;
-        border-radius: 12px;
+        width: 44px; height: 44px;
+        background: linear-gradient(135deg, #eff6ff, #fff7ed);
+        color: #3b82f6;
+        border-radius: 14px;
         display: flex; align-items: center; justify-content: center;
+        flex-shrink: 0;
     }
-    .bulk-header .icon svg { width: 20px; height: 20px; }
-    .bulk-header h2 { font-size: 18px; font-weight: 700; }
-    .bulk-header .desc { font-size: 13px; color: var(--gray-500); }
+    .bulk-header .icon svg { width: 22px; height: 22px; }
+    .bulk-header h2 { font-size: 19px; font-weight: 800; color: var(--black); }
+    .bulk-header .desc { font-size: 13px; color: var(--gray-500); line-height: 1.5; margin-top: 4px; }
 
-    .settings-row {
-        display: grid;
-        grid-template-columns: 1fr 1fr 1fr 1fr;
-        gap: 16px;
-        margin-bottom: 24px;
-        padding: 20px;
+    .settings-block {
+        padding: 20px 22px;
         background: var(--gray-100);
+        border-radius: 14px;
+        margin-bottom: 22px;
+        animation: slideDown .4s ease .08s both;
+    }
+    .settings-block > .fg { margin-bottom: 18px; }
+    .settings-block > .fg:last-child { margin-bottom: 0; }
+    .fg label {
+        display: block;
+        font-size: 12px;
+        font-weight: 700;
+        color: var(--gray-700);
+        margin-bottom: 8px;
+        text-transform: uppercase;
+        letter-spacing: .04em;
+    }
+    .bulk-input {
+        width: 100%;
+        max-width: 280px;
+        padding: 10px 14px;
+        border: 1px solid var(--gray-200);
+        border-radius: 10px;
+        font-size: 14px;
+        background: var(--white);
+    }
+    .bulk-input:focus {
+        outline: none;
+        border-color: var(--orange);
+        box-shadow: 0 0 0 3px rgba(249, 115, 22, .12);
+    }
+    .bulk-time-24 {
+        font-family: ui-monospace, 'Cascadia Code', 'Consolas', monospace;
+        font-variant-numeric: tabular-nums;
+        letter-spacing: 0.02em;
+    }
+
+    .bulk-mode-radios ul {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
+    .bulk-mode-radios li label {
+        display: flex;
+        align-items: flex-start;
+        gap: 10px;
+        padding: 12px 14px;
+        background: var(--white);
+        border: 2px solid var(--gray-200);
         border-radius: 12px;
-        animation: slideDown .4s ease .1s both;
+        cursor: pointer;
+        font-size: 14px;
+        font-weight: 600;
+        color: var(--black);
+        text-transform: none;
+        letter-spacing: 0;
     }
-    .settings-row .fg label {
-        display: block; font-size: 12px; font-weight: 600;
-        color: var(--gray-700); margin-bottom: 6px;
+    .bulk-mode-radios li label:hover { border-color: #fed7aa; background: #fffbeb; }
+    .bulk-mode-radios li:has(input:checked) label {
+        border-color: var(--orange);
+        background: #fff7ed;
     }
-    .settings-row select,
-    .settings-row input[type="date"] {
-        width: 100%; padding: 8px 12px;
-        border: 1px solid var(--gray-200); border-radius: 8px;
-        font-size: 13px; background: var(--white);
+    .bulk-mode-radios li label input { margin-top: 3px; accent-color: var(--orange); }
+    .bulk-mode-radios .mode-hint {
+        display: block;
+        font-size: 12px;
+        font-weight: 500;
+        color: var(--gray-500);
+        margin-top: 4px;
     }
-    .settings-row select:focus,
-    .settings-row input:focus { outline:none; border-color:var(--orange); }
 
-    .checkbox-row {
-        display: flex; align-items: center; gap: 10px;
-        padding: 10px 14px; background: #F5F3FF;
-        border-radius: 8px; border: 1px solid #E9E5FF;
-        margin-top: 22px;
+    #bulk-times-box {
+        margin-top: 16px;
+        padding-top: 16px;
+        border-top: 1px dashed var(--gray-300);
     }
-    .checkbox-row input { width:16px; height:16px; accent-color:#8B5CF6; }
-    .checkbox-row label { font-size:12px; font-weight:600; color:#7C3AED; margin:0; }
+    .time-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+        gap: 16px;
+    }
 
-    /* Employee selection */
     .emp-select-section {
         margin-bottom: 24px;
-        animation: fadeInUp .5s ease .2s both;
+        animation: fadeInUp .5s ease .15s both;
     }
     .emp-select-header {
         display: flex; justify-content: space-between; align-items: center;
@@ -92,7 +147,7 @@
         display: grid;
         grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
         gap: 10px;
-        max-height: 400px;
+        max-height: 420px;
         overflow-y: auto;
         padding: 4px;
     }
@@ -123,14 +178,15 @@
     .form-actions {
         display: flex; gap: 12px; padding-top: 20px;
         border-top: 1px solid var(--gray-200);
+        flex-wrap: wrap;
     }
     .btn-save {
-        padding: 10px 28px; border-radius: 10px; font-size: 14px; font-weight: 600;
+        padding: 12px 28px; border-radius: 10px; font-size: 14px; font-weight: 700;
         border: none; background: var(--orange); color: var(--white); cursor: pointer;
     }
     .btn-save:hover { background: var(--orange-hover); }
     .btn-cancel {
-        padding: 10px 28px; border-radius: 10px; font-size: 14px;
+        padding: 12px 28px; border-radius: 10px; font-size: 14px;
         border: 1px solid var(--gray-200); background: var(--white); color: var(--gray-700);
         text-decoration: none;
     }
@@ -143,7 +199,6 @@
     .error-list ul { margin:0; padding-left:20px; }
 
     @media (max-width: 768px) {
-        .settings-row { grid-template-columns: 1fr 1fr; }
         .emp-grid { grid-template-columns: 1fr; }
     }
 </style>
@@ -156,8 +211,11 @@
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M18 18.72a9.094 9.094 0 0 0 3.741-.479 3 3 0 0 0-4.682-2.72m.94 3.198.001.031c0 .225-.012.447-.037.666A11.944 11.944 0 0 1 12 21c-2.17 0-4.207-.576-5.963-1.584A6.062 6.062 0 0 1 6 18.719m12 0a5.971 5.971 0 0 0-.941-3.197m0 0A5.995 5.995 0 0 0 12 12.75a5.995 5.995 0 0 0-5.058 2.772m0 0a3 3 0 0 0-4.681 2.72 8.986 8.986 0 0 0 3.74.477m.94-3.197a5.971 5.971 0 0 0-.94 3.197M15 6.75a3 3 0 1 1-6 0 3 3 0 0 1 6 0Zm6 3a2.25 2.25 0 1 1-4.5 0 2.25 2.25 0 0 1 4.5 0Zm-13.5 0a2.25 2.25 0 1 1-4.5 0 2.25 2.25 0 0 1 4.5 0Z"/></svg>
         </span>
         <div>
-            <h2>Ommaviy davomat belgilash</h2>
-            <div class="desc">Bir nechta hodimga bir vaqtda davomat yozish</div>
+            <h2>Ommaviy davomat</h2>
+            <div class="desc">
+                <strong>Kelmadi:</strong> tanlangan kun uchun yozuvsiz hodimlarga «Kelmadi» yozuvi ochiladi (mavjud yozuvlarga tegmaydi).<br>
+                <strong>Vaqt bilan:</strong> kirish va chiqish <strong>24 soatlik</strong> matn (masalan 08:30, 17:45). Barcha tanlanganlarga bir xil kirish vaqti qo‘yiladi; chiqish maydoni bo‘sh qoldirilsa, avvalgi chiqish vaqti (masalan QR bilan) saqlanadi. Kechikish smena boshlanishi bo‘yicha avtomatik yangilanadi.
+            </div>
         </div>
     </div>
 
@@ -169,6 +227,9 @@
             <li><strong>{{ field.label }}:</strong> {{ error }}</li>
             {% endfor %}
         {% endfor %}
+        {% for error in form.non_field_errors %}
+        <li>{{ error }}</li>
+        {% endfor %}
         </ul>
     </div>
     {% endif %}
@@ -176,24 +237,29 @@
     <form method="post">
         {% csrf_token %}
 
-        <div class="settings-row">
+        <div class="settings-block">
             <div class="fg">
-                <label>Sana</label>
+                <label for="id_date">Sana</label>
                 {{ form.date }}
             </div>
             <div class="fg">
-                <label>Smena</label>
-                {{ form.shift }}
+                <label style="display:block;font-size:12px;font-weight:700;color:var(--gray-700);margin-bottom:8px;text-transform:uppercase;letter-spacing:.04em;">{{ form.mode.label }}</label>
+                {{ form.mode }}
             </div>
-            <div class="fg">
-                <label>Holat</label>
-                {{ form.status }}
-            </div>
-            <div class="fg">
-                <div class="checkbox-row">
-                    {{ form.is_overtime }}
-                    <label for="id_is_overtime">Qo'shimcha smena</label>
+            <div id="bulk-times-box" style="display:none;">
+                <div class="time-grid">
+                    <div class="fg">
+                        <label for="id_check_in_time">{{ form.check_in_time.label }}</label>
+                        {{ form.check_in_time }}
+                    </div>
+                    <div class="fg">
+                        <label for="id_check_out_time">{{ form.check_out_time.label }}</label>
+                        {{ form.check_out_time }}
+                    </div>
                 </div>
+                <p style="font-size:12px;color:var(--gray-500);margin:12px 0 0;line-height:1.45;">
+                    Tungi smena: chiqish vaqti kirishdan «kichik» bo‘lsa (masalan 22:00 kirish, 06:00 chiqish), tizim chiqishni keyingi kunga qo‘yadi.
+                </p>
             </div>
         </div>
 
@@ -216,21 +282,34 @@
         </div>
 
         <div class="form-actions">
-            <button type="submit" class="btn-save">Davomat yozish</button>
+            <button type="submit" class="btn-save">Davomatni yozish</button>
             <a href="{% url 'ceo:attendance_list' %}" class="btn-cancel">Bekor qilish</a>
         </div>
     </form>
 </div>
 
 <script>
-document.getElementById('selectAllBtn').addEventListener('click', function() {
-    const checks = document.querySelectorAll('.emp-check input[type="checkbox"]');
-    const allChecked = [...checks].every(c => c.checked);
-    checks.forEach(c => {
-        c.checked = !allChecked;
-        c.closest('.emp-check').classList.toggle('checked', !allChecked);
+(function() {
+    function syncMode() {
+        var box = document.getElementById('bulk-times-box');
+        var checked = document.querySelector('input[name="mode"]:checked');
+        if (!box || !checked) return;
+        box.style.display = checked.value === 'times' ? 'block' : 'none';
+    }
+    document.querySelectorAll('input[name="mode"]').forEach(function(r) {
+        r.addEventListener('change', syncMode);
     });
-    this.textContent = allChecked ? 'Hammasini tanlash' : 'Barchasini bekor';
-});
+    syncMode();
+
+    document.getElementById('selectAllBtn').addEventListener('click', function() {
+        var checks = document.querySelectorAll('.emp-check input[type="checkbox"]');
+        var allChecked = [].every.call(checks, function(c) { return c.checked; });
+        checks.forEach(function(c) {
+            c.checked = !allChecked;
+            c.closest('.emp-check').classList.toggle('checked', !allChecked);
+        });
+        this.textContent = allChecked ? 'Hammasini tanlash' : 'Barchasini bekor';
+    });
+})();
 </script>
 {% endblock %}

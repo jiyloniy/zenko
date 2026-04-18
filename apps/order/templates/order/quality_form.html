@@ -1,0 +1,132 @@
+{% extends "ceo/base.html" %}
+
+{% block title %}{{ title }} — Zenko{% endblock %}
+{% block page_title %}{{ order.name }} → {{ title }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .form-card {
+        max-width: 640px;
+        margin: 0 auto;
+        background: var(--white);
+        border-radius: 12px;
+        border: 1px solid var(--gray-200);
+        overflow: hidden;
+    }
+    .form-header {
+        background: var(--black);
+        color: var(--white);
+        padding: 20px 28px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+    .form-header .icon {
+        width: 40px; height: 40px;
+        background: var(--orange); border-radius: 10px;
+        display: flex; align-items: center; justify-content: center;
+    }
+    .form-header .icon svg { width: 20px; height: 20px; color: var(--white); }
+    .form-header h2 { font-size: 18px; font-weight: 700; }
+    .form-body { padding: 28px; }
+    .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    @media (max-width: 600px) { .two-col { grid-template-columns: 1fr; } .form-body { padding: 20px; } }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="form-card">
+    <div class="form-header">
+        <div class="icon">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75m-3-7.036A11.959 11.959 0 0 1 3.598 6 11.99 11.99 0 0 0 3 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285Z"/></svg>
+        </div>
+        <h2>{{ title }}</h2>
+    </div>
+    <div class="form-body">
+        {% if form.errors %}
+        <div class="form-errors">
+            <strong>Xatoliklar:</strong>
+            <ul>
+            {% for field in form %}{% for error in field.errors %}<li>{{ field.label }}: {{ error }}</li>{% endfor %}{% endfor %}
+            {% for error in form.non_field_errors %}<li>{{ error }}</li>{% endfor %}
+            </ul>
+        </div>
+        {% endif %}
+
+        <form method="post">
+            {% csrf_token %}
+
+            <div class="two-col">
+                <div class="form-group">
+                    <label for="id_stage">Bosqich</label>
+                    <select name="stage" id="id_stage" class="form-control">
+                        {% for val, label in form.fields.stage.choices %}
+                        <option value="{{ val }}" {% if form.stage.value == val %}selected{% endif %}>{{ label }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="id_result">Natija</label>
+                    <select name="result" id="id_result" class="form-control">
+                        {% for val, label in form.fields.result.choices %}
+                        <option value="{{ val }}" {% if form.result.value == val %}selected{% endif %}>{{ label }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+
+            <div class="two-col">
+                <div class="form-group">
+                    <label for="id_checked_quantity">Tekshirilgan</label>
+                    <input type="number" name="checked_quantity" id="id_checked_quantity" class="form-control" value="{{ form.checked_quantity.value|default:0 }}" min="0">
+                </div>
+                <div class="form-group">
+                    <label for="id_passed_quantity">Yaroqli</label>
+                    <input type="number" name="passed_quantity" id="id_passed_quantity" class="form-control" value="{{ form.passed_quantity.value|default:0 }}" min="0">
+                </div>
+            </div>
+
+            <div class="two-col">
+                <div class="form-group">
+                    <label for="id_defect_quantity">Yaroqsiz</label>
+                    <input type="number" name="defect_quantity" id="id_defect_quantity" class="form-control" value="{{ form.defect_quantity.value|default:0 }}" min="0">
+                </div>
+                <div class="form-group">
+                    <label for="id_checked_at">Tekshirilgan vaqt</label>
+                    <input type="datetime-local" name="checked_at" id="id_checked_at" class="form-control" value="{{ form.checked_at.value|default:'' }}">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="id_inspector">Nazoratchi</label>
+                <select name="inspector" id="id_inspector" class="form-control">
+                    <option value="">— Tanlanmagan —</option>
+                    {% for val, label in form.fields.inspector.choices %}
+                    {% if val %}
+                    <option value="{{ val }}" {% if form.inspector.value|stringformat:"s" == val|stringformat:"s" %}selected{% endif %}>{{ label }}</option>
+                    {% endif %}
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="id_defect_reason">Nuqson sababi</label>
+                <textarea name="defect_reason" id="id_defect_reason" class="form-control" rows="2">{{ form.defect_reason.value|default:'' }}</textarea>
+            </div>
+
+            <div class="form-group">
+                <label for="id_note">Izoh</label>
+                <textarea name="note" id="id_note" class="form-control" rows="2">{{ form.note.value|default:'' }}</textarea>
+            </div>
+
+            <div class="form-actions">
+                <button type="submit" class="btn btn-primary">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5"/></svg>
+                    Saqlash
+                </button>
+                <a href="{% url 'order:order_detail' order.pk %}" class="btn btn-secondary">Bekor qilish</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

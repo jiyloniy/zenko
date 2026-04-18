@@ -12,7 +12,7 @@
     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width:16px;height:16px"><path stroke-linecap="round" stroke-linejoin="round" d="M18 18.72a9.094 9.094 0 0 0 3.741-.479 3 3 0 0 0-4.682-2.72m.94 3.198.001.031c0 .225-.012.447-.037.666A11.944 11.944 0 0 1 12 21c-2.17 0-4.207-.576-5.963-1.584A6.062 6.062 0 0 1 6 18.719m12 0a5.971 5.971 0 0 0-.941-3.197m0 0A5.995 5.995 0 0 0 12 12.75a5.995 5.995 0 0 0-5.058 2.772m0 0a3 3 0 0 0-4.681 2.72 8.986 8.986 0 0 0 3.74.477m.94-3.197a5.971 5.971 0 0 0-.94 3.197M15 6.75a3 3 0 1 1-6 0 3 3 0 0 1 6 0Zm6 3a2.25 2.25 0 1 1-4.5 0 2.25 2.25 0 0 1 4.5 0Zm-13.5 0a2.25 2.25 0 1 1-4.5 0 2.25 2.25 0 0 1 4.5 0Z"/></svg>
     Ommaviy
 </a>
-<a href="{% url 'attendance:kiosk' %}" class="btn btn-secondary" target="_blank">
+<a href="{% url 'attendance:kiosk' %}{% if branch %}?branch={{ branch.pk }}{% endif %}" class="btn btn-secondary" target="_blank">
     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width:16px;height:16px"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 4.875c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-4.5A1.125 1.125 0 0 1 3.75 9.375v-4.5Z"/></svg>
     Skaner
 </a>
@@ -389,6 +389,136 @@
         width: 100%; height: 100%;
         object-fit: cover;
     }
+    .user-avatar.photo-thumb {
+        cursor: pointer;
+        border: 2px solid transparent;
+        transition: border-color .2s, box-shadow .2s;
+    }
+    .user-avatar.photo-thumb:hover {
+        border-color: var(--orange);
+        box-shadow: 0 0 0 2px rgba(249, 115, 22, .2);
+    }
+    .user-avatar.photo-thumb:focus-visible {
+        outline: 2px solid var(--orange);
+        outline-offset: 2px;
+    }
+
+    .bulk-toolbar {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        flex-wrap: wrap;
+        padding: 12px 20px;
+        background: linear-gradient(90deg, #fff7ed 0%, #fff 100%);
+        border-bottom: 1px solid var(--gray-200);
+    }
+    .bulk-toolbar .hint {
+        font-size: 12px;
+        color: var(--gray-500);
+        flex: 1;
+        min-width: 200px;
+    }
+    .bulk-toolbar .btn-bulk-del {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 16px;
+        border-radius: 10px;
+        font-size: 13px;
+        font-weight: 600;
+        border: 1px solid #fecaca;
+        background: #fef2f2;
+        color: #b91c1c;
+        cursor: pointer;
+        transition: background .2s, transform .15s;
+    }
+    .bulk-toolbar .btn-bulk-del:hover {
+        background: #fee2e2;
+        transform: translateY(-1px);
+    }
+    .bulk-toolbar .btn-bulk-del:disabled {
+        opacity: .45;
+        cursor: not-allowed;
+        transform: none;
+    }
+
+    .th-check {
+        width: 36px;
+        text-align: center;
+    }
+    .td-check {
+        text-align: center;
+        vertical-align: middle;
+    }
+    .td-check input {
+        width: 16px;
+        height: 16px;
+        accent-color: var(--orange);
+        cursor: pointer;
+    }
+
+    /* Rasm modal */
+    .photo-modal {
+        display: none;
+        position: fixed;
+        inset: 0;
+        z-index: 2000;
+        background: rgba(15, 23, 42, .88);
+        backdrop-filter: blur(8px);
+        align-items: center;
+        justify-content: center;
+        padding: 24px;
+        box-sizing: border-box;
+    }
+    .photo-modal.show { display: flex; }
+    .photo-modal-inner {
+        position: relative;
+        max-width: min(92vw, 960px);
+        max-height: 90vh;
+        background: #0f172a;
+        border-radius: 20px;
+        border: 1px solid rgba(255,255,255,.12);
+        box-shadow: 0 40px 80px rgba(0,0,0,.45);
+        overflow: hidden;
+        animation: photoPop .35s cubic-bezier(.34, 1.56, .64, 1);
+    }
+    @keyframes photoPop {
+        from { opacity: 0; transform: scale(.94); }
+        to { opacity: 1; transform: scale(1); }
+    }
+    .photo-modal-inner img {
+        display: block;
+        max-width: 92vw;
+        max-height: calc(90vh - 72px);
+        width: auto;
+        height: auto;
+        object-fit: contain;
+    }
+    .photo-modal-caption {
+        padding: 14px 20px;
+        background: rgba(0,0,0,.35);
+        color: #e2e8f0;
+        font-size: 14px;
+        font-weight: 600;
+        border-top: 1px solid rgba(255,255,255,.08);
+    }
+    .photo-modal-close {
+        position: absolute;
+        top: 12px;
+        right: 12px;
+        width: 40px;
+        height: 40px;
+        border-radius: 12px;
+        border: none;
+        background: rgba(255,255,255,.12);
+        color: #fff;
+        font-size: 22px;
+        line-height: 1;
+        cursor: pointer;
+        transition: background .2s;
+        z-index: 2;
+    }
+    .photo-modal-close:hover { background: rgba(255,255,255,.22); }
     .user-info .user-name { font-weight: 600; color: var(--black); font-size: 13px; }
     .user-info .user-dept { font-size: 11px; color: var(--gray-500); }
 
@@ -509,17 +639,10 @@
     </div>
     <div class="att-stat red">
         <div class="stat-icon">
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0 0 13.5 3h-6a2.25 2.25 0 0 0-2.25 2.25v13.5A2.25 2.25 0 0 0 7.5 21h6a2.25 2.25 0 0 0 2.25-2.25V15m3 0 3-3m0 0-3-3m3 3H9"/></svg>
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M18.364 18.364A9 9 0 0 0 5.636 5.636m12.728 12.728A9 9 0 0 1 5.636 5.636m12.728 12.728L5.636 5.636"/></svg>
         </div>
-        <div class="stat-value">{{ early_leave_today }}</div>
-        <div class="stat-label">Erta ketdi</div>
-    </div>
-    <div class="att-stat purple">
-        <div class="stat-icon">
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>
-        </div>
-        <div class="stat-value">{{ overtime_today }}</div>
-        <div class="stat-label">Qo'shimcha</div>
+        <div class="stat-value">{{ absent_today }}</div>
+        <div class="stat-label">Kelmadi</div>
     </div>
     <div class="att-stat teal">
         <div class="stat-icon">
@@ -558,7 +681,7 @@
         <div class="shift-counts">
             <div class="sc-item"><span class="sc-dot green"></span> {{ ss.present }} keldi</div>
             <div class="sc-item"><span class="sc-dot orange"></span> {{ ss.late }} kechikdi</div>
-            <div class="sc-item"><span class="sc-dot purple"></span> {{ ss.overtime }} qo'shimcha</div>
+            <div class="sc-item"><span class="sc-dot red"></span> {{ ss.absent }} kelmadi</div>
         </div>
     </div>
     {% endfor %}
@@ -599,14 +722,6 @@
                 {% endfor %}
             </select>
         </div>
-        <div class="filter-group">
-            <label>Turi</label>
-            <select name="overtime">
-                <option value="">Hammasi</option>
-                <option value="0" {% if filter_overtime == "0" %}selected{% endif %}>Asosiy</option>
-                <option value="1" {% if filter_overtime == "1" %}selected{% endif %}>Qo'shimcha</option>
-            </select>
-        </div>
         <div class="filter-actions">
             <button type="submit" class="btn-filter">Filtrlash</button>
             <a href="{% url 'ceo:attendance_list' %}" class="btn-clear">Tozalash</a>
@@ -629,14 +744,28 @@
 
 <!-- Table -->
 <div class="att-table-card">
+    <form id="attendance-bulk-delete-form" method="post" action="{% url 'ceo:attendance_bulk_delete' %}">
+        {% csrf_token %}
+        <input type="hidden" name="next" value="{{ request.get_full_path }}">
+    </form>
     <div class="att-table-header">
         <h3>Davomat jadvali</h3>
         <span class="count-badge">{{ attendances|length }} yozuv</span>
+    </div>
+    <div class="bulk-toolbar">
+        <button type="submit" class="btn-bulk-del" id="btnBulkDelete" form="attendance-bulk-delete-form" disabled title="Avval jadvaldan qatorlarni belgilang">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.75" stroke="currentColor" style="width:18px;height:18px"><path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0"/></svg>
+            Tanlanganlarni o'chirish
+        </button>
+        <span class="hint">Belgilangan qatorlar butunlay o'chiriladi. Rasmga bosib — kattaroq ko'rish.</span>
     </div>
     <div class="table-wrapper">
         <table class="att-table">
             <thead>
                 <tr>
+                    <th class="th-check" title="Barchasini tanlash">
+                        <input type="checkbox" id="checkSelectAll" aria-label="Barchasini tanlash">
+                    </th>
                     <th>#</th>
                     <th>Hodim</th>
                     <th>Sana</th>
@@ -646,14 +775,24 @@
                     <th>Ishlagan</th>
                     <th>Holat</th>
                     <th>Amallar</th>
+                </tr>
             </thead>
             <tbody>
                 {% for att in attendances %}
-                <tr class="{% if att.is_overtime %}overtime-row{% endif %}">
-                    <td>{{ forloop.counter }}</td>
+                <tr>
+                    <td class="td-check">
+                        <input type="checkbox" name="ids" value="{{ att.pk }}" form="attendance-bulk-delete-form" class="row-check" aria-label="Tanlash: {{ att.user.name }}">
+                    </td>
+                    <td>{% if page_obj %}{{ page_obj.start_index|add:forloop.counter0 }}{% else %}{{ forloop.counter }}{% endif %}</td>
                     <td>
                         <div class="user-cell">
-                            <div class="user-avatar">{% if att.photo %}<img src="{{ att.photo.url }}" alt="">{% else %}{{ att.user.name|make_list|first }}{% endif %}</div>
+                            {% if att.photo %}
+                            <button type="button" class="user-avatar photo-thumb" data-photo-url="{{ att.photo.url }}" data-caption="{{ att.user.name }} — {{ att.date|date:'d.m.Y' }}" aria-label="Rasmni kattalashtirish">
+                                <img src="{{ att.photo.url }}" alt="">
+                            </button>
+                            {% else %}
+                            <div class="user-avatar">{{ att.user.name|make_list|first }}</div>
+                            {% endif %}
                             <div class="user-info">
                                 <div class="user-name">{{ att.user.name }}</div>
                                 <div class="user-dept">{{ att.user.department|default:"—" }}</div>
@@ -662,15 +801,9 @@
                     </td>
                     <td>{{ att.date|date:"d.m.Y" }}</td>
                     <td>
-                        {% if att.shift %}
-                        <span class="badge badge-orange">{{ att.shift.name }}</span>
+                        {% if att.user.shift %}
+                        <span class="badge badge-orange">{{ att.user.shift.name }}</span>
                         {% else %}—{% endif %}
-                        {% if att.is_overtime %}
-                        <span class="badge-overtime">
-                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width:10px;height:10px"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>
-                            Qo'shimcha
-                        </span>
-                        {% endif %}
                     </td>
                     <td class="time-cell in">{{ att.check_in|date:"H:i"|default:"—" }}</td>
                     <td class="time-cell out">{{ att.check_out|date:"H:i"|default:"—" }}</td>
@@ -679,9 +812,7 @@
                         <span class="badge-status badge-{{ att.status }}">
                             {% if att.status == 'present' %}✓{% endif %}
                             {% if att.status == 'late' %}⏰{% endif %}
-                            {% if att.status == 'early_leave' %}↗{% endif %}
                             {% if att.status == 'absent' %}✗{% endif %}
-                            {% if att.status == 'half_day' %}½{% endif %}
                             {{ att.get_status_display }}
                         </span>
                     </td>
@@ -700,7 +831,7 @@
                     </td>
                 </tr>
                 {% empty %}
-                <tr><td colspan="9">
+                <tr><td colspan="10">
                     <div class="empty-state">
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5"/></svg>
                         <p>Davomat yozuvlari topilmadi</p>
@@ -714,13 +845,106 @@
     {% if is_paginated %}
     <div class="pagination">
         {% if page_obj.has_previous %}
-        <a href="?page={{ page_obj.previous_page_number }}&date={{ filter_date }}&status={{ filter_status }}&user={{ filter_user }}&shift={{ filter_shift }}&overtime={{ filter_overtime }}">← Oldingi</a>
+        <a href="?page={{ page_obj.previous_page_number }}&date={{ filter_date }}&status={{ filter_status }}&user={{ filter_user }}&shift={{ filter_shift }}">← Oldingi</a>
         {% endif %}
         <span class="current">{{ page_obj.number }} / {{ page_obj.paginator.num_pages }}</span>
         {% if page_obj.has_next %}
-        <a href="?page={{ page_obj.next_page_number }}&date={{ filter_date }}&status={{ filter_status }}&user={{ filter_user }}&shift={{ filter_shift }}&overtime={{ filter_overtime }}">Keyingi →</a>
+        <a href="?page={{ page_obj.next_page_number }}&date={{ filter_date }}&status={{ filter_status }}&user={{ filter_user }}&shift={{ filter_shift }}">Keyingi →</a>
         {% endif %}
     </div>
     {% endif %}
 </div>
+
+<div class="photo-modal" id="photoModal" role="dialog" aria-modal="true" aria-labelledby="photoModalCaption">
+    <div class="photo-modal-inner">
+        <button type="button" class="photo-modal-close" id="photoModalClose" aria-label="Yopish">&times;</button>
+        <img src="" alt="" id="photoModalImg">
+        <div class="photo-modal-caption" id="photoModalCaption"></div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+(function() {
+    const form = document.getElementById('attendance-bulk-delete-form');
+    const btnDel = document.getElementById('btnBulkDelete');
+    const selectAll = document.getElementById('checkSelectAll');
+    if (!form || !btnDel) return;
+
+    function rowChecks() {
+        return document.querySelectorAll('input.row-check');
+    }
+
+    function refreshBulkBtn() {
+        const n = document.querySelectorAll('input.row-check:checked').length;
+        btnDel.disabled = n === 0;
+        var all = rowChecks();
+        if (selectAll && all.length) {
+            var c = document.querySelectorAll('input.row-check:checked').length;
+            selectAll.checked = c === all.length;
+            selectAll.indeterminate = c > 0 && c < all.length;
+        }
+    }
+
+    rowChecks().forEach(function(cb) {
+        cb.addEventListener('change', refreshBulkBtn);
+    });
+
+    if (selectAll) {
+        selectAll.addEventListener('change', function() {
+            rowChecks().forEach(function(cb) {
+                cb.checked = selectAll.checked;
+            });
+            selectAll.indeterminate = false;
+            refreshBulkBtn();
+        });
+    }
+
+    form.addEventListener('submit', function(e) {
+        const n = document.querySelectorAll('input.row-check:checked').length;
+        if (!n) {
+            e.preventDefault();
+            return;
+        }
+        if (!confirm(n + ' ta yozuvni o\'chirishni tasdiqlaysizmi? Bu amalni qaytarib bo\'lmaydi.')) {
+            e.preventDefault();
+        }
+    });
+
+    const modal = document.getElementById('photoModal');
+    const modalImg = document.getElementById('photoModalImg');
+    const modalCap = document.getElementById('photoModalCaption');
+    const modalClose = document.getElementById('photoModalClose');
+
+    function openPhoto(url, caption) {
+        if (!modal || !modalImg) return;
+        modalImg.src = url;
+        modalCap.textContent = caption || '';
+        modal.classList.add('show');
+        document.body.style.overflow = 'hidden';
+    }
+    function closePhoto() {
+        if (!modal || !modalImg) return;
+        modal.classList.remove('show');
+        modalImg.src = '';
+        document.body.style.overflow = '';
+    }
+
+    document.querySelectorAll('.user-avatar.photo-thumb').forEach(function(btn) {
+        btn.addEventListener('click', function() {
+            openPhoto(btn.getAttribute('data-photo-url'), btn.getAttribute('data-caption'));
+        });
+    });
+    if (modalClose) modalClose.addEventListener('click', closePhoto);
+    if (modal) {
+        modal.addEventListener('click', function(ev) {
+            if (ev.target === modal) closePhoto();
+        });
+    }
+    document.addEventListener('keydown', function(ev) {
+        if (ev.key === 'Escape') closePhoto();
+    });
+})();
+</script>
 {% endblock %}

@@ -288,7 +288,7 @@
         // Clock
         function updateClock() {
             const now = new Date();
-            document.getElementById('clock').textContent = now.toLocaleTimeString('uz', {hour:'2-digit', minute:'2-digit'});
+            document.getElementById('clock').textContent = now.toLocaleTimeString('uz-UZ', { hour: '2-digit', minute: '2-digit', hour12: false });
             document.getElementById('dateDisplay').textContent = now.toLocaleDateString('uz', {year:'numeric', month:'long', day:'numeric'});
         }
         updateClock();

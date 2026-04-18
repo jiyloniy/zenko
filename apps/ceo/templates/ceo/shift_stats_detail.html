@@ -208,8 +208,7 @@
     <div class="s-card c-blue" style="animation-delay:.1s"><div class="s-val">{{ total }}</div><div class="s-lbl">Jami yozuv</div></div>
     <div class="s-card c-green" style="animation-delay:.15s"><div class="s-val">{{ present }}</div><div class="s-lbl">Keldi</div></div>
     <div class="s-card c-orange" style="animation-delay:.2s"><div class="s-val">{{ late }}</div><div class="s-lbl">Kechikdi</div></div>
-    <div class="s-card c-red" style="animation-delay:.25s"><div class="s-val">{{ early_leave }}</div><div class="s-lbl">Erta ketdi</div></div>
-    <div class="s-card c-purple" style="animation-delay:.3s"><div class="s-val">{{ overtime }}</div><div class="s-lbl">Qo'shimcha</div></div>
+    <div class="s-card c-pink" style="animation-delay:.25s"><div class="s-val">{{ absent }}</div><div class="s-lbl">Kelmadi</div></div>
     <div class="s-card c-teal" style="animation-delay:.35s"><div class="s-val">{{ active_now }}</div><div class="s-lbl">Hozir ishda</div></div>
 </div>
 
@@ -240,7 +239,7 @@
                 <th>Jami</th>
                 <th>Keldi</th>
                 <th>Kechikdi</th>
-                <th>Erta ketdi</th>
+                <th>Kelmadi</th>
                 <th>Daraja</th>
                 <th></th>
             </tr>
@@ -261,7 +260,7 @@
                 <td>{{ e.total }}</td>
                 <td><span class="tag green">{{ e.present }}</span></td>
                 <td><span class="tag orange">{{ e.late }}</span></td>
-                <td><span class="tag red">{{ e.early_leave }}</span></td>
+                <td><span class="tag red">{{ e.absent }}</span></td>
                 <td><span class="rate-pill">{{ e.rate }}%</span></td>
                 <td>
                     <a href="{% url 'ceo:user_stats_detail' e.user.pk %}?period={{ period }}&from_date={{ from_date }}&to_date={{ to_date }}" style="color:var(--orange);font-size:12px;font-weight:600;text-decoration:none;">Batafsil →</a>
@@ -290,6 +289,9 @@
                 {% if day.late %}
                 <div class="bar-seg late" style="height:{% widthratio day.late max_daily 140 %}px; min-height:4px;"></div>
                 {% endif %}
+                {% if day.absent %}
+                <div class="bar-seg early" style="height:{% widthratio day.absent max_daily 140 %}px; min-height:4px;"></div>
+                {% endif %}
             </div>
             <div class="bar-label">{{ day.day_name }}</div>
             <div class="bar-date">{{ day.date|date:"d.m" }}</div>
@@ -299,6 +301,7 @@
     <div class="chart-legend">
         <div class="legend-item"><span class="legend-dot green"></span> Keldi</div>
         <div class="legend-item"><span class="legend-dot orange"></span> Kechikdi</div>
+        <div class="legend-item"><span class="legend-dot red"></span> Kelmadi</div>
     </div>
 </div>
 {% endif %}

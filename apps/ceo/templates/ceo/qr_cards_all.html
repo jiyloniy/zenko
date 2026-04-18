@@ -41,9 +41,15 @@
 
     .qr-mini-card .card-body { padding: 18px; }
     .qr-mini-card .card-body img {
-        width: 150px; height: 150px;
+        width: 52mm;
+        height: 84mm;
         border-radius: 12px;
-        border: 2px solid var(--gray-200);
+        border: 2px solid #e2e8f0;
+        box-shadow: 0 6px 20px rgba(15, 23, 42, 0.10);
+        background: #fff;
+        object-fit: contain;
+        margin: 0 auto;
+        display: block;
     }
 
     .qr-mini-card .card-footer {
@@ -54,23 +60,24 @@
         display: flex;
         align-items: center;
         justify-content: center;
-        gap: 6px;
+        gap: 8px;
     }
     .qr-brand-mini .b-icon {
-        width: 22px; height: 22px;
-        background: var(--orange);
-        border-radius: 6px;
+        width: 28px; height: 28px;
+        background: linear-gradient(135deg, #f97316, #ea580c);
+        border-radius: 8px;
         display: flex;
         align-items: center;
         justify-content: center;
         font-weight: 800;
-        color: var(--white);
-        font-size: 11px;
+        color: #fff;
+        font-size: 14px;
+        box-shadow: 0 2px 8px rgba(249, 115, 22, 0.18);
     }
     .qr-brand-mini .b-text {
-        font-size: 14px;
+        font-size: 15px;
         font-weight: 800;
-        color: var(--black);
+        color: #0f172a;
         letter-spacing: 2px;
         text-transform: uppercase;
     }
@@ -140,12 +147,92 @@
     .filter-count strong { color: var(--orange); font-weight: 700; }
 
     @media print {
+        @page {
+            size: A4 portrait;
+            margin: 10mm;
+        }
+        html, body {
+            background: #fff !important;
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            min-height: 100vh;
+        }
         .sidebar, .topbar, .topbar-actions, .filter-bar { display: none !important; }
-        .main { margin-left: 0 !important; }
-        .content { padding: 10px !important; }
-        body { background: white !important; }
-        .qr-grid { grid-template-columns: repeat(3, 1fr); gap: 12px; }
-        .qr-mini-card { break-inside: avoid; box-shadow: none; border: 1px solid #ccc; }
+        .main, .content { margin: 0 !important; padding: 0 !important; }
+        .qr-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8mm 6mm;
+            justify-content: flex-start;
+            align-items: flex-start;
+            width: 100%;
+            margin: 0 auto;
+        }
+        .qr-mini-card {
+            width: 59mm !important;
+            height: 90mm !important;
+            border: 1.2px solid #222 !important;
+            border-radius: 10px !important;
+            background: #fff !important;
+            margin: 0 !important;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            align-items: center;
+            page-break-inside: avoid;
+            box-shadow: 0 2px 8px rgba(15,23,42,0.08);
+        }
+        .qr-mini-card .card-top {
+            background: #fff !important;
+            color: #222 !important;
+            padding: 8px 0 0 0 !important;
+            font-size: 14px !important;
+            font-weight: 700 !important;
+            border-radius: 0 !important;
+            text-align: center;
+        }
+        .qr-mini-card .card-body {
+            padding: 0 !important;
+            flex: 1 1 auto;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .qr-mini-card .card-body img {
+            width: 51mm !important;
+            height: 51mm !important;
+            border-radius: 6px !important;
+            border: 1.2px solid #e2e8f0 !important;
+            box-shadow: none !important;
+            margin: 0 auto !important;
+            display: block;
+            object-fit: contain;
+            background: #fff !important;
+        }
+        .qr-mini-card .card-footer {
+            background: #fff !important;
+            padding: 0 0 8px 0 !important;
+            border-top: none !important;
+            text-align: center;
+        }
+        .qr-brand-mini .b-icon {
+            width: 16px !important;
+            height: 16px !important;
+            font-size: 9px !important;
+            border-radius: 4px !important;
+            background: linear-gradient(135deg, #f97316, #ea580c) !important;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .qr-brand-mini .b-text {
+            font-size: 11px !important;
+            letter-spacing: 1px !important;
+            color: #222 !important;
+            font-weight: 700;
+            margin-left: 2px;
+        }
     }
 </style>
 {% endblock %}

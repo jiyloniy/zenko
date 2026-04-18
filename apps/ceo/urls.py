@@ -36,6 +36,7 @@ urlpatterns = [
     path('attendance/', views.AttendanceListView.as_view(), name='attendance_list'),
     path('attendance/create/', views.AttendanceCreateView.as_view(), name='attendance_create'),
     path('attendance/bulk/', views.BulkAttendanceView.as_view(), name='attendance_bulk'),
+    path('attendance/bulk-delete/', views.AttendanceBulkDeleteView.as_view(), name='attendance_bulk_delete'),
     path('attendance/mark-absent/', views.MarkAbsentView.as_view(), name='mark_absent'),
     path('attendance/<int:pk>/edit/', views.AttendanceUpdateView.as_view(), name='attendance_update'),
     path('attendance/<int:pk>/delete/', views.AttendanceDeleteView.as_view(), name='attendance_delete'),

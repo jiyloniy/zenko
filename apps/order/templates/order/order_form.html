@@ -1,0 +1,143 @@
+{% extends "ceo/base.html" %}
+
+{% block title %}{{ title }} — Zenko{% endblock %}
+{% block page_title %}{{ title }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .form-card {
+        max-width: 640px;
+        margin: 0 auto;
+        background: var(--white);
+        border-radius: 12px;
+        border: 1px solid var(--gray-200);
+        overflow: hidden;
+    }
+    .form-header {
+        background: var(--black);
+        color: var(--white);
+        padding: 20px 28px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+    .form-header .icon {
+        width: 40px;
+        height: 40px;
+        background: var(--orange);
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    .form-header .icon svg { width: 20px; height: 20px; color: var(--white); }
+    .form-header h2 { font-size: 18px; font-weight: 700; }
+    .form-body { padding: 28px; }
+    .two-col {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 16px;
+    }
+    .image-preview {
+        margin-top: 8px;
+    }
+    .image-preview img {
+        max-width: 200px;
+        border-radius: 8px;
+        border: 1px solid var(--gray-200);
+    }
+    @media (max-width: 600px) {
+        .two-col { grid-template-columns: 1fr; }
+        .form-body { padding: 20px; }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="form-card">
+    <div class="form-header">
+        <div class="icon">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M20.25 7.5l-.625 10.632a2.25 2.25 0 01-2.247 2.118H6.622a2.25 2.25 0 01-2.247-2.118L3.75 7.5M10 11.25h4M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125z"/></svg>
+        </div>
+        <h2>{{ title }}</h2>
+    </div>
+    <div class="form-body">
+        {% if form.errors %}
+        <div class="form-errors">
+            <strong>Xatoliklar:</strong>
+            <ul>
+            {% for field in form %}
+                {% for error in field.errors %}<li>{{ field.label }}: {{ error }}</li>{% endfor %}
+            {% endfor %}
+            {% for error in form.non_field_errors %}<li>{{ error }}</li>{% endfor %}
+            </ul>
+        </div>
+        {% endif %}
+
+        <form method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+
+            <div class="form-group">
+                <label for="id_name">Buyurtma nomi *</label>
+                <input type="text" name="name" id="id_name" class="form-control" value="{{ form.name.value|default:'' }}" required>
+            </div>
+
+            <div class="two-col">
+                <div class="form-group">
+                    <label for="id_quantity">Miqdori *</label>
+                    <input type="number" name="quantity" id="id_quantity" class="form-control" value="{{ form.quantity.value|default:'' }}" min="1" required>
+                </div>
+                <div class="form-group">
+                    <label for="id_deadline">Tayyor bo'lish sanasi *</label>
+                    <input type="date" name="deadline" id="id_deadline" class="form-control" value="{{ form.deadline.value|default:'' }}" required>
+                </div>
+            </div>
+
+            <div class="two-col">
+                <div class="form-group">
+                    <label for="id_status">Holati</label>
+                    <select name="status" id="id_status" class="form-control">
+                        {% for val, label in form.fields.status.choices %}
+                        <option value="{{ val }}" {% if form.status.value == val %}selected{% endif %}>{{ label }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="id_current_stage">Joriy bo'lim</label>
+                    <select name="current_stage" id="id_current_stage" class="form-control">
+                        <option value="">— Tanlanmagan —</option>
+                        {% for val, label in form.fields.current_stage.choices %}
+                        {% if val %}
+                        <option value="{{ val }}" {% if form.current_stage.value == val %}selected{% endif %}>{{ label }}</option>
+                        {% endif %}
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="id_image">Rasm</label>
+                <input type="file" name="image" id="id_image" class="form-control" accept="image/*">
+                {% if order and order.image %}
+                <div class="image-preview">
+                    <img src="{{ order.image.url }}" alt="{{ order.name }}">
+                </div>
+                {% endif %}
+            </div>
+
+            <div class="form-group">
+                <label for="id_note">Izoh</label>
+                <textarea name="note" id="id_note" class="form-control" rows="3">{{ form.note.value|default:'' }}</textarea>
+            </div>
+
+            <div class="form-actions">
+                <button type="submit" class="btn btn-primary">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5"/></svg>
+                    Saqlash
+                </button>
+                <a href="{% url 'order:order_list' %}" class="btn btn-secondary">Bekor qilish</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

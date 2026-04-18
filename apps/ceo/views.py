@@ -480,7 +480,7 @@ class AttendanceListView(CEORequiredMixin, ListView):
 
     def get_queryset(self):
         branch = self.get_branch()
-        qs = Attendance.objects.select_related('user', 'shift')
+        qs = Attendance.objects.select_related('user', 'user__shift')
         if branch:
             qs = qs.filter(branch=branch)
 
@@ -489,7 +489,6 @@ class AttendanceListView(CEORequiredMixin, ListView):
         status_filter = self.request.GET.get('status')
         user_filter = self.request.GET.get('user')
         shift_filter = self.request.GET.get('shift')
-        overtime_filter = self.request.GET.get('overtime')
 
         if date_filter:
             qs = qs.filter(date=date_filter)
@@ -498,11 +497,7 @@ class AttendanceListView(CEORequiredMixin, ListView):
         if user_filter:
             qs = qs.filter(user_id=user_filter)
         if shift_filter:
-            qs = qs.filter(shift_id=shift_filter)
-        if overtime_filter == '1':
-            qs = qs.filter(is_overtime=True)
-        elif overtime_filter == '0':
-            qs = qs.filter(is_overtime=False)
+            qs = qs.filter(user__shift_id=shift_filter)
 
         return qs
 
@@ -519,21 +514,20 @@ class AttendanceListView(CEORequiredMixin, ListView):
         total_today = today_qs.count()
         present_today = today_qs.filter(status='present').count()
         late_today = today_qs.filter(status='late').count()
-        early_leave_today = today_qs.filter(status='early_leave').count()
-        overtime_today = today_qs.filter(is_overtime=True).count()
+        absent_today = today_qs.filter(status='absent').count()
         active_now = today_qs.filter(check_in__isnull=False, check_out__isnull=True).count()
 
-        # Smena bo'yicha statistika
+        # Smena bo'yicha statistika (hodimning smenasi bo'yicha)
         shift_stats = []
         shifts_qs = Shift.objects.filter(branch=branch) if branch else Shift.objects.none()
         for shift in shifts_qs:
-            shift_today = today_qs.filter(shift=shift)
+            shift_today = today_qs.filter(user__shift=shift)
             shift_stats.append({
                 'shift': shift,
                 'total': shift_today.count(),
                 'present': shift_today.filter(status='present').count(),
                 'late': shift_today.filter(status='late').count(),
-                'overtime': shift_today.filter(is_overtime=True).count(),
+                'absent': shift_today.filter(status='absent').count(),
             })
 
         # Total hodimlar soni (bugun kelishi kerak bo'lganlar)
@@ -546,7 +540,6 @@ class AttendanceListView(CEORequiredMixin, ListView):
             'filter_status': self.request.GET.get('status', ''),
             'filter_user': self.request.GET.get('user', ''),
             'filter_shift': self.request.GET.get('shift', ''),
-            'filter_overtime': self.request.GET.get('overtime', ''),
             'status_choices': Attendance.STATUS_CHOICES,
             'users': User.objects.filter(branch=branch, is_active=True) if branch else User.objects.none(),
             'shifts': shifts_qs,
@@ -556,8 +549,7 @@ class AttendanceListView(CEORequiredMixin, ListView):
             'total_today': total_today,
             'present_today': present_today,
             'late_today': late_today,
-            'early_leave_today': early_leave_today,
-            'overtime_today': overtime_today,
+            'absent_today': absent_today,
             'active_now': active_now,
             'total_employees': total_employees,
             'attendance_rate': round((total_today / total_employees * 100) if total_employees else 0),
@@ -643,6 +635,40 @@ class AttendanceDeleteView(CEORequiredMixin, View):
         return redirect('ceo:attendance_list')
 
 
+class AttendanceBulkDeleteView(CEORequiredMixin, View):
+    """Jadvaldan tanlangan davomat yozuvlarini o'chirish."""
+
+    def post(self, request):
+        branch = self.get_branch()
+        raw_ids = request.POST.getlist('ids')
+        next_url = request.POST.get('next', '').strip()
+        if not raw_ids:
+            messages.warning(request, 'Hech qanday qator tanlanmagan.')
+            return self._redirect_back(request, next_url)
+
+        try:
+            ids = [int(x) for x in raw_ids if str(x).isdigit()]
+        except ValueError:
+            ids = []
+
+        if not ids:
+            messages.warning(request, 'Noto\'g\'ri tanlov.')
+            return self._redirect_back(request, next_url)
+
+        qs = Attendance.objects.filter(pk__in=ids)
+        if branch:
+            qs = qs.filter(branch=branch)
+        n = qs.count()
+        qs.delete()
+        messages.success(request, f'{n} ta yozuv o\'chirildi.')
+        return self._redirect_back(request, next_url)
+
+    def _redirect_back(self, request, next_url):
+        if next_url.startswith('/') and not next_url.startswith('//'):
+            return redirect(next_url)
+        return redirect('ceo:attendance_list')
+
+
 class BulkAttendanceView(CEORequiredMixin, View):
     """Bir nechta hodimga bir vaqtda davomat belgilash."""
 
@@ -658,25 +684,67 @@ class BulkAttendanceView(CEORequiredMixin, View):
         form = BulkAttendanceForm(request.POST, branch=branch)
         if form.is_valid():
             date = form.cleaned_data['date']
-            shift = form.cleaned_data['shift']
             users = form.cleaned_data['users']
-            status = form.cleaned_data['status']
-            is_overtime = form.cleaned_data['is_overtime']
+            mode = form.cleaned_data['mode']
+
+            if mode == BulkAttendanceForm.MODE_ABSENT:
+                created = 0
+                for user in users:
+                    exists = Attendance.objects.filter(user=user, date=date, branch=branch).exists()
+                    if not exists:
+                        Attendance.objects.create(
+                            user=user,
+                            branch=branch,
+                            date=date,
+                            status=Attendance.STATUS_ABSENT,
+                        )
+                        created += 1
+                messages.success(request, f'{created} hodim "Kelmadi" deb belgilandi.')
+                return redirect('ceo:attendance_list')
+
+            # MODE_TIMES: bir xil kirish/chiqish — mavjud yozuvni admin yangilashi (QR + bulk)
+            t_in = form.cleaned_data['check_in_time']
+            t_out = form.cleaned_data.get('check_out_time')
+            checkout_blank = form.cleaned_data.get('_checkout_blank', True)
+            tz = timezone.get_current_timezone()
+            dt_in = timezone.make_aware(datetime.datetime.combine(date, t_in), tz)
+            dt_out = None
+            if not checkout_blank and t_out is not None:
+                dt_out = timezone.make_aware(datetime.datetime.combine(date, t_out), tz)
+                if dt_out <= dt_in:
+                    dt_out = timezone.make_aware(
+                        datetime.datetime.combine(date + datetime.timedelta(days=1), t_out),
+                        tz,
+                    )
 
             created = 0
+            updated = 0
             for user in users:
-                target_shift = shift or user.shift
-                # Dublikatni tekshirish
-                exists = Attendance.objects.filter(
-                    user=user, date=date, shift=target_shift, is_overtime=is_overtime,
-                ).exists()
-                if not exists:
+                att = Attendance.objects.filter(user=user, date=date, branch=branch).first()
+                if att is None:
                     Attendance.objects.create(
-                        user=user, shift=target_shift, branch=branch,
-                        date=date, status=status, is_overtime=is_overtime,
+                        user=user,
+                        branch=branch,
+                        date=date,
+                        check_in=dt_in,
+                        check_out=dt_out,
                     )
                     created += 1
-            messages.success(request, f'{created} hodimga davomat yozildi.')
+                    continue
+                att.check_in = dt_in
+                if not checkout_blank:
+                    att.check_out = dt_out
+                att.save()
+                updated += 1
+            parts = []
+            if created:
+                parts.append(f'yangi: {created}')
+            if updated:
+                parts.append(f'yangilandi: {updated}')
+            messages.success(
+                request,
+                'Ommaviy vaqtlar: ' + (', '.join(parts) if parts else 'o\'zgarish yo\'q'),
+            )
             return redirect('ceo:attendance_list')
         return render(request, 'ceo/attendance_bulk.html', {
             'active_nav': 'attendance', 'form': form,
@@ -701,7 +769,7 @@ class MarkAbsentView(CEORequiredMixin, View):
         all_users = User.objects.filter(branch=branch, is_active=True).select_related('shift')
         attended_ids = set(
             Attendance.objects.filter(
-                branch=branch, date=target_date, is_overtime=False,
+                branch=branch, date=target_date,
             ).values_list('user_id', flat=True)
         )
 
@@ -709,8 +777,10 @@ class MarkAbsentView(CEORequiredMixin, View):
         for user in all_users:
             if user.pk not in attended_ids:
                 Attendance.objects.create(
-                    user=user, shift=user.shift, branch=branch,
-                    date=target_date, status='absent',
+                    user=user,
+                    branch=branch,
+                    date=target_date,
+                    status=Attendance.STATUS_ABSENT,
                 )
                 created += 1
 
@@ -765,10 +835,7 @@ class AttendanceStatsView(CEORequiredMixin, View):
         total_records = qs.count()
         present_count = qs.filter(status='present').count()
         late_count = qs.filter(status='late').count()
-        early_leave_count = qs.filter(status='early_leave').count()
         absent_count = qs.filter(status='absent').count()
-        half_day_count = qs.filter(status='half_day').count()
-        overtime_count = qs.filter(is_overtime=True).count()
         active_now = qs.filter(date=today, check_in__isnull=False, check_out__isnull=True).count()
 
         # Checkin/checkout stats
@@ -796,20 +863,18 @@ class AttendanceStatsView(CEORequiredMixin, View):
         shifts_qs = Shift.objects.filter(branch=branch) if branch else Shift.objects.none()
         shift_stats = []
         for shift in shifts_qs:
-            shift_qs = qs.filter(shift=shift)
+            shift_qs = qs.filter(user__shift=shift)
             s_total = shift_qs.count()
             s_present = shift_qs.filter(status='present').count()
             s_late = shift_qs.filter(status='late').count()
-            s_early = shift_qs.filter(status='early_leave').count()
-            s_overtime = shift_qs.filter(is_overtime=True).count()
+            s_absent = shift_qs.filter(status='absent').count()
             s_active = shift_qs.filter(date=today, check_in__isnull=False, check_out__isnull=True).count()
             shift_stats.append({
                 'shift': shift,
                 'total': s_total,
                 'present': s_present,
                 'late': s_late,
-                'early_leave': s_early,
-                'overtime': s_overtime,
+                'absent': s_absent,
                 'active_now': s_active,
                 'rate': round((s_present / s_total * 100) if s_total else 0),
             })
@@ -845,7 +910,7 @@ class AttendanceStatsView(CEORequiredMixin, View):
                 'total': d_qs.count(),
                 'present': d_qs.filter(status='present').count(),
                 'late': d_qs.filter(status='late').count(),
-                'early_leave': d_qs.filter(status='early_leave').count(),
+                'absent': d_qs.filter(status='absent').count(),
             })
 
         # === TOP KECHIKUVCHILAR ===
@@ -856,17 +921,8 @@ class AttendanceStatsView(CEORequiredMixin, View):
             .order_by('-count')[:5]
         )
 
-        # === TOP ERTA KETGANLAR ===
-        top_early = (
-            qs.filter(status='early_leave')
-            .values('user__name', 'user__pk')
-            .annotate(count=Count('id'))
-            .order_by('-count')[:5]
-        )
-
-        # === TOP QO'SHIMCHA SMENA ===
-        top_overtime = (
-            qs.filter(is_overtime=True)
+        top_absent = (
+            qs.filter(status='absent')
             .values('user__name', 'user__pk')
             .annotate(count=Count('id'))
             .order_by('-count')[:5]
@@ -883,8 +939,8 @@ class AttendanceStatsView(CEORequiredMixin, View):
         heatmap_counts = dict(
             heatmap_qs.values('date').annotate(cnt=Count('id')).values_list('date', 'cnt')
         )
-        heatmap_overtime = dict(
-            heatmap_qs.filter(is_overtime=True).values('date').annotate(cnt=Count('id')).values_list('date', 'cnt')
+        heatmap_absent = dict(
+            heatmap_qs.filter(status='absent').values('date').annotate(cnt=Count('id')).values_list('date', 'cnt')
         )
         heatmap_data = []
         for i in range(90):
@@ -892,15 +948,9 @@ class AttendanceStatsView(CEORequiredMixin, View):
             heatmap_data.append({
                 'date': d.isoformat(),
                 'count': heatmap_counts.get(d, 0),
-                'overtime': heatmap_overtime.get(d, 0),
+                'absent': heatmap_absent.get(d, 0),
                 'weekday': d.weekday(),
             })
-
-        # === OVERTIME SOATLAR ===
-        overtime_worked = qs.filter(is_overtime=True, check_in__isnull=False, check_out__isnull=False)
-        ot_seconds = sum((a.check_out - a.check_in).total_seconds() for a in overtime_worked)
-        overtime_hours = int(ot_seconds // 3600)
-        overtime_minutes = int((ot_seconds % 3600) // 60)
 
         context = {
             'active_nav': 'stats',
@@ -914,10 +964,7 @@ class AttendanceStatsView(CEORequiredMixin, View):
             'total_records': total_records,
             'present_count': present_count,
             'late_count': late_count,
-            'early_leave_count': early_leave_count,
             'absent_count': absent_count,
-            'half_day_count': half_day_count,
-            'overtime_count': overtime_count,
             'active_now': active_now,
             'checked_in': checked_in,
             'checked_out': checked_out,
@@ -929,8 +976,6 @@ class AttendanceStatsView(CEORequiredMixin, View):
             'total_hours': total_hours,
             'total_minutes': total_minutes,
             'avg_hours_per_day': avg_hours_per_day,
-            'overtime_hours': overtime_hours,
-            'overtime_minutes': overtime_minutes,
             # Heatmap
             'heatmap_data': heatmap_data,
             # Tafsilotlar
@@ -939,8 +984,7 @@ class AttendanceStatsView(CEORequiredMixin, View):
             'daily_trend': daily_trend,
             'max_daily': max_daily,
             'top_late': top_late,
-            'top_early': top_early,
-            'top_overtime': top_overtime,
+            'top_absent': top_absent,
         }
         return render(request, 'ceo/attendance_stats.html', context)
 
@@ -959,7 +1003,7 @@ class ShiftStatsDetailView(CEORequiredMixin, View):
         period = request.GET.get('period', 'month')
         date_from, date_to, period_label = self._parse_period(period, today, request)
 
-        qs = Attendance.objects.filter(shift=shift, date__gte=date_from, date__lte=date_to)
+        qs = Attendance.objects.filter(user__shift=shift, date__gte=date_from, date__lte=date_to)
         if branch:
             qs = qs.filter(branch=branch)
 
@@ -970,8 +1014,7 @@ class ShiftStatsDetailView(CEORequiredMixin, View):
         total = qs.count()
         present = qs.filter(status='present').count()
         late = qs.filter(status='late').count()
-        early = qs.filter(status='early_leave').count()
-        overtime = qs.filter(is_overtime=True).count()
+        absent = qs.filter(status='absent').count()
         active = qs.filter(date=today, check_in__isnull=False, check_out__isnull=True).count()
 
         # Hodimlar bo'yicha
@@ -981,13 +1024,13 @@ class ShiftStatsDetailView(CEORequiredMixin, View):
             u_total = u_qs.count()
             u_present = u_qs.filter(status='present').count()
             u_late = u_qs.filter(status='late').count()
-            u_early = u_qs.filter(status='early_leave').count()
+            u_absent = u_qs.filter(status='absent').count()
             emp_stats.append({
                 'user': u,
                 'total': u_total,
                 'present': u_present,
                 'late': u_late,
-                'early_leave': u_early,
+                'absent': u_absent,
                 'rate': round((u_present / u_total * 100) if u_total else 0),
             })
         emp_stats.sort(key=lambda x: x['rate'], reverse=True)
@@ -1004,6 +1047,7 @@ class ShiftStatsDetailView(CEORequiredMixin, View):
                 'total': d_qs.count(),
                 'present': d_qs.filter(status='present').count(),
                 'late': d_qs.filter(status='late').count(),
+                'absent': d_qs.filter(status='absent').count(),
             })
         max_daily = max((d['total'] for d in daily), default=1) or 1
 
@@ -1012,7 +1056,7 @@ class ShiftStatsDetailView(CEORequiredMixin, View):
             'period': period, 'period_label': period_label,
             'from_date': date_from.isoformat(), 'to_date': date_to.isoformat(),
             'total': total, 'present': present, 'late': late,
-            'early_leave': early, 'overtime': overtime, 'active_now': active,
+            'absent': absent, 'active_now': active,
             'total_emp': total_emp,
             'rate': round((present / total * 100) if total else 0),
             'emp_stats': emp_stats, 'daily': daily, 'max_daily': max_daily,
@@ -1061,8 +1105,7 @@ class DeptStatsDetailView(CEORequiredMixin, View):
         total = qs.count()
         present = qs.filter(status='present').count()
         late = qs.filter(status='late').count()
-        early = qs.filter(status='early_leave').count()
-        overtime = qs.filter(is_overtime=True).count()
+        absent = qs.filter(status='absent').count()
         active = qs.filter(date=today, check_in__isnull=False, check_out__isnull=True).count()
 
         # Hodimlar
@@ -1072,10 +1115,10 @@ class DeptStatsDetailView(CEORequiredMixin, View):
             u_total = u_qs.count()
             u_present = u_qs.filter(status='present').count()
             u_late = u_qs.filter(status='late').count()
-            u_early = u_qs.filter(status='early_leave').count()
+            u_absent = u_qs.filter(status='absent').count()
             emp_stats.append({
                 'user': u, 'total': u_total,
-                'present': u_present, 'late': u_late, 'early_leave': u_early,
+                'present': u_present, 'late': u_late, 'absent': u_absent,
                 'rate': round((u_present / u_total * 100) if u_total else 0),
             })
         emp_stats.sort(key=lambda x: x['rate'], reverse=True)
@@ -1084,13 +1127,14 @@ class DeptStatsDetailView(CEORequiredMixin, View):
         shift_breakdown = []
         shifts_qs = Shift.objects.filter(branch=branch) if branch else Shift.objects.none()
         for s in shifts_qs:
-            s_qs = qs.filter(shift=s)
+            s_qs = qs.filter(user__shift=s)
             s_total = s_qs.count()
             if s_total:
                 shift_breakdown.append({
                     'shift': s, 'total': s_total,
                     'present': s_qs.filter(status='present').count(),
                     'late': s_qs.filter(status='late').count(),
+                    'absent': s_qs.filter(status='absent').count(),
                 })
 
         # Kunlik trend
@@ -1105,6 +1149,7 @@ class DeptStatsDetailView(CEORequiredMixin, View):
                 'total': d_qs.count(),
                 'present': d_qs.filter(status='present').count(),
                 'late': d_qs.filter(status='late').count(),
+                'absent': d_qs.filter(status='absent').count(),
             })
         max_daily = max((d['total'] for d in daily), default=1) or 1
 
@@ -1113,7 +1158,7 @@ class DeptStatsDetailView(CEORequiredMixin, View):
             'period': period, 'period_label': period_label,
             'from_date': date_from.isoformat(), 'to_date': date_to.isoformat(),
             'total': total, 'present': present, 'late': late,
-            'early_leave': early, 'overtime': overtime, 'active_now': active,
+            'absent': absent, 'active_now': active,
             'total_emp': total_emp,
             'rate': round((present / total * 100) if total else 0),
             'emp_stats': emp_stats, 'shift_breakdown': shift_breakdown,
@@ -1148,10 +1193,7 @@ class UserStatsDetailView(CEORequiredMixin, View):
         total = qs.count()
         present = qs.filter(status='present').count()
         late = qs.filter(status='late').count()
-        early = qs.filter(status='early_leave').count()
         absent = qs.filter(status='absent').count()
-        half_day = qs.filter(status='half_day').count()
-        overtime = qs.filter(is_overtime=True).count()
 
         # Ishlagan soatlar
         worked = qs.filter(check_in__isnull=False, check_out__isnull=False)
@@ -1163,7 +1205,7 @@ class UserStatsDetailView(CEORequiredMixin, View):
         avg_per_day = round(total_seconds / 3600 / max(total, 1), 1)
 
         # Kunlik jadval
-        daily_records = qs.select_related('shift').order_by('-date', '-check_in')[:30]
+        daily_records = qs.select_related('user__shift').order_by('-date', '-check_in')[:30]
 
         # Kunlik trend
         daily = []
@@ -1177,6 +1219,7 @@ class UserStatsDetailView(CEORequiredMixin, View):
                 'total': d_qs.count(),
                 'present': d_qs.filter(status='present').count(),
                 'late': d_qs.filter(status='late').count(),
+                'absent': d_qs.filter(status='absent').count(),
             })
         max_daily = max((d['total'] for d in daily), default=1) or 1
 
@@ -1186,31 +1229,23 @@ class UserStatsDetailView(CEORequiredMixin, View):
         if branch:
             h_qs = h_qs.filter(branch=branch)
         h_counts = dict(h_qs.values('date').annotate(cnt=Count('id')).values_list('date', 'cnt'))
-        h_overtime = dict(h_qs.filter(is_overtime=True).values('date').annotate(cnt=Count('id')).values_list('date', 'cnt'))
+        h_absent = dict(h_qs.filter(status='absent').values('date').annotate(cnt=Count('id')).values_list('date', 'cnt'))
         heatmap_data = []
         for i in range(90):
             d = heatmap_start + datetime.timedelta(days=i)
             heatmap_data.append({
                 'date': d.isoformat(), 'count': h_counts.get(d, 0),
-                'overtime': h_overtime.get(d, 0), 'weekday': d.weekday(),
+                'absent': h_absent.get(d, 0), 'weekday': d.weekday(),
             })
-
-        # Overtime soatlar
-        ot_worked = qs.filter(is_overtime=True, check_in__isnull=False, check_out__isnull=False)
-        ot_sec = sum((a.check_out - a.check_in).total_seconds() for a in ot_worked)
-        ot_hours = int(ot_sec // 3600)
-        ot_minutes = int((ot_sec % 3600) // 60)
 
         context = {
             'active_nav': 'stats', 'branch': branch, 'employee': employee,
             'period': period, 'period_label': period_label,
             'from_date': date_from.isoformat(), 'to_date': date_to.isoformat(),
             'total': total, 'present': present, 'late': late,
-            'early_leave': early, 'absent': absent, 'half_day': half_day,
-            'overtime': overtime,
+            'absent': absent,
             'rate': round((present / total * 100) if total else 0),
             'hours': hours, 'minutes': minutes, 'avg_per_day': avg_per_day,
-            'ot_hours': ot_hours, 'ot_minutes': ot_minutes,
             'daily_records': daily_records,
             'daily': daily, 'max_daily': max_daily,
             'heatmap_data': heatmap_data,

@@ -1,0 +1,23 @@
+{% extends "ceo/base.html" %}
+{% block title %}Harakatni o'chirish{% endblock %}
+{% block page_title %}Harakatni o'chirish{% endblock %}
+
+{% block content %}
+<div class="card" style="max-width:420px;margin:32px auto;">
+  <form method="post">
+    {% csrf_token %}
+    <h2 style="margin-bottom:18px;">Haqiqatan ham ushbu harakatni o'chirmoqchimisiz?</h2>
+    <div style="margin-bottom:18px;">
+      <strong>{{ object.get_stage_display }}</strong> — {{ object.quantity }} dona
+      <br>
+      <span style="color:var(--gray-500);">{{ object.created_at|date:'d.m.Y H:i' }}</span>
+      <br>
+      <span style="color:var(--gray-400);">{{ object.note|default:'-' }}</span>
+    </div>
+    <div style="display:flex;gap:10px;">
+      <button type="submit" class="btn btn-danger">O'chirish</button>
+      <a href="{% url 'order:order_detail' order.pk %}" class="btn btn-secondary">Bekor qilish</a>
+    </div>
+  </form>
+</div>
+{% endblock %}

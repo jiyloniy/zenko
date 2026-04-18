@@ -293,10 +293,7 @@
     <div class="s-card c-blue" style="animation-delay:.1s"><div class="s-val">{{ total }}</div><div class="s-lbl">Jami yozuv</div></div>
     <div class="s-card c-green" style="animation-delay:.12s"><div class="s-val">{{ present }}</div><div class="s-lbl">Keldi</div></div>
     <div class="s-card c-orange" style="animation-delay:.14s"><div class="s-val">{{ late }}</div><div class="s-lbl">Kechikdi</div></div>
-    <div class="s-card c-red" style="animation-delay:.16s"><div class="s-val">{{ early_leave }}</div><div class="s-lbl">Erta ketdi</div></div>
-    <div class="s-card c-pink" style="animation-delay:.18s"><div class="s-val">{{ absent }}</div><div class="s-lbl">Kelmadi</div></div>
-    <div class="s-card c-yellow" style="animation-delay:.2s"><div class="s-val">{{ half_day }}</div><div class="s-lbl">Yarim kun</div></div>
-    <div class="s-card c-purple" style="animation-delay:.22s"><div class="s-val">{{ overtime }}</div><div class="s-lbl">Qo'shimcha</div></div>
+    <div class="s-card c-pink" style="animation-delay:.16s"><div class="s-val">{{ absent }}</div><div class="s-lbl">Kelmadi</div></div>
 </div>
 
 <!-- Hours + Rate -->
@@ -326,31 +323,10 @@
     </div>
 </div>
 
-<!-- Overtime Hours -->
-<div class="ot-hours-card">
-    <div class="h-icon" style="width:50px;height:50px;border-radius:14px;display:flex;align-items:center;justify-content:center;background:#F5F3FF; color:#8B5CF6;flex-shrink:0;">
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width:24px;height:24px"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>
-    </div>
-    <div>
-        <div style="font-size:22px;font-weight:800;color:var(--black)">{{ ot_hours }}<span style="font-size:14px;color:var(--gray-500)">s</span> {{ ot_minutes }}<span style="font-size:14px;color:var(--gray-500)">d</span></div>
-        <div style="font-size:11px;color:var(--gray-500)">Qo'shimcha ishlangan vaqt</div>
-    </div>
-    <div style="width:1px;height:40px;background:var(--gray-200);margin:0 8px;"></div>
-    <div>
-        <div style="font-size:22px;font-weight:800;color:var(--black)">{{ overtime }}<span style="font-size:14px;color:var(--gray-500)"> marta</span></div>
-        <div style="font-size:11px;color:var(--gray-500)">Qo'shimcha smena soni</div>
-    </div>
-</div>
-
 <!-- Heatmap -->
 <div class="heatmap-section">
     <h3>🗓 Davomat xaritasi (90 kun)</h3>
-    <div class="heatmap-tabs">
-        <button class="hm-tab active" onclick="showHeatmap('main', this)">Asosiy</button>
-        <button class="hm-tab" onclick="showHeatmap('overtime', this)">Qo'shimcha</button>
-    </div>
     <div id="heatmap-main" class="heatmap-grid"></div>
-    <div id="heatmap-overtime" class="heatmap-grid" style="display:none"></div>
     <div id="heatmap-legend-main" class="heatmap-legend">
         <span>Kam</span>
         <span class="hl-box" style="background:var(--gray-100)"></span>
@@ -358,15 +334,6 @@
         <span class="hl-box" style="background:#86efac"></span>
         <span class="hl-box" style="background:#22c55e"></span>
         <span class="hl-box" style="background:#15803d"></span>
-        <span>Ko'p</span>
-    </div>
-    <div id="heatmap-legend-overtime" class="heatmap-legend" style="display:none">
-        <span>Kam</span>
-        <span class="hl-box" style="background:var(--gray-100)"></span>
-        <span class="hl-box" style="background:#ede9fe"></span>
-        <span class="hl-box" style="background:#c4b5fd"></span>
-        <span class="hl-box" style="background:#8b5cf6"></span>
-        <span class="hl-box" style="background:#6d28d9"></span>
         <span>Ko'p</span>
     </div>
 </div>
@@ -386,6 +353,9 @@
                 {% if day.late %}
                 <div class="bar-seg late" style="height:{% widthratio day.late max_daily 140 %}px; min-height:4px;"></div>
                 {% endif %}
+                {% if day.absent %}
+                <div class="bar-seg early" style="height:{% widthratio day.absent max_daily 140 %}px; min-height:4px;"></div>
+                {% endif %}
             </div>
             <div class="bar-label">{{ day.day_name }}</div>
             <div class="bar-date">{{ day.date|date:"d.m" }}</div>
@@ -395,6 +365,7 @@
     <div class="chart-legend">
         <div class="legend-item"><span class="legend-dot green"></span> Keldi</div>
         <div class="legend-item"><span class="legend-dot orange"></span> Kechikdi</div>
+        <div class="legend-item"><span class="legend-dot red"></span> Kelmadi</div>
     </div>
 </div>
 {% endif %}
@@ -414,29 +385,23 @@
                 <th>Smena</th>
                 <th>Kirish</th>
                 <th>Chiqish</th>
-                <th>Status</th>
-                <th>Qo'shimcha</th>
+                <th>Holat</th>
             </tr>
         </thead>
         <tbody>
             {% for rec in daily_records %}
             <tr>
                 <td style="font-weight:600;">{{ rec.date|date:"d.m.Y" }}</td>
-                <td style="font-size:12px; color:var(--gray-500);">{{ rec.shift.name|default:"—" }}</td>
+                <td style="font-size:12px; color:var(--gray-500);">{{ rec.user.shift.name|default:"—" }}</td>
                 <td class="time-cell">{% if rec.check_in %}{{ rec.check_in|time:"H:i" }}{% else %}<span style="color:var(--gray-300);">—</span>{% endif %}</td>
                 <td class="time-cell">{% if rec.check_out %}{{ rec.check_out|time:"H:i" }}{% else %}<span style="color:var(--gray-300);">—</span>{% endif %}</td>
                 <td>
                     <span class="status-badge {{ rec.status }}">
-                        {% if rec.status == 'present' %}✓ Keldi
+                        {% if rec.status == 'present' %}✓ Vaqtida keldi
                         {% elif rec.status == 'late' %}⏰ Kechikdi
-                        {% elif rec.status == 'early_leave' %}↗ Erta ketdi
                         {% elif rec.status == 'absent' %}✗ Kelmadi
-                        {% elif rec.status == 'half_day' %}½ Yarim kun
                         {% endif %}
                     </span>
-                </td>
-                <td>
-                    {% if rec.is_overtime %}<span class="overtime-badge">+ Qo'shimcha</span>{% else %}<span style="color:var(--gray-300);">—</span>{% endif %}
                 </td>
             </tr>
             {% endfor %}
@@ -454,11 +419,9 @@
 (function() {
     const data = JSON.parse(document.getElementById('heatmap-data').textContent);
     const mainGrid = document.getElementById('heatmap-main');
-    const otGrid = document.getElementById('heatmap-overtime');
     if (!data || !mainGrid) return;
 
     const maxCount = Math.max(...data.map(d => d.count), 1);
-    const maxOt = Math.max(...data.map(d => d.overtime), 1);
 
     function lvl(val, mx) {
         if (val === 0) return '';
@@ -474,21 +437,7 @@
         c1.className = 'heatmap-cell' + (d.count ? ' lvl-' + lvl(d.count, maxCount) : '');
         c1.innerHTML = '<span class="hm-tip">' + d.date + ': ' + d.count + ' yozuv</span>';
         mainGrid.appendChild(c1);
-
-        const c2 = document.createElement('div');
-        c2.className = 'heatmap-cell' + (d.overtime ? ' ot-' + lvl(d.overtime, maxOt) : '');
-        c2.innerHTML = '<span class="hm-tip">' + d.date + ': ' + d.overtime + ' qo\'shimcha</span>';
-        otGrid.appendChild(c2);
     });
 })();
-
-function showHeatmap(type, btn) {
-    document.getElementById('heatmap-main').style.display = type === 'main' ? 'grid' : 'none';
-    document.getElementById('heatmap-overtime').style.display = type === 'overtime' ? 'grid' : 'none';
-    document.getElementById('heatmap-legend-main').style.display = type === 'main' ? 'flex' : 'none';
-    document.getElementById('heatmap-legend-overtime').style.display = type === 'overtime' ? 'flex' : 'none';
-    document.querySelectorAll('.hm-tab').forEach(function(t) { t.classList.remove('active'); });
-    btn.classList.add('active');
-}
 </script>
 {% endblock %}

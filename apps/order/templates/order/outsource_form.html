@@ -1,0 +1,141 @@
+{% extends "ceo/base.html" %}
+
+{% block title %}{{ title }} — Zenko{% endblock %}
+{% block page_title %}{{ order.name }} → {{ title }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .form-card {
+        max-width: 640px;
+        margin: 0 auto;
+        background: var(--white);
+        border-radius: 12px;
+        border: 1px solid var(--gray-200);
+        overflow: hidden;
+    }
+    .form-header {
+        background: var(--black);
+        color: var(--white);
+        padding: 20px 28px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+    .form-header .icon {
+        width: 40px; height: 40px;
+        background: var(--orange); border-radius: 10px;
+        display: flex; align-items: center; justify-content: center;
+    }
+    .form-header .icon svg { width: 20px; height: 20px; color: var(--white); }
+    .form-header h2 { font-size: 18px; font-weight: 700; }
+    .form-body { padding: 28px; }
+    .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    @media (max-width: 600px) { .two-col { grid-template-columns: 1fr; } .form-body { padding: 20px; } }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="form-card">
+    <div class="form-header">
+        <div class="icon">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25"/></svg>
+        </div>
+        <h2>{{ title }}</h2>
+    </div>
+    <div class="form-body">
+        {% if form.errors %}
+        <div class="form-errors">
+            <strong>Xatoliklar:</strong>
+            <ul>
+            {% for field in form %}{% for error in field.errors %}<li>{{ field.label }}: {{ error }}</li>{% endfor %}{% endfor %}
+            {% for error in form.non_field_errors %}<li>{{ error }}</li>{% endfor %}
+            </ul>
+        </div>
+        {% endif %}
+
+        <form method="post">
+            {% csrf_token %}
+
+            <div class="two-col">
+                <div class="form-group">
+                    <label for="id_status">Holati</label>
+                    <select name="status" id="id_status" class="form-control">
+                        {% for val, label in form.fields.status.choices %}
+                        <option value="{{ val }}" {% if form.status.value == val %}selected{% endif %}>{{ label }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="id_return_to_stage">Qaytish bosqichi</label>
+                    <select name="return_to_stage" id="id_return_to_stage" class="form-control">
+                        {% for val, label in form.fields.return_to_stage.choices %}
+                        <option value="{{ val }}" {% if form.return_to_stage.value == val %}selected{% endif %}>{{ label }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="id_contractor">Pudratchi (tashqi ustaxona)</label>
+                <input type="text" name="contractor" id="id_contractor" class="form-control" value="{{ form.contractor.value|default:'' }}" required>
+            </div>
+
+            <div class="form-group">
+                <label for="id_contractor_phone">Pudratchi telefoni</label>
+                <input type="text" name="contractor_phone" id="id_contractor_phone" class="form-control" value="{{ form.contractor_phone.value|default:'' }}">
+            </div>
+
+            <div class="form-group">
+                <label for="id_work_description">Bajariladigan ish tavsifi</label>
+                <textarea name="work_description" id="id_work_description" class="form-control" rows="2" required>{{ form.work_description.value|default:'' }}</textarea>
+            </div>
+
+            <div class="two-col">
+                <div class="form-group">
+                    <label for="id_sent_quantity">Yuborilgan miqdor</label>
+                    <input type="number" name="sent_quantity" id="id_sent_quantity" class="form-control" value="{{ form.sent_quantity.value|default:0 }}" min="0">
+                </div>
+                <div class="form-group">
+                    <label for="id_received_quantity">Qaytib kelgan</label>
+                    <input type="number" name="received_quantity" id="id_received_quantity" class="form-control" value="{{ form.received_quantity.value|default:0 }}" min="0">
+                </div>
+            </div>
+
+            <div class="two-col">
+                <div class="form-group">
+                    <label for="id_defect_quantity">Yaroqsiz</label>
+                    <input type="number" name="defect_quantity" id="id_defect_quantity" class="form-control" value="{{ form.defect_quantity.value|default:0 }}" min="0">
+                </div>
+                <div class="form-group">
+                    <label for="id_cost">Narxi</label>
+                    <input type="number" name="cost" id="id_cost" class="form-control" value="{{ form.cost.value|default:0 }}" step="0.01" min="0">
+                </div>
+            </div>
+
+            <div class="two-col">
+                <div class="form-group">
+                    <label for="id_sent_at">Yuborilgan vaqt</label>
+                    <input type="datetime-local" name="sent_at" id="id_sent_at" class="form-control" value="{{ form.sent_at.value|default:'' }}">
+                </div>
+                <div class="form-group">
+                    <label for="id_received_at">Qaytib kelgan vaqt</label>
+                    <input type="datetime-local" name="received_at" id="id_received_at" class="form-control" value="{{ form.received_at.value|default:'' }}">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="id_note">Izoh</label>
+                <textarea name="note" id="id_note" class="form-control" rows="2">{{ form.note.value|default:'' }}</textarea>
+            </div>
+
+            <div class="form-actions">
+                <button type="submit" class="btn btn-primary">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5"/></svg>
+                    Saqlash
+                </button>
+                <a href="{% url 'order:order_detail' order.pk %}" class="btn btn-secondary">Bekor qilish</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

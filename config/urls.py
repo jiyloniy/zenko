@@ -28,6 +28,7 @@ urlpatterns = [
     path('attendance/', include('apps.attendance.urls')),
     path('ceo/', include('apps.ceo.urls')),
     path('boss/', include('apps.boss.urls')),
+    path('order/', include('apps.order.urls')),
     path('users/', include('apps.users.urls')),
     path('', include('apps.manage.urls')),
 ]

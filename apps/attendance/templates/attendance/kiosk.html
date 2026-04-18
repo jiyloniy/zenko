@@ -1,652 +1,1038 @@
 <!DOCTYPE html>
 <html lang="uz">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Davomat — Zenko</title>
-    <style>
-        :root {
-            --green: #22C55E;
-            --green-dark: #16A34A;
-            --green-light: #F0FDF4;
-            --orange: #F97316;
-            --orange-dark: #EA580C;
-            --orange-light: #FFF7ED;
-            --blue: #3B82F6;
-            --blue-light: #EFF6FF;
-            --red: #EF4444;
-            --red-light: #FEF2F2;
-            --purple: #8B5CF6;
-            --purple-light: #F5F3FF;
-            --bg: #0A0F1C;
-            --card-bg: #111827;
-            --border: #1F2937;
-            --white: #FFFFFF;
-            --gray: #9CA3AF;
-            --text: #F9FAFB;
-        }
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body {
-            font-family: 'Segoe UI', system-ui, sans-serif;
-            background: var(--bg);
-            color: var(--text);
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            padding: 20px;
-            overflow: hidden;
-        }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>{% if kiosk_branch_name %}{{ kiosk_branch_name }}{% else %}Davomat{% endif %} — Zenko</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+/* ═══════════════════════════════════════════════════════
+   RESET & ROOT
+═══════════════════════════════════════════════════════ */
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
 
-        /* Animated background */
-        .bg-animation {
-            position: fixed;
-            inset: 0;
-            z-index: -1;
-            overflow: hidden;
-        }
-        .bg-animation .orb {
-            position: absolute;
-            border-radius: 50%;
-            filter: blur(80px);
-            opacity: .15;
-            animation: float 8s ease-in-out infinite;
-        }
-        .bg-animation .orb:nth-child(1) { width: 300px; height: 300px; background: var(--green); top: -50px; left: -50px; animation-delay: 0s; }
-        .bg-animation .orb:nth-child(2) { width: 250px; height: 250px; background: var(--orange); bottom: -50px; right: -50px; animation-delay: -3s; }
-        .bg-animation .orb:nth-child(3) { width: 200px; height: 200px; background: var(--blue); top: 50%; left: 50%; animation-delay: -5s; }
-        @keyframes float {
-            0%, 100% { transform: translate(0, 0) scale(1); }
-            33% { transform: translate(30px, -30px) scale(1.1); }
-            66% { transform: translate(-20px, 20px) scale(.9); }
-        }
+:root {
+  --bg:        #0A0C0F;
+  --surface:   #111418;
+  --surface2:  #181C22;
+  --surface3:  #1E2330;
+  --border:    rgba(255,255,255,.06);
+  --border2:   rgba(255,255,255,.10);
+  --border3:   rgba(255,255,255,.16);
 
-        .header {
-            text-align: center;
-            margin-bottom: 24px;
-            animation: fadeInDown .6s ease;
-        }
-        @keyframes fadeInDown {
-            from { opacity: 0; transform: translateY(-20px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        .header .logo {
-            width: 56px; height: 56px;
-            background: linear-gradient(135deg, var(--green), var(--blue));
-            border-radius: 16px;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 26px;
-            font-weight: 800;
-            color: var(--white);
-            margin-bottom: 12px;
-            box-shadow: 0 0 40px rgba(34, 197, 94, .25);
-            animation: logoGlow 3s ease-in-out infinite;
-        }
-        @keyframes logoGlow {
-            0%, 100% { box-shadow: 0 0 40px rgba(34, 197, 94, .25); }
-            50% { box-shadow: 0 0 60px rgba(59, 130, 246, .35); }
-        }
-        .header h1 {
-            font-size: 28px;
-            font-weight: 800;
-            color: var(--white);
-            margin-bottom: 6px;
-        }
-        .header p { color: var(--gray); font-size: 15px; }
+  --green:     #00E676;
+  --green-bg:  rgba(0,230,118,.08);
+  --green-glow:rgba(0,230,118,.20);
 
-        .scanner-container {
-            width: 100%;
-            max-width: 440px;
-            background: var(--card-bg);
-            border-radius: 24px;
-            border: 1px solid var(--border);
-            overflow: hidden;
-            box-shadow: 0 20px 60px rgba(0,0,0,.5);
-            animation: fadeInUp .6s ease .2s both;
-        }
-        @keyframes fadeInUp {
-            from { opacity: 0; transform: translateY(30px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
+  --amber:     #FFB300;
+  --amber-bg:  rgba(255,179,0,.08);
 
-        .scanner-box {
-            position: relative;
-            width: 100%;
-            aspect-ratio: 1;
-            background: #000;
-            overflow: hidden;
-        }
+  --red:       #FF4757;
+  --red-bg:    rgba(255,71,87,.08);
 
-        .scanner-box #reader { width: 100% !important; height: 100% !important; }
-        .scanner-box #reader video { width: 100% !important; height: 100% !important; object-fit: cover !important; }
-        #reader img[alt="Info icon"] { display: none !important; }
-        #reader__dashboard { display: none !important; }
-        #reader__scan_region > img { display: none !important; }
+  --blue:      #2979FF;
+  --blue-bg:   rgba(41,121,255,.08);
 
-        .scan-overlay {
-            position: absolute;
-            inset: 0;
-            pointer-events: none;
-            z-index: 10;
-        }
-        .scan-overlay::before {
-            content: '';
-            position: absolute;
-            top: 50%; left: 50%;
-            width: 200px; height: 200px;
-            transform: translate(-50%, -50%);
-            border: 3px solid var(--green);
-            border-radius: 20px;
-            box-shadow: 0 0 0 9999px rgba(0,0,0,.55);
-            animation: pulse-border 2.5s infinite;
-        }
-        /* Corner accents */
-        .scan-overlay .corner {
-            position: absolute;
-            width: 30px; height: 30px;
-            z-index: 12;
-        }
-        .scan-overlay .corner::before, .scan-overlay .corner::after {
-            content: '';
-            position: absolute;
-            background: var(--green);
-            border-radius: 2px;
-        }
-        .scan-overlay .corner-tl { top: calc(50% - 100px); left: calc(50% - 100px); }
-        .scan-overlay .corner-tl::before { width: 30px; height: 4px; top: 0; left: 0; }
-        .scan-overlay .corner-tl::after { width: 4px; height: 30px; top: 0; left: 0; }
-        .scan-overlay .corner-tr { top: calc(50% - 100px); right: calc(50% - 100px); }
-        .scan-overlay .corner-tr::before { width: 30px; height: 4px; top: 0; right: 0; }
-        .scan-overlay .corner-tr::after { width: 4px; height: 30px; top: 0; right: 0; }
-        .scan-overlay .corner-bl { bottom: calc(50% - 100px); left: calc(50% - 100px); }
-        .scan-overlay .corner-bl::before { width: 30px; height: 4px; bottom: 0; left: 0; }
-        .scan-overlay .corner-bl::after { width: 4px; height: 30px; bottom: 0; left: 0; }
-        .scan-overlay .corner-br { bottom: calc(50% - 100px); right: calc(50% - 100px); }
-        .scan-overlay .corner-br::before { width: 30px; height: 4px; bottom: 0; right: 0; }
-        .scan-overlay .corner-br::after { width: 4px; height: 30px; bottom: 0; right: 0; }
+  --text:      #E8EDF5;
+  --text2:     #7A8599;
+  --text3:     #3A4558;
 
-        @keyframes pulse-border {
-            0%, 100% { border-color: var(--green); box-shadow: 0 0 0 9999px rgba(0,0,0,.55), 0 0 20px rgba(34,197,94,.2); }
-            50% { border-color: #86EFAC; box-shadow: 0 0 0 9999px rgba(0,0,0,.55), 0 0 40px rgba(34,197,94,.4); }
-        }
+  --font:      'DM Sans', sans-serif;
+  --mono:      'DM Mono', monospace;
+  --radius:    14px;
+  --radius-lg: 20px;
+}
 
-        .scan-line {
-            position: absolute;
-            top: 50%; left: 50%;
-            width: 180px;
-            height: 2px;
-            background: linear-gradient(90deg, transparent, var(--green), transparent);
-            transform: translate(-50%, -50%);
-            animation: scan-move 2s ease-in-out infinite;
-            z-index: 11;
-        }
-        @keyframes scan-move {
-            0%, 100% { margin-top: -80px; }
-            50% { margin-top: 80px; }
-        }
+html, body {
+  height: 100%;
+  overflow: hidden;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font);
+  -webkit-font-smoothing: antialiased;
+}
 
-        .status-bar {
-            padding: 16px 20px;
-            text-align: center;
-            border-top: 1px solid var(--border);
-        }
-        .status-bar .status-text {
-            font-size: 14px;
-            color: var(--gray);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-        }
-        .status-bar .status-text .dot {
-            width: 8px; height: 8px;
-            background: var(--green);
-            border-radius: 50%;
-            animation: blink 1.5s infinite;
-        }
-        @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: .3; } }
+/* ═══════════════════════════════════════════════════════
+   LAYOUT
+═══════════════════════════════════════════════════════ */
+.app {
+  height: 100vh;
+  display: grid;
+  grid-template-rows: 56px 1fr 40px;
+  max-width: 520px;
+  margin: 0 auto;
+  padding: 0 16px;
+}
 
-        /* Result overlay */
-        .result-overlay {
-            display: none;
-            position: fixed;
-            inset: 0;
-            background: rgba(0,0,0,.85);
-            backdrop-filter: blur(16px);
-            z-index: 100;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            padding: 20px;
-        }
-        .result-overlay.show { display: flex; animation: fadeIn .3s ease; }
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+/* ═══════════════════════════════════════════════════════
+   HEADER
+═══════════════════════════════════════════════════════ */
+header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--border);
+  gap: 12px;
+}
 
-        .result-card {
-            background: var(--card-bg);
-            border-radius: 24px;
-            border: 1px solid var(--border);
-            padding: 36px 28px;
-            max-width: 420px;
-            width: 100%;
-            text-align: center;
-            animation: scaleIn .4s cubic-bezier(.175,.885,.32,1.275);
-        }
-        @keyframes scaleIn {
-            from { transform: scale(.8); opacity: 0; }
-            to { transform: scale(1); opacity: 1; }
-        }
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
 
-        .result-icon {
-            width: 80px; height: 80px;
-            border-radius: 50%;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            margin-bottom: 16px;
-            position: relative;
-        }
-        .result-icon.success { background: var(--green-light); }
-        .result-icon.success.checkout { background: var(--orange-light); }
-        .result-icon.error { background: var(--red-light); }
-        .result-icon.overtime { background: var(--purple-light); }
-        .result-icon svg { width: 40px; height: 40px; }
-        .result-icon.success svg { color: var(--green); }
-        .result-icon.success.checkout svg { color: var(--orange); }
-        .result-icon.error svg { color: var(--red); }
-        .result-icon.overtime svg { color: var(--purple); }
+.logo {
+  width: 32px;
+  height: 32px;
+  background: var(--green);
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.logo svg { width: 18px; height: 18px; color: #000; }
 
-        /* User photo in result */
-        .result-photo {
-            width: 100px; height: 100px;
-            border-radius: 50%;
-            object-fit: cover;
-            border: 4px solid rgba(255,255,255,.1);
-            margin-bottom: 16px;
-            animation: scaleIn .4s cubic-bezier(.175,.885,.32,1.275);
-            box-shadow: 0 4px 20px rgba(0,0,0,.3);
-        }
-        .result-photo.checkin { border-color: rgba(34,197,94,.4); }
-        .result-photo.checkout { border-color: rgba(249,115,22,.4); }
-        .result-photo.overtime { border-color: rgba(139,92,246,.4); }
+.brand-text {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+.brand-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+  letter-spacing: .3px;
+}
+.brand-branch {
+  font-size: 10px;
+  color: var(--text2);
+  font-family: var(--mono);
+  letter-spacing: .5px;
+}
 
-        /* Ripple effect */
-        .result-icon::after {
-            content: '';
-            position: absolute;
-            inset: -8px;
-            border-radius: 50%;
-            border: 2px solid currentColor;
-            opacity: 0;
-            animation: ripple 1.5s ease-out infinite;
-        }
-        .result-icon.success::after { border-color: var(--green); }
-        .result-icon.success.checkout::after { border-color: var(--orange); }
-        .result-icon.error::after { border-color: var(--red); }
-        @keyframes ripple {
-            0% { transform: scale(1); opacity: .5; }
-            100% { transform: scale(1.5); opacity: 0; }
-        }
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
 
-        .result-badge {
-            display: inline-block;
-            padding: 4px 14px;
-            border-radius: 20px;
-            font-size: 12px;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            margin-bottom: 12px;
-        }
-        .badge-checkin { background: var(--green-light); color: var(--green); }
-        .badge-checkout { background: var(--orange-light); color: var(--orange); }
-        .badge-overtime { background: var(--purple-light); color: var(--purple); }
-        .badge-early { background: var(--red-light); color: var(--red); }
+.live-badge {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 8px;
+  background: var(--green-bg);
+  border: 1px solid rgba(0,230,118,.15);
+  border-radius: 20px;
+  font-size: 9px;
+  font-family: var(--mono);
+  color: var(--green);
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+.live-dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--green);
+  animation: pulse 2s infinite;
+}
+@keyframes pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: .4; transform: scale(.8); }
+}
 
-        .result-card h2 { font-size: 22px; font-weight: 700; margin-bottom: 6px; }
-        .result-card .result-msg { font-size: 14px; color: var(--gray); margin-bottom: 16px; }
+.clock {
+  text-align: right;
+}
+.clock-time {
+  font-family: var(--mono);
+  font-size: 16px;
+  font-weight: 500;
+  color: var(--text);
+  letter-spacing: 1.5px;
+  line-height: 1;
+}
+.clock-date {
+  font-size: 9px;
+  color: var(--text3);
+  letter-spacing: .5px;
+  margin-top: 2px;
+}
 
-        .result-details {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 10px;
-            margin-bottom: 20px;
-        }
-        .result-detail-item {
-            background: rgba(255,255,255,.04);
-            border-radius: 12px;
-            padding: 12px;
-            border: 1px solid rgba(255,255,255,.06);
-            transition: transform .2s;
-        }
-        .result-detail-item:hover { transform: translateY(-2px); }
-        .result-detail-item .label { font-size: 10px; color: var(--gray); text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 4px; }
-        .result-detail-item .value { font-size: 17px; font-weight: 700; }
+/* ═══════════════════════════════════════════════════════
+   MAIN
+═══════════════════════════════════════════════════════ */
+main {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 10px;
+  padding: 12px 0;
+  overflow: hidden;
+}
 
-        .early-warning {
-            background: rgba(239, 68, 68, .1);
-            border: 1px solid rgba(239, 68, 68, .2);
-            border-radius: 12px;
-            padding: 10px 16px;
-            margin-bottom: 16px;
-            font-size: 13px;
-            color: #FCA5A5;
-        }
+/* ═══════════════════════════════════════════════════════
+   SCANNER CARD
+═══════════════════════════════════════════════════════ */
+.scanner-card {
+  background: var(--surface);
+  border: 1px solid var(--border2);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+}
 
-        .shift-info {
-            background: rgba(59, 130, 246, .08);
-            border: 1px solid rgba(59, 130, 246, .15);
-            border-radius: 12px;
-            padding: 10px 16px;
-            margin-bottom: 16px;
-            font-size: 13px;
-            color: #93C5FD;
-        }
+.scan-body {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  padding: 22px 22px 18px;
+}
 
-        .btn-close-result {
-            background: linear-gradient(135deg, var(--green), var(--blue));
-            color: var(--white);
-            border: none;
-            padding: 12px 36px;
-            border-radius: 12px;
-            font-size: 15px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all .2s;
-            box-shadow: 0 4px 15px rgba(34,197,94,.3);
-        }
-        .btn-close-result:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(34,197,94,.4); }
+/* QR icon animatsiya */
+.qr-wrap {
+  flex-shrink: 0;
+  width: 72px;
+  height: 72px;
+  position: relative;
+}
+.qr-ring {
+  position: absolute;
+  inset: -8px;
+  border-radius: 50%;
+  border: 1px solid var(--green);
+  opacity: 0;
+  animation: ring 3s ease-out infinite;
+}
+.qr-ring:nth-child(2) { animation-delay: 1s; }
+.qr-ring:nth-child(3) { animation-delay: 2s; }
+@keyframes ring {
+  0% { opacity: .5; transform: scale(.7); }
+  100% { opacity: 0; transform: scale(1.3); }
+}
+.qr-box {
+  width: 72px;
+  height: 72px;
+  background: var(--surface2);
+  border: 1px solid var(--border3);
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  z-index: 1;
+}
+.qr-box::before, .qr-box::after,
+.qr-box .c1::before, .qr-box .c1::after {
+  content: '';
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  border-color: var(--green);
+  border-style: solid;
+}
+.qr-box::before { top: -1px; left: -1px; border-width: 2px 0 0 2px; border-radius: 2px 0 0 0; }
+.qr-box::after  { bottom: -1px; right: -1px; border-width: 0 2px 2px 0; border-radius: 0 0 2px 0; }
+.qr-box .c1::before { top: -1px; right: -1px; border-width: 2px 2px 0 0; border-radius: 0 2px 0 0; }
+.qr-box .c1::after  { bottom: -1px; left: -1px; border-width: 0 0 2px 2px; border-radius: 0 0 0 2px; }
 
-        .time-display {
-            position: fixed;
-            top: 16px;
-            right: 16px;
-            background: var(--card-bg);
-            border: 1px solid var(--border);
-            border-radius: 14px;
-            padding: 10px 18px;
-            font-size: 13px;
-            color: var(--gray);
-            backdrop-filter: blur(10px);
-            animation: fadeInDown .6s ease .4s both;
-            z-index: 50;
-        }
-        .time-display .time { font-size: 22px; font-weight: 800; color: var(--white); letter-spacing: 1px; }
+.qr-icon { width: 32px; height: 32px; color: var(--green); opacity: .9; }
 
-        /* Progress bar for auto-close */
-        .auto-close-bar {
-            width: 100%;
-            height: 3px;
-            background: rgba(255,255,255,.1);
-            border-radius: 2px;
-            margin-top: 16px;
-            overflow: hidden;
-        }
-        .auto-close-bar .progress {
-            height: 100%;
-            background: linear-gradient(90deg, var(--green), var(--blue));
-            border-radius: 2px;
-            animation: shrink 5s linear forwards;
-        }
-        @keyframes shrink { from { width: 100%; } to { width: 0%; } }
-    </style>
+.scan-info {}
+.scan-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text);
+  margin-bottom: 5px;
+  letter-spacing: -.2px;
+}
+.scan-desc {
+  font-size: 12px;
+  color: var(--text2);
+  line-height: 1.6;
+}
+.scan-desc strong { color: var(--text); font-weight: 500; }
+
+/* Status bar */
+.status-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 22px;
+  border-top: 1px solid var(--border);
+  background: rgba(0,0,0,.15);
+}
+.s-indicator {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.s-indicator.idle  { background: var(--green); animation: pulse 2s infinite; }
+.s-indicator.busy  { background: var(--amber); }
+.s-indicator.ok    { background: var(--green); }
+.s-indicator.error { background: var(--red); }
+
+.s-text {
+  font-size: 11px;
+  color: var(--text2);
+  font-family: var(--mono);
+  letter-spacing: .3px;
+}
+
+/* ═══════════════════════════════════════════════════════
+   CAMERA CARD
+═══════════════════════════════════════════════════════ */
+.cam-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+
+.cam-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 14px;
+  border-bottom: 1px solid var(--border);
+}
+.cam-title-row {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+.cam-led {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--text3);
+  transition: all .3s;
+}
+.cam-led.on {
+  background: var(--green);
+  box-shadow: 0 0 6px var(--green-glow);
+  animation: pulse 2.5s infinite;
+}
+.cam-label {
+  font-size: 10px;
+  font-family: var(--mono);
+  color: var(--text2);
+  letter-spacing: .4px;
+}
+
+.cam-view {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 6;
+  background: #000;
+  overflow: hidden;
+}
+.cam-view video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+.cam-no {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  color: var(--text3);
+  font-size: 11px;
+}
+.cam-no svg { width: 18px; height: 18px; }
+
+/* Yuz ramkasi */
+.face-guide {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+}
+.face-oval {
+  width: 56px;
+  height: 68px;
+  border: 1px solid rgba(0,230,118,.3);
+  border-radius: 50%;
+}
+
+/* Flash */
+.flash {
+  position: absolute;
+  inset: 0;
+  background: #fff;
+  opacity: 0;
+  pointer-events: none;
+  z-index: 10;
+  transition: opacity .05s;
+}
+.flash.on { opacity: .9; }
+
+/* ═══════════════════════════════════════════════════════
+   FOOTER
+═══════════════════════════════════════════════════════ */
+footer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border-top: 1px solid var(--border);
+  font-size: 9px;
+  font-family: var(--mono);
+  color: var(--text3);
+  letter-spacing: .8px;
+  text-transform: uppercase;
+}
+footer span.sep { opacity: .3; }
+
+/* ═══════════════════════════════════════════════════════
+   RESULT OVERLAY
+═══════════════════════════════════════════════════════ */
+.overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 999;
+  background: rgba(5,7,12,.88);
+  backdrop-filter: blur(20px);
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+}
+.overlay.show {
+  display: flex;
+  animation: fadeIn .18s ease;
+}
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+.result-card {
+  width: 100%;
+  max-width: 400px;
+  background: var(--surface);
+  border: 1px solid var(--border2);
+  border-radius: 24px;
+  overflow: hidden;
+  animation: cardIn .32s cubic-bezier(.16,1,.3,1);
+}
+@keyframes cardIn {
+  from { opacity: 0; transform: scale(.9) translateY(20px); }
+  to   { opacity: 1; transform: scale(1)  translateY(0);    }
+}
+
+/* Rasm bloki */
+.r-photo {
+  display: none;
+  position: relative;
+  width: 100%;
+  height: 130px;
+  background: #000;
+  overflow: hidden;
+}
+.r-photo img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  filter: brightness(.75);
+}
+.r-photo::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to bottom, transparent 30%, var(--surface) 100%);
+}
+.photo-badge {
+  position: absolute;
+  top: 8px;
+  right: 10px;
+  z-index: 2;
+  background: rgba(0,0,0,.5);
+  border: 1px solid rgba(255,255,255,.08);
+  border-radius: 6px;
+  font-size: 9px;
+  font-family: var(--mono);
+  color: rgba(255,255,255,.4);
+  padding: 2px 7px;
+}
+
+/* Content */
+.r-content { padding: 22px 22px 0; }
+
+/* Icon */
+.r-icon {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 14px;
+}
+.r-icon.in  { background: var(--green-bg); }
+.r-icon.out { background: var(--amber-bg); }
+.r-icon.err { background: var(--red-bg);   }
+.r-icon svg { width: 24px; height: 24px; }
+.r-icon.in  svg { color: var(--green); }
+.r-icon.out svg { color: var(--amber); }
+.r-icon.err svg { color: var(--red);   }
+
+.r-center { text-align: center; }
+
+.r-tag {
+  display: inline-block;
+  padding: 3px 12px;
+  border-radius: 20px;
+  font-size: 9px;
+  font-weight: 500;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  font-family: var(--mono);
+  margin-bottom: 8px;
+}
+.r-tag.in  { background: var(--green-bg); color: var(--green); border: 1px solid rgba(0,230,118,.15); }
+.r-tag.out { background: var(--amber-bg); color: var(--amber); border: 1px solid rgba(255,179,0,.15);  }
+.r-tag.err { background: var(--red-bg);   color: var(--red);   border: 1px solid rgba(255,71,87,.15);  }
+
+.r-name {
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--text);
+  margin-bottom: 3px;
+  letter-spacing: -.2px;
+}
+.r-sub { font-size: 12px; color: var(--text2); }
+
+/* Alert */
+.r-alert {
+  margin: 12px 0 0;
+  padding: 9px 12px;
+  border-radius: 10px;
+  font-size: 11px;
+  line-height: 1.5;
+  display: none;
+}
+.r-alert.late  { display: block; background: var(--amber-bg); border: 1px solid rgba(255,179,0,.15);  color: #E6B85C; }
+.r-alert.early { display: block; background: var(--blue-bg);  border: 1px solid rgba(41,121,255,.15); color: #6B9DFF; }
+.r-alert.info  { display: block; background: var(--green-bg); border: 1px solid rgba(0,230,118,.15);  color: #5CC98A; }
+
+/* Stats grid */
+.r-stats {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin: 12px 0 0;
+}
+.r-stat {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 10px 12px;
+}
+.r-stat .lb {
+  font-size: 8px;
+  text-transform: uppercase;
+  letter-spacing: 1.2px;
+  color: var(--text3);
+  margin-bottom: 3px;
+  font-family: var(--mono);
+}
+.r-stat .vl {
+  font-family: var(--mono);
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--text);
+}
+.r-stat .vl.sm { font-size: 12px; }
+.r-stat .note {
+  font-size: 9px;
+  color: var(--text3);
+  margin-top: 2px;
+}
+
+/* Bottom */
+.r-bottom { padding: 14px 22px 18px; }
+
+.r-btn {
+  width: 100%;
+  padding: 12px;
+  background: var(--surface3);
+  border: 1px solid var(--border3);
+  border-radius: 12px;
+  font-family: var(--font);
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text);
+  cursor: pointer;
+  transition: all .15s;
+  letter-spacing: .3px;
+}
+.r-btn:hover { background: var(--surface2); border-color: var(--border3); }
+.r-btn:active { transform: scale(.99); }
+
+/* Progress */
+.r-progress {
+  height: 2px;
+  background: var(--border);
+  overflow: hidden;
+  margin: 0 22px 12px;
+  border-radius: 2px;
+}
+.r-progress-fill {
+  height: 100%;
+  background: var(--green);
+  border-radius: 2px;
+  width: 100%;
+}
+
+/* ═══════════════════════════════════════════════════════
+   HIDDEN
+═══════════════════════════════════════════════════════ */
+#hwInput { position: fixed; opacity: 0; pointer-events: none; width: 1px; height: 1px; top: 0; left: 0; }
+#snapCanvas { display: none; }
+</style>
 </head>
 <body>
-    <div class="bg-animation">
-        <div class="orb"></div>
-        <div class="orb"></div>
-        <div class="orb"></div>
+
+<div class="app">
+
+  <!-- ── HEADER ── -->
+  <header>
+    <div class="brand">
+      <div class="logo">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+          <circle cx="9" cy="7" r="4"/>
+          <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+          <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+        </svg>
+      </div>
+      <div class="brand-text">
+        <span class="brand-name">Zenko</span>
+        <span class="brand-branch">
+          {% if kiosk_branch_name %}{{ kiosk_branch_name }}{% else %}Davomat tizimi{% endif %}
+        </span>
+      </div>
     </div>
 
-    <div class="time-display">
-        <div class="time" id="clock">--:--</div>
-        <div id="dateDisplay"></div>
+    <div class="header-right">
+      <div class="live-badge">
+        <span class="live-dot"></span>
+        live
+      </div>
+      <div class="clock">
+        <div class="clock-time" id="clockTime">--:--</div>
+        <div class="clock-date" id="clockDate"></div>
+      </div>
     </div>
+  </header>
 
-    <div class="header">
-        <h1>QR kodni kameraga ko'rsating</h1>
-    </div>
+  <!-- ── MAIN ── -->
+  <main>
 
-    <div class="scanner-container">
-        <div class="scanner-box">
-            <div id="reader"></div>
-            <div class="scan-overlay">
-                <div class="corner corner-tl"></div>
-                <div class="corner corner-tr"></div>
-                <div class="corner corner-bl"></div>
-                <div class="corner corner-br"></div>
-            </div>
-            <div class="scan-line"></div>
+    <!-- Scanner card -->
+    <div class="scanner-card">
+      <div class="scan-body">
+        <div class="qr-wrap">
+          <div class="qr-ring"></div>
+          <div class="qr-ring"></div>
+          <div class="qr-ring"></div>
+          <div class="qr-box">
+            <div class="c1"></div>
+            <svg class="qr-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+              <rect x="3" y="3" width="7" height="7" rx="1"/>
+              <rect x="14" y="3" width="7" height="7" rx="1"/>
+              <rect x="3" y="14" width="7" height="7" rx="1"/>
+              <rect x="5" y="5" width="3" height="3" fill="currentColor" stroke="none"/>
+              <rect x="16" y="5" width="3" height="3" fill="currentColor" stroke="none"/>
+              <rect x="5" y="16" width="3" height="3" fill="currentColor" stroke="none"/>
+              <path d="M14 14h3v3M17 17h3M14 20h3"/>
+            </svg>
+          </div>
         </div>
-        <div class="status-bar">
-            <div class="status-text">
-                <span class="dot"></span>
-                <span id="statusText">Kamera tayyor — QR kodni ko'rsating</span>
-            </div>
+        <div class="scan-info">
+          <div class="scan-title">Skaner tayyor</div>
+          <p class="scan-desc">
+            ID kartadagi <strong>QR kodni</strong> skanerga tutsin.<br>
+            Kamera <strong>faqat rasm</strong> olish uchun.
+          </p>
         </div>
+      </div>
+
+      <div class="status-bar">
+        <div class="s-indicator idle" id="sDot"></div>
+        <span class="s-text" id="sMsg">Kutilmoqda — QR kodni o'qiting...</span>
+      </div>
     </div>
 
-    <!-- Result Overlay -->
-    <div class="result-overlay" id="resultOverlay">
-        <div class="result-card">
-            <img class="result-photo" id="resultPhoto" style="display:none" alt="Hodim rasmi">
-            <div class="result-icon" id="resultIcon">
-                <!-- Check-in icon -->
-                <svg id="checkinSvg" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5"/></svg>
-                <!-- Check-out icon -->
-                <svg id="checkoutSvg" style="display:none" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0 0 13.5 3h-6a2.25 2.25 0 0 0-2.25 2.25v13.5A2.25 2.25 0 0 0 7.5 21h6a2.25 2.25 0 0 0 2.25-2.25V15m3 0 3-3m0 0-3-3m3 3H9"/></svg>
-                <!-- Error icon -->
-                <svg id="errorSvg" style="display:none" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12"/></svg>
-            </div>
-            <div id="resultBadge"></div>
-            <h2 id="resultTitle"></h2>
-            <p class="result-msg" id="resultMsg"></p>
-            <div id="earlyWarning"></div>
-            <div id="shiftInfo"></div>
-            <div class="result-details" id="resultDetails"></div>
-            <button class="btn-close-result" onclick="closeResult()">Davom etish</button>
-            <div class="auto-close-bar" id="autoCloseBar"><div class="progress"></div></div>
+    <!-- Camera card -->
+    <div class="cam-card">
+      <div class="cam-header">
+        <div class="cam-title-row">
+          <div class="cam-led" id="camLed"></div>
+          <span class="cam-label" id="camLabel">Kamera yuklanmoqda...</span>
         </div>
+      </div>
+      <div class="cam-view">
+        <video id="camVideo" autoplay muted playsinline style="display:none"></video>
+        <div class="cam-no" id="camNo">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <path d="m15.75 10.5 4.72-4.72a.75.75 0 0 1 1.28.53v11.38a.75.75 0 0 1-1.28.53l-4.72-4.72M12 18.75H4.5A2.25 2.25 0 0 1 2.25 16.5V9m12.841 9.091L16.5 19.5m-1.409-1.409c.407-.407.659-.97.659-1.591v-9A2.25 2.25 0 0 0 13.5 5.25h-9c-.621 0-1.184.252-1.591.659m12.182 12.182L2.909 5.909"/>
+          </svg>
+          Kamera ruxsati yo'q
+        </div>
+        <div class="face-guide">
+          <div class="face-oval"></div>
+        </div>
+        <div class="flash" id="flash"></div>
+      </div>
     </div>
 
-    <!-- Hidden canvas for photo capture -->
-    <canvas id="photoCanvas" style="display:none"></canvas>
+  </main>
 
-    <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
-    <script>
-        // Clock
-        function updateClock() {
-            const now = new Date();
-            document.getElementById('clock').textContent = now.toLocaleTimeString('uz', {hour:'2-digit', minute:'2-digit', second:'2-digit'});
-            document.getElementById('dateDisplay').textContent = now.toLocaleDateString('uz', {year:'numeric', month:'long', day:'numeric'});
-        }
-        updateClock();
-        setInterval(updateClock, 1000);
+  <!-- ── FOOTER ── -->
+  <footer>
+    <span>ZENKO</span>
+    <span class="sep">·</span>
+    <span>{% if kiosk_branch_name %}{{ kiosk_branch_name }}{% else %}—{% endif %}</span>
+    <span class="sep">·</span>
+    <span id="ftDate"></span>
+  </footer>
 
-        // Scanner
-        let scanning = true;
-        let autoCloseTimer = null;
-        const html5QrCode = new Html5Qrcode('reader');
+</div>
 
-        html5QrCode.start(
-            { facingMode: 'environment' },
-            { fps: 10, qrbox: { width: 200, height: 200 }, aspectRatio: 1.0 },
-            onScanSuccess,
-            () => {}
-        ).catch(err => {
-            document.getElementById('statusText').textContent = 'Kamerani yoqib bo\'lmadi: ' + err;
-        });
+<!-- ══════════════════════════════════
+     RESULT OVERLAY
+══════════════════════════════════ -->
+<div class="overlay" id="overlay">
+  <div class="result-card" id="resultCard">
 
-        function capturePhoto() {
-            // Kameradan rasm olish
-            const video = document.querySelector('#reader video');
-            if (!video) return '';
-            const canvas = document.getElementById('photoCanvas');
-            canvas.width = Math.min(video.videoWidth, 480);
-            canvas.height = Math.min(video.videoHeight, 480);
-            const ctx = canvas.getContext('2d');
-            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-            return canvas.toDataURL('image/jpeg', 0.7);
-        }
+    <!-- Rasm (agar bo'lsa) -->
+    <div class="r-photo" id="rPhoto">
+      <img id="rPhotoImg" src="" alt="">
+      <span class="photo-badge">📷 snapshot</span>
+    </div>
 
-        function onScanSuccess(decodedText) {
-            if (!scanning) return;
-            scanning = false;
-            document.getElementById('statusText').textContent = 'Tekshirilmoqda...';
+    <div class="r-content">
+      <div class="r-icon" id="rIcon">
+        <!-- JS to'ldiradi -->
+      </div>
+      <div class="r-center">
+        <div id="rTag"></div>
+        <div class="r-name" id="rName"></div>
+        <div class="r-sub"  id="rSub"></div>
+      </div>
 
-            // QR skanerlanganda darhol rasm olish
-            const photoData = capturePhoto();
+      <!-- Alert xabarlar -->
+      <div class="r-alert" id="aMain"></div>
+      <div class="r-alert" id="aShift"></div>
 
-            const formData = new URLSearchParams();
-            formData.append('token', decodedText);
-            if (photoData) formData.append('photo', photoData);
+      <!-- Stats -->
+      <div class="r-stats" id="rStats"></div>
+    </div>
 
-            fetch('{% url "attendance:api_scan" %}', {
-                method: 'POST',
-                headers: {'Content-Type': 'application/x-www-form-urlencoded'},
-                body: formData.toString()
-            })
-            .then(r => r.json())
-            .then(data => {
-                // Rasmni natijada ko'rsatish uchun saqlash
-                data._localPhoto = photoData;
-                showResult(data);
-            })
-            .catch(() => showResult({ok: false, msg: 'Tarmoq xatosi yuz berdi'}));
-        }
+    <div class="r-bottom">
+      <div class="r-progress" id="rProgressWrap">
+        <div class="r-progress-fill" id="rFill"></div>
+      </div>
+      <button class="r-btn" onclick="closeResult()">
+        Davom etish
+      </button>
+    </div>
 
-        function showResult(data) {
-            const overlay = document.getElementById('resultOverlay');
-            const icon = document.getElementById('resultIcon');
-            const title = document.getElementById('resultTitle');
-            const msg = document.getElementById('resultMsg');
-            const details = document.getElementById('resultDetails');
-            const badge = document.getElementById('resultBadge');
-            const earlyWarning = document.getElementById('earlyWarning');
-            const shiftInfo = document.getElementById('shiftInfo');
-            const photoEl = document.getElementById('resultPhoto');
+  </div>
+</div>
 
-            earlyWarning.innerHTML = '';
-            shiftInfo.innerHTML = '';
-            badge.innerHTML = '';
+<!-- Hidden inputs -->
+<input id="hwInput" type="text" autocomplete="off" inputmode="none" tabindex="-1">
+<canvas id="snapCanvas"></canvas>
 
-            // Hide all SVGs
-            document.getElementById('checkinSvg').style.display = 'none';
-            document.getElementById('checkoutSvg').style.display = 'none';
-            document.getElementById('errorSvg').style.display = 'none';
+<script>
+/* ════════════════════════════════════════════════
+   CONFIG
+════════════════════════════════════════════════ */
+const BRANCH_ID   = '{{ kiosk_branch_id|default:"" }}';
+const API_URL     = '{% url "attendance:api_scan" %}';
+const CLOSE_DELAY = 1500; // ms
 
-            // Hodim rasmini ko'rsatish
-            const localPhoto = data._localPhoto || '';
-            if (data.ok && localPhoto) {
-                photoEl.src = localPhoto;
-                photoEl.style.display = 'block';
-                const isCheckoutP = data.action === 'check_out';
-                const isOvertimeP = data.is_overtime;
-                photoEl.className = 'result-photo ' + (isCheckoutP ? 'checkout' : isOvertimeP ? 'overtime' : 'checkin');
-                icon.style.display = 'none';
-            } else {
-                photoEl.style.display = 'none';
-                icon.style.display = '';
-            }
+/* ════════════════════════════════════════════════
+   CLOCK
+════════════════════════════════════════════════ */
+(function initClock() {
+  const timeEl = document.getElementById('clockTime');
+  const dateEl = document.getElementById('clockDate');
+  const ftEl   = document.getElementById('ftDate');
 
-            // Hide all SVGs
-            document.getElementById('checkinSvg').style.display = 'none';
-            document.getElementById('checkoutSvg').style.display = 'none';
-            document.getElementById('errorSvg').style.display = 'none';
+  const DAYS = ['Yak', 'Du', 'Se', 'Ch', 'Pa', 'Ju', 'Sh'];
+  const MONTHS = ['Yan', 'Fev', 'Mar', 'Apr', 'May', 'Iyn', 'Iyl', 'Avg', 'Sen', 'Okt', 'Noy', 'Dek'];
 
-            if (data.ok) {
-                const isCheckout = data.action === 'check_out';
-                const isOvertime = data.is_overtime;
-                const isEarly = data.is_early;
+  function tick() {
+    const n = new Date();
+    const hh = String(n.getHours()).padStart(2, '0');
+    const mm = String(n.getMinutes()).padStart(2, '0');
+    const ss = String(n.getSeconds()).padStart(2, '0');
+    timeEl.textContent = `${hh}:${mm}:${ss}`;
 
-                if (isCheckout) {
-                    icon.className = 'result-icon success checkout';
-                    document.getElementById('checkoutSvg').style.display = '';
+    const day = DAYS[n.getDay()];
+    const date = String(n.getDate()).padStart(2, '0');
+    const month = MONTHS[n.getMonth()];
+    dateEl.textContent = `${day}, ${date} ${month} ${n.getFullYear()}`;
+    if (ftEl) ftEl.textContent = `${date}.${String(n.getMonth()+1).padStart(2,'0')}.${n.getFullYear()}`;
+  }
+  tick();
+  setInterval(tick, 1000);
+})();
 
-                    if (isEarly) {
-                        badge.innerHTML = '<span class="result-badge badge-early">Erta ketdi</span>';
-                        earlyWarning.innerHTML = '<div class="early-warning">⚠️ Siz smena tugashidan oldin chiqyapsiz</div>';
-                    } else {
-                        badge.innerHTML = '<span class="result-badge badge-checkout">Chiqish</span>';
-                    }
-                } else {
-                    if (isOvertime) {
-                        icon.className = 'result-icon overtime';
-                        badge.innerHTML = '<span class="result-badge badge-overtime">Qo\'shimcha smena</span>';
-                    } else {
-                        icon.className = 'result-icon success';
-                        badge.innerHTML = '<span class="result-badge badge-checkin">Kirish</span>';
-                    }
-                    document.getElementById('checkinSvg').style.display = '';
-                }
+/* ════════════════════════════════════════════════
+   CAMERA
+════════════════════════════════════════════════ */
+let camOk = false;
 
-                title.textContent = data.user_name || 'Muvaffaqiyat!';
-                msg.textContent = data.msg;
+(async function initCamera() {
+  const video  = document.getElementById('camVideo');
+  const noEl   = document.getElementById('camNo');
+  const ledEl  = document.getElementById('camLed');
+  const lblEl  = document.getElementById('camLabel');
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({
+      video: { facingMode: 'user', width: { ideal: 640 }, height: { ideal: 240 } },
+      audio: false,
+    });
+    video.srcObject = stream;
+    await video.play();
+    camOk = true;
+    noEl.style.display  = 'none';
+    video.style.display = 'block';
+    ledEl.classList.add('on');
+    lblEl.textContent = 'Kamera faol';
+    lblEl.style.color = 'var(--green)';
+  } catch {
+    ledEl.style.background = 'var(--red)';
+    lblEl.textContent = "Kamera yo'q — skaner ishlayapti";
+  }
+})();
 
-                let detailsHtml = `
-                    <div class="result-detail-item">
-                        <div class="label">Vaqt</div>
-                        <div class="value">${data.time || '--:--'}</div>
-                    </div>
-                    <div class="result-detail-item">
-                        <div class="label">Smena</div>
-                        <div class="value">${data.shift || '—'}</div>
-                    </div>
-                `;
+function doSnap() {
+  if (!camOk) return null;
+  const v = document.getElementById('camVideo');
+  const c = document.getElementById('snapCanvas');
+  if (!v.videoWidth) return null;
+  c.width  = Math.min(v.videoWidth,  640);
+  c.height = Math.min(v.videoHeight, 360);
+  c.getContext('2d').drawImage(v, 0, 0, c.width, c.height);
+  // Flash
+  const fl = document.getElementById('flash');
+  fl.classList.add('on');
+  setTimeout(() => fl.classList.remove('on'), 120);
+  return c.toDataURL('image/jpeg', 0.80);
+}
 
-                if (isCheckout && data.worked) {
-                    detailsHtml += `
-                        <div class="result-detail-item">
-                            <div class="label">Ishlagan vaqt</div>
-                            <div class="value" style="font-size:14px;">${data.worked}</div>
-                        </div>
-                    `;
-                }
+/* ════════════════════════════════════════════════
+   STATUS BAR
+════════════════════════════════════════════════ */
+function setStatus(msg, mode) {
+  document.getElementById('sMsg').textContent = msg;
+  document.getElementById('sDot').className = 's-indicator ' + (mode || 'idle');
+}
 
-                detailsHtml += `
-                    <div class="result-detail-item">
-                        <div class="label">Holat</div>
-                        <div class="value" style="color:${isEarly ? 'var(--red)' : isOvertime ? 'var(--purple)' : 'var(--green)'}">${data.status || '—'}</div>
-                    </div>
-                `;
+/* ════════════════════════════════════════════════
+   HARDWARE QR SCANNER (USB/Bluetooth → Enter)
+════════════════════════════════════════════════ */
+let scanning = true;
+let hwTimer  = null;
+const hwInput = document.getElementById('hwInput');
 
-                details.innerHTML = detailsHtml;
+function focusHW() {
+  if (!document.getElementById('overlay').classList.contains('show')) {
+    hwInput.focus();
+  }
+}
+focusHW();
+setInterval(focusHW, 800);
+document.addEventListener('click', () => setTimeout(focusHW, 60));
 
-                // Check-in bo'lganda, shift_end ko'rsatish
-                if (!isCheckout && data.shift_end) {
-                    shiftInfo.innerHTML = `<div class="shift-info">🕐 Smena tugash vaqti: <strong>${data.shift_end}</strong>. Vaqtida ketsangiz, chiqish avtomatik belgilanadi.</div>`;
-                }
-            } else {
-                icon.className = 'result-icon error';
-                document.getElementById('errorSvg').style.display = '';
-                title.textContent = 'Xatolik';
-                msg.textContent = data.msg;
-                details.innerHTML = '';
-                badge.innerHTML = '';
-            }
+hwInput.addEventListener('keydown', function(e) {
+  if (e.key === 'Enter') {
+    e.preventDefault();
+    const val = hwInput.value.trim();
+    hwInput.value = '';
+    clearTimeout(hwTimer);
+    if (!val || !scanning) return;
+    scanning = false;
+    handleToken(val);
+  } else {
+    clearTimeout(hwTimer);
+    hwTimer = setTimeout(() => { hwInput.value = ''; }, 800);
+  }
+});
 
-            overlay.classList.add('show');
+/* ════════════════════════════════════════════════
+   TOKEN → API
+════════════════════════════════════════════════ */
+function handleToken(token) {
+  setStatus('Tekshirilmoqda...', 'busy');
+  const photo = doSnap();
 
-            // Reset auto-close bar animation
-            const bar = document.getElementById('autoCloseBar');
-            bar.innerHTML = '<div class="progress"></div>';
+  const body = new URLSearchParams();
+  body.append('token', token);
+  if (BRANCH_ID) body.append('branch_id', BRANCH_ID);
+  if (photo)     body.append('photo', photo);
 
-            // Auto-close
-            clearTimeout(autoCloseTimer);
-            autoCloseTimer = setTimeout(() => {
-                if (overlay.classList.contains('show')) closeResult();
-            }, 5000);
-        }
+  fetch(API_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: body.toString(),
+  })
+  .then(r => r.json())
+  .then(data => {
+    data._photo = photo;
+    showResult(data);
+  })
+  .catch(err => {
+    console.error('Fetch error:', err);
+    showResult({ ok: false, msg: "Tarmoq xatosi. Qayta urinib ko'ring.", _photo: photo });
+  });
+}
 
-        function closeResult() {
-            clearTimeout(autoCloseTimer);
-            document.getElementById('resultOverlay').classList.remove('show');
-            document.getElementById('statusText').textContent = 'Kamera tayyor — QR kodni ko\'rsating';
-            scanning = true;
-        }
-    </script>
+/* ════════════════════════════════════════════════
+   SHOW RESULT OVERLAY
+════════════════════════════════════════════════ */
+let closeTimer = null;
+
+// SVG icons
+const ICON_CHECK = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width:24px;height:24px"><path d="M20 6L9 17l-5-5"/></svg>`;
+const ICON_OUT   = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="width:24px;height:24px"><path d="M15.75 9V5.25A2.25 2.25 0 0 0 13.5 3h-6A2.25 2.25 0 0 0 5.25 5.25v13.5A2.25 2.25 0 0 0 7.5 21h6a2.25 2.25 0 0 0 2.25-2.25V15m3 0 3-3m0 0-3-3m3 3H9"/></svg>`;
+const ICON_ERR   = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width:24px;height:24px"><path d="M6 18 18 6M6 6l12 12"/></svg>`;
+
+function showResult(data) {
+  const overlay  = document.getElementById('overlay');
+  const rIcon    = document.getElementById('rIcon');
+  const rTag     = document.getElementById('rTag');
+  const rName    = document.getElementById('rName');
+  const rSub     = document.getElementById('rSub');
+  const aMain    = document.getElementById('aMain');
+  const aShift   = document.getElementById('aShift');
+  const rStats   = document.getElementById('rStats');
+  const rPhoto   = document.getElementById('rPhoto');
+  const rPhotoImg= document.getElementById('rPhotoImg');
+
+  // Reset alerts
+  aMain.className  = 'r-alert';
+  aShift.className = 'r-alert';
+  aMain.textContent = aShift.textContent = '';
+  rStats.innerHTML = '';
+  rPhoto.style.display = 'none';
+
+  // Rasm
+  if (data._photo) {
+    rPhotoImg.src = data._photo;
+    rPhoto.style.display = 'block';
+  }
+
+  if (data.ok) {
+    const isOut = data.action === 'check_out';
+    const isEarly = data.is_early;
+    const isLate  = data.is_late;
+
+    // Icon
+    rIcon.className = `r-icon ${isOut ? 'out' : 'in'}`;
+    rIcon.innerHTML = isOut ? ICON_OUT : ICON_CHECK;
+
+    // Tag
+    rTag.innerHTML = isOut
+      ? '<span class="r-tag out">Chiqish</span>'
+      : '<span class="r-tag in">Kirish</span>';
+
+    rName.textContent = data.user_name || '';
+    rSub.textContent  = data.msg        || '';
+
+    // Alert
+    if (!isOut && isEarly && data.diff_minutes) {
+      aMain.className = 'r-alert early';
+      aMain.textContent = `⬆ Smenadan ${Math.abs(data.diff_minutes)} daqiqa oldin keldi — hisob ${data.hisob_time || data.shift_start}dan boshlanadi`;
+    } else if (!isOut && isLate && data.diff_minutes) {
+      aMain.className = 'r-alert late';
+      aMain.textContent = `⚠ ${data.diff_minutes} daqiqa kechikdi`;
+    }
+    if (!isOut && data.shift_name) {
+      aShift.className = 'r-alert info';
+      aShift.textContent = `Smena: ${data.shift_name}  ·  ${data.shift_start || ''}–${data.shift_end || ''}`;
+    }
+
+    // Stats
+    const t = data.time || '--:--';
+    const ht = data.hisob_time;
+    let statsHtml = `
+      <div class="r-stat">
+        <div class="lb">Vaqt</div>
+        <div class="vl">${t}</div>
+        ${ht && ht !== t ? `<div class="note">hisob: ${ht}</div>` : ''}
+      </div>`;
+
+    if (isOut && data.worked) {
+      const earlyLeave = data.early_leave;
+      statsHtml += `
+        <div class="r-stat">
+          <div class="lb">Ishladi</div>
+          <div class="vl sm">${data.worked}</div>
+          ${earlyLeave ? '<div class="note" style="color:var(--amber)">erta chiqdi</div>' : ''}
+        </div>`;
+    } else if (data.status) {
+      const statusMap = { present: 'Vaqtida', late: 'Kechikdi', absent: 'Kelmadi', early: 'Erta keldi' };
+      statsHtml += `
+        <div class="r-stat">
+          <div class="lb">Holat</div>
+          <div class="vl sm">${statusMap[data.status] || data.status}</div>
+        </div>`;
+    }
+    rStats.innerHTML = statsHtml;
+
+    setStatus(isOut ? `${data.user_name} chiqdi` : `${data.user_name} kirdi`, 'ok');
+
+  } else {
+    // Xato
+    rIcon.className = 'r-icon err';
+    rIcon.innerHTML = ICON_ERR;
+    rTag.innerHTML  = '<span class="r-tag err">Xatolik</span>';
+    rName.textContent = 'Muvaffaqiyatsiz';
+    rSub.textContent  = data.msg || "Noma'lum xato";
+    setStatus(data.msg || 'Xatolik', 'error');
+  }
+
+  // Progress bar animatsiya
+  const fill = document.getElementById('rFill');
+  fill.style.transition = 'none';
+  fill.style.width = '100%';
+  requestAnimationFrame(() => requestAnimationFrame(() => {
+    fill.style.transition = `width ${CLOSE_DELAY}ms linear`;
+    fill.style.width = '0%';
+  }));
+
+  overlay.classList.add('show');
+  clearTimeout(closeTimer);
+  closeTimer = setTimeout(() => {
+    if (overlay.classList.contains('show')) closeResult();
+  }, CLOSE_DELAY);
+}
+
+/* ════════════════════════════════════════════════
+   CLOSE
+════════════════════════════════════════════════ */
+function closeResult() {
+  clearTimeout(closeTimer);
+  document.getElementById('overlay').classList.remove('show');
+  setStatus("Kutilmoqda — QR kodni o'qiting...", 'idle');
+  scanning = true;
+  setTimeout(focusHW, 30);
+}
+</script>
 </body>
 </html>
