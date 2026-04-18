@@ -30,26 +30,44 @@
 
     .qr-mini-card .card-top {
         background: var(--black);
-        padding: 16px 12px;
+        padding: 16px 12px 0 12px;
         color: var(--white);
+        min-height: 32px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: flex-end;
     }
     .qr-mini-card .card-top .name {
         font-size: 16px;
         font-weight: 800;
         letter-spacing: .3px;
+        margin-top: 36px; /* Move name lower */
+        margin-bottom: 0;
+        color: #222;
+        background: #fff;
+        border-radius: 8px;
+        padding: 6px 0 0 0;
+        width: 100%;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.04);
     }
 
     .qr-mini-card .card-body { padding: 18px; }
     .qr-mini-card .card-body img {
-        width: 52mm;
-        height: 84mm;
-        border-radius: 12px;
+        width: 38mm;
+        height: 38mm;
+        border-radius: 10px;
         border: 2px solid #e2e8f0;
-        box-shadow: 0 6px 20px rgba(15, 23, 42, 0.10);
+        box-shadow: 0 4px 12px rgba(15, 23, 42, 0.10);
         background: #fff;
         object-fit: contain;
-        margin: 0 auto;
+        margin: 0 auto 10px auto;
         display: block;
+        transition: box-shadow .2s, border-color .2s;
+    }
+    .qr-mini-card .card-body img:hover {
+        box-shadow: 0 8px 24px rgba(249, 115, 22, 0.18);
+        border-color: #f97316;
     }
 
     .qr-mini-card .card-footer {
@@ -186,11 +204,26 @@
         .qr-mini-card .card-top {
             background: #fff !important;
             color: #222 !important;
-            padding: 8px 0 0 0 !important;
+            padding: 0 !important;
             font-size: 14px !important;
             font-weight: 700 !important;
             border-radius: 0 !important;
             text-align: center;
+            min-height: 20mm !important;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-end;
+        }
+        .qr-mini-card .card-top .name {
+            margin-top: 12mm !important; /* Move name lower for print */
+            font-size: 15px !important;
+            color: #222 !important;
+            background: #fff !important;
+            border-radius: 6px !important;
+            padding: 2mm 0 0 0 !important;
+            width: 100%;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.04) !important;
         }
         .qr-mini-card .card-body {
             padding: 0 !important;
@@ -200,12 +233,12 @@
             justify-content: center;
         }
         .qr-mini-card .card-body img {
-            width: 51mm !important;
-            height: 51mm !important;
-            border-radius: 6px !important;
+            width: 28mm !important;
+            height: 28mm !important;
+            border-radius: 5px !important;
             border: 1.2px solid #e2e8f0 !important;
             box-shadow: none !important;
-            margin: 0 auto !important;
+            margin: 0 auto 4mm auto !important;
             display: block;
             object-fit: contain;
             background: #fff !important;
