@@ -32,7 +32,10 @@ def verify_qr_token(token):
     Eski tokenlar (faqat int user pk) ham qo'llab-quvvatlanadi.
     """
     try:
-        raw = signing.loads(token, salt=QR_SALT, max_age=None)
+       if token:
+            user = User.objects.filter(pk=int(token), is_active=True).select_related('branch', 'shift').first()
+            branch_id = user.branch_id if user and user.branch_id else None
+            return user, branch_id
     except signing.BadSignature:
         try:
             pk = signing.loads(token, salt='attendance-qr', max_age=None)
@@ -182,19 +185,21 @@ class AttendanceScanAPIView(View):
 
     def post(self, request):
         token = request.POST.get('token', '').strip()
+        
         kiosk_branch = request.POST.get('branch_id', '').strip()
-
+        print(f'Kiosk scan: token={token[:10]}..., kiosk_branch={kiosk_branch}')
         if not token:
             return JsonResponse({'ok': False, 'msg': 'Token topilmadi'}, status=400)
-
+        print('Verifying QR token...')
         user, token_branch = verify_qr_token(token)
+        print(f'Token verification result: user_id={user.pk if user else None}, token_branch={token_branch}')
         if not user:
             return JsonResponse({'ok': False, 'msg': 'Noto\'g\'ri QR kod'}, status=400)
-
+        print(f'QR token belongs to user {user.name} (id={user.pk}), token_branch={token_branch}')
         ok_branch, branch_msg = _branch_matches(user, kiosk_branch or None, token_branch)
         if not ok_branch:
             return JsonResponse({'ok': False, 'msg': branch_msg}, status=400)
-
+        print(f'Branch check passed: {branch_msg}')
         now = timezone.localtime()
         today = now.date()
         branch = user.branch
@@ -205,7 +210,7 @@ class AttendanceScanAPIView(View):
         photo_bytes = _decode_photo_data(photo_raw)
 
         qs = _today_rows(user, today)
-
+        print(qs)
         # 1) Ochiq yozuv — chiqish
         open_att = (
             qs.filter(check_in__isnull=False, check_out__isnull=True)
