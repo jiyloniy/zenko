@@ -58,15 +58,11 @@
     }
     .qr-card-body img {
         position: relative;
-        width: 52mm;
-        height: 84mm;
-        border-radius: 12px;
-        border: 2px solid #e2e8f0;
-        box-shadow: 0 6px 20px rgba(15, 23, 42, 0.10);
-        background: #fff;
-        object-fit: contain;
-        margin: 0 auto;
-        display: block;
+        width: 220px;
+        height: 220px;
+        border-radius: 20px;
+        border: 3px solid #fff;
+        box-shadow: 0 10px 40px rgba(15, 23, 42, 0.12);
     }
     .qr-card-footer {
         padding: 18px 20px 22px;
@@ -77,91 +73,34 @@
         display: flex;
         align-items: center;
         justify-content: center;
-        gap: 8px;
+        gap: 10px;
     }
     .qr-brand .brand-icon {
-        width: 28px; height: 28px;
+        width: 32px; height: 32px;
         background: linear-gradient(135deg, #f97316, #ea580c);
-        border-radius: 8px;
+        border-radius: 10px;
         display: flex;
         align-items: center;
         justify-content: center;
         font-weight: 800;
         color: #fff;
-        font-size: 14px;
-        box-shadow: 0 2px 8px rgba(249, 115, 22, 0.18);
+        font-size: 15px;
+        box-shadow: 0 4px 14px rgba(249, 115, 22, 0.35);
     }
     .qr-brand .brand-text {
-        font-size: 15px;
+        font-size: 18px;
         font-weight: 800;
         color: #0f172a;
-        letter-spacing: 2px;
+        letter-spacing: 4px;
         text-transform: uppercase;
     }
 
     @media print {
-        html, body {
-            width: 52mm;
-            height: 84mm;
-            margin: 0;
-            padding: 0;
-            background: #fff !important;
-        }
-        body * {
-            box-shadow: none !important;
-            background: none !important;
-        }
-        .sidebar, .topbar, .topbar-actions, .nav-link-bottom, .main, .content {
-            display: none !important;
-        }
-        .qr-card-wrapper {
-            width: 52mm;
-            height: 84mm;
-            padding: 0 !important;
-            margin: 0 !important;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        .qr-card {
-            width: 52mm;
-            min-height: 84mm;
-            max-height: 84mm;
-            border: 2px solid #000;
-            border-radius: 12px;
-            box-shadow: none;
-            margin: 0 auto;
-            background: #fff !important;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-        }
-        .qr-card-body {
-            padding: 0 !important;
-        }
-        .qr-card-body img {
-            width: 52mm !important;
-            height: 84mm !important;
-            border-radius: 12px !important;
-            border: 2px solid #e2e8f0 !important;
-            box-shadow: none !important;
-            margin: 0 auto !important;
-            display: block;
-            object-fit: contain;
-        }
-        .qr-card-top, .qr-card-footer {
-            padding: 6px 8px !important;
-        }
-        .qr-brand .brand-icon {
-            width: 18px !important;
-            height: 18px !important;
-            font-size: 10px !important;
-            border-radius: 4px !important;
-        }
-        .qr-brand .brand-text {
-            font-size: 10px !important;
-            letter-spacing: 1px !important;
-        }
+        .sidebar, .topbar, .topbar-actions, .nav-link-bottom { display: none !important; }
+        .main { margin-left: 0 !important; }
+        .content { padding: 0 !important; }
+        body { background: white !important; }
+        .qr-card { box-shadow: none; border: 2px solid #000; }
     }
 </style>
 {% endblock %}
