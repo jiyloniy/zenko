@@ -841,8 +841,10 @@ class AttendanceStatsView(CEORequiredMixin, View):
         not_checked_out = qs.filter(check_in__isnull=False, check_out__isnull=True).count()
 
         expected_total = total_employees * total_days
-        attendance_rate = round((total_records / expected_total * 100) if expected_total else 0)
-        punctuality_rate = round((present_count / total_records * 100) if total_records else 0)
+        # Davomat darajasi: kelgan (present+late) / kutilgan jami
+        attendance_rate = round(((present_count + late_count) / expected_total * 100) if expected_total else 0)
+        # Aniqlik: o'z vaqtida kelgan / jami kelganlar (late+present)
+        punctuality_rate = round((present_count / (present_count + late_count) * 100) if (present_count + late_count) else 0)
 
         # === ISHLAGAN SOATLAR ===
         worked_records = qs.filter(check_in__isnull=False, check_out__isnull=False)
@@ -881,7 +883,7 @@ class AttendanceStatsView(CEORequiredMixin, View):
                 'absent': s_absent,
                 'active_now': s_active,
                 'cross_shift': cross_shift,
-                'rate': round(((s_present + s_late) / s_total * 100) if s_total else 0),
+                'rate': round(((s_present + s_late) / (s_present + s_late + s_absent) * 100) if (s_present + s_late + s_absent) else 0),
                 'punctuality': round((s_present / (s_present + s_late) * 100) if (s_present + s_late) else 0),
             })
 
@@ -902,7 +904,7 @@ class AttendanceStatsView(CEORequiredMixin, View):
                 'late': d_late,
                 'absent': d_absent,
                 'employees': d_employees,
-                'rate': round((d_total / (d_employees * total_days) * 100) if d_employees * total_days else 0),
+                'rate': round(((d_present + d_late) / (d_employees * total_days) * 100) if d_employees * total_days else 0),
             })
 
         # === KUNLIK TREND (oxirgi 14 kun yoki tanlangan davr) ===
@@ -991,11 +993,14 @@ class AttendanceStatsView(CEORequiredMixin, View):
                 w_qs = w_qs.filter(branch=branch)
             w_total = w_qs.count()
             w_present = w_qs.filter(status='present').count()
+            w_late = w_qs.filter(status='late').count()
+            w_absent = w_qs.filter(status='absent').count()
+            w_came = w_present + w_late
             week_compare.append({
                 'label': f'{w_start:%d.%m}–{w_end:%d.%m}',
                 'total': w_total,
                 'present': w_present,
-                'rate': round((w_present / w_total * 100) if w_total else 0),
+                'rate': round((w_came / (w_came + w_absent) * 100) if (w_came + w_absent) else 0),
             })
         week_compare.reverse()
 
@@ -1016,6 +1021,7 @@ class AttendanceStatsView(CEORequiredMixin, View):
             'checked_out': checked_out,
             'not_checked_out': not_checked_out,
             'total_employees': total_employees,
+            'expected_total': expected_total,
             'attendance_rate': attendance_rate,
             'punctuality_rate': punctuality_rate,
             'total_hours': total_hours,

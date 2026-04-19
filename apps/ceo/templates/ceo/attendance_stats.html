@@ -440,7 +440,7 @@
         <div class="sc-val">{{ late_count }}</div>
         <div class="sc-lbl">Kechikib kelgan</div>
         {% if total_records %}<div class="sc-sub" style="color:var(--orange);">
-            {% widthratio late_count total_records 100 %}% ulushi
+            {% widthratio late_count total_records 100 %}% kelganlardan
         </div>{% endif %}
     </div>
 
@@ -453,8 +453,8 @@
         </div>
         <div class="sc-val">{{ absent_count }}</div>
         <div class="sc-lbl">Kelmagan</div>
-        {% if total_records %}<div class="sc-sub" style="color:var(--red);">
-            {% widthratio absent_count total_records 100 %}% yo'qotish
+        {% if expected_total %}<div class="sc-sub" style="color:var(--red);">
+            {% widthratio absent_count expected_total 100 %}% yo'qotish
         </div>{% endif %}
     </div>
 
@@ -531,7 +531,7 @@
             </svg>
             <div class="ring-info">
                 <div class="ri-label">Davomat darajasi</div>
-                <div class="ri-sub">{{ total_records }} / {{ total_employees }} hodim</div>
+                <div class="ri-sub">{{ present_count|add:late_count }} / {{ expected_total }} kutilgan</div>
                 <div class="ri-num" style="color:var(--orange);">{{ attendance_rate }}%</div>
             </div>
         </div>
@@ -548,7 +548,7 @@
             </svg>
             <div class="ring-info">
                 <div class="ri-label">O'z vaqtida kelish</div>
-                <div class="ri-sub">{{ present_count }} / {{ total_records }} yozuv</div>
+                <div class="ri-sub">{{ present_count }} / {{ present_count|add:late_count }} kelgan</div>
                 <div class="ri-num" style="color:var(--green);">{{ punctuality_rate }}%</div>
             </div>
         </div>
@@ -556,15 +556,18 @@
         <!-- Mini bar breakdown -->
         <div style="flex:1;min-width:200px;">
             <div style="font-size:12px;font-weight:700;color:var(--gray-600);margin-bottom:10px;">Holat taqsimoti</div>
-            {% if total_records %}
+            {% if expected_total %}
+            {% widthratio present_count expected_total 100 as pct_present %}
+            {% widthratio late_count expected_total 100 as pct_late %}
+            {% widthratio absent_count expected_total 100 as pct_absent %}
             <div style="display:flex;flex-direction:column;gap:8px;">
                 <div>
                     <div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:3px;">
-                        <span style="color:var(--green);font-weight:600;">Keldi</span>
+                        <span style="color:var(--green);font-weight:600;">Keldi (o'z vaqtida)</span>
                         <span style="font-weight:700;">{{ present_count }}</span>
                     </div>
                     <div style="height:7px;background:var(--gray-100);border-radius:10px;overflow:hidden;">
-                        <div style="height:100%;background:var(--green);border-radius:10px;width:{% widthratio present_count total_records 100 %}%;transition:width 1s ease;"></div>
+                        <div style="height:100%;background:var(--green);border-radius:10px;width:{{ pct_present }}%;transition:width 1s ease;"></div>
                     </div>
                 </div>
                 <div>
@@ -573,7 +576,7 @@
                         <span style="font-weight:700;">{{ late_count }}</span>
                     </div>
                     <div style="height:7px;background:var(--gray-100);border-radius:10px;overflow:hidden;">
-                        <div style="height:100%;background:var(--orange);border-radius:10px;width:{% widthratio late_count total_records 100 %}%;transition:width 1s ease;"></div>
+                        <div style="height:100%;background:var(--orange);border-radius:10px;width:{{ pct_late }}%;transition:width 1s ease;"></div>
                     </div>
                 </div>
                 <div>
@@ -582,7 +585,7 @@
                         <span style="font-weight:700;">{{ absent_count }}</span>
                     </div>
                     <div style="height:7px;background:var(--gray-100);border-radius:10px;overflow:hidden;">
-                        <div style="height:100%;background:var(--red);border-radius:10px;width:{% widthratio absent_count total_records 100 %}%;transition:width 1s ease;"></div>
+                        <div style="height:100%;background:var(--red);border-radius:10px;width:{{ pct_absent }}%;transition:width 1s ease;"></div>
                     </div>
                 </div>
             </div>
