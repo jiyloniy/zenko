@@ -1,7 +1,8 @@
 {% extends "ceo/base.html" %}
+{% load i18n %}
 
-{% block title %}Statistika — Zenko CEO{% endblock %}
-{% block page_title %}Davomat statistikasi{% endblock %}
+{% block title %}Davomat Statistikasi — Zenko{% endblock %}
+{% block page_title %}Davomat Statistikasi{% endblock %}
 
 {% block topbar_actions %}
 <a href="{% url 'ceo:attendance_list' %}" class="btn btn-secondary">
@@ -12,591 +13,494 @@
 
 {% block extra_css %}
 <style>
-    /* ── Animations ── */
-    @keyframes fadeInUp { from { opacity:0; transform:translateY(20px); } to { opacity:1; transform:translateY(0); } }
-    @keyframes fadeInLeft { from { opacity:0; transform:translateX(-20px); } to { opacity:1; transform:translateX(0); } }
-    @keyframes slideDown { from { opacity:0; transform:translateY(-10px); } to { opacity:1; transform:translateY(0); } }
-    @keyframes countPop { from { opacity:0; transform:scale(.5); } to { opacity:1; transform:scale(1); } }
-    @keyframes progressFill { from { width:0%; } }
-    @keyframes barGrow { from { height:0; } }
-    @keyframes shimmer { 0% { background-position:-200% 0; } 100% { background-position:200% 0; } }
+/* ── Variables ── */
+:root {
+    --green: #22C55E; --green-light: #F0FDF4; --green-mid: #86efac;
+    --orange: #F97316; --orange-light: #FFF7ED;
+    --red: #EF4444; --red-light: #FEF2F2;
+    --blue: #3B82F6; --blue-light: #EFF6FF;
+    --purple: #8B5CF6; --purple-light: #F5F3FF;
+    --teal: #14B8A6; --teal-light: #F0FDFA;
+    --yellow: #EAB308; --yellow-light: #FEFCE8;
+    --pink: #EC4899; --pink-light: #FDF2F8;
+    --indigo: #6366F1; --indigo-light: #EEF2FF;
+}
 
-    .anim-up { animation: fadeInUp .5s ease both; }
-    .anim-left { animation: fadeInLeft .5s ease both; }
+/* ── Animations ── */
+@keyframes fadeUp   { from { opacity:0; transform:translateY(18px);  } to { opacity:1; transform:translateY(0); } }
+@keyframes fadeLeft { from { opacity:0; transform:translateX(-16px); } to { opacity:1; transform:translateX(0); } }
+@keyframes slideDown{ from { opacity:0; transform:translateY(-10px); } to { opacity:1; transform:translateY(0); } }
+@keyframes countPop { from { opacity:0; transform:scale(.6); }        to { opacity:1; transform:scale(1); } }
+@keyframes barGrow  { from { height:0; opacity:0; }                   to { opacity:1; } }
+@keyframes ringFill { from { stroke-dashoffset: 283; } }
+@keyframes pulse    { 0%,100%{transform:scale(1);} 50%{transform:scale(1.08);} }
 
-    /* ── Period Selector ── */
-    .period-bar {
-        background: var(--white);
-        border-radius: 14px;
-        border: 1px solid var(--gray-200);
-        padding: 16px 24px;
-        margin-bottom: 24px;
-        display: flex;
-        align-items: center;
-        gap: 12px;
-        flex-wrap: wrap;
-        animation: slideDown .4s ease both;
-    }
-    .period-bar .label {
-        font-size: 13px;
-        font-weight: 600;
-        color: var(--gray-700);
-    }
-    .period-btn {
-        padding: 7px 18px;
-        border-radius: 8px;
-        font-size: 13px;
-        font-weight: 600;
-        border: 1px solid var(--gray-200);
-        background: var(--white);
-        color: var(--gray-700);
-        cursor: pointer;
-        text-decoration: none;
-        transition: all .2s;
-    }
-    .period-btn:hover { background: var(--gray-100); border-color: var(--gray-300); }
-    .period-btn.active { background: var(--orange); color: var(--white); border-color: var(--orange); }
-    .period-custom {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        margin-left: auto;
-    }
-    .period-custom input {
-        padding: 6px 10px;
-        border: 1px solid var(--gray-200);
-        border-radius: 8px;
-        font-size: 12px;
-    }
-    .period-custom input:focus { outline:none; border-color:var(--orange); }
-    .period-custom button {
-        padding: 6px 14px;
-        border-radius: 8px;
-        font-size: 12px;
-        font-weight: 600;
-        border: none;
-        background: var(--orange);
-        color: var(--white);
-        cursor: pointer;
-    }
-    .period-info {
-        width: 100%;
-        font-size: 12px;
-        color: var(--gray-500);
-        margin-top: 4px;
-    }
+.au { animation: fadeUp   .5s cubic-bezier(.4,0,.2,1) both; }
+.al { animation: fadeLeft .5s cubic-bezier(.4,0,.2,1) both; }
 
-    /* ── Main Stats ── */
-    .stats-main {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-        gap: 14px;
-        margin-bottom: 24px;
-    }
-    .s-card {
-        background: var(--white);
-        border-radius: 14px;
-        border: 1px solid var(--gray-200);
-        padding: 18px 16px;
-        position: relative;
-        overflow: hidden;
-        transition: all .3s cubic-bezier(.4,0,.2,1);
-        animation: fadeInUp .5s ease both;
-    }
-    .s-card:nth-child(1) { animation-delay:.05s; }
-    .s-card:nth-child(2) { animation-delay:.1s; }
-    .s-card:nth-child(3) { animation-delay:.15s; }
-    .s-card:nth-child(4) { animation-delay:.2s; }
-    .s-card:nth-child(5) { animation-delay:.25s; }
-    .s-card:nth-child(6) { animation-delay:.3s; }
-    .s-card:nth-child(7) { animation-delay:.35s; }
-    .s-card:nth-child(8) { animation-delay:.4s; }
-    .s-card:hover { transform:translateY(-4px); box-shadow:0 8px 25px rgba(0,0,0,.08); }
-    .s-card::before {
-        content:'';
-        position:absolute;
-        top:0; left:0;
-        width:4px; height:100%;
-        border-radius:4px 0 0 4px;
-    }
-    .s-card.c-green::before { background:#22C55E; }
-    .s-card.c-orange::before { background:#F97316; }
-    .s-card.c-red::before { background:#EF4444; }
-    .s-card.c-blue::before { background:#3B82F6; }
-    .s-card.c-purple::before { background:#8B5CF6; }
-    .s-card.c-teal::before { background:#14B8A6; }
-    .s-card.c-yellow::before { background:#EAB308; }
-    .s-card.c-pink::before { background:#EC4899; }
+/* ── Layout helpers ── */
+.g2 { display:grid; grid-template-columns:1fr 1fr; gap:20px; margin-bottom:24px; }
+.g3 { display:grid; grid-template-columns:repeat(3,1fr); gap:16px; margin-bottom:24px; }
+.g4 { display:grid; grid-template-columns:repeat(4,1fr); gap:14px; margin-bottom:24px; }
+.g5 { display:grid; grid-template-columns:repeat(5,1fr); gap:12px; margin-bottom:24px; }
+@media(max-width:1100px){ .g5{grid-template-columns:repeat(3,1fr);} }
+@media(max-width:900px) { .g4,.g3{grid-template-columns:repeat(2,1fr);} .g2{grid-template-columns:1fr;} }
+@media(max-width:600px) { .g5,.g4,.g3{grid-template-columns:1fr 1fr;} }
 
-    .s-card .s-icon {
-        width:36px; height:36px;
-        border-radius:10px;
-        display:flex; align-items:center; justify-content:center;
-        margin-bottom:10px;
-    }
-    .s-card .s-icon svg { width:18px; height:18px; }
-    .s-card.c-green .s-icon { background:#F0FDF4; color:#22C55E; }
-    .s-card.c-orange .s-icon { background:#FFF7ED; color:#F97316; }
-    .s-card.c-red .s-icon { background:#FEF2F2; color:#EF4444; }
-    .s-card.c-blue .s-icon { background:#EFF6FF; color:#3B82F6; }
-    .s-card.c-purple .s-icon { background:#F5F3FF; color:#8B5CF6; }
-    .s-card.c-teal .s-icon { background:#F0FDFA; color:#14B8A6; }
-    .s-card.c-yellow .s-icon { background:#FEFCE8; color:#EAB308; }
-    .s-card.c-pink .s-icon { background:#FDF2F8; color:#EC4899; }
+/* ── Period Bar ── */
+.period-bar {
+    background:var(--white); border-radius:16px; border:1px solid var(--gray-200);
+    padding:14px 20px; margin-bottom:24px;
+    display:flex; align-items:center; gap:10px; flex-wrap:wrap;
+    animation: slideDown .4s ease both;
+    box-shadow: 0 1px 4px rgba(0,0,0,.04);
+}
+.period-bar .plabel { font-size:12px; font-weight:700; color:var(--gray-500); text-transform:uppercase; letter-spacing:.5px; }
+.period-btn {
+    padding:6px 16px; border-radius:8px; font-size:13px; font-weight:600;
+    border:1.5px solid var(--gray-200); background:var(--white); color:var(--gray-700);
+    cursor:pointer; text-decoration:none; transition:all .2s;
+}
+.period-btn:hover { background:var(--gray-100); border-color:var(--gray-300); color:var(--black); }
+.period-btn.active { background:var(--orange); color:#fff; border-color:var(--orange); box-shadow:0 2px 8px rgba(249,115,22,.3); }
+.period-custom { display:flex; align-items:center; gap:8px; margin-left:auto; }
+.period-custom input {
+    padding:6px 10px; border:1.5px solid var(--gray-200); border-radius:8px;
+    font-size:12px; font-family:inherit; color:var(--black); background:var(--white);
+}
+.period-custom input:focus { outline:none; border-color:var(--orange); }
+.period-custom button {
+    padding:6px 14px; border-radius:8px; font-size:12px; font-weight:700;
+    border:none; background:var(--orange); color:#fff; cursor:pointer;
+    transition:opacity .2s;
+}
+.period-custom button:hover { opacity:.85; }
+.period-info { width:100%; font-size:12px; color:var(--gray-500); margin-top:2px; display:flex; align-items:center; gap:12px; }
+.period-info .pi-badge {
+    display:inline-flex; align-items:center; gap:5px; padding:3px 10px;
+    background:var(--orange-light); color:var(--orange); border-radius:20px;
+    font-size:11px; font-weight:700;
+}
 
-    .s-card .s-val {
-        font-size:24px; font-weight:800; color:var(--black);
-        animation:countPop .6s ease both;
-        line-height:1;
-    }
-    .s-card .s-lbl {
-        font-size:11px; color:var(--gray-500); font-weight:500; margin-top:4px;
-    }
+/* ── Stat Cards ── */
+.sc {
+    background:var(--white); border-radius:16px; border:1px solid var(--gray-200);
+    padding:18px 16px; position:relative; overflow:hidden;
+    transition:transform .25s cubic-bezier(.4,0,.2,1), box-shadow .25s;
+    box-shadow:0 1px 4px rgba(0,0,0,.04);
+}
+.sc:hover { transform:translateY(-5px); box-shadow:0 10px 30px rgba(0,0,0,.09); }
+.sc::before {
+    content:''; position:absolute; top:0; left:0;
+    width:4px; height:100%; border-radius:4px 0 0 4px;
+}
+.sc.cg::before  { background:var(--green); }
+.sc.co::before  { background:var(--orange); }
+.sc.cr::before  { background:var(--red); }
+.sc.cb::before  { background:var(--blue); }
+.sc.cp::before  { background:var(--purple); }
+.sc.ct::before  { background:var(--teal); }
+.sc.cy::before  { background:var(--yellow); }
+.sc.cpk::before { background:var(--pink); }
+.sc.ci::before  { background:var(--indigo); }
 
-    /* ── Rate Boxes ── */
-    .rate-grid {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 16px;
-        margin-bottom: 24px;
-    }
-    .rate-box {
-        background: var(--white);
-        border-radius: 14px;
-        border: 1px solid var(--gray-200);
-        padding: 20px 24px;
-        animation: fadeInUp .5s ease .45s both;
-    }
-    .rate-box .r-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 12px;
-    }
-    .rate-box .r-header h4 { font-size:13px; font-weight:600; color:var(--gray-700); }
-    .rate-box .r-header .r-val { font-size:22px; font-weight:800; }
-    .rate-box .r-header .r-val.orange { color:var(--orange); }
-    .rate-box .r-header .r-val.green { color:#22C55E; }
-    .r-bar { height:10px; background:var(--gray-100); border-radius:10px; overflow:hidden; }
-    .r-bar .r-fill {
-        height:100%; border-radius:10px;
-        animation: progressFill 1.2s ease both;
-        animation-delay:.6s;
-    }
-    .r-fill.orange { background:linear-gradient(90deg,#F97316,#F59E0B); }
-    .r-fill.green { background:linear-gradient(90deg,#22C55E,#10B981); }
+.sc .sc-top { display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:10px; }
+.sc .sc-icon {
+    width:38px; height:38px; border-radius:11px;
+    display:flex; align-items:center; justify-content:center;
+}
+.sc .sc-icon svg { width:19px; height:19px; }
+.sc.cg  .sc-icon { background:var(--green-light);  color:var(--green); }
+.sc.co  .sc-icon { background:var(--orange-light); color:var(--orange); }
+.sc.cr  .sc-icon { background:var(--red-light);    color:var(--red); }
+.sc.cb  .sc-icon { background:var(--blue-light);   color:var(--blue); }
+.sc.cp  .sc-icon { background:var(--purple-light); color:var(--purple); }
+.sc.ct  .sc-icon { background:var(--teal-light);   color:var(--teal); }
+.sc.cy  .sc-icon { background:var(--yellow-light); color:var(--yellow); }
+.sc.cpk .sc-icon { background:var(--pink-light);   color:var(--pink); }
+.sc.ci  .sc-icon { background:var(--indigo-light); color:var(--indigo); }
 
-    /* ── Hours Box ── */
-    .hours-box {
-        background: var(--white);
-        border-radius: 14px;
-        border: 1px solid var(--gray-200);
-        padding: 20px 24px;
-        margin-bottom: 24px;
-        animation: fadeInUp .5s ease .5s both;
-        display: flex;
-        align-items: center;
-        gap: 24px;
-        flex-wrap: wrap;
-    }
-    .hours-item {
-        display: flex;
-        align-items: center;
-        gap: 12px;
-    }
-    .hours-item .h-icon {
-        width:44px; height:44px;
-        border-radius:12px;
-        display:flex; align-items:center; justify-content:center;
-        background:#EFF6FF; color:#3B82F6;
-    }
-    .hours-item .h-icon svg { width:22px; height:22px; }
-    .hours-item .h-val { font-size:22px; font-weight:800; color:var(--black); }
-    .hours-item .h-lbl { font-size:11px; color:var(--gray-500); }
+.sc .sc-badge {
+    font-size:10px; font-weight:700; padding:2px 8px; border-radius:10px;
+}
+.sc.cg  .sc-badge { background:var(--green-light);  color:var(--green); }
+.sc.co  .sc-badge { background:var(--orange-light); color:var(--orange); }
+.sc.cr  .sc-badge { background:var(--red-light);    color:var(--red); }
+.sc.cb  .sc-badge { background:var(--blue-light);   color:var(--blue); }
+.sc.cp  .sc-badge { background:var(--purple-light); color:var(--purple); }
+.sc.ct  .sc-badge { background:var(--teal-light);   color:var(--teal); }
+.sc.cy  .sc-badge { background:var(--yellow-light); color:var(--yellow); }
+.sc.cpk .sc-badge { background:var(--pink-light);   color:var(--pink); }
+.sc.ci  .sc-badge { background:var(--indigo-light); color:var(--indigo); }
 
-    /* ── Daily Trend Chart ── */
-    .chart-section {
-        background: var(--white);
-        border-radius: 14px;
-        border: 1px solid var(--gray-200);
-        padding: 24px;
-        margin-bottom: 24px;
-        animation: fadeInUp .5s ease .55s both;
-    }
-    .chart-section h3 {
-        font-size: 15px;
-        font-weight: 700;
-        margin-bottom: 20px;
-        color: var(--black);
-    }
-    .chart-bars {
-        display: flex;
-        align-items: flex-end;
-        gap: 12px;
-        height: 180px;
-        padding: 0 8px;
-    }
-    .chart-col {
-        flex: 1;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        gap: 6px;
-        height: 100%;
-        justify-content: flex-end;
-    }
-    .bar-stack {
-        width: 100%;
-        max-width: 48px;
-        display: flex;
-        flex-direction: column;
-        justify-content: flex-end;
-        border-radius: 8px 8px 4px 4px;
-        overflow: hidden;
-        animation: barGrow .8s ease both;
-    }
-    .bar-stack .bar-seg { transition: height .5s ease; }
-    .bar-seg.present { background: #22C55E; }
-    .bar-seg.late { background: #F97316; }
-    .bar-seg.early { background: #EF4444; }
-    .bar-count {
-        font-size: 12px;
-        font-weight: 700;
-        color: var(--black);
-    }
-    .bar-label {
-        font-size: 11px;
-        color: var(--gray-500);
-        font-weight: 500;
-    }
-    .bar-date {
-        font-size: 10px;
-        color: var(--gray-500);
-    }
-    .chart-legend {
-        display: flex;
-        gap: 16px;
-        margin-top: 16px;
-        justify-content: center;
-    }
-    .legend-item {
-        display: flex;
-        align-items: center;
-        gap: 6px;
-        font-size: 12px;
-        color: var(--gray-700);
-    }
-    .legend-dot { width:10px; height:10px; border-radius:3px; }
-    .legend-dot.green { background:#22C55E; }
-    .legend-dot.orange { background:#F97316; }
-    .legend-dot.red { background:#EF4444; }
+.sc .sc-val {
+    font-size:28px; font-weight:900; color:var(--black); line-height:1;
+    animation: countPop .5s ease both;
+}
+.sc .sc-lbl { font-size:11px; color:var(--gray-500); font-weight:500; margin-top:5px; }
+.sc .sc-sub { font-size:11px; margin-top:6px; display:flex; align-items:center; gap:4px; }
+.sc .sc-sub svg { width:12px; height:12px; }
 
-    /* ── Section Grid (Shift, Dept, Top lists) ── */
-    .grid-2 {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 20px;
-        margin-bottom: 24px;
-    }
-    .detail-card {
-        background: var(--white);
-        border-radius: 14px;
-        border: 1px solid var(--gray-200);
-        padding: 20px 24px;
-        animation: fadeInUp .5s ease both;
-    }
-    .detail-card h3 {
-        font-size: 14px;
-        font-weight: 700;
-        margin-bottom: 16px;
-        display: flex;
-        align-items: center;
-        gap: 8px;
-    }
-    .detail-card h3 .h-badge {
-        background: var(--orange-light);
-        color: var(--orange);
-        padding: 2px 10px;
-        border-radius: 12px;
-        font-size: 11px;
-        font-weight: 700;
-    }
+/* ── Section Card ── */
+.sec {
+    background:var(--white); border-radius:16px; border:1px solid var(--gray-200);
+    padding:22px 24px; margin-bottom:24px;
+    box-shadow:0 1px 4px rgba(0,0,0,.04);
+}
+.sec-hd {
+    display:flex; align-items:center; justify-content:space-between;
+    margin-bottom:20px;
+}
+.sec-hd h3 {
+    font-size:15px; font-weight:800; color:var(--black);
+    display:flex; align-items:center; gap:8px; margin:0;
+}
+.sec-hd h3 .hd-icon {
+    width:30px; height:30px; border-radius:8px;
+    display:flex; align-items:center; justify-content:center;
+    background:var(--orange-light); color:var(--orange);
+}
+.sec-hd h3 .hd-icon svg { width:16px; height:16px; }
+.sec-hd .hd-badge {
+    font-size:11px; font-weight:700; padding:3px 10px;
+    border-radius:12px; background:var(--orange-light); color:var(--orange);
+}
 
-    /* Shift / Dept items */
-    .d-item {
-        display: flex;
-        align-items: center;
-        gap: 14px;
-        padding: 12px 0;
-        border-bottom: 1px solid var(--gray-100);
-    }
-    .d-item:last-child { border-bottom: none; }
-    .d-item .d-icon {
-        width: 38px; height: 38px;
-        border-radius: 10px;
-        display: flex; align-items: center; justify-content: center;
-        flex-shrink: 0;
-        font-weight: 700; font-size: 14px;
-    }
-    .d-item .d-info { flex: 1; }
-    .d-item .d-name { font-size: 13px; font-weight: 600; color: var(--black); }
-    .d-item .d-sub { font-size: 11px; color: var(--gray-500); margin-top: 2px; }
-    .d-item .d-tags { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 6px; }
-    .d-tag {
-        display: inline-flex;
-        align-items: center;
-        gap: 4px;
-        padding: 2px 8px;
-        border-radius: 6px;
-        font-size: 10px;
-        font-weight: 600;
-    }
-    .d-tag.green { background: #F0FDF4; color: #22C55E; }
-    .d-tag.orange { background: #FFF7ED; color: #F97316; }
-    .d-tag.red { background: #FEF2F2; color: #EF4444; }
-    .d-tag.purple { background: #F5F3FF; color: #8B5CF6; }
+/* ── Rate Rings ── */
+.ring-grid { display:flex; gap:32px; align-items:center; flex-wrap:wrap; margin-bottom:24px; }
+.ring-box { display:flex; align-items:center; gap:18px; }
+.ring-svg { width:80px; height:80px; flex-shrink:0; }
+.ring-svg circle { fill:none; stroke-width:8; stroke-linecap:round; }
+.ring-bg { stroke:var(--gray-100); }
+.ring-fill { transform-origin:50% 50%; transform:rotate(-90deg); transition:stroke-dashoffset 1.2s ease; animation:ringFill 1.2s ease both; }
+.ring-val { font-size:15px; font-weight:900; fill:var(--black); dominant-baseline:middle; text-anchor:middle; }
+.ring-info .ri-label { font-size:13px; font-weight:700; color:var(--black); }
+.ring-info .ri-sub   { font-size:11px; color:var(--gray-500); margin-top:2px; }
+.ring-info .ri-num   { font-size:20px; font-weight:900; color:var(--orange); line-height:1; margin-top:4px; }
 
-    .d-item .d-rate {
-        font-size: 18px;
-        font-weight: 800;
-        color: var(--orange);
-    }
+/* ── Hours Row ── */
+.hours-row {
+    display:flex; gap:0; background:var(--white);
+    border-radius:16px; border:1px solid var(--gray-200);
+    overflow:hidden; margin-bottom:24px;
+    box-shadow:0 1px 4px rgba(0,0,0,.04);
+}
+.hr-item {
+    flex:1; padding:18px 20px; display:flex; align-items:center; gap:14px;
+    border-right:1px solid var(--gray-200); transition:background .2s;
+}
+.hr-item:last-child { border-right:none; }
+.hr-item:hover { background:var(--gray-50); }
+.hr-item .hr-icon {
+    width:46px; height:46px; border-radius:13px; flex-shrink:0;
+    display:flex; align-items:center; justify-content:center;
+}
+.hr-item .hr-icon svg { width:22px; height:22px; }
+.hr-item .hr-val { font-size:22px; font-weight:900; color:var(--black); line-height:1; }
+.hr-item .hr-lbl { font-size:11px; color:var(--gray-500); margin-top:3px; }
+@media(max-width:700px){ .hours-row{flex-direction:column;} .hr-item{border-right:none;border-bottom:1px solid var(--gray-200);} }
 
-    /* Top users list */
-    .top-list { }
-    .top-item {
-        display: flex;
-        align-items: center;
-        gap: 12px;
-        padding: 10px 0;
-        border-bottom: 1px solid var(--gray-100);
-    }
-    .top-item:last-child { border-bottom: none; }
-    .top-rank {
-        width: 24px; height: 24px;
-        border-radius: 50%;
-        background: var(--gray-100);
-        display: flex; align-items: center; justify-content: center;
-        font-size: 11px; font-weight: 700; color: var(--gray-700);
-        flex-shrink: 0;
-    }
-    .top-rank.gold { background: #FEF3C7; color: #D97706; }
-    .top-rank.silver { background: #F3F4F6; color: #6B7280; }
-    .top-rank.bronze { background: #FED7AA; color: #EA580C; }
-    .top-name { flex: 1; font-size: 13px; font-weight: 600; }
-    .top-count {
-        font-size: 15px; font-weight: 800;
-        padding: 2px 10px;
-        border-radius: 8px;
-    }
-    .top-count.orange { background: #FFF7ED; color: #F97316; }
-    .top-count.red { background: #FEF2F2; color: #EF4444; }
-    .top-count.purple { background: #F5F3FF; color: #8B5CF6; }
+/* ── Trend Chart ── */
+.trend-wrap {
+    display:flex; align-items:flex-end; gap:8px;
+    height:200px; padding:0 4px 0;
+}
+.tc-col {
+    flex:1; display:flex; flex-direction:column; align-items:center;
+    gap:4px; height:100%; justify-content:flex-end; min-width:0;
+}
+.tc-total { font-size:11px; font-weight:700; color:var(--black); }
+.tc-stack {
+    width:100%; max-width:44px; display:flex; flex-direction:column;
+    border-radius:8px 8px 3px 3px; overflow:hidden; min-height:4px;
+    animation: barGrow .7s ease both;
+}
+.tc-stack .bs-p { background:var(--green); }
+.tc-stack .bs-l { background:var(--orange); }
+.tc-stack .bs-a { background:var(--red); }
+.tc-stack .bs { transition:height .4s ease; }
+.tc-day  { font-size:11px; font-weight:600; color:var(--gray-700); }
+.tc-date { font-size:10px; color:var(--gray-400); }
+.tc-col.is-today .tc-day { color:var(--orange); font-weight:800; }
+.trend-legend { display:flex; gap:16px; margin-top:14px; justify-content:center; }
+.tl-item { display:flex; align-items:center; gap:6px; font-size:12px; color:var(--gray-700); }
+.tl-dot  { width:10px; height:10px; border-radius:3px; }
 
-    /* ── Checkin/Checkout Detail ── */
-    .io-grid {
-        display: grid;
-        grid-template-columns: repeat(3, 1fr);
-        gap: 14px;
-        margin-bottom: 24px;
-    }
-    .io-card {
-        background: var(--white);
-        border-radius: 14px;
-        border: 1px solid var(--gray-200);
-        padding: 18px 20px;
-        text-align: center;
-        animation: fadeInUp .5s ease both;
-        transition: all .3s;
-    }
-    .io-card:hover { transform: translateY(-3px); box-shadow: 0 4px 15px rgba(0,0,0,.06); }
-    .io-card .io-icon {
-        width: 44px; height: 44px;
-        border-radius: 12px;
-        display: inline-flex; align-items: center; justify-content: center;
-        margin-bottom: 10px;
-    }
-    .io-card .io-icon svg { width: 22px; height: 22px; }
-    .io-card .io-val { font-size: 26px; font-weight: 800; color: var(--black); }
-    .io-card .io-lbl { font-size: 11px; color: var(--gray-500); margin-top: 2px; }
+/* ── Hourly distribution ── */
+.hourly-wrap {
+    display:flex; align-items:flex-end; gap:4px;
+    height:100px;
+}
+.hw-col {
+    flex:1; display:flex; flex-direction:column; align-items:center;
+    gap:3px; height:100%; justify-content:flex-end;
+}
+.hw-bar {
+    width:100%; background:var(--blue); border-radius:4px 4px 2px 2px;
+    min-height:3px; transition:height .4s ease; animation:barGrow .6s ease both;
+    opacity:.85;
+}
+.hw-bar:hover { opacity:1; }
+.hw-h { font-size:9px; color:var(--gray-400); }
 
-    .empty-stats {
-        text-align: center;
-        padding: 40px;
-        color: var(--gray-500);
-    }
-    .empty-stats svg { width: 48px; height: 48px; margin-bottom: 12px; opacity: .3; }
+/* ── Shift / Dept items ── */
+.di-list { display:flex; flex-direction:column; gap:2px; }
+.di {
+    display:flex; align-items:center; gap:12px; padding:11px 12px;
+    border-radius:10px; text-decoration:none; color:inherit;
+    transition:background .18s;
+}
+.di:hover { background:var(--gray-50); }
+.di .di-icon {
+    width:40px; height:40px; border-radius:11px;
+    display:flex; align-items:center; justify-content:center;
+    font-weight:800; font-size:15px; flex-shrink:0;
+}
+.di .di-info { flex:1; min-width:0; }
+.di .di-name { font-size:13px; font-weight:700; color:var(--black); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.di .di-sub  { font-size:11px; color:var(--gray-500); margin-top:1px; }
+.di .di-tags { display:flex; gap:5px; flex-wrap:wrap; margin-top:5px; }
+.dtag {
+    display:inline-flex; align-items:center; gap:3px;
+    padding:2px 7px; border-radius:6px; font-size:10px; font-weight:700;
+}
+.dtag.g  { background:var(--green-light);  color:var(--green); }
+.dtag.o  { background:var(--orange-light); color:var(--orange); }
+.dtag.r  { background:var(--red-light);    color:var(--red); }
+.dtag.b  { background:var(--blue-light);   color:var(--blue); }
+.dtag.p  { background:var(--purple-light); color:var(--purple); }
+.di .di-rate {
+    font-size:17px; font-weight:900;
+    min-width:46px; text-align:right;
+}
+.di .di-bar-wrap { width:60px; }
+.di .di-bar { height:5px; background:var(--gray-100); border-radius:5px; overflow:hidden; margin-top:3px; }
+.di .di-bar-fill { height:100%; border-radius:5px; background:var(--green); transition:width .6s ease; }
 
-    /* ── Heatmap ── */
-    .heatmap-section {
-        background: var(--white);
-        border-radius: 14px;
-        border: 1px solid var(--gray-200);
-        padding: 24px;
-        margin-bottom: 24px;
-        animation: fadeInUp .5s ease .52s both;
-    }
-    .heatmap-section h3 {
-        font-size: 15px;
-        font-weight: 700;
-        margin-bottom: 16px;
-        color: var(--black);
-        display: flex;
-        align-items: center;
-        gap: 8px;
-    }
-    .heatmap-grid {
-        display: grid;
-        grid-template-columns: repeat(13, 1fr);
-        gap: 3px;
-    }
-    .heatmap-cell {
-        aspect-ratio: 1;
-        border-radius: 3px;
-        background: var(--gray-100);
-        position: relative;
-        cursor: pointer;
-        transition: transform .15s;
-    }
-    .heatmap-cell:hover { transform: scale(1.4); z-index: 2; }
-    .heatmap-cell.lvl-1 { background: #dcfce7; }
-    .heatmap-cell.lvl-2 { background: #86efac; }
-    .heatmap-cell.lvl-3 { background: #22c55e; }
-    .heatmap-cell.lvl-4 { background: #15803d; }
-    .heatmap-cell.ot-1 { background: #ede9fe; }
-    .heatmap-cell.ot-2 { background: #c4b5fd; }
-    .heatmap-cell.ot-3 { background: #8b5cf6; }
-    .heatmap-cell.ot-4 { background: #6d28d9; }
-    .heatmap-cell .hm-tip {
-        display: none;
-        position: absolute;
-        bottom: calc(100% + 6px);
-        left: 50%;
-        transform: translateX(-50%);
-        background: var(--black);
-        color: var(--white);
-        font-size: 10px;
-        padding: 4px 8px;
-        border-radius: 6px;
-        white-space: nowrap;
-        z-index: 10;
-        pointer-events: none;
-    }
-    .heatmap-cell:hover .hm-tip { display: block; }
-    .heatmap-legend {
-        display: flex;
-        align-items: center;
-        gap: 6px;
-        margin-top: 12px;
-        font-size: 11px;
-        color: var(--gray-500);
-    }
-    .heatmap-legend .hl-box {
-        width: 12px; height: 12px;
-        border-radius: 2px;
-    }
-    .heatmap-tabs {
-        display: flex;
-        gap: 8px;
-        margin-bottom: 14px;
-    }
-    .hm-tab {
-        padding: 5px 14px;
-        border-radius: 8px;
-        font-size: 12px;
-        font-weight: 600;
-        border: 1px solid var(--gray-200);
-        background: var(--white);
-        color: var(--gray-700);
-        cursor: pointer;
-        transition: all .2s;
-    }
-    .hm-tab.active { background: var(--orange); color: var(--white); border-color: var(--orange); }
-    .hm-tab:hover:not(.active) { background: var(--gray-100); }
+/* ── Cross-shift badge ── */
+.cross-badge {
+    display:inline-flex; align-items:center; gap:3px;
+    padding:2px 7px; border-radius:6px; font-size:10px; font-weight:700;
+    background:var(--indigo-light); color:var(--indigo);
+}
 
-    @media (max-width: 768px) {
-        .stats-main { grid-template-columns: repeat(2, 1fr); }
-        .rate-grid, .grid-2 { grid-template-columns: 1fr; }
-        .io-grid { grid-template-columns: 1fr; }
-        .chart-bars { height: 120px; }
-    }
+/* ── Top lists ── */
+.tl-list { display:flex; flex-direction:column; gap:4px; }
+.tl-row {
+    display:flex; align-items:center; gap:10px; padding:9px 10px;
+    border-radius:10px; text-decoration:none; color:inherit;
+    transition:background .18s;
+}
+.tl-row:hover { background:var(--gray-50); }
+.tl-rank {
+    width:26px; height:26px; border-radius:50%; flex-shrink:0;
+    display:flex; align-items:center; justify-content:center;
+    font-size:11px; font-weight:800; background:var(--gray-100); color:var(--gray-700);
+}
+.tl-rank.gold   { background:#FEF3C7; color:#D97706; }
+.tl-rank.silver { background:#F3F4F6; color:#6B7280; }
+.tl-rank.bronze { background:#FED7AA; color:#EA580C; }
+.tl-avatar {
+    width:34px; height:34px; border-radius:10px; flex-shrink:0;
+    display:flex; align-items:center; justify-content:center;
+    font-size:13px; font-weight:800; background:var(--gray-100); color:var(--gray-600);
+}
+.tl-name  { flex:1; font-size:13px; font-weight:600; color:var(--black); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.tl-dept  { font-size:10px; color:var(--gray-500); }
+.tl-count { font-size:14px; font-weight:800; padding:3px 10px; border-radius:8px; white-space:nowrap; }
+.tl-count.o  { background:var(--orange-light); color:var(--orange); }
+.tl-count.r  { background:var(--red-light);    color:var(--red); }
+
+/* ── Week compare ── */
+.wc-bars { display:flex; gap:12px; align-items:flex-end; height:80px; }
+.wc-col  { flex:1; display:flex; flex-direction:column; align-items:center; gap:4px; justify-content:flex-end; }
+.wc-bar  { width:100%; background:var(--blue-light); border-radius:6px 6px 2px 2px; min-height:4px; transition:height .5s ease; position:relative; overflow:hidden; }
+.wc-bar .wc-fill { position:absolute; bottom:0; left:0; right:0; background:var(--blue); border-radius:6px 6px 2px 2px; transition:height .5s ease; }
+.wc-label { font-size:9px; color:var(--gray-400); text-align:center; }
+.wc-rate  { font-size:11px; font-weight:700; color:var(--blue); }
+
+/* ── Heatmap ── */
+.hm-grid {
+    display:grid; grid-template-columns:repeat(13,1fr); gap:3px;
+}
+.hm-cell {
+    aspect-ratio:1; border-radius:3px; background:var(--gray-100);
+    position:relative; cursor:pointer; transition:transform .12s;
+}
+.hm-cell:hover { transform:scale(1.5); z-index:5; }
+.hm-cell.lv1 { background:#dcfce7; }
+.hm-cell.lv2 { background:#86efac; }
+.hm-cell.lv3 { background:#22c55e; }
+.hm-cell.lv4 { background:#15803d; }
+.hm-cell .hm-tip {
+    display:none; position:absolute; bottom:calc(100% + 5px);
+    left:50%; transform:translateX(-50%);
+    background:rgba(0,0,0,.85); color:#fff;
+    font-size:10px; padding:4px 8px; border-radius:6px;
+    white-space:nowrap; z-index:20; pointer-events:none;
+}
+.hm-cell:hover .hm-tip { display:block; }
+.hm-legend {
+    display:flex; align-items:center; gap:5px;
+    margin-top:10px; font-size:11px; color:var(--gray-500);
+}
+.hm-legend .hlb { width:11px; height:11px; border-radius:2px; }
+
+/* ── IO Cards (check-in/out) ── */
+.io-row {
+    display:grid; grid-template-columns:repeat(3,1fr); gap:14px; margin-bottom:24px;
+}
+.io-card {
+    background:var(--white); border-radius:14px; border:1px solid var(--gray-200);
+    padding:16px 18px; text-align:center;
+    transition:transform .2s, box-shadow .2s;
+    box-shadow:0 1px 4px rgba(0,0,0,.04);
+}
+.io-card:hover { transform:translateY(-3px); box-shadow:0 6px 20px rgba(0,0,0,.07); }
+.io-card .io-icon {
+    width:42px; height:42px; border-radius:12px;
+    display:inline-flex; align-items:center; justify-content:center; margin-bottom:8px;
+}
+.io-card .io-icon svg { width:20px; height:20px; }
+.io-card .io-val { font-size:26px; font-weight:900; color:var(--black); line-height:1; }
+.io-card .io-lbl { font-size:11px; color:var(--gray-500); margin-top:3px; }
+
+/* ── Empty ── */
+.empty-hint { text-align:center; padding:32px 16px; color:var(--gray-400); }
+.empty-hint svg { width:40px; height:40px; opacity:.25; margin-bottom:8px; }
+.empty-hint p { font-size:13px; }
+
+@media(max-width:600px){
+    .io-row { grid-template-columns:1fr 1fr; }
+    .hours-row .hr-item { padding:14px 16px; }
+    .ring-grid { gap:20px; }
+    .hm-grid { grid-template-columns:repeat(9,1fr); }
+}
 </style>
 {% endblock %}
 
 {% block content %}
-<!-- Period Selector -->
+
+<!-- ══ PERIOD BAR ══════════════════════════════════════════════════════════ -->
 <div class="period-bar">
-    <span class="label">Davr:</span>
-    <a href="?period=today" class="period-btn {% if period == 'today' %}active{% endif %}">Bugun</a>
-    <a href="?period=week" class="period-btn {% if period == 'week' %}active{% endif %}">Hafta</a>
-    <a href="?period=month" class="period-btn {% if period == 'month' %}active{% endif %}">Oy</a>
+    <span class="plabel">Davr</span>
+    <a href="?period=today"  class="period-btn {% if period == 'today'  %}active{% endif %}">Bugun</a>
+    <a href="?period=week"   class="period-btn {% if period == 'week'   %}active{% endif %}">Hafta</a>
+    <a href="?period=month"  class="period-btn {% if period == 'month'  %}active{% endif %}">Oy</a>
     <form method="get" class="period-custom">
         <input type="hidden" name="period" value="custom">
         <input type="date" name="from_date" value="{{ from_date }}">
-        <span style="color:var(--gray-500)">—</span>
+        <span style="color:var(--gray-400);font-size:13px">—</span>
         <input type="date" name="to_date" value="{{ to_date }}">
         <button type="submit">Qo'llash</button>
     </form>
-    <div class="period-info">📅 {{ period_label }} &nbsp;|&nbsp; 👥 {{ total_employees }} hodim</div>
-</div>
-
-<!-- Main Stats Cards -->
-<div class="stats-main">
-    <div class="s-card c-green">
-        <div class="s-icon">
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5"/></svg>
-        </div>
-        <div class="s-val">{{ present_count }}</div>
-        <div class="s-lbl">Keldi</div>
-    </div>
-    <div class="s-card c-orange">
-        <div class="s-icon">
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/></svg>
-        </div>
-        <div class="s-val">{{ late_count }}</div>
-        <div class="s-lbl">Kechikdi</div>
-    </div>
-    <div class="s-card c-pink">
-        <div class="s-icon">
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M18.364 18.364A9 9 0 0 0 5.636 5.636m12.728 12.728A9 9 0 0 1 5.636 5.636m12.728 12.728L5.636 5.636"/></svg>
-        </div>
-        <div class="s-val">{{ absent_count }}</div>
-        <div class="s-lbl">Kelmadi</div>
-    </div>
-    <div class="s-card c-teal">
-        <div class="s-icon">
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19.128a9.38 9.38 0 0 0 2.625.372 9.337 9.337 0 0 0 4.121-.952 4.125 4.125 0 0 0-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 0 1 8.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0 1 11.964-3.07M12 6.375a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0Zm8.25 2.25a2.625 2.625 0 1 1-5.25 0 2.625 2.625 0 0 1 5.25 0Z"/></svg>
-        </div>
-        <div class="s-val">{{ active_now }}</div>
-        <div class="s-lbl">Hozir ishda</div>
-    </div>
-    <div class="s-card c-blue">
-        <div class="s-icon">
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 0 1 3 19.875v-6.75ZM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V8.625ZM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V4.125Z"/></svg>
-        </div>
-        <div class="s-val">{{ total_records }}</div>
-        <div class="s-lbl">Jami yozuvlar</div>
+    <div class="period-info">
+        <span class="pi-badge">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width:12px;height:12px"><path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5"/></svg>
+            {{ period_label }}
+        </span>
+        <span style="color:var(--gray-400)">|</span>
+        <span>
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width:13px;height:13px;vertical-align:-2px;color:var(--gray-500)"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19.128a9.38 9.38 0 0 0 2.625.372 9.337 9.337 0 0 0 4.121-.952 4.125 4.125 0 0 0-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 0 1 8.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0 1 11.964-3.07M12 6.375a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0Zm8.25 2.25a2.625 2.625 0 1 1-5.25 0 2.625 2.625 0 0 1 5.25 0Z"/></svg>
+            <strong>{{ total_employees }}</strong> hodim
+        </span>
+        {% if active_now %}
+        <span style="color:var(--green); font-weight:700; display:inline-flex; align-items:center; gap:4px;">
+            <span style="width:7px;height:7px;background:var(--green);border-radius:50%;animation:pulse 1.5s infinite;display:inline-block;"></span>
+            {{ active_now }} hozir ishda
+        </span>
+        {% endif %}
     </div>
 </div>
 
-<!-- Kirish / Chiqish Details -->
-<div class="io-grid">
-    <div class="io-card" style="animation-delay:.35s">
-        <div class="io-icon" style="background:#F0FDF4; color:#22C55E;">
+<!-- ══ ASOSIY STAT KARTALAR ══════════════════════════════════════════════ -->
+<div class="g5" style="margin-bottom:24px;">
+    <div class="sc cg au" style="animation-delay:.05s">
+        <div class="sc-top">
+            <div class="sc-icon">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5"/></svg>
+            </div>
+            <span class="sc-badge">Keldi</span>
+        </div>
+        <div class="sc-val">{{ present_count }}</div>
+        <div class="sc-lbl">Vaqtida kelgan</div>
+        {% if total_records %}<div class="sc-sub" style="color:var(--green);">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24"><path d="M18.2 10.3 12 4.1l-6.2 6.2 1.4 1.4 3.8-3.8V20h2V7.9l3.8 3.8 1.4-1.4z"/></svg>
+            {{ punctuality_rate }}% aniqlik
+        </div>{% endif %}
+    </div>
+
+    <div class="sc co au" style="animation-delay:.1s">
+        <div class="sc-top">
+            <div class="sc-icon">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/></svg>
+            </div>
+            <span class="sc-badge">Kechikdi</span>
+        </div>
+        <div class="sc-val">{{ late_count }}</div>
+        <div class="sc-lbl">Kechikib kelgan</div>
+        {% if total_records %}<div class="sc-sub" style="color:var(--orange);">
+            {% widthratio late_count total_records 100 %}% ulushi
+        </div>{% endif %}
+    </div>
+
+    <div class="sc cr au" style="animation-delay:.15s">
+        <div class="sc-top">
+            <div class="sc-icon">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M18.364 18.364A9 9 0 0 0 5.636 5.636m12.728 12.728A9 9 0 0 1 5.636 5.636m12.728 12.728L5.636 5.636"/></svg>
+            </div>
+            <span class="sc-badge">Kelmadi</span>
+        </div>
+        <div class="sc-val">{{ absent_count }}</div>
+        <div class="sc-lbl">Kelmagan</div>
+        {% if total_records %}<div class="sc-sub" style="color:var(--red);">
+            {% widthratio absent_count total_records 100 %}% yo'qotish
+        </div>{% endif %}
+    </div>
+
+    <div class="sc ct au" style="animation-delay:.2s">
+        <div class="sc-top">
+            <div class="sc-icon">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19.128a9.38 9.38 0 0 0 2.625.372 9.337 9.337 0 0 0 4.121-.952 4.125 4.125 0 0 0-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 0 1 8.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0 1 11.964-3.07M12 6.375a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0Zm8.25 2.25a2.625 2.625 0 1 1-5.25 0 2.625 2.625 0 0 1 5.25 0Z"/></svg>
+            </div>
+            {% if active_now %}<span class="sc-badge" style="background:#d1fae5;color:#059669;animation:pulse 1.5s infinite;">● Jonli</span>{% endif %}
+        </div>
+        <div class="sc-val">{{ active_now }}</div>
+        <div class="sc-lbl">Hozir ishda</div>
+        <div class="sc-sub" style="color:var(--teal);">Chiqqani yo'q: {{ not_checked_out }}</div>
+    </div>
+
+    <div class="sc cb au" style="animation-delay:.25s">
+        <div class="sc-top">
+            <div class="sc-icon">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 0 1 3 19.875v-6.75ZM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V8.625ZM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V4.125Z"/></svg>
+            </div>
+            <span class="sc-badge">Jami</span>
+        </div>
+        <div class="sc-val">{{ total_records }}</div>
+        <div class="sc-lbl">Jami yozuvlar</div>
+        <div class="sc-sub" style="color:var(--blue);">{{ attendance_rate }}% davomat</div>
+    </div>
+</div>
+
+<!-- ══ KIRISH / CHIQISH ══════════════════════════════════════════════════ -->
+<div class="io-row au" style="animation-delay:.3s">
+    <div class="io-card">
+        <div class="io-icon" style="background:var(--green-light);color:var(--green);">
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0 0 13.5 3h-6a2.25 2.25 0 0 0-2.25 2.25v13.5A2.25 2.25 0 0 0 7.5 21h6a2.25 2.25 0 0 0 2.25-2.25V15M12 9l-3 3m0 0 3 3m-3-3h12.75"/></svg>
         </div>
         <div class="io-val">{{ checked_in }}</div>
         <div class="io-lbl">Kirish qilgan</div>
     </div>
-    <div class="io-card" style="animation-delay:.4s">
-        <div class="io-icon" style="background:#FFF7ED; color:#F97316;">
+    <div class="io-card">
+        <div class="io-icon" style="background:var(--orange-light);color:var(--orange);">
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0 0 13.5 3h-6a2.25 2.25 0 0 0-2.25 2.25v13.5A2.25 2.25 0 0 0 7.5 21h6a2.25 2.25 0 0 0 2.25-2.25V15m3 0 3-3m0 0-3-3m3 3H9"/></svg>
         </div>
         <div class="io-val">{{ checked_out }}</div>
         <div class="io-lbl">Chiqish qilgan</div>
     </div>
-    <div class="io-card" style="animation-delay:.45s">
-        <div class="io-icon" style="background:#FEF2F2; color:#EF4444;">
+    <div class="io-card">
+        <div class="io-icon" style="background:var(--red-light);color:var(--red);">
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z"/></svg>
         </div>
         <div class="io-val">{{ not_checked_out }}</div>
@@ -604,232 +508,456 @@
     </div>
 </div>
 
-<!-- Rate Bars -->
-<div class="rate-grid">
-    <div class="rate-box">
-        <div class="r-header">
-            <h4>Davomat darajasi ({{ total_records }}/{{ total_employees }} hodim)</h4>
-            <span class="r-val orange">{{ attendance_rate }}%</span>
-        </div>
-        <div class="r-bar">
-            <div class="r-fill orange" style="width:{{ attendance_rate }}%"></div>
-        </div>
+<!-- ══ DAVOMAT & ANIQLIK FOIZI (Ring) ════════════════════════════════════ -->
+<div class="sec au" style="animation-delay:.35s">
+    <div class="sec-hd">
+        <h3>
+            <span class="hd-icon">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M10.5 6a7.5 7.5 0 1 0 7.5 7.5h-7.5V6Z"/><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 10.5H21A7.5 7.5 0 0 0 13.5 3v7.5Z"/></svg>
+            </span>
+            Umumiy ko'rsatkichlar
+        </h3>
     </div>
-    <div class="rate-box">
-        <div class="r-header">
-            <h4>O'z vaqtida kelish ({{ present_count }}/{{ total_records }})</h4>
-            <span class="r-val green">{{ punctuality_rate }}%</span>
+    <div class="ring-grid">
+        <!-- Davomat ring -->
+        <div class="ring-box">
+            <svg class="ring-svg" viewBox="0 0 100 100">
+                <circle class="ring-bg" cx="50" cy="50" r="40"/>
+                <circle class="ring-fill" cx="50" cy="50" r="40"
+                    stroke="#F97316"
+                    stroke-dasharray="{% widthratio attendance_rate 100 251 %} 251"
+                    style="stroke-dashoffset:0"/>
+                <text class="ring-val" x="50" y="50" style="font-size:14px;font-weight:900;fill:var(--orange);">{{ attendance_rate }}%</text>
+            </svg>
+            <div class="ring-info">
+                <div class="ri-label">Davomat darajasi</div>
+                <div class="ri-sub">{{ total_records }} / {{ total_employees }} hodim</div>
+                <div class="ri-num" style="color:var(--orange);">{{ attendance_rate }}%</div>
+            </div>
         </div>
-        <div class="r-bar">
-            <div class="r-fill green" style="width:{{ punctuality_rate }}%"></div>
+        <div style="width:1px;height:70px;background:var(--gray-200);align-self:center;"></div>
+        <!-- Aniqlik ring -->
+        <div class="ring-box">
+            <svg class="ring-svg" viewBox="0 0 100 100">
+                <circle class="ring-bg" cx="50" cy="50" r="40"/>
+                <circle class="ring-fill" cx="50" cy="50" r="40"
+                    stroke="#22C55E"
+                    stroke-dasharray="{% widthratio punctuality_rate 100 251 %} 251"
+                    style="stroke-dashoffset:0"/>
+                <text class="ring-val" x="50" y="50" style="font-size:14px;font-weight:900;fill:var(--green);">{{ punctuality_rate }}%</text>
+            </svg>
+            <div class="ring-info">
+                <div class="ri-label">O'z vaqtida kelish</div>
+                <div class="ri-sub">{{ present_count }} / {{ total_records }} yozuv</div>
+                <div class="ri-num" style="color:var(--green);">{{ punctuality_rate }}%</div>
+            </div>
+        </div>
+        <div style="width:1px;height:70px;background:var(--gray-200);align-self:center;"></div>
+        <!-- Mini bar breakdown -->
+        <div style="flex:1;min-width:200px;">
+            <div style="font-size:12px;font-weight:700;color:var(--gray-600);margin-bottom:10px;">Holat taqsimoti</div>
+            {% if total_records %}
+            <div style="display:flex;flex-direction:column;gap:8px;">
+                <div>
+                    <div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:3px;">
+                        <span style="color:var(--green);font-weight:600;">Keldi</span>
+                        <span style="font-weight:700;">{{ present_count }}</span>
+                    </div>
+                    <div style="height:7px;background:var(--gray-100);border-radius:10px;overflow:hidden;">
+                        <div style="height:100%;background:var(--green);border-radius:10px;width:{% widthratio present_count total_records 100 %}%;transition:width 1s ease;"></div>
+                    </div>
+                </div>
+                <div>
+                    <div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:3px;">
+                        <span style="color:var(--orange);font-weight:600;">Kechikdi</span>
+                        <span style="font-weight:700;">{{ late_count }}</span>
+                    </div>
+                    <div style="height:7px;background:var(--gray-100);border-radius:10px;overflow:hidden;">
+                        <div style="height:100%;background:var(--orange);border-radius:10px;width:{% widthratio late_count total_records 100 %}%;transition:width 1s ease;"></div>
+                    </div>
+                </div>
+                <div>
+                    <div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:3px;">
+                        <span style="color:var(--red);font-weight:600;">Kelmadi</span>
+                        <span style="font-weight:700;">{{ absent_count }}</span>
+                    </div>
+                    <div style="height:7px;background:var(--gray-100);border-radius:10px;overflow:hidden;">
+                        <div style="height:100%;background:var(--red);border-radius:10px;width:{% widthratio absent_count total_records 100 %}%;transition:width 1s ease;"></div>
+                    </div>
+                </div>
+            </div>
+            {% else %}
+            <div class="empty-hint" style="padding:12px 0;"><p>Ma'lumot yo'q</p></div>
+            {% endif %}
         </div>
     </div>
 </div>
 
-<!-- Hours Box -->
-<div class="hours-box">
-    <div class="hours-item">
-        <div class="h-icon">
+<!-- ══ ISHLANGAN VAQT ══════════════════════════════════════════════════ -->
+<div class="hours-row au" style="animation-delay:.4s">
+    <div class="hr-item">
+        <div class="hr-icon" style="background:var(--blue-light);color:var(--blue);">
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/></svg>
         </div>
         <div>
-            <div class="h-val">{{ total_hours }}<span style="font-size:14px; color:var(--gray-500)">s</span> {{ total_minutes }}<span style="font-size:14px; color:var(--gray-500)">d</span></div>
-            <div class="h-lbl">Jami ishlangan vaqt</div>
+            <div class="hr-val">{{ total_hours }}<span style="font-size:14px;color:var(--gray-500)">s</span> {{ total_minutes }}<span style="font-size:14px;color:var(--gray-500)">d</span></div>
+            <div class="hr-lbl">Jami ishlangan vaqt</div>
         </div>
     </div>
-    <div style="width:1px; height:40px; background:var(--gray-200);"></div>
-    <div class="hours-item">
-        <div class="h-icon" style="background:#F0FDF4; color:#22C55E;">
+    <div class="hr-item">
+        <div class="hr-icon" style="background:var(--green-light);color:var(--green);">
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 0 1 3 19.875v-6.75ZM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V8.625ZM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V4.125Z"/></svg>
         </div>
         <div>
-            <div class="h-val">{{ avg_hours_per_day }}<span style="font-size:14px; color:var(--gray-500)"> soat/kun</span></div>
-            <div class="h-lbl">O'rtacha kunlik ishlash</div>
+            <div class="hr-val">{{ avg_hours_per_day }}<span style="font-size:14px;color:var(--gray-500)"> s/kun</span></div>
+            <div class="hr-lbl">O'rtacha kunlik ishlash</div>
         </div>
     </div>
-</div>
-
-<!-- Heatmap -->
-<div class="heatmap-section">
-    <h3>🗓 Davomat xaritasi (90 kun)</h3>
-    <div id="heatmap-main" class="heatmap-grid"></div>
-    <div id="heatmap-legend-main" class="heatmap-legend">
-        <span>Kam</span>
-        <span class="hl-box" style="background:var(--gray-100)"></span>
-        <span class="hl-box" style="background:#dcfce7"></span>
-        <span class="hl-box" style="background:#86efac"></span>
-        <span class="hl-box" style="background:#22c55e"></span>
-        <span class="hl-box" style="background:#15803d"></span>
-        <span>Ko'p</span>
+    <div class="hr-item">
+        <div class="hr-icon" style="background:var(--purple-light);color:var(--purple);">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/></svg>
+        </div>
+        <div>
+            <div class="hr-val">{{ checked_out }}<span style="font-size:14px;color:var(--gray-500)"> ta</span></div>
+            <div class="hr-lbl">To'liq ish kuni (kirdi+chiqdi)</div>
+        </div>
     </div>
+    {% if total_employees %}
+    <div class="hr-item">
+        <div class="hr-icon" style="background:var(--yellow-light);color:var(--yellow);">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 18 9 11.25l4.306 4.306a11.95 11.95 0 0 1 5.814-5.518l2.74-1.22m0 0-5.94-2.281m5.94 2.28-2.28 5.941"/></svg>
+        </div>
+        <div>
+            <div class="hr-val">{{ shift_stats|length }}<span style="font-size:14px;color:var(--gray-500)"> ta</span></div>
+            <div class="hr-lbl">Faol smenalar</div>
+        </div>
+    </div>
+    {% endif %}
 </div>
 
-<!-- Daily Trend Chart -->
+<!-- ══ KUNLIK TREND ══════════════════════════════════════════════════════ -->
 {% if daily_trend %}
-<div class="chart-section">
-    <h3>📊 Kunlik trend</h3>
-    <div class="chart-bars">
-        {% for day in daily_trend %}
-        <div class="chart-col" style="animation-delay:{{ forloop.counter0 }}50ms">
-            <div class="bar-count">{{ day.total }}</div>
-            <div class="bar-stack" style="height:{{ day.total|floatformat:0 }}%;max-height:100%;">
-                {% if day.present %}
-                <div class="bar-seg present" style="height:{% widthratio day.present max_daily 160 %}px; min-height:4px;"></div>
-                {% endif %}
-                {% if day.late %}
-                <div class="bar-seg late" style="height:{% widthratio day.late max_daily 160 %}px; min-height:4px;"></div>
-                {% endif %}
-                {% if day.absent %}
-                <div class="bar-seg early" style="height:{% widthratio day.absent max_daily 160 %}px; min-height:4px;"></div>
-                {% endif %}
-            </div>
-            <div class="bar-label">{{ day.day_name }}</div>
-            <div class="bar-date">{{ day.date|date:"d.m" }}</div>
-        </div>
-        {% endfor %}
+<div class="sec au" style="animation-delay:.45s">
+    <div class="sec-hd">
+        <h3>
+            <span class="hd-icon">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 18 9 11.25l4.306 4.306a11.95 11.95 0 0 1 5.814-5.518l2.74-1.22m0 0-5.94-2.281m5.94 2.28-2.28 5.941"/></svg>
+            </span>
+            Kunlik trend
+        </h3>
+        <span class="hd-badge">{{ daily_trend|length }} kun</span>
     </div>
-    <div class="chart-legend">
-        <div class="legend-item"><span class="legend-dot green"></span> Keldi</div>
-        <div class="legend-item"><span class="legend-dot orange"></span> Kechikdi</div>
-        <div class="legend-item"><span class="legend-dot red"></span> Kelmadi</div>
+    <div class="trend-wrap" id="trend-chart"></div>
+    <div class="trend-legend">
+        <div class="tl-item"><span class="tl-dot" style="background:var(--green);"></span> Keldi</div>
+        <div class="tl-item"><span class="tl-dot" style="background:var(--orange);"></span> Kechikdi</div>
+        <div class="tl-item"><span class="tl-dot" style="background:var(--red);"></span> Kelmadi</div>
     </div>
 </div>
 {% endif %}
 
-<!-- Shift & Department Stats -->
-<div class="grid-2">
-    <!-- Shift Stats -->
-    <div class="detail-card" style="animation-delay:.6s">
-        <h3>
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width:18px;height:18px"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/></svg>
-            Smena bo'yicha
-            <span class="h-badge">{{ shift_stats|length }}</span>
-        </h3>
-        {% for ss in shift_stats %}
-        <a href="{% url 'ceo:shift_stats_detail' ss.shift.pk %}?period={{ period }}&from_date={{ from_date }}&to_date={{ to_date }}" style="text-decoration:none;color:inherit;display:block;">
-        <div class="d-item" style="cursor:pointer;transition:background .2s;border-radius:8px;padding:12px;margin:0 -12px;">
-            <div class="d-icon" style="background:{% cycle '#FFF7ED' '#F0FDF4' '#EFF6FF' '#F5F3FF' %}; color:{% cycle '#F97316' '#22C55E' '#3B82F6' '#8B5CF6' %};">
-                {{ ss.shift.name|make_list|first }}
-            </div>
-            <div class="d-info">
-                <div class="d-name">{{ ss.shift.name }}</div>
-                <div class="d-sub">{{ ss.shift.start_time|time:"H:i" }} — {{ ss.shift.end_time|time:"H:i" }}</div>
-                <div class="d-tags">
-                    <span class="d-tag green">✓ {{ ss.present }}</span>
-                    <span class="d-tag orange">⏰ {{ ss.late }}</span>
-                    <span class="d-tag red">✗ {{ ss.absent }}</span>
-                </div>
-            </div>
-            <div class="d-rate">{{ ss.rate }}%</div>
+<!-- ══ SMENA & BO'LIM ════════════════════════════════════════════════════ -->
+<div class="g2">
+    <!-- SMENA BO'YICHA -->
+    <div class="sec au" style="animation-delay:.5s;margin-bottom:0;">
+        <div class="sec-hd">
+            <h3>
+                <span class="hd-icon" style="background:var(--blue-light);color:var(--blue);">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/></svg>
+                </span>
+                Smena bo'yicha
+            </h3>
+            <span class="hd-badge">{{ shift_stats|length }} smena</span>
         </div>
-        </a>
-        {% empty %}
-        <div class="empty-stats"><p>Smena ma'lumotlari yo'q</p></div>
-        {% endfor %}
+        <div class="di-list">
+            {% for ss in shift_stats %}
+            <a href="{% url 'ceo:shift_stats_detail' ss.shift.pk %}?period={{ period }}&from_date={{ from_date }}&to_date={{ to_date }}" class="di">
+                <div class="di-icon" style="
+                    background:{% cycle 'var(--blue-light)' 'var(--purple-light)' 'var(--teal-light)' 'var(--indigo-light)' %};
+                    color:{% cycle 'var(--blue)' 'var(--purple)' 'var(--teal)' 'var(--indigo)' %};">
+                    {{ ss.shift.name|make_list|first }}
+                </div>
+                <div class="di-info">
+                    <div class="di-name">{{ ss.shift.name }}</div>
+                    <div class="di-sub">{{ ss.shift.start_time|time:"H:i" }} — {{ ss.shift.end_time|time:"H:i" }}</div>
+                    <div class="di-tags">
+                        <span class="dtag g">✓ {{ ss.present }}</span>
+                        <span class="dtag o">⏰ {{ ss.late }}</span>
+                        <span class="dtag r">✗ {{ ss.absent }}</span>
+                        {% if ss.cross_shift %}<span class="cross-badge">↔ {{ ss.cross_shift }} boshqa smenadan</span>{% endif %}
+                        {% if ss.active_now %}<span class="dtag b">● {{ ss.active_now }} jonli</span>{% endif %}
+                    </div>
+                </div>
+                <div>
+                    <div class="di-rate" style="color:{% if ss.rate >= 80 %}var(--green){% elif ss.rate >= 60 %}var(--orange){% else %}var(--red){% endif %};">{{ ss.rate }}%</div>
+                    <div class="di-bar-wrap">
+                        <div class="di-bar"><div class="di-bar-fill" style="width:{{ ss.rate }}%;background:{% if ss.rate >= 80 %}var(--green){% elif ss.rate >= 60 %}var(--orange){% else %}var(--red){% endif %};"></div></div>
+                        <div style="font-size:9px;color:var(--gray-400);text-align:right;margin-top:2px;">aniqlik: {{ ss.punctuality }}%</div>
+                    </div>
+                </div>
+            </a>
+            {% empty %}
+            <div class="empty-hint"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/></svg><p>Smena ma'lumoti yo'q</p></div>
+            {% endfor %}
+        </div>
     </div>
 
-    <!-- Department Stats -->
-    <div class="detail-card" style="animation-delay:.65s">
-        <h3>
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width:18px;height:18px"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 21h16.5M4.5 3h15M5.25 3v18m13.5-18v18M9 6.75h1.5m-1.5 3h1.5m-1.5 3h1.5m3-6H15m-1.5 3H15m-1.5 3H15M9 21v-3.375c0-.621.504-1.125 1.125-1.125h3.75c.621 0 1.125.504 1.125 1.125V21"/></svg>
-            Bo'lim bo'yicha
-            <span class="h-badge">{{ dept_stats|length }}</span>
-        </h3>
-        {% for ds in dept_stats %}
-        <a href="{% url 'ceo:dept_stats_detail' ds.dept.pk %}?period={{ period }}&from_date={{ from_date }}&to_date={{ to_date }}" style="text-decoration:none;color:inherit;display:block;">
-        <div class="d-item" style="cursor:pointer;transition:background .2s;border-radius:8px;padding:12px;margin:0 -12px;">
-            <div class="d-icon" style="background:{% cycle '#EFF6FF' '#F0FDF4' '#FFF7ED' '#F5F3FF' %}; color:{% cycle '#3B82F6' '#22C55E' '#F97316' '#8B5CF6' %};">
-                {{ ds.dept.name|make_list|first }}
-            </div>
-            <div class="d-info">
-                <div class="d-name">{{ ds.dept.name }}</div>
-                <div class="d-sub">{{ ds.employees }} hodim</div>
-                <div class="d-tags">
-                    <span class="d-tag green">✓ {{ ds.present }}</span>
-                    <span class="d-tag orange">⏰ {{ ds.late }}</span>
-                </div>
-            </div>
-            <div class="d-rate">{{ ds.rate }}%</div>
+    <!-- BO'LIM BO'YICHA -->
+    <div class="sec au" style="animation-delay:.55s;margin-bottom:0;">
+        <div class="sec-hd">
+            <h3>
+                <span class="hd-icon" style="background:var(--green-light);color:var(--green);">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 21h16.5M4.5 3h15M5.25 3v18m13.5-18v18M9 6.75h1.5m-1.5 3h1.5m-1.5 3h1.5m3-6H15m-1.5 3H15m-1.5 3H15M9 21v-3.375c0-.621.504-1.125 1.125-1.125h3.75c.621 0 1.125.504 1.125 1.125V21"/></svg>
+                </span>
+                Bo'lim bo'yicha
+            </h3>
+            <span class="hd-badge">{{ dept_stats|length }} bo'lim</span>
         </div>
-        </a>
-        {% empty %}
-        <div class="empty-stats"><p>Bo'lim ma'lumotlari yo'q</p></div>
-        {% endfor %}
+        <div class="di-list">
+            {% for ds in dept_stats %}
+            <a href="{% url 'ceo:dept_stats_detail' ds.dept.pk %}?period={{ period }}&from_date={{ from_date }}&to_date={{ to_date }}" class="di">
+                <div class="di-icon" style="
+                    background:{% cycle 'var(--green-light)' 'var(--orange-light)' 'var(--teal-light)' 'var(--yellow-light)' %};
+                    color:{% cycle 'var(--green)' 'var(--orange)' 'var(--teal)' 'var(--yellow)' %};">
+                    {{ ds.dept.name|make_list|first }}
+                </div>
+                <div class="di-info">
+                    <div class="di-name">{{ ds.dept.name }}</div>
+                    <div class="di-sub">{{ ds.employees }} hodim</div>
+                    <div class="di-tags">
+                        <span class="dtag g">✓ {{ ds.present }}</span>
+                        <span class="dtag o">⏰ {{ ds.late }}</span>
+                        <span class="dtag r">✗ {{ ds.absent }}</span>
+                    </div>
+                </div>
+                <div>
+                    <div class="di-rate" style="color:{% if ds.rate >= 80 %}var(--green){% elif ds.rate >= 60 %}var(--orange){% else %}var(--red){% endif %};">{{ ds.rate }}%</div>
+                    <div class="di-bar-wrap">
+                        <div class="di-bar"><div class="di-bar-fill" style="width:{{ ds.rate }}%;background:{% if ds.rate >= 80 %}var(--green){% elif ds.rate >= 60 %}var(--orange){% else %}var(--red){% endif %};"></div></div>
+                    </div>
+                </div>
+            </a>
+            {% empty %}
+            <div class="empty-hint"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 21h16.5M4.5 3h15M5.25 3v18m13.5-18v18"/></svg><p>Bo'lim ma'lumoti yo'q</p></div>
+            {% endfor %}
+        </div>
     </div>
 </div>
 
-<!-- Top Lists -->
-<div class="grid-2">
-    <!-- Top Kechikuvchilar -->
-    <div class="detail-card" style="animation-delay:.7s">
-        <h3>
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width:18px;height:18px;color:#F97316"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/></svg>
-            Ko'p kechikganlar
-        </h3>
-        <div class="top-list">
+<!-- ══ TOP LISTS ══════════════════════════════════════════════════════════ -->
+<div class="g2" style="margin-top:4px;">
+    <!-- Ko'p kechikganlar -->
+    <div class="sec au" style="animation-delay:.6s;margin-bottom:0;">
+        <div class="sec-hd">
+            <h3>
+                <span class="hd-icon" style="background:var(--orange-light);color:var(--orange);">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/></svg>
+                </span>
+                Ko'p kechikganlar
+            </h3>
+        </div>
+        <div class="tl-list">
             {% for item in top_late %}
-            <a href="{% url 'ceo:user_stats_detail' item.user__pk %}?period={{ period }}&from_date={{ from_date }}&to_date={{ to_date }}" style="text-decoration:none;color:inherit;display:block;">
-            <div class="top-item" style="cursor:pointer;border-radius:8px;transition:background .2s;">
-                <div class="top-rank {% if forloop.counter == 1 %}gold{% elif forloop.counter == 2 %}silver{% elif forloop.counter == 3 %}bronze{% endif %}">{{ forloop.counter }}</div>
-                <div class="top-name">{{ item.user__name }}</div>
-                <div class="top-count orange">{{ item.count }} marta</div>
-            </div>
+            <a href="{% url 'ceo:user_stats_detail' item.user__pk %}?period={{ period }}&from_date={{ from_date }}&to_date={{ to_date }}" class="tl-row">
+                <div class="tl-rank {% if forloop.counter == 1 %}gold{% elif forloop.counter == 2 %}silver{% elif forloop.counter == 3 %}bronze{% endif %}">{{ forloop.counter }}</div>
+                <div class="tl-avatar" style="background:var(--orange-light);color:var(--orange);">{{ item.user__name|make_list|first }}</div>
+                <div style="flex:1;min-width:0;">
+                    <div class="tl-name">{{ item.user__name }}</div>
+                </div>
+                <div class="tl-count o">{{ item.count }} marta</div>
             </a>
             {% empty %}
-            <div style="color:var(--gray-500); font-size:13px; padding:12px 0;">Ma'lumot yo'q</div>
+            <div class="empty-hint" style="padding:20px 0;"><p>Kechikish yo'q</p></div>
             {% endfor %}
         </div>
     </div>
 
     <!-- Ko'p kelmaganlar -->
-    <div class="detail-card" style="animation-delay:.75s">
-        <h3>
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width:18px;height:18px;color:#EF4444"><path stroke-linecap="round" stroke-linejoin="round" d="M18.364 18.364A9 9 0 0 0 5.636 5.636m12.728 12.728A9 9 0 0 1 5.636 5.636m12.728 12.728L5.636 5.636"/></svg>
-            Ko'p kelmaganlar
-        </h3>
-        <div class="top-list">
+    <div class="sec au" style="animation-delay:.65s;margin-bottom:0;">
+        <div class="sec-hd">
+            <h3>
+                <span class="hd-icon" style="background:var(--red-light);color:var(--red);">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M18.364 18.364A9 9 0 0 0 5.636 5.636m12.728 12.728A9 9 0 0 1 5.636 5.636m12.728 12.728L5.636 5.636"/></svg>
+                </span>
+                Ko'p kelmaganlar
+            </h3>
+        </div>
+        <div class="tl-list">
             {% for item in top_absent %}
-            <a href="{% url 'ceo:user_stats_detail' item.user__pk %}?period={{ period }}&from_date={{ from_date }}&to_date={{ to_date }}" style="text-decoration:none;color:inherit;display:block;">
-            <div class="top-item" style="cursor:pointer;border-radius:8px;transition:background .2s;">
-                <div class="top-rank {% if forloop.counter == 1 %}gold{% elif forloop.counter == 2 %}silver{% elif forloop.counter == 3 %}bronze{% endif %}">{{ forloop.counter }}</div>
-                <div class="top-name">{{ item.user__name }}</div>
-                <div class="top-count red">{{ item.count }} marta</div>
-            </div>
+            <a href="{% url 'ceo:user_stats_detail' item.user__pk %}?period={{ period }}&from_date={{ from_date }}&to_date={{ to_date }}" class="tl-row">
+                <div class="tl-rank {% if forloop.counter == 1 %}gold{% elif forloop.counter == 2 %}silver{% elif forloop.counter == 3 %}bronze{% endif %}">{{ forloop.counter }}</div>
+                <div class="tl-avatar" style="background:var(--red-light);color:var(--red);">{{ item.user__name|make_list|first }}</div>
+                <div style="flex:1;min-width:0;">
+                    <div class="tl-name">{{ item.user__name }}</div>
+                </div>
+                <div class="tl-count r">{{ item.count }} marta</div>
             </a>
             {% empty %}
-            <div style="color:var(--gray-500); font-size:13px; padding:12px 0;">Ma'lumot yo'q</div>
+            <div class="empty-hint" style="padding:20px 0;"><p>Yoqotish yo'q</p></div>
             {% endfor %}
         </div>
+    </div>
+</div>
+
+<!-- ══ HAFTALIK SOLISHTIRMA + SOATLIK TAQSIMOT ══════════════════════════ -->
+<div class="g2" style="margin-top:24px;">
+    <!-- Haftalik solishtirma -->
+    <div class="sec au" style="animation-delay:.7s;margin-bottom:0;">
+        <div class="sec-hd">
+            <h3>
+                <span class="hd-icon" style="background:var(--indigo-light);color:var(--indigo);">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M7.5 14.25v2.25m3-4.5v4.5m3-6.75v6.75m3-9v9M6 20.25h12A2.25 2.25 0 0 0 20.25 18V6A2.25 2.25 0 0 0 18 3.75H6A2.25 2.25 0 0 0 3.75 6v12A2.25 2.25 0 0 0 6 20.25Z"/></svg>
+                </span>
+                4 haftalik solishtirma
+            </h3>
+        </div>
+        {% if week_compare %}
+        <div class="wc-bars" id="wc-bars"></div>
+        <div style="margin-top:12px;display:flex;flex-direction:column;gap:6px;">
+            {% for w in week_compare %}
+            <div style="display:flex;align-items:center;gap:10px;font-size:12px;">
+                <span style="width:80px;color:var(--gray-500);font-weight:600;white-space:nowrap;">{{ w.label }}</span>
+                <div style="flex:1;height:8px;background:var(--gray-100);border-radius:10px;overflow:hidden;">
+                    <div style="height:100%;background:{% if w.rate >= 80 %}var(--green){% elif w.rate >= 60 %}var(--orange){% else %}var(--red){% endif %};width:{{ w.rate }}%;border-radius:10px;transition:width 1s ease;"></div>
+                </div>
+                <span style="font-weight:800;min-width:36px;text-align:right;color:{% if w.rate >= 80 %}var(--green){% elif w.rate >= 60 %}var(--orange){% else %}var(--red){% endif %};">{{ w.rate }}%</span>
+                <span style="color:var(--gray-400);">{{ w.total }} yozuv</span>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Soatlik taqsimot -->
+    <div class="sec au" style="animation-delay:.75s;margin-bottom:0;">
+        <div class="sec-hd">
+            <h3>
+                <span class="hd-icon" style="background:var(--blue-light);color:var(--blue);">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/></svg>
+                </span>
+                Soatlik kelish grafigi
+            </h3>
+            <span style="font-size:11px;color:var(--gray-400);">Bugun</span>
+        </div>
+        {% if hourly_dist %}
+        <div class="hourly-wrap" id="hourly-chart"></div>
+        {% else %}
+        <div class="empty-hint"><p>Faqat "Bugun" tanlanganida ko'rinadi</p></div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- ══ HEATMAP ══════════════════════════════════════════════════════════ -->
+<div class="sec au" style="margin-top:24px;animation-delay:.8s;">
+    <div class="sec-hd">
+        <h3>
+            <span class="hd-icon" style="background:var(--green-light);color:var(--green);">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5"/></svg>
+            </span>
+            Davomat xaritasi — 90 kun
+        </h3>
+    </div>
+    <div class="hm-grid" id="hm-grid"></div>
+    <div class="hm-legend">
+        <span>Kam</span>
+        <span class="hlb" style="background:var(--gray-100)"></span>
+        <span class="hlb" style="background:#dcfce7"></span>
+        <span class="hlb" style="background:#86efac"></span>
+        <span class="hlb" style="background:#22c55e"></span>
+        <span class="hlb" style="background:#15803d"></span>
+        <span>Ko'p</span>
+        <span style="margin-left:12px;color:var(--gray-300)">|</span>
+        <span style="margin-left:12px;color:var(--gray-500)">Hover qiling — kunlik tafsilot</span>
     </div>
 </div>
 
 {% endblock %}
 
 {% block extra_js %}
-{{ heatmap_data|json_script:"heatmap-data" }}
+{{ heatmap_data|json_script:"hm-data" }}
+{{ daily_trend|json_script:"trend-data" }}
+{{ hourly_dist|json_script:"hourly-data" }}
 <script>
-(function() {
-    const data = JSON.parse(document.getElementById('heatmap-data').textContent);
-    const mainGrid = document.getElementById('heatmap-main');
-    if (!data || !mainGrid) return;
-
-    const maxCount = Math.max(...data.map(d => d.count), 1);
-
-    function lvl(val, mx) {
-        if (val === 0) return '';
-        const r = val / mx;
-        if (r <= 0.25) return 1;
-        if (r <= 0.5) return 2;
-        if (r <= 0.75) return 3;
-        return 4;
+(function(){
+    /* ── Heatmap ── */
+    const hmData = JSON.parse(document.getElementById('hm-data').textContent || '[]');
+    const hmGrid = document.getElementById('hm-grid');
+    if (hmData.length && hmGrid) {
+        const max = Math.max(...hmData.map(d => d.count), 1);
+        hmData.forEach(function(d) {
+            const c = document.createElement('div');
+            const r = d.count / max;
+            let lvl = '';
+            if (d.count > 0) {
+                if (r <= .25) lvl = 'lv1';
+                else if (r <= .5) lvl = 'lv2';
+                else if (r <= .75) lvl = 'lv3';
+                else lvl = 'lv4';
+            }
+            c.className = 'hm-cell' + (lvl ? ' ' + lvl : '');
+            const ab = d.absent || 0;
+            const pr = d.present || 0;
+            c.innerHTML = '<span class="hm-tip">' + d.date + ' | Jami: ' + d.count + ' | Keldi: ' + pr + ' | Kelmadi: ' + ab + '</span>';
+            hmGrid.appendChild(c);
+        });
     }
 
-    data.forEach(function(d) {
-        const c1 = document.createElement('div');
-        c1.className = 'heatmap-cell' + (d.count ? ' lvl-' + lvl(d.count, maxCount) : '');
-        c1.innerHTML = '<span class="hm-tip">' + d.date + ': ' + d.count + ' yozuv</span>';
-        mainGrid.appendChild(c1);
-    });
+    /* ── Trend chart ── */
+    const trendData = JSON.parse(document.getElementById('trend-data').textContent || '[]');
+    const trendChart = document.getElementById('trend-chart');
+    if (trendData.length && trendChart) {
+        const maxVal = Math.max(...trendData.map(d => d.total), 1);
+        const chartH = 180;
+        trendData.forEach(function(d, i) {
+            const col = document.createElement('div');
+            col.className = 'tc-col' + (d.is_today ? ' is-today' : '');
+            col.style.animationDelay = (i * 40) + 'ms';
+
+            const total = d.present + d.late + d.absent;
+            const stackH = Math.max(Math.round((total / maxVal) * chartH), total > 0 ? 8 : 0);
+            const pH = total > 0 ? Math.round((d.present / total) * stackH) : 0;
+            const lH = total > 0 ? Math.round((d.late   / total) * stackH) : 0;
+            const aH = stackH - pH - lH;
+
+            col.innerHTML =
+                '<div class="tc-total">' + (total || '') + '</div>' +
+                '<div class="tc-stack" style="height:' + stackH + 'px;">' +
+                    (d.absent  ? '<div class="bs bs-a" style="height:' + aH + 'px"></div>' : '') +
+                    (d.late    ? '<div class="bs bs-l" style="height:' + lH + 'px"></div>' : '') +
+                    (d.present ? '<div class="bs bs-p" style="height:' + pH + 'px"></div>' : '') +
+                '</div>' +
+                '<div class="tc-day">' + d.day_name + '</div>' +
+                '<div class="tc-date">' + formatDate(d.date) + '</div>';
+            trendChart.appendChild(col);
+        });
+    }
+
+    /* ── Hourly chart ── */
+    const hourlyData = JSON.parse(document.getElementById('hourly-data').textContent || '[]');
+    const hourlyChart = document.getElementById('hourly-chart');
+    if (hourlyData.length && hourlyChart) {
+        const maxH = Math.max(...hourlyData.map(d => d.count), 1);
+        hourlyData.forEach(function(d) {
+            const col = document.createElement('div');
+            col.className = 'hw-col';
+            const barH = Math.max(Math.round((d.count / maxH) * 80), d.count > 0 ? 6 : 0);
+            col.innerHTML =
+                '<div class="hw-bar" style="height:' + barH + 'px" title="' + d.hour + ':00 — ' + d.count + ' kishi"></div>' +
+                '<div class="hw-h">' + d.hour + '</div>';
+            hourlyChart.appendChild(col);
+        });
+    }
+
+    function formatDate(raw) {
+        if (!raw) return '';
+        if (typeof raw === 'object' && raw.date) raw = raw.date;
+        const s = String(raw);
+        if (s.includes('-')) {
+            const parts = s.split('T')[0].split('-');
+            return parts[2] + '.' + parts[1];
+        }
+        return s;
+    }
 })();
 </script>
 {% endblock %}

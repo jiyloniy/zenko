@@ -789,14 +789,13 @@ class MarkAbsentView(CEORequiredMixin, View):
 
 
 class AttendanceStatsView(CEORequiredMixin, View):
-    """To'liq davomat statistikasi — har bir holat uchun detalli."""
+    """To'liq davomat statistikasi — effective_shift + multi-shift support."""
 
     def get(self, request):
         branch = self.get_branch()
         now = timezone.localtime()
         today = now.date()
 
-        # Date range filter
         period = request.GET.get('period', 'today')
         custom_from = request.GET.get('from_date')
         custom_to = request.GET.get('to_date')
@@ -823,7 +822,6 @@ class AttendanceStatsView(CEORequiredMixin, View):
             date_from = date_to = today
             period_label = 'Bugun'
 
-        # Base queryset
         qs = Attendance.objects.filter(date__gte=date_from, date__lte=date_to)
         if branch:
             qs = qs.filter(branch=branch)
@@ -838,12 +836,10 @@ class AttendanceStatsView(CEORequiredMixin, View):
         absent_count = qs.filter(status='absent').count()
         active_now = qs.filter(date=today, check_in__isnull=False, check_out__isnull=True).count()
 
-        # Checkin/checkout stats
         checked_in = qs.filter(check_in__isnull=False).count()
         checked_out = qs.filter(check_out__isnull=False).count()
         not_checked_out = qs.filter(check_in__isnull=False, check_out__isnull=True).count()
 
-        # Davomat foizi
         expected_total = total_employees * total_days
         attendance_rate = round((total_records / expected_total * 100) if expected_total else 0)
         punctuality_rate = round((present_count / total_records * 100) if total_records else 0)
@@ -853,22 +849,30 @@ class AttendanceStatsView(CEORequiredMixin, View):
         total_worked_seconds = 0
         for att in worked_records:
             delta = att.check_out - att.check_in
-            total_worked_seconds += delta.total_seconds()
+            total_worked_seconds += max(delta.total_seconds(), 0)
 
         total_hours = int(total_worked_seconds // 3600)
         total_minutes = int((total_worked_seconds % 3600) // 60)
         avg_hours_per_day = round(total_worked_seconds / 3600 / max(total_records, 1), 1)
 
-        # === SMENA BO'YICHA ===
+        # === SMENA BO'YICHA (effective_shift asosida) ===
         shifts_qs = Shift.objects.filter(branch=branch) if branch else Shift.objects.none()
         shift_stats = []
         for shift in shifts_qs:
-            shift_qs = qs.filter(user__shift=shift)
-            s_total = shift_qs.count()
-            s_present = shift_qs.filter(status='present').count()
-            s_late = shift_qs.filter(status='late').count()
-            s_absent = shift_qs.filter(status='absent').count()
-            s_active = shift_qs.filter(date=today, check_in__isnull=False, check_out__isnull=True).count()
+            # effective_shift: hodim qaysi smenaga kelganligi (asosiy smena emas, haqiqiy)
+            eff_qs = qs.filter(effective_shift=shift)
+            # asosiy smena bo'yicha ham (effective_shift null bo'lsa)
+            assigned_qs = qs.filter(effective_shift__isnull=True, user__shift=shift)
+            combined_qs = qs.filter(
+                Q(effective_shift=shift) | Q(effective_shift__isnull=True, user__shift=shift)
+            )
+            s_total = combined_qs.count()
+            s_present = combined_qs.filter(status='present').count()
+            s_late = combined_qs.filter(status='late').count()
+            s_absent = combined_qs.filter(status='absent').count()
+            s_active = combined_qs.filter(date=today, check_in__isnull=False, check_out__isnull=True).count()
+            # Boshqa smenadan kelganlar (cross-shift)
+            cross_shift = eff_qs.exclude(user__shift=shift).count()
             shift_stats.append({
                 'shift': shift,
                 'total': s_total,
@@ -876,7 +880,9 @@ class AttendanceStatsView(CEORequiredMixin, View):
                 'late': s_late,
                 'absent': s_absent,
                 'active_now': s_active,
-                'rate': round((s_present / s_total * 100) if s_total else 0),
+                'cross_shift': cross_shift,
+                'rate': round(((s_present + s_late) / s_total * 100) if s_total else 0),
+                'punctuality': round((s_present / (s_present + s_late) * 100) if (s_present + s_late) else 0),
             })
 
         # === BO'LIM BO'YICHA ===
@@ -887,49 +893,68 @@ class AttendanceStatsView(CEORequiredMixin, View):
             d_total = dept_qs.count()
             d_present = dept_qs.filter(status='present').count()
             d_late = dept_qs.filter(status='late').count()
+            d_absent = dept_qs.filter(status='absent').count()
             d_employees = User.objects.filter(branch=branch, department=dept, is_active=True).count()
             dept_stats.append({
                 'dept': dept,
                 'total': d_total,
                 'present': d_present,
                 'late': d_late,
+                'absent': d_absent,
                 'employees': d_employees,
                 'rate': round((d_total / (d_employees * total_days) * 100) if d_employees * total_days else 0),
             })
 
-        # === KUNLIK TREND (oxirgi 7 kun) ===
+        # === KUNLIK TREND (oxirgi 14 kun yoki tanlangan davr) ===
+        trend_days = min(14, total_days)
         daily_trend = []
-        for i in range(min(6, total_days - 1), -1, -1):
-            d = today - datetime.timedelta(days=i)
+        for i in range(trend_days - 1, -1, -1):
+            d = date_to - datetime.timedelta(days=i)
             if d < date_from:
                 continue
             d_qs = qs.filter(date=d)
+            d_present = d_qs.filter(status='present').count()
+            d_late = d_qs.filter(status='late').count()
+            d_absent = d_qs.filter(status='absent').count()
+            d_total = d_present + d_late + d_absent
+            day_names = ['Du', 'Se', 'Ch', 'Pa', 'Ju', 'Sh', 'Ya']
             daily_trend.append({
-                'date': d,
-                'day_name': d.strftime('%A')[:3],
-                'total': d_qs.count(),
-                'present': d_qs.filter(status='present').count(),
-                'late': d_qs.filter(status='late').count(),
-                'absent': d_qs.filter(status='absent').count(),
+                'date': d.isoformat(),
+                'day_name': day_names[d.weekday()],
+                'total': d_total,
+                'present': d_present,
+                'late': d_late,
+                'absent': d_absent,
+                'is_today': d == today,
             })
+
+        max_daily = max((d['total'] for d in daily_trend), default=1) or 1
+
+        # === SOATLIK TAQSIMOT (bugun uchun) ===
+        hourly_dist = []
+        if period == 'today':
+            hour_qs = qs.filter(check_in__isnull=False)
+            hour_counts = defaultdict(int)
+            for att in hour_qs:
+                h = timezone.localtime(att.check_in).hour
+                hour_counts[h] += 1
+            for h in range(6, 23):
+                hourly_dist.append({'hour': h, 'count': hour_counts.get(h, 0)})
 
         # === TOP KECHIKUVCHILAR ===
         top_late = (
             qs.filter(status='late')
             .values('user__name', 'user__pk')
             .annotate(count=Count('id'))
-            .order_by('-count')[:5]
+            .order_by('-count')[:8]
         )
 
         top_absent = (
             qs.filter(status='absent')
             .values('user__name', 'user__pk')
             .annotate(count=Count('id'))
-            .order_by('-count')[:5]
+            .order_by('-count')[:8]
         )
-
-        # Max bar height for daily trend
-        max_daily = max((d['total'] for d in daily_trend), default=1) or 1
 
         # === HEATMAP DATA (oxirgi 90 kun) ===
         heatmap_start = today - datetime.timedelta(days=89)
@@ -945,12 +970,34 @@ class AttendanceStatsView(CEORequiredMixin, View):
         heatmap_data = []
         for i in range(90):
             d = heatmap_start + datetime.timedelta(days=i)
+            cnt = heatmap_counts.get(d, 0)
+            ab = heatmap_absent.get(d, 0)
             heatmap_data.append({
-                'date': d.isoformat(),
-                'count': heatmap_counts.get(d, 0),
-                'absent': heatmap_absent.get(d, 0),
+                'date': d.strftime('%d.%m.%Y'),
+                'iso': d.isoformat(),
+                'count': cnt,
+                'absent': ab,
+                'present': cnt - ab,
                 'weekday': d.weekday(),
             })
+
+        # === HAFTALIK SOLISHTIRMA ===
+        week_compare = []
+        for w in range(4):
+            w_end = today - datetime.timedelta(days=w * 7)
+            w_start = w_end - datetime.timedelta(days=6)
+            w_qs = Attendance.objects.filter(date__gte=w_start, date__lte=w_end)
+            if branch:
+                w_qs = w_qs.filter(branch=branch)
+            w_total = w_qs.count()
+            w_present = w_qs.filter(status='present').count()
+            week_compare.append({
+                'label': f'{w_start:%d.%m}–{w_end:%d.%m}',
+                'total': w_total,
+                'present': w_present,
+                'rate': round((w_present / w_total * 100) if w_total else 0),
+            })
+        week_compare.reverse()
 
         context = {
             'active_nav': 'stats',
@@ -960,7 +1007,6 @@ class AttendanceStatsView(CEORequiredMixin, View):
             'from_date': date_from.isoformat(),
             'to_date': date_to.isoformat(),
             'today': today,
-            # Asosiy
             'total_records': total_records,
             'present_count': present_count,
             'late_count': late_count,
@@ -972,19 +1018,18 @@ class AttendanceStatsView(CEORequiredMixin, View):
             'total_employees': total_employees,
             'attendance_rate': attendance_rate,
             'punctuality_rate': punctuality_rate,
-            # Soatlar
             'total_hours': total_hours,
             'total_minutes': total_minutes,
             'avg_hours_per_day': avg_hours_per_day,
-            # Heatmap
             'heatmap_data': heatmap_data,
-            # Tafsilotlar
             'shift_stats': shift_stats,
             'dept_stats': dept_stats,
             'daily_trend': daily_trend,
             'max_daily': max_daily,
+            'hourly_dist': hourly_dist,
             'top_late': top_late,
             'top_absent': top_absent,
+            'week_compare': week_compare,
         }
         return render(request, 'ceo/attendance_stats.html', context)
 
