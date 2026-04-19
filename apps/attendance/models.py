@@ -2,7 +2,7 @@ from django.conf import settings
 from django.db import models
 from django.utils import timezone
 
-from apps.users.models import Branch
+from apps.users.models import Branch, Shift
 
 
  
@@ -31,6 +31,15 @@ class Attendance(models.Model):
         related_name='attendances',
         null=True,
         blank=True,
+    )
+    effective_shift = models.ForeignKey(
+        Shift,
+        verbose_name='Aniqlangan smena',
+        on_delete=models.SET_NULL,
+        related_name='attendances',
+        null=True,
+        blank=True,
+        help_text='Kelish vaqtiga qarab aniqlangan smena. Hodim boshqa smenaga kelsa ham shu yerda saqlanadi.',
     )
     date      = models.DateField('Sana')
  
@@ -133,7 +142,7 @@ class Attendance(models.Model):
         if not self.check_in:
             # Absent holat — status o'zgarmaydi
             return
-        shift = getattr(self.user, 'shift', None)
+        shift = self.effective_shift or getattr(self.user, 'shift', None)
         if not shift or not shift.start_time:
             self.status = self.STATUS_PRESENT
             return

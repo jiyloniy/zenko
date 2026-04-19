@@ -1,33 +1,4 @@
-"""
-apps/attendance/views.py
 
-Davomat logikasi (QR scanner kiosk uchun):
-
-KIRISH:
-  - Hodim smena boshlanishidan OLDIN kelsa:
-      • check_in = haqiqiy kelish vaqti  (log uchun)
-      • effective_check_in = smena start_time  (pul hisobi uchun)
-      • status = 'early'
-  - Hodim smena boshlanishidan KEYIN kelsa:
-      • check_in = haqiqiy kelish vaqti
-      • effective_check_in = haqiqiy kelish vaqti
-      • status = 'late'
-  - Vaqtida kelsa (± grace_minutes):
-      • status = 'present'
-
-CHIQISH:
-  - Hodim smena tugashidan keyin 0–30 daqiqa ichida skanerlasa:
-      • check_out = smena end_time  (pul hisobi uchun)
-      • actual_check_out = haqiqiy chiqish vaqti  (log uchun)
-  - 30 daqiqadan keyin (kech qolsa):
-      • check_out = haqiqiy chiqish vaqti
-  - Smena tugashidan OLDIN chiqsa:
-      • check_out = haqiqiy chiqish vaqti
-      • status uchun 'early_leave' belgisi
-
-TELEGRAM:
-  - Har bir hodim uchun batafsil, emoji-li xabar yuboriladi.
-"""
 
 from __future__ import annotations
 
@@ -48,7 +19,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
 
 from apps.attendance.models import Attendance
-from apps.users.models import User
+from apps.users.models import User, Shift
 
 logger = logging.getLogger(__name__)
 
@@ -61,7 +32,16 @@ LATE_GRACE_MINUTES = 15
 
 # Smena tugashidan keyin bu daqiqa ichida skanerlash —
 # check_out = smena end_time yoziladi (kiyim almashish vaqti)
-CHECKOUT_GRACE_MINUTES = 30 
+CHECKOUT_GRACE_MINUTES = 30
+
+# ── SMART SHIFT DETECTION ────────────────────────────────────────────────────
+# Hodim o'z smenasidan boshqa smenaga kelishi mumkin (masalan, kunduzgi hodim
+# kechki smenaga keldi). Quyidagi oyna kenglik doirasida kelish vaqti qaysi
+# smenaga to'g'ri kelsa — o'sha smena "effective" sifatida tanlanadi.
+#
+#   start_time - BEFORE ≤ arrival ≤ start_time + AFTER  →  shu smenaga kelgan
+SHIFT_MATCH_BEFORE_MIN = 120   # smena start_time dan shuncha daqiqa oldin (erta kelish)
+SHIFT_MATCH_AFTER_MIN  = 240   # smena start_time dan shuncha daqiqa keyin (kechikib kelish)
 
 
 # ══════════════════════════════════════════════════════════════════════════════
@@ -126,26 +106,124 @@ def _shift_end_dt(shift, date) -> datetime | None:
     return end_dt
 
 
-def _compute_check_in_info(actual_in: datetime, shift) -> dict:
+# ══════════════════════════════════════════════════════════════════════════════
+# SMART SHIFT DETECTION
+# ══════════════════════════════════════════════════════════════════════════════
+
+def _available_shifts_for(user):
     """
-    Kirish vaqtini shift ga nisbatan tahlil qiladi.
+    Hodim uchun 'mumkin bo'lgan smenalar' ro'yxati:
+      - filialdagi barcha smenalar (agar filial bor)
+      - + hodimning o'z smenasi (agar ro'yxatda yo'q bo'lsa)
+
+    MUHIM: agar hodimning filiali ham, o'z smenasi ham bo'lmasa — bo'sh ro'yxat
+    qaytaramiz. Global (filialsiz) smenalar bilan adashtirmaslik uchun,
+    ular faqat hodim o'z smenasi yoki filiali bo'lganda ko'riladi.
+    """
+    shifts: list = []
+    seen_ids: set = set()
+
+    if user.branch_id:
+        branch_shifts = Shift.objects.filter(branch_id=user.branch_id)
+        for s in branch_shifts:
+            if s.start_time and s.end_time:
+                shifts.append(s)
+                seen_ids.add(s.pk)
+
+    own = getattr(user, 'shift', None)
+    if own and own.pk not in seen_ids and own.start_time and own.end_time:
+        shifts.append(own)
+        seen_ids.add(own.pk)
+
+    return shifts
+
+
+def _candidate_start_dts(shift, ref_date):
+    """
+    Smena uchun `ref_date` atrofidagi start_time datetime'larini qaytaradi
+    (kecha, bugun, ertaga). Tungi smenalar kecha boshlanib bugun tugashi mumkin.
+    """
+    dts: list[datetime] = []
+    for delta in (-1, 0, 1):
+        d = ref_date + timedelta(days=delta)
+        sdt = _shift_start_dt(shift, d)
+        if sdt:
+            dts.append(sdt)
+    return dts
+
+
+def _detect_effective_shift(user, arrival: datetime):
+    """
+    Hodim kelish vaqti (`arrival`) asosida QAYSI smenaga kelganini aniqlaydi.
+
+    Qaytaradi: (shift_obj, shift_start_dt, shift_end_dt) yoki (None, None, None)
+
+    Algoritm:
+      1) Filialdagi barcha smenalarni ko'rib chiqadi.
+      2) Har bir smena uchun kecha/bugun/ertaga start_time datetime'lari hisoblanadi.
+      3) Arrival ga eng yaqin bo'lgani tanlanadi, lekin:
+         - start_time - SHIFT_MATCH_BEFORE_MIN ≤ arrival ≤ start_time + SHIFT_MATCH_AFTER_MIN
+           oynasi ichida bo'lishi kerak.
+      4) Agar hech biri oynaga tushmasa — hodimning o'z smenasi (bor bo'lsa).
+    """
+    shifts = _available_shifts_for(user)
+    if not shifts:
+        return None, None, None
+
+    local_arrival = timezone.localtime(arrival)
+    ref_date = local_arrival.date()
+
+    best = None  # (abs_diff_seconds, shift, start_dt)
+    for sh in shifts:
+        for sdt in _candidate_start_dts(sh, ref_date):
+            diff_sec = (local_arrival - timezone.localtime(sdt)).total_seconds()
+            # Oyna ichida bo'lishi kerak
+            if -SHIFT_MATCH_BEFORE_MIN * 60 <= diff_sec <= SHIFT_MATCH_AFTER_MIN * 60:
+                score = abs(diff_sec)
+                if best is None or score < best[0]:
+                    best = (score, sh, sdt)
+
+    if best is not None:
+        _score, shift, start_dt = best
+        end_dt = _shift_end_dt_from_start(shift, start_dt)
+        return shift, start_dt, end_dt
+
+    # Oynaga tushmadi — o'z smenasiga qaytaramiz (bor bo'lsa)
+    own = getattr(user, 'shift', None)
+    if own and own.start_time and own.end_time:
+        own_start = _shift_start_dt(own, ref_date)
+        own_end   = _shift_end_dt_from_start(own, own_start) if own_start else None
+        return own, own_start, own_end
+
+    return None, None, None
+
+
+def _shift_end_dt_from_start(shift, start_dt: datetime | None) -> datetime | None:
+    """
+    Smena boshlanish datetime'iga qarab tugash datetime'ini qaytaradi.
+    Tungi smena (end < start) → ertasi kunga o'tkazadi.
+    """
+    if not shift or not shift.end_time or not start_dt:
+        return None
+    tz = timezone.get_current_timezone()
+    end_dt = timezone.make_aware(
+        datetime.combine(timezone.localtime(start_dt).date(), shift.end_time), tz
+    )
+    if shift.start_time and shift.end_time <= shift.start_time:
+        end_dt += timedelta(days=1)
+    return end_dt
+
+
+def _compute_check_in_info(actual_in: datetime, start_dt: datetime | None) -> dict:
+    """
+    Kirish vaqtini smena boshlanishiga (`start_dt`) nisbatan tahlil qiladi.
 
     Qaytaradi:
-        effective_in  — pul hisobida ishlatilادیgan vaqt
+        effective_in  — pul hisobida ishlatiladigan vaqt
         status        — 'early' | 'present' | 'late'
         diff_minutes  — smena start dan farq (musbat = kech, manfiy = erta)
         note          — Telegram uchun qisqa izoh
     """
-    if not shift or not shift.start_time:
-        return {
-            'effective_in': actual_in,
-            'status': Attendance.STATUS_PRESENT,
-            'diff_minutes': 0,
-            'note': '',
-        }
-
-    date = timezone.localtime(actual_in).date()
-    start_dt = _shift_start_dt(shift, date)
     if not start_dt:
         return {
             'effective_in': actual_in,
@@ -183,25 +261,16 @@ def _compute_check_in_info(actual_in: datetime, shift) -> dict:
         }
 
 
-def _compute_check_out_info(actual_out: datetime, shift, check_in_date) -> dict:
+def _compute_check_out_info(actual_out: datetime, end_dt: datetime | None) -> dict:
     """
-    Chiqish vaqtini shift ga nisbatan tahlil qiladi.
+    Chiqish vaqtini smena tugashiga (`end_dt`) nisbatan tahlil qiladi.
 
     Qaytaradi:
-        effective_out  — pul hisobida ishlatilادیgan vaqt
+        effective_out  — pul hisobida ishlatiladigan vaqt
         early_leave    — True/False (erta chiqish)
         diff_minutes   — smena end dan farq (musbat = kech, manfiy = erta)
         note           — Telegram uchun qisqa izoh
     """
-    if not shift or not shift.end_time:
-        return {
-            'effective_out': actual_out,
-            'early_leave': False,
-            'diff_minutes': 0,
-            'note': '',
-        }
-
-    end_dt = _shift_end_dt(shift, check_in_date)
     if not end_dt:
         return {
             'effective_out': actual_out,
@@ -369,6 +438,12 @@ def _tg_send(caption: str, photo_bytes: bytes | None):
 
 # ─── xabar quriluvchilari ─────────────────────────────────────────────────────
 
+def _shift_range_str(shift) -> str:
+    if shift and shift.start_time and shift.end_time:
+        return f'{shift.start_time:%H:%M}–{shift.end_time:%H:%M}'
+    return '—'
+
+
 def _tg_checkin_message(
     user,
     attendance: Attendance,
@@ -377,6 +452,7 @@ def _tg_checkin_message(
     status: str,
     diff_minutes: int,
     note: str,
+    effective_shift=None,
 ) -> str:
     """
     Kirish xabari:
@@ -386,22 +462,30 @@ def _tg_checkin_message(
     👤 Hodim:      Alisher Karimov
     🏢 Filial:     Chilonzor
     🔧 Bo'lim:     IT
-    ⏰ Smena:      Kunduzgi (08:30–18:30)
+    📌 Yozilgan:   Kunduzgi (08:30–18:30)
+    ⏰ Keldi:      Kechki (17:00–02:00)   ← boshqa smenaga kelgan bo'lsa
 
-    🕐 Keldi:      07:45
-    ✅ Hisob:      08:30  ← smena boshidan (erta keldi)
-    📋 Holat:      ⬆ Smenadan 45 daqiqa oldin keldi
+    🕐 Keldi:      16:45
+    ✅ Hisob:      17:00  ← smena boshidan (erta keldi)
+    📋 Holat:      ⬆ Smenadan 15 daqiqa oldin keldi
 
     💡 Ish vaqti smena boshlanishidan hisoblanadi.
     📅 Sana:       12.04.2025
     """
-    shift = user.shift
-    branch_name  = user.branch.name       if user.branch      else '—'
-    dept_name    = user.department.name   if user.department  else '—'
-    shift_name   = shift.name             if shift            else '—'
-    shift_range  = (
-        f'{shift.start_time:%H:%M}–{shift.end_time:%H:%M}'
-        if shift and shift.start_time and shift.end_time else '—'
+    assigned_shift = getattr(user, 'shift', None)
+    # Agar effective_shift ko'rsatilmagan bo'lsa — assigned shift dan foydalanamiz
+    eff_shift = effective_shift or assigned_shift
+
+    branch_name   = user.branch.name       if user.branch      else '—'
+    dept_name     = user.department.name   if user.department  else '—'
+    assigned_name = assigned_shift.name    if assigned_shift   else '—'
+    assigned_rng  = _shift_range_str(assigned_shift)
+    eff_name      = eff_shift.name         if eff_shift        else '—'
+    eff_rng       = _shift_range_str(eff_shift)
+
+    # Hodim o'z smenasiga kelganmi yoki boshqasigami
+    shift_mismatch = (
+        assigned_shift and eff_shift and assigned_shift.pk != eff_shift.pk
     )
 
     status_line = {
@@ -416,13 +500,22 @@ def _tg_checkin_message(
     elif status == 'late':
         effective_note = '\n💡 <i>Kechikish davomati hisobiga kiradi.</i>'
 
+    if shift_mismatch:
+        shift_block = (
+            f"📌 <b>Yozilgan:</b>  {_esc(assigned_name)} ({_esc(assigned_rng)})\n"
+            f"🔀 <b>Keldi:</b>     {_esc(eff_name)} ({_esc(eff_rng)})"
+            f"  <i>← boshqa smenaga</i>\n"
+        )
+    else:
+        shift_block = f"⏰ <b>Smena:</b>     {_esc(eff_name)} ({_esc(eff_rng)})\n"
+
     return (
         f"🟢 <b>KIRISH</b> — <b>{_esc(user.name)}</b>\n"
         f"{'━' * 28}\n"
         f"👤 <b>Hodim:</b>     {_esc(user.name)}\n"
         f"🏢 <b>Filial:</b>    {_esc(branch_name)}\n"
         f"🔧 <b>Bo'lim:</b>    {_esc(dept_name)}\n"
-        f"⏰ <b>Smena:</b>     {_esc(shift_name)} ({_esc(shift_range)})\n"
+        f"{shift_block}"
         f"\n"
         f"🕐 <b>Keldi:</b>     {_fmt_time(actual_in)}\n"
         f"✅ <b>Hisob:</b>     {_fmt_time(effective_in)}\n"
@@ -442,6 +535,7 @@ def _tg_checkout_message(
     early_leave: bool,
     diff_minutes: int,
     note: str,
+    effective_shift=None,
 ) -> str:
     """
     Chiqish xabari:
@@ -457,12 +551,17 @@ def _tg_checkout_message(
     ⏱ Ishladi:    9 soat 55 daqiqa  (hisob bo'yicha)
     📋 Holat:      Smenadan 17 daqiqa keyin → smena vaqti yozildi
     """
-    shift = user.shift
-    branch_name = user.branch.name      if user.branch     else '—'
-    shift_name  = shift.name            if shift           else '—'
-    shift_range = (
-        f'{shift.start_time:%H:%M}–{shift.end_time:%H:%M}'
-        if shift and shift.start_time and shift.end_time else '—'
+    assigned_shift = getattr(user, 'shift', None)
+    eff_shift = effective_shift or assigned_shift
+
+    branch_name   = user.branch.name      if user.branch     else '—'
+    assigned_name = assigned_shift.name   if assigned_shift  else '—'
+    assigned_rng  = _shift_range_str(assigned_shift)
+    eff_name      = eff_shift.name        if eff_shift       else '—'
+    eff_rng       = _shift_range_str(eff_shift)
+
+    shift_mismatch = (
+        assigned_shift and eff_shift and assigned_shift.pk != eff_shift.pk
     )
 
     # Hisob bo'yicha ishlagan vaqt
@@ -479,16 +578,28 @@ def _tg_checkout_message(
     elif 0 <= diff_minutes <= CHECKOUT_GRACE_MINUTES:
         holat = f'✅ Smena tugadi (+{diff_minutes} daqiqa — kiyim almashish)'
         hisob_note = '\n💡 <i>Smena tugash vaqti hisobga olindi.</i>'
-    else:
+    elif diff_minutes > CHECKOUT_GRACE_MINUTES:
         holat = f'ℹ️ Smenadan {diff_minutes} daqiqa keyin chiqdi'
         hisob_note = ''
+    else:
+        holat = _esc(note) if note else '—'
+        hisob_note = ''
+
+    if shift_mismatch:
+        shift_block = (
+            f"📌 <b>Yozilgan:</b>  {_esc(assigned_name)} ({_esc(assigned_rng)})\n"
+            f"🔀 <b>Smena:</b>     {_esc(eff_name)} ({_esc(eff_rng)})"
+            f"  <i>← boshqa smenaga kelgan edi</i>\n"
+        )
+    else:
+        shift_block = f"⏰ <b>Smena:</b>     {_esc(eff_name)} ({_esc(eff_rng)})\n"
 
     return (
         f"🔴 <b>CHIQISH</b> — <b>{_esc(user.name)}</b>\n"
         f"{'━' * 28}\n"
         f"👤 <b>Hodim:</b>     {_esc(user.name)}\n"
         f"🏢 <b>Filial:</b>    {_esc(branch_name)}\n"
-        f"⏰ <b>Smena:</b>     {_esc(shift_name)} ({_esc(shift_range)})\n"
+        f"{shift_block}"
         f"\n"
         f"🕘 <b>Chiqdi:</b>    {_fmt_time(actual_out)}\n"
         f"✅ <b>Hisob:</b>     {_fmt_time(effective_out)}\n"
@@ -516,13 +627,19 @@ def _tg_error_message(user_name: str | None, error_msg: str) -> str:
 # Asosiy yuboruvchi funksiyalar
 # ──────────────────────────────────────────────────────────────────────────────
 
-def notify_checkin(user, attendance, actual_in, effective_in, status, diff_minutes, note, photo_bytes):
-    msg = _tg_checkin_message(user, attendance, actual_in, effective_in, status, diff_minutes, note)
+def notify_checkin(user, attendance, actual_in, effective_in, status, diff_minutes, note, photo_bytes, effective_shift=None):
+    msg = _tg_checkin_message(
+        user, attendance, actual_in, effective_in, status, diff_minutes, note,
+        effective_shift=effective_shift,
+    )
     _tg_send(msg, photo_bytes)
 
 
-def notify_checkout(user, attendance, actual_out, effective_out, effective_in, early_leave, diff_minutes, note, photo_bytes):
-    msg = _tg_checkout_message(user, attendance, actual_out, effective_out, effective_in, early_leave, diff_minutes, note)
+def notify_checkout(user, attendance, actual_out, effective_out, effective_in, early_leave, diff_minutes, note, photo_bytes, effective_shift=None):
+    msg = _tg_checkout_message(
+        user, attendance, actual_out, effective_out, effective_in, early_leave, diff_minutes, note,
+        effective_shift=effective_shift,
+    )
     _tg_send(msg, photo_bytes)
 
 
@@ -651,17 +768,10 @@ class AttendanceScanAPIView(View):
         now    = timezone.localtime()
         today  = now.date()
         branch = user.branch
-        shift  = user.shift
 
         auto_checkout_expired(user, now)
 
         qs = _today_rows(user, today)
-
-        shift_data = {
-            'shift_name':  shift.name                          if shift else '',
-            'shift_start': shift.start_time.strftime('%H:%M') if shift and shift.start_time else '',
-            'shift_end':   shift.end_time.strftime('%H:%M')   if shift and shift.end_time   else '',
-        }
 
         # ── 4a. Ochiq yozuv → CHECK-OUT ──────────────────────────────────────
         open_att = (
@@ -670,63 +780,10 @@ class AttendanceScanAPIView(View):
             .first()
         )
         if open_att:
-            actual_out = now
-            info = _compute_check_out_info(
-                actual_out=actual_out,
-                shift=shift,
-                check_in_date=open_att.date,
-            )
-
-            # effective_in — avval saqlangan bo'lishi kerak
-            # Attendance modelida effective_check_in maydoni bor deb faraz qilamiz,
-            # yo'q bo'lsa check_in ishlatiladi
-            effective_in = getattr(open_att, 'effective_check_in', None) or open_att.check_in
-
-            open_att.check_out           = info['effective_out']
-            open_att.actual_check_out    = actual_out            # haqiqiy vaqt
-            if branch:
-                open_att.branch = branch
-
-            fields = ['check_out', 'actual_check_out']
-            if branch:
-                fields.append('branch')
-            open_att.save(update_fields=fields)
-
-            notify_checkout(
-                user=user,
-                attendance=open_att,
-                actual_out=actual_out,
-                effective_out=info['effective_out'],
-                effective_in=effective_in,
-                early_leave=info['early_leave'],
-                diff_minutes=info['diff_minutes'],
-                note=info['note'],
-                photo_bytes=photo_bytes,
-            )
-
-            worked_seconds = 0
-            if effective_in and info['effective_out']:
-                worked_seconds = max(0, int((info['effective_out'] - effective_in).total_seconds()))
-
-            return JsonResponse({
-                'ok':           True,
-                'action':       'check_out',
-                'msg':          f"{user.name} chiqdi",
-                'user_name':    user.name,
-                'time':         _fmt_time(actual_out),
-                'hisob_time':   _fmt_time(info['effective_out']),
-                'worked':       _fmt_duration(worked_seconds),
-                'early_leave':  info['early_leave'],
-                'status':       open_att.status,
-                **shift_data,
-            })
+            return self._do_checkout(open_att, user, branch, now, photo_bytes)
 
         # ── 4b. Bugun allaqachon yopilgan → 409 ──────────────────────────────
-        # if qs.filter(check_in__isnull=False, check_out__isnull=False).exists():
-        #     return JsonResponse({
-        #         'ok':  False,
-        #         'msg': 'Bugun davomat allaqachon yopilgan. Admin vaqtni tahrirlashi mumkin.',
-        #     }, status=409)
+        # (disabled — admin vaqtni qayta tahrirlashi mumkin, yoki ikkinchi smena)
 
         # ── 4c. 'absent' yozuvi bor → CHECK-IN (yangilanadi) ─────────────────
         absent_row = (
@@ -735,31 +792,34 @@ class AttendanceScanAPIView(View):
             .first()
         )
         if absent_row:
-            return self._do_checkin(
-                request, absent_row, user, branch, shift,
-                now, photo_bytes, shift_data, is_new=False,
-            )
+            return self._do_checkin(absent_row, user, branch, now, photo_bytes)
 
         # ── 4d. Yangi CHECK-IN ────────────────────────────────────────────────
         att = Attendance(user=user, branch=branch, date=today)
         att.save()
-        return self._do_checkin(
-            request, att, user, branch, shift,
-            now, photo_bytes, shift_data, is_new=True,
-        )
+        return self._do_checkin(att, user, branch, now, photo_bytes)
 
     # ─────────────────────────────────────────────────────────────────────────
-    def _do_checkin(self, request, att, user, branch, shift, now, photo_bytes, shift_data, is_new: bool):
-        """Check-in mantiqini bir joyga to'plash."""
+    def _do_checkin(self, att, user, branch, now, photo_bytes):
+        """
+        Check-in mantiqi.
+
+        Smart shift detection: hodim kelish vaqtiga qarab, uning filialidagi
+        barcha smenalardan eng mos keladiganini topadi. Shunda kunduzgi smenaga
+        yozilgan hodim kechki smenaga kelganda ham to'g'ri hisoblanadi.
+        """
         actual_in = now
-        info = _compute_check_in_info(actual_in=actual_in, shift=shift)
+        eff_shift, start_dt, _end_dt = _detect_effective_shift(user, actual_in)
+
+        info = _compute_check_in_info(actual_in=actual_in, start_dt=start_dt)
 
         att.check_in            = actual_in
-        att.effective_check_in  = info['effective_in']   # ← smena boshidan hisob
+        att.effective_check_in  = info['effective_in']
         att.check_out           = None
         att.actual_check_out    = None
+        att.effective_shift     = eff_shift
+        # 'early' statusini 'present' sifatida saqlaymiz (Telegram ga 'early' boradi)
         att.status              = info['status'] if info['status'] != 'early' else Attendance.STATUS_PRESENT
-        # 'early' statusini 'present' sifatida saqlaymiz (lekin Telegram ga 'early' boramiz)
         if branch:
             att.branch = branch
 
@@ -775,21 +835,101 @@ class AttendanceScanAPIView(View):
             diff_minutes=info['diff_minutes'],
             note=info['note'],
             photo_bytes=photo_bytes,
+            effective_shift=eff_shift,
         )
 
+        shift_data = self._shift_payload(eff_shift)
+
         return JsonResponse({
-            'ok':           True,
-            'action':       'check_in',
-            'msg':          f"{user.name} kirdi",
-            'user_name':    user.name,
-            'time':         _fmt_time(actual_in),
-            'hisob_time':   _fmt_time(info['effective_in']),
-            'is_early':     info['status'] == 'early',
-            'is_late':      info['status'] == Attendance.STATUS_LATE,
-            'diff_minutes': info['diff_minutes'],
-            'status':       att.status,
+            'ok':            True,
+            'action':        'check_in',
+            'msg':           f"{user.name} kirdi",
+            'user_name':     user.name,
+            'time':          _fmt_time(actual_in),
+            'hisob_time':    _fmt_time(info['effective_in']),
+            'is_early':      info['status'] == 'early',
+            'is_late':       info['status'] == Attendance.STATUS_LATE,
+            'diff_minutes':  info['diff_minutes'],
+            'status':        att.status,
+            'shift_matched': bool(eff_shift and user.shift_id and eff_shift.pk != user.shift_id),
             **shift_data,
         })
+
+    # ─────────────────────────────────────────────────────────────────────────
+    def _do_checkout(self, open_att, user, branch, now, photo_bytes):
+        """
+        Check-out mantiqi.
+
+        Check-in da saqlangan `effective_shift` ishlatiladi — shunda
+        hodim kunduzgi smenaga yozilgan bo'lsa ham, kechki smenaga kelgan
+        bo'lsa, kechki smena bo'yicha chiqish hisoblanadi.
+        """
+        actual_out = now
+
+        # Saqlangan effective_shift → uning end_dt ini check_in sanasi va
+        # start_time asosida qayta hisoblaymiz (tungi smena uchun muhim).
+        eff_shift = open_att.effective_shift
+        end_dt = None
+        if eff_shift and eff_shift.start_time and eff_shift.end_time:
+            start_dt = _shift_start_dt(eff_shift, open_att.date)
+            end_dt = _shift_end_dt_from_start(eff_shift, start_dt)
+
+        info = _compute_check_out_info(actual_out=actual_out, end_dt=end_dt)
+
+        effective_in = open_att.effective_check_in or open_att.check_in
+
+        open_att.check_out        = info['effective_out']
+        open_att.actual_check_out = actual_out
+        if branch:
+            open_att.branch = branch
+
+        fields = ['check_out', 'actual_check_out']
+        if branch:
+            fields.append('branch')
+        open_att.save(update_fields=fields)
+
+        notify_checkout(
+            user=user,
+            attendance=open_att,
+            actual_out=actual_out,
+            effective_out=info['effective_out'],
+            effective_in=effective_in,
+            early_leave=info['early_leave'],
+            diff_minutes=info['diff_minutes'],
+            note=info['note'],
+            photo_bytes=photo_bytes,
+            effective_shift=eff_shift,
+        )
+
+        worked_seconds = 0
+        if effective_in and info['effective_out']:
+            worked_seconds = max(0, int((info['effective_out'] - effective_in).total_seconds()))
+
+        shift_data = self._shift_payload(eff_shift)
+
+        return JsonResponse({
+            'ok':            True,
+            'action':        'check_out',
+            'msg':           f"{user.name} chiqdi",
+            'user_name':     user.name,
+            'time':          _fmt_time(actual_out),
+            'hisob_time':    _fmt_time(info['effective_out']),
+            'worked':        _fmt_duration(worked_seconds),
+            'early_leave':   info['early_leave'],
+            'status':        open_att.status,
+            'shift_matched': bool(eff_shift and user.shift_id and eff_shift.pk != user.shift_id),
+            **shift_data,
+        })
+
+    # ─────────────────────────────────────────────────────────────────────────
+    @staticmethod
+    def _shift_payload(shift) -> dict:
+        """Frontend uchun smena ma'lumotlari."""
+        return {
+            'shift_name':  shift.name                          if shift else '',
+            'shift_start': shift.start_time.strftime('%H:%M') if shift and shift.start_time else '',
+            'shift_end':   shift.end_time.strftime('%H:%M')   if shift and shift.end_time   else '',
+        }
 
 
 @method_decorator(csrf_exempt, name='dispatch')
@@ -799,3 +939,5 @@ class CheckInAPIView(AttendanceScanAPIView):
 @method_decorator(csrf_exempt, name='dispatch')
 class CheckOutAPIView(AttendanceScanAPIView):
     pass
+
+
