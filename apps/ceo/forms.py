@@ -64,19 +64,29 @@ class AttendanceForm(forms.ModelForm):
         model = Attendance
         fields = ('user', 'date', 'status', 'check_in', 'check_out')
         widgets = {
-            'date': forms.DateInput(attrs={'type': 'date'}),
-            'check_in': forms.DateTimeInput(attrs={'type': 'datetime-local'}, format='%Y-%m-%dT%H:%M'),
-            'check_out': forms.DateTimeInput(attrs={'type': 'datetime-local'}, format='%Y-%m-%dT%H:%M'),
+            'date':      forms.DateInput(attrs={'type': 'date'}),
+            'check_in':  forms.HiddenInput(),
+            'check_out': forms.HiddenInput(),
         }
 
     def __init__(self, *args, branch=None, **kwargs):
         super().__init__(*args, **kwargs)
         if branch:
             self.fields['user'].queryset = User.objects.filter(branch=branch, is_active=True).select_related('shift')
-        self.fields['check_in'].input_formats = ['%Y-%m-%dT%H:%M']
-        self.fields['check_out'].input_formats = ['%Y-%m-%dT%H:%M']
-        self.fields['check_in'].required = False
+        self.fields['check_in'].input_formats  = ['%Y-%m-%dT%H:%M', '%Y-%m-%d %H:%M']
+        self.fields['check_out'].input_formats = ['%Y-%m-%dT%H:%M', '%Y-%m-%d %H:%M']
+        self.fields['check_in'].required  = False
         self.fields['check_out'].required = False
+
+        # Edit modeda initial qiymatni to'g'ri formatda berish (JS uchun)
+        instance = kwargs.get('instance')
+        if instance:
+            from django.utils import timezone as tz
+            for fname in ('check_in', 'check_out'):
+                val = getattr(instance, fname, None)
+                if val:
+                    local = tz.localtime(val)
+                    self.initial[fname] = local.strftime('%Y-%m-%dT%H:%M')
 
     def clean(self):
         data = super().clean()

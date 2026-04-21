@@ -558,6 +558,22 @@ class AttendanceListView(CEORequiredMixin, ListView):
         return ctx
 
 
+def _build_users_json(branch):
+    import json
+    users = User.objects.filter(branch=branch, is_active=True).select_related('shift') if branch else User.objects.none()
+    data = {}
+    for u in users:
+        sh = u.shift
+        is_night = bool(sh and sh.start_time and sh.end_time and sh.end_time <= sh.start_time)
+        data[str(u.pk)] = {
+            'shift_id':    sh.pk if sh else '',
+            'shift_start': sh.start_time.strftime('%H:%M') if sh and sh.start_time else '',
+            'shift_end':   sh.end_time.strftime('%H:%M')   if sh and sh.end_time   else '',
+            'is_night':    is_night,
+        }
+    return json.dumps(data)
+
+
 class AttendanceCreateView(CEORequiredMixin, View):
     """Qo'lda bitta davomat yozuvi qo'shish."""
 
@@ -584,23 +600,7 @@ class AttendanceCreateView(CEORequiredMixin, View):
         })
 
     def _users_json(self, branch):
-        """Hodimlar va ularning smena ma'lumotlarini JSON formatda tayyorlash."""
-        import json
-        users = User.objects.filter(branch=branch, is_active=True).select_related('shift') if branch else User.objects.none()
-        data = {}
-        for u in users:
-            sh = u.shift
-            # is_night: end_time < start_time → tungi smena (check_out ertasi kun)
-            is_night = bool(
-                sh and sh.start_time and sh.end_time and sh.end_time <= sh.start_time
-            )
-            data[str(u.pk)] = {
-                'shift_id':    (sh.pk if sh else '') or '',
-                'shift_start': sh.start_time.strftime('%H:%M') if sh and sh.start_time else '',
-                'shift_end':   sh.end_time.strftime('%H:%M')   if sh and sh.end_time   else '',
-                'is_night':    is_night,
-            }
-        return json.dumps(data)
+        return _build_users_json(branch)
 
 
 class AttendanceUpdateView(CEORequiredMixin, View):
@@ -613,6 +613,7 @@ class AttendanceUpdateView(CEORequiredMixin, View):
         return render(request, 'ceo/attendance_form.html', {
             'active_nav': 'attendance', 'form': form, 'title': 'Davomatni tahrirlash',
             'edit_mode': True, 'attendance': att,
+            'users_json': _build_users_json(branch),
         })
 
     def post(self, request, pk):
@@ -626,6 +627,7 @@ class AttendanceUpdateView(CEORequiredMixin, View):
         return render(request, 'ceo/attendance_form.html', {
             'active_nav': 'attendance', 'form': form, 'title': 'Davomatni tahrirlash',
             'edit_mode': True, 'attendance': att,
+            'users_json': _build_users_json(branch),
         })
 
 
