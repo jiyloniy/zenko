@@ -329,20 +329,57 @@ def _branch_matches(user, kiosk_branch_id) -> tuple[bool, str]:
 
 
 def auto_checkout_expired(user, now):
-    """Oldingi kunlarning ochiq yozuvlarini 23:59 da yopadi."""
-    today = now.date()
+    """
+    Oldingi kunlarning ochiq yozuvlarini avtomatik yopadi.
+
+    MUHIM: Tungi smena hodimi kecha kechqurun kirishi mumkin (att.date = kecha),
+    lekin haqiqiy chiqishi bugun ertalab bo'ladi. Shuning uchun faqat
+    att.date < today tekshiruvi yetarli emas — tungi smenaning mumkin bo'lgan
+    tugash vaqtini ham hisobga olish kerak.
+
+    Qoida: agar check_in + 14 soat < now bo'lsa — bu haqiqatan ham "eskirgan"
+    yozuv deb hisoblanadi va smena tugash vaqtiga yopiladi.
+    """
     open_qs = Attendance.objects.filter(
         user=user,
         check_in__isnull=False,
         check_out__isnull=True,
-    )
+    ).select_related('effective_shift')
+
     for att in open_qs:
-        if att.date < today and att.check_in:
-            att.check_out = att.check_in.replace(
-                hour=23, minute=59, second=0, microsecond=0
-            )
-            att.save(update_fields=['check_out'])
-            logger.info("Auto-checkout: user=%s date=%s", user.pk, att.date)
+        if not att.check_in:
+            continue
+
+        # Tungi smena: check_in + max_shift_duration (14 soat) o'tganmi?
+        # 14 soat = eng uzun mumkin smena + bufer. Agar shu vaqt o'tmagan bo'lsa
+        # hodim hali tungi smenada ishlayapti deb hisoblaymiz.
+        max_shift_hours = timedelta(hours=14)
+        if now - att.check_in < max_shift_hours:
+            # Hali smena tugash vaqti o'tmagan — tegilmaydi
+            continue
+
+        # Smena tugash vaqtiga yopamiz (agar effective_shift bor bo'lsa)
+        eff_shift = att.effective_shift
+        if eff_shift and eff_shift.start_time and eff_shift.end_time:
+            start_dt = _shift_start_dt(eff_shift, att.date)
+            end_dt = _shift_end_dt_from_start(eff_shift, start_dt)
+            if end_dt:
+                att.check_out = end_dt
+                att.save(update_fields=['check_out'])
+                logger.info(
+                    "Auto-checkout (smena end): user=%s date=%s checkout=%s",
+                    user.pk, att.date, end_dt,
+                )
+                continue
+
+        # effective_shift yo'q — check_in sanasining 23:59 ga yopamiz
+        tz = timezone.get_current_timezone()
+        eod = timezone.make_aware(
+            datetime.combine(att.date, datetime.strptime('23:59', '%H:%M').time()), tz
+        )
+        att.check_out = eod
+        att.save(update_fields=['check_out'])
+        logger.info("Auto-checkout (23:59): user=%s date=%s", user.pk, att.date)
 
 
 def _decode_photo_data(photo_raw: str) -> bytes | None:
@@ -769,18 +806,26 @@ class AttendanceScanAPIView(View):
         today  = now.date()
         branch = user.branch
 
-        auto_checkout_expired(user, now)
-
-        qs = _today_rows(user, today)
-
         # ── 4a. Ochiq yozuv → CHECK-OUT ──────────────────────────────────────
+        # MUHIM: Tungi smena hodimi kecha kirgan bo'lishi mumkin (att.date = kecha),
+        # shuning uchun faqat bugungi yozuvlarni emas, BARCHA ochiq yozuvlarni
+        # tekshiramiz. auto_checkout_expired dan OLDIN qilishimiz kerak — aks holda
+        # tungi smena yozuvi 14 soat o'tmagan bo'lsa ham "yopilishi" mumkin edi.
         open_att = (
-            qs.filter(check_in__isnull=False, check_out__isnull=True)
+            Attendance.objects.filter(
+                user=user,
+                check_in__isnull=False,
+                check_out__isnull=True,
+            )
             .order_by('check_in', 'id')
             .first()
         )
         if open_att:
             return self._do_checkout(open_att, user, branch, now, photo_bytes)
+
+        auto_checkout_expired(user, now)
+
+        qs = _today_rows(user, today)
 
         # ── 4b. Bugun allaqachon yopilgan → 409 ──────────────────────────────
         # (disabled — admin vaqtni qayta tahrirlashi mumkin, yoki ikkinchi smena)
@@ -868,10 +913,19 @@ class AttendanceScanAPIView(View):
 
         # Saqlangan effective_shift → uning end_dt ini check_in sanasi va
         # start_time asosida qayta hisoblaymiz (tungi smena uchun muhim).
+        #
+        # MUHIM: check_in vaqtidan start_dt ni aniqlaymiz, open_att.date dan emas.
+        # Sabab: tungi smena hodimi 20.04 da kirdi (check_in = 20.04 20:14),
+        # 21.04 da chiqdi. open_att.date = 20.04. Lekin _shift_start_dt(shift, 20.04)
+        # → 20.04 20:00 → end = 21.04 05:00. Bu to'g'ri.
+        # Agar check_in o'zidan boshqa sanaga tushsa (masalan, tungi smenada)
+        # check_in lokalvaqti asosida start_dt ni qidiramiz.
         eff_shift = open_att.effective_shift
         end_dt = None
         if eff_shift and eff_shift.start_time and eff_shift.end_time:
-            start_dt = _shift_start_dt(eff_shift, open_att.date)
+            # check_in lokal sanasiga qarab start_dt topamiz — bu tungi smenada to'g'ri ishlaydi
+            check_in_local_date = timezone.localtime(open_att.check_in).date() if open_att.check_in else open_att.date
+            start_dt = _shift_start_dt(eff_shift, check_in_local_date)
             end_dt = _shift_end_dt_from_start(eff_shift, start_dt)
 
         info = _compute_check_out_info(actual_out=actual_out, end_dt=end_dt)
