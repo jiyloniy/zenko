@@ -1491,28 +1491,10 @@ class QRCardAllView(CEORequiredMixin, View):
 
 def _calc_worked_seconds(att):
     """
-    Davomat yozuvi uchun hisob soatlari (soniyalarda).
-
-    Agar smena (effective_shift) aniqlangan bo'lsa:
-      - Hisob = smena to'liq vaqti (start → end), erta chiqsa ham, kech chiqsa ham.
-      - Faqat check_in mavjud bo'lganda (kelgan bo'lsa).
-    Smena yo'q bo'lsa:
-      - Haqiqiy billing_check_in → check_out farqi.
+    Oddiy hodim uchun hisob soatlari (soniyalarda).
+    billing_check_in (effective_check_in yoki check_in) → check_out farqi.
+    Smena grace period allaqachon check_out ga yozilgan (kiosk tomonidan).
     """
-    if not att.check_in:
-        return 0
-
-    shift = att.effective_shift
-    if shift and shift.start_time and shift.end_time:
-        from apps.attendance.view2 import _shift_start_dt, _shift_end_dt_from_start
-        from django.utils import timezone as tz
-        check_in_date = tz.localtime(att.check_in).date()
-        start_dt = _shift_start_dt(shift, check_in_date)
-        end_dt = _shift_end_dt_from_start(shift, start_dt)
-        if start_dt and end_dt:
-            return max((end_dt - start_dt).total_seconds(), 0)
-
-    # Smena yo'q — haqiqiy ishlagan vaqt
     ci = att.effective_check_in or att.check_in
     co = att.check_out
     if ci and co:
