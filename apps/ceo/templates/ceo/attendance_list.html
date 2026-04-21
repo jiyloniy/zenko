@@ -835,14 +835,14 @@
                     </td>
                     <td>{{ att.date|date:"d.m.Y" }}</td>
                     <td>
-                        {% if att._shift_info.shift %}
-                            {% if att._shift_info.shift_mismatch %}
+                        {% if att.shift_info.shift %}
+                            {% if att.shift_info.shift_mismatch %}
                             <span class="shift-badge-sm mismatch" title="Belgilangan smenasi: {{ att.user.shift.name }}">
                                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width:10px;height:10px"><path stroke-linecap="round" stroke-linejoin="round" d="M7.5 21 3 16.5m0 0L7.5 12M3 16.5h13.5m0-13.5L21 7.5m0 0L16.5 12M21 7.5H7.5"/></svg>
-                                {{ att._shift_info.shift.name }}
+                                {{ att.shift_info.shift.name }}
                             </span>
                             {% else %}
-                            <span class="shift-badge-sm normal">{{ att._shift_info.shift.name }}</span>
+                            <span class="shift-badge-sm normal">{{ att.shift_info.shift.name }}</span>
                             {% endif %}
                         {% elif att.user.shift %}
                         <span class="shift-badge-sm normal">{{ att.user.shift.name }}</span>
@@ -850,27 +850,27 @@
                     </td>
                     <td class="time-cell in">
                         {{ att.check_in|date:"H:i"|default:"—" }}
-                        {% if att.check_in and att._shift_info.shift %}
-                            {% if att._shift_info.early_minutes %}
-                            <span class="time-annotation early">{{ att._shift_info.early_minutes }} daq oldin</span>
-                            {% elif att._shift_info.late_minutes == 0 %}
+                        {% if att.check_in and att.shift_info.shift %}
+                            {% if att.shift_info.early_minutes %}
+                            <span class="time-annotation early">{{ att.shift_info.early_minutes }} daq oldin</span>
+                            {% elif att.shift_info.late_minutes == 0 %}
                             <span class="time-annotation grace">Vaqtida</span>
-                            {% elif att._shift_info.late_minutes <= 15 %}
-                            <span class="time-annotation grace">+{{ att._shift_info.late_minutes }} daq (chegara)</span>
+                            {% elif att.shift_info.late_minutes <= 15 %}
+                            <span class="time-annotation grace">+{{ att.shift_info.late_minutes }} daq (chegara)</span>
                             {% else %}
-                            <span class="time-annotation late">+{{ att._shift_info.late_minutes }} daq kech</span>
+                            <span class="time-annotation late">+{{ att.shift_info.late_minutes }} daq kech</span>
                             {% endif %}
                         {% endif %}
-                        {% if att._shift_info.billing_in and att._shift_info.actual_in and att._shift_info.billing_in != att._shift_info.actual_in %}
-                        <span class="time-annotation early" title="Hisob boshlanishi: {{ att._shift_info.billing_in|date:'H:i' }}">Hisob: {{ att._shift_info.billing_in|date:"H:i" }}</span>
+                        {% if att.shift_info.billing_in and att.shift_info.actual_in and att.shift_info.billing_in != att.shift_info.actual_in %}
+                        <span class="time-annotation early" title="Hisob boshlanishi: {{ att.shift_info.billing_in|date:'H:i' }}">Hisob: {{ att.shift_info.billing_in|date:"H:i" }}</span>
                         {% endif %}
                     </td>
                     <td class="time-cell out">
                         {{ att.actual_check_out|date:"H:i"|default:att.check_out|date:"H:i"|default:"—" }}
-                        {% if att._shift_info.grace_applied %}
-                        <span class="time-annotation grace">Hisob: {{ att._shift_info.billing_out|date:"H:i" }}</span>
-                        {% elif att._shift_info.early_leave_minutes %}
-                        <span class="time-annotation early-leave">{{ att._shift_info.early_leave_minutes }} daq erta</span>
+                        {% if att.shift_info.grace_applied %}
+                        <span class="time-annotation grace">Hisob: {{ att.shift_info.billing_out|date:"H:i" }}</span>
+                        {% elif att.shift_info.early_leave_minutes %}
+                        <span class="time-annotation early-leave">{{ att.shift_info.early_leave_minutes }} daq erta</span>
                         {% endif %}
                     </td>
                     <td class="worked-cell {% if not att.worked_hours_display or att.worked_hours_display == '—' %}no-data{% endif %}">{{ att.worked_hours_display }}</td>

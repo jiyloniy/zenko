@@ -578,7 +578,7 @@ class AttendanceListView(CEORequiredMixin, ListView):
                     elif diff_out < 0:
                         info['early_leave_minutes'] = abs(diff_out)
 
-        att._shift_info = info
+        att.shift_info = info
         return att
 
     def get_context_data(self, **kwargs):
