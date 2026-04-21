@@ -124,17 +124,55 @@
 
 {% block content %}
 
-<!-- Period bar -->
-<form method="get" class="period-bar">
-    <svg class="cal-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width:20px;height:20px;color:var(--orange);flex-shrink:0"><path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5"/></svg>
-    <select name="year">
-        {% for y in years %}<option value="{{ y }}" {% if y == year %}selected{% endif %}>{{ y }}</option>{% endfor %}
-    </select>
-    <select name="month">
-        {% for mn in month_names %}<option value="{{ forloop.counter }}" {% if forloop.counter == month %}selected{% endif %}>{{ mn }}</option>{% endfor %}
-    </select>
-    <button type="submit" class="go-btn">Ko'rish</button>
-    <span class="period-label">
+<!-- Period bar with filters -->
+<form method="get" class="period-bar" style="flex-wrap:wrap;gap:12px 18px;align-items:flex-end;">
+    <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+        <svg class="cal-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width:20px;height:20px;color:var(--orange);flex-shrink:0"><path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5"/></svg>
+        <select name="year">
+            {% for y in years %}<option value="{{ y }}" {% if y == year %}selected{% endif %}>{{ y }}</option>{% endfor %}
+        </select>
+        <select name="month">
+            {% for mn in month_names %}<option value="{{ forloop.counter }}" {% if forloop.counter == month %}selected{% endif %}>{{ mn }}</option>{% endfor %}
+        </select>
+    </div>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end;">
+        <!-- Department filter -->
+        <div>
+            <label for="department" style="font-size:12px;color:var(--gray-500);font-weight:600;">Bo'lim</label><br>
+            <select name="department" id="department" style="min-width:120px;">
+                <option value="">Barchasi</option>
+                {% for dep in departments %}
+                <option value="{{ dep.id }}" {% if dep.id|stringformat:'s' == request.GET.department %}selected{% endif %}>{{ dep.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <!-- Role filter -->
+        <div>
+            <label for="role" style="font-size:12px;color:var(--gray-500);font-weight:600;">Lavozim</label><br>
+            <select name="role" id="role" style="min-width:120px;">
+                <option value="">Barchasi</option>
+                {% for role in roles %}
+                <option value="{{ role.id }}" {% if role.id|stringformat:'s' == request.GET.role %}selected{% endif %}>{{ role.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <!-- Status filter -->
+        <div>
+            <label for="status" style="font-size:12px;color:var(--gray-500);font-weight:600;">Holati</label><br>
+            <select name="status" id="status" style="min-width:100px;">
+                <option value="">Barchasi</option>
+                <option value="active" {% if request.GET.status == 'active' %}selected{% endif %}>Faol</option>
+                <option value="inactive" {% if request.GET.status == 'inactive' %}selected{% endif %}>Bo'shagan</option>
+            </select>
+        </div>
+        <!-- Search -->
+        <div>
+            <label for="search" style="font-size:12px;color:var(--gray-500);font-weight:600;">Qidiruv</label><br>
+            <input type="text" name="search" id="search" value="{{ request.GET.search|default_if_none:'' }}" placeholder="Ism, familiya..." style="padding:8px 12px;border-radius:8px;border:1.5px solid var(--gray-200);font-size:14px;width:140px;">
+        </div>
+        <button type="submit" class="go-btn" style="margin-top:0;align-self:flex-end;">Ko'rish</button>
+    </div>
+    <span class="period-label" style="margin-left:auto;">
         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width:18px;height:18px;color:var(--orange)"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/></svg>
         {{ month_name }} {{ year }}
     </span>
