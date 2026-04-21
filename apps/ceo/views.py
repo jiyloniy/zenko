@@ -1502,42 +1502,19 @@ def _calc_worked_seconds(att, vip=False):
     return 0
 
 
-def _vip_full_shift_seconds(att):
+def _vip_shift_full_seconds(shift, ref_date):
     """
-    VIP hodim: agar kelgan bo'lsa, smena (effective_shift) ning to'liq soatini qaytaradi.
-    Erta chiqsa (check_out < smena end_time) — haqiqiy vaqt ishlatiladi.
+    VIP hodim uchun smena to'liq davomiyligi (sekundda).
+    Erta chiqsa ham, kech chiqsa ham — doimo to'liq smena vaqti qaytariladi.
     """
-    if not att.effective_shift or not att.check_in:
-        return None
-    shift = att.effective_shift
-    if not shift.start_time or not shift.end_time:
-        return None
-
     from apps.attendance.view2 import _shift_start_dt, _shift_end_dt_from_start
-    from django.utils import timezone
-
-    check_in_date = timezone.localtime(att.check_in).date()
-    start_dt = _shift_start_dt(shift, check_in_date)
+    if not shift or not shift.start_time or not shift.end_time:
+        return 0
+    start_dt = _shift_start_dt(shift, ref_date)
     end_dt = _shift_end_dt_from_start(shift, start_dt)
-
     if not start_dt or not end_dt:
-        return None
-
-    # effective_check_in = smena start_time (VIP logikasida har doim shunday)
-    ci = att.effective_check_in or att.check_in
-    co = att.check_out
-
-    if not co:
-        return None
-
-    # Erta chiqdi: haqiqiy vaqt (smena tugashidan oldin ketdi)
-    if co < end_dt:
-        delta = (co - ci).total_seconds()
-        return max(delta, 0), False
-
-    # Kech yoki vaqtida chiqdi: to'liq smena soati (start→end)
-    delta = (end_dt - start_dt).total_seconds()
-    return max(delta, 0), True
+        return 0
+    return max((end_dt - start_dt).total_seconds(), 0)
 
 
 def _month_salary_for_user(user, year, month, branch):
@@ -1602,33 +1579,82 @@ def _month_salary_for_user(user, year, month, branch):
         _vip_cache[date] = result
         return result
 
+    # VIP: bir kun + bir smena = bitta hisob yozuvi.
+    # Bir nechta yozuv bo'lsa — faqat birinchi kirish va oxirgi chiqish hisobga olinadi,
+    # lekin billing = smena to'liq vaqti (erta chiqsa ham).
+    from collections import defaultdict
+
+    # Guruhlaymiz: (date, shift_id) → [att, ...]
+    groups = defaultdict(list)
     for att in qs.order_by('date', 'check_in'):
-        vip_full_shift = False
-        day_is_vip = _is_vip_on(att.date)
+        shift_key = att.effective_shift_id or 0
+        groups[(att.date, shift_key)].append(att)
 
-        if day_is_vip and att.status != 'absent':
-            vip_result = _vip_full_shift_seconds(att)
-            if vip_result is not None:
-                secs, vip_full_shift = vip_result
-            else:
-                secs = _calc_worked_seconds(att)
+    for (date, shift_key), group_atts in sorted(groups.items()):
+        day_is_vip = _is_vip_on(date)
+        rate = _rate_for_date(date)
+
+        # absent-only guruh
+        all_absent = all(a.status == 'absent' for a in group_atts)
+
+        if day_is_vip and not all_absent:
+            # VIP: to'liq smena vaqti — bitta yozuv yoki bir nechta bo'lsa ham
+            # birinchi kelgan attni asosiy sifatida olamiz
+            primary = next((a for a in group_atts if a.status != 'absent'), group_atts[0])
+            shift = primary.effective_shift
+            secs = _vip_shift_full_seconds(shift, date)
+            vip_full_shift = True
+
+            hours_dec = Decimal(str(round(secs / 3600, 6)))
+            earned = (hours_dec * rate).quantize(Decimal('0.01'))
+            base_salary += earned
+            total_seconds += Decimal(str(secs))
+
+            # Birinchi yozuv asosiy, qolganlari "duplicate" sifatida 0 earned bilan
+            for i, att in enumerate(group_atts):
+                if i == 0 or att == primary:
+                    att_rows.append({
+                        'att':            att,
+                        'worked_seconds': float(secs),
+                        'worked_hours':   round(float(secs) / 3600, 2),
+                        'rate':           rate,
+                        'earned':         earned,
+                        'vip_full_shift': vip_full_shift,
+                        'day_is_vip':     day_is_vip,
+                        'is_primary':     True,
+                    })
+                    # Faqat bir marta hisoblash uchun earned ni keyingi iteratsiyalarda 0 qilamiz
+                    earned = Decimal('0.00')
+                    secs = 0.0
+                else:
+                    att_rows.append({
+                        'att':            att,
+                        'worked_seconds': 0.0,
+                        'worked_hours':   0.0,
+                        'rate':           rate,
+                        'earned':         Decimal('0.00'),
+                        'vip_full_shift': False,
+                        'day_is_vip':     day_is_vip,
+                        'is_primary':     False,
+                    })
         else:
-            secs = _calc_worked_seconds(att)
-
-        rate = _rate_for_date(att.date)
-        hours_dec = Decimal(str(round(secs / 3600, 6)))
-        earned = (hours_dec * rate).quantize(Decimal('0.01'))
-        base_salary += earned
-        total_seconds += Decimal(str(secs))
-        att_rows.append({
-            'att':            att,
-            'worked_seconds': float(secs),
-            'worked_hours':   round(float(secs) / 3600, 2),
-            'rate':           rate,
-            'earned':         earned,
-            'vip_full_shift': vip_full_shift,
-            'day_is_vip':     day_is_vip,
-        })
+            # Oddiy hodim: har bir yozuv alohida hisoblanadi
+            for att in group_atts:
+                secs = _calc_worked_seconds(att)
+                hours_dec = Decimal(str(round(secs / 3600, 6)))
+                earned = (hours_dec * rate).quantize(Decimal('0.01'))
+                base_salary += earned
+                total_seconds += Decimal(str(secs))
+                att_rows.append({
+                    'att':            att,
+                    'worked_seconds': float(secs),
+                    'worked_hours':   round(float(secs) / 3600, 2),
+                    'rate':           rate,
+                    'earned':         earned,
+                    'vip_full_shift': False,
+                    'day_is_vip':     day_is_vip,
+                    'is_primary':     True,
+                })
 
     total_hours = float(total_seconds) / 3600
 
