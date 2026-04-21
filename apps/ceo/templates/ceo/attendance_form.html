@@ -254,23 +254,39 @@
         dateInput.value = today.toISOString().split('T')[0];
     }
 
+    // Sanaga +1 kun qo'shish (tungi smena uchun)
+    function addDays(dateStr, days) {
+        const d = new Date(dateStr);
+        d.setDate(d.getDate() + days);
+        return d.toISOString().split('T')[0];
+    }
+
+    // Tungi smena: shift_end < shift_start → check_out ertasi kun
+    function checkOutDate(dateVal, shiftStart, shiftEnd) {
+        if (!shiftStart || !shiftEnd) return dateVal;
+        const [sh, sm] = shiftStart.split(':').map(Number);
+        const [eh, em] = shiftEnd.split(':').map(Number);
+        const startMins = sh * 60 + sm;
+        const endMins   = eh * 60 + em;
+        return endMins <= startMins ? addDays(dateVal, 1) : dateVal;
+    }
+
     function autoFill() {
         const userId = userSelect.value;
         if (!userId || !usersData[userId]) return;
 
         const u = usersData[userId];
-        const dateVal = dateInput.value;
+        const dateVal = dateInput ? dateInput.value : '';
         if (!dateVal) return;
 
-        // Check-in va Check-out vaqtlarini to'ldirish
         if (u.shift_start && checkInInput && !checkInInput.value) {
             checkInInput.value = dateVal + 'T' + u.shift_start;
         }
         if (u.shift_end && checkOutInput && !checkOutInput.value) {
-            checkOutInput.value = dateVal + 'T' + u.shift_end;
+            const outDate = checkOutDate(dateVal, u.shift_start, u.shift_end);
+            checkOutInput.value = outDate + 'T' + u.shift_end;
         }
 
-        // Kechikish tekshirish va statusni belgilash
         autoDetectStatus();
     }
 
@@ -281,26 +297,20 @@
         const u = usersData[userId];
         if (!u.shift_start) return;
 
-        const dateVal = dateInput.value;
+        const dateVal = dateInput ? dateInput.value : '';
         if (!dateVal) return;
 
         const shiftStart = new Date(dateVal + 'T' + u.shift_start);
         const checkIn = new Date(checkInInput.value);
 
-        if (statusSelect) {
-            // Agar status hali default holatda bo'lsa
-            if (statusSelect.value === 'present' || statusSelect.value === 'late') {
-                if (checkIn > shiftStart) {
-                    statusSelect.value = 'late';
-                } else {
-                    statusSelect.value = 'present';
-                }
-            }
+        if (statusSelect && (statusSelect.value === 'present' || statusSelect.value === 'late')) {
+            // 15 daqiqa grace period
+            const diffMin = (checkIn - shiftStart) / 60000;
+            statusSelect.value = diffMin > 15 ? 'late' : 'present';
         }
     }
 
     userSelect.addEventListener('change', function() {
-        // Yangi hodim tanlanganda — yangi qiymatlar bilan to'ldirish
         if (checkInInput) checkInInput.value = '';
         if (checkOutInput) checkOutInput.value = '';
         if (statusSelect) statusSelect.value = 'present';
@@ -309,14 +319,16 @@
 
     if (dateInput) {
         dateInput.addEventListener('change', function() {
-            // Sana o'zgarganda check_in/out ni yangilash
             const userId = userSelect.value;
             if (!userId || !usersData[userId]) return;
             const u = usersData[userId];
             const dateVal = dateInput.value;
             if (!dateVal) return;
             if (u.shift_start && checkInInput) checkInInput.value = dateVal + 'T' + u.shift_start;
-            if (u.shift_end && checkOutInput) checkOutInput.value = dateVal + 'T' + u.shift_end;
+            if (u.shift_end && checkOutInput) {
+                const outDate = checkOutDate(dateVal, u.shift_start, u.shift_end);
+                checkOutInput.value = outDate + 'T' + u.shift_end;
+            }
             autoDetectStatus();
         });
     }

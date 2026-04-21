@@ -589,10 +589,16 @@ class AttendanceCreateView(CEORequiredMixin, View):
         users = User.objects.filter(branch=branch, is_active=True).select_related('shift') if branch else User.objects.none()
         data = {}
         for u in users:
+            sh = u.shift
+            # is_night: end_time < start_time → tungi smena (check_out ertasi kun)
+            is_night = bool(
+                sh and sh.start_time and sh.end_time and sh.end_time <= sh.start_time
+            )
             data[str(u.pk)] = {
-                'shift_id': u.shift_id or '',
-                'shift_start': u.shift.start_time.strftime('%H:%M') if u.shift and u.shift.start_time else '',
-                'shift_end': u.shift.end_time.strftime('%H:%M') if u.shift and u.shift.end_time else '',
+                'shift_id':    (sh.pk if sh else '') or '',
+                'shift_start': sh.start_time.strftime('%H:%M') if sh and sh.start_time else '',
+                'shift_end':   sh.end_time.strftime('%H:%M')   if sh and sh.end_time   else '',
+                'is_night':    is_night,
             }
         return json.dumps(data)
 
@@ -717,9 +723,32 @@ class BulkAttendanceView(CEORequiredMixin, View):
                         tz,
                     )
 
+            from apps.attendance.view2 import (
+                _detect_effective_shift,
+                _compute_check_in_info,
+                _compute_check_out_info,
+                _shift_start_dt,
+                _shift_end_dt_from_start,
+            )
+
             created = 0
             updated = 0
             for user in users:
+                # Effective maydonlarni hisoblash
+                eff_shift, start_dt, _ = _detect_effective_shift(user, dt_in)
+                in_info = _compute_check_in_info(actual_in=dt_in, start_dt=start_dt)
+                effective_in = in_info['effective_in']
+                status = in_info['status'] if in_info['status'] != 'early' else Attendance.STATUS_PRESENT
+
+                effective_out = dt_out
+                actual_out = dt_out
+                if dt_out and eff_shift and eff_shift.start_time and eff_shift.end_time:
+                    check_in_date = timezone.localtime(dt_in).date()
+                    s_dt = _shift_start_dt(eff_shift, check_in_date)
+                    end_dt = _shift_end_dt_from_start(eff_shift, s_dt)
+                    out_info = _compute_check_out_info(actual_out=dt_out, end_dt=end_dt)
+                    effective_out = out_info['effective_out']
+
                 att = Attendance.objects.filter(user=user, date=date, branch=branch).first()
                 if att is None:
                     Attendance.objects.create(
@@ -727,13 +756,21 @@ class BulkAttendanceView(CEORequiredMixin, View):
                         branch=branch,
                         date=date,
                         check_in=dt_in,
-                        check_out=dt_out,
+                        check_out=effective_out,
+                        actual_check_out=actual_out if not checkout_blank else None,
+                        effective_check_in=effective_in,
+                        effective_shift=eff_shift,
+                        status=status,
                     )
                     created += 1
                     continue
                 att.check_in = dt_in
+                att.effective_check_in = effective_in
+                att.effective_shift = eff_shift
+                att.status = status
                 if not checkout_blank:
-                    att.check_out = dt_out
+                    att.check_out = effective_out
+                    att.actual_check_out = actual_out
                 att.save()
                 updated += 1
             parts = []

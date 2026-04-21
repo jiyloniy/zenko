@@ -72,7 +72,7 @@ class AttendanceForm(forms.ModelForm):
     def __init__(self, *args, branch=None, **kwargs):
         super().__init__(*args, **kwargs)
         if branch:
-            self.fields['user'].queryset = User.objects.filter(branch=branch, is_active=True)
+            self.fields['user'].queryset = User.objects.filter(branch=branch, is_active=True).select_related('shift')
         self.fields['check_in'].input_formats = ['%Y-%m-%dT%H:%M']
         self.fields['check_out'].input_formats = ['%Y-%m-%dT%H:%M']
         self.fields['check_in'].required = False
@@ -87,10 +87,74 @@ class AttendanceForm(forms.ModelForm):
             data['check_in'] = None
             data['check_out'] = None
         elif not ci:
-            raise forms.ValidationError('Kelmadi bo\'lmasa, kirish vaqtini kiriting.')
+            raise forms.ValidationError("Kelmadi bo'lmasa, kirish vaqtini kiriting.")
         if co and not ci:
             raise forms.ValidationError('Chiqish vaqti bo\'lsa, kirish vaqti ham bo\'lishi kerak.')
+        if ci and co and co <= ci:
+            # Tungi smena: check_out keyingi kunga o'tkaziladi
+            from datetime import timedelta
+            data['check_out'] = co + timedelta(days=1)
+            co = data['check_out']
         return data
+
+    def save(self, commit=True):
+        """
+        Saqlashda effective_shift, effective_check_in, actual_check_out
+        va status ni avtomatik hisoblaydi — xuddi QR scan logikasidek.
+        """
+        from django.utils import timezone
+        from apps.attendance.view2 import (
+            _detect_effective_shift,
+            _compute_check_in_info,
+            _compute_check_out_info,
+        )
+
+        att = super().save(commit=False)
+        ci = att.check_in
+        co = att.check_out
+
+        if ci:
+            # Timezone-aware qilish (agar naive bo'lsa)
+            if timezone.is_naive(ci):
+                ci = timezone.make_aware(ci)
+                att.check_in = ci
+
+            eff_shift, start_dt, _ = _detect_effective_shift(att.user, ci)
+            att.effective_shift = eff_shift
+
+            in_info = _compute_check_in_info(actual_in=ci, start_dt=start_dt)
+            att.effective_check_in = in_info['effective_in']
+            status = in_info['status']
+            att.status = status if status != 'early' else Attendance.STATUS_PRESENT
+
+            if co:
+                if timezone.is_naive(co):
+                    co = timezone.make_aware(co)
+                    att.check_out = co
+                att.actual_check_out = co
+
+                # end_dt ni check_in sanasiga qarab hisoblaymiz
+                end_dt = None
+                if eff_shift and eff_shift.start_time and eff_shift.end_time:
+                    from apps.attendance.view2 import _shift_start_dt, _shift_end_dt_from_start
+                    check_in_date = timezone.localtime(ci).date()
+                    s_dt = _shift_start_dt(eff_shift, check_in_date)
+                    end_dt = _shift_end_dt_from_start(eff_shift, s_dt)
+
+                out_info = _compute_check_out_info(actual_out=co, end_dt=end_dt)
+                att.check_out = out_info['effective_out']
+            else:
+                att.actual_check_out = None
+                att.check_out = None
+        else:
+            # Absent
+            att.effective_shift = None
+            att.effective_check_in = None
+            att.actual_check_out = None
+
+        if commit:
+            att.save()
+        return att
 
 
 class BulkAttendanceForm(forms.Form):
