@@ -1,377 +1,530 @@
 {% extends "ceo/base.html" %}
-
 {% block title %}{{ employee.name }} — Oylik {{ month_name }} {{ year }}{% endblock %}
 {% block page_title %}Oylik batafsil{% endblock %}
 
 {% block topbar_actions %}
 <a href="{% url 'ceo:salary_list' %}?year={{ year }}&month={{ month }}" class="btn btn-secondary btn-sm">
     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width:15px;height:15px"><path stroke-linecap="round" stroke-linejoin="round" d="M9 15 3 9m0 0 6-6M3 9h12a6 6 0 0 1 0 12h-3"/></svg>
-    Orqaga
+    Ro'yxatga qaytish
 </a>
 {% endblock %}
 
 {% block extra_css %}
 <style>
-    .detail-layout { display: grid; grid-template-columns: 340px 1fr; gap: 24px; align-items: start; }
-    @media(max-width:900px){ .detail-layout { grid-template-columns: 1fr; } }
+/* ─── Period bar ─── */
+.period-bar {
+    display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+    background: var(--white); border: 1px solid var(--gray-200);
+    border-radius: 14px; padding: 14px 20px; margin-bottom: 24px;
+    box-shadow: 0 1px 3px rgba(0,0,0,.04);
+}
+.period-bar select {
+    padding: 8px 12px; border-radius: 8px; border: 1.5px solid var(--gray-200);
+    font-size: 14px; font-weight: 600; background: var(--white); cursor: pointer;
+    color: var(--black); transition: border-color .2s;
+}
+.period-bar select:focus { outline: none; border-color: var(--orange); }
+.period-bar .go-btn {
+    padding: 8px 20px; border-radius: 8px; border: none;
+    background: var(--orange); color: #fff; font-size: 14px; font-weight: 700;
+    cursor: pointer; transition: background .2s;
+}
+.period-bar .go-btn:hover { background: var(--orange-hover); }
+.period-label { margin-left: auto; font-size: 16px; font-weight: 800; color: var(--black); }
 
-    /* Left panel */
-    .left-panel { display: flex; flex-direction: column; gap: 16px; }
+/* ─── Layout ─── */
+.detail-grid { display: grid; grid-template-columns: 360px 1fr; gap: 24px; align-items: start; }
+@media(max-width:960px) { .detail-grid { grid-template-columns: 1fr; } }
+.left-col { display: flex; flex-direction: column; gap: 16px; }
 
-    .emp-card {
-        background: var(--white); border: 1px solid var(--gray-200); border-radius: 14px; padding: 24px;
-    }
-    .emp-avatar {
-        width: 60px; height: 60px; border-radius: 50%; background: var(--orange);
-        display: flex; align-items: center; justify-content: center;
-        font-weight: 800; font-size: 24px; color: #fff; margin-bottom: 14px;
-    }
-    .emp-name { font-size: 18px; font-weight: 800; color: var(--black); margin-bottom: 4px; }
-    .emp-meta { font-size: 13px; color: var(--gray-500); }
+/* ─── Panel card ─── */
+.panel {
+    background: var(--white); border: 1px solid var(--gray-200);
+    border-radius: 14px; overflow: hidden;
+    box-shadow: 0 1px 4px rgba(0,0,0,.04);
+}
+.panel-head {
+    padding: 14px 18px; border-bottom: 1px solid var(--gray-200);
+    background: var(--gray-100); display: flex; align-items: center; gap: 8px;
+}
+.panel-head h4 { font-size: 13px; font-weight: 700; color: var(--black); }
+.panel-head .ph-icon { color: var(--orange); }
+.panel-body { padding: 18px; }
 
-    .stat-row { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid var(--gray-200); }
-    .stat-row:last-child { border-bottom: none; }
-    .stat-row .label { font-size: 13px; color: var(--gray-500); }
-    .stat-row .value { font-size: 14px; font-weight: 700; color: var(--black); }
+/* ─── Employee card ─── */
+.emp-hero {
+    background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+    border-radius: 14px; padding: 22px 20px; color: #fff;
+    box-shadow: 0 4px 16px rgba(0,0,0,.12);
+}
+.emp-hero-top { display: flex; align-items: center; gap: 14px; margin-bottom: 18px; }
+.emp-avatar-lg {
+    width: 52px; height: 52px; border-radius: 50%;
+    background: var(--orange); display: flex; align-items: center; justify-content: center;
+    font-weight: 900; font-size: 22px; color: #fff; flex-shrink: 0;
+}
+.emp-hero-name { font-size: 17px; font-weight: 800; }
+.emp-hero-meta { font-size: 12px; color: rgba(255,255,255,.6); margin-top: 3px; }
 
-    .net-total {
-        background: var(--orange); border-radius: 12px; padding: 20px 24px;
-        display: flex; justify-content: space-between; align-items: center;
-    }
-    .net-total .nt-label { font-size: 14px; font-weight: 600; color: rgba(255,255,255,.85); }
-    .net-total .nt-val   { font-size: 22px; font-weight: 900; color: #fff; font-family: monospace; }
+.stat-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.mini-stat {
+    background: rgba(255,255,255,.08); border-radius: 10px; padding: 10px 12px;
+}
+.mini-stat .ms-label { font-size: 11px; color: rgba(255,255,255,.55); font-weight: 600; text-transform: uppercase; letter-spacing: .3px; }
+.mini-stat .ms-val   { font-size: 16px; font-weight: 800; color: #fff; font-family: monospace; margin-top: 2px; }
+.mini-stat .ms-sub   { font-size: 11px; color: rgba(255,255,255,.4); }
 
-    /* Rate form */
-    .rate-form { background: var(--white); border: 1px solid var(--gray-200); border-radius: 14px; padding: 20px; }
-    .rate-form h4 { font-size: 14px; font-weight: 700; color: var(--black); margin-bottom: 12px; }
-    .rate-input-row { display: flex; gap: 8px; }
-    .rate-input-row input {
-        flex: 1; padding: 9px 12px; border: 1px solid var(--gray-200); border-radius: 8px;
-        font-size: 14px; font-weight: 600;
-    }
-    .rate-input-row input:focus { outline: none; border-color: var(--orange); box-shadow: 0 0 0 3px rgba(245,130,32,.15); }
+/* ─── Net total highlight ─── */
+.net-banner {
+    background: linear-gradient(135deg, var(--orange), #f97316);
+    border-radius: 12px; padding: 16px 20px;
+    display: flex; align-items: center; justify-content: space-between;
+}
+.net-banner .nb-label { font-size: 13px; font-weight: 600; color: rgba(255,255,255,.85); }
+.net-banner .nb-val   { font-size: 22px; font-weight: 900; color: #fff; font-family: monospace; }
 
-    /* Bonus form */
-    .bonus-form { background: var(--white); border: 1px solid var(--gray-200); border-radius: 14px; padding: 20px; }
-    .bonus-form h4 { font-size: 14px; font-weight: 700; color: var(--black); margin-bottom: 12px; }
-    .bonus-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-    .bonus-grid input, .bonus-grid select {
-        padding: 9px 12px; border: 1px solid var(--gray-200); border-radius: 8px;
-        font-size: 13px; width: 100%;
-    }
-    .bonus-grid input:focus, .bonus-grid select:focus {
-        outline: none; border-color: var(--orange); box-shadow: 0 0 0 3px rgba(245,130,32,.15);
-    }
+/* ─── Info rows ─── */
+.info-row {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 10px 0; border-bottom: 1px solid var(--gray-200);
+    font-size: 13px;
+}
+.info-row:last-child { border-bottom: none; }
+.info-row .ir-label { color: var(--gray-500); font-weight: 500; }
+.info-row .ir-val   { font-weight: 700; color: var(--black); text-align: right; }
 
-    /* Bonus list */
-    .bonus-item {
-        display: flex; align-items: center; gap: 10px; padding: 10px 0;
-        border-bottom: 1px solid var(--gray-200);
-    }
-    .bonus-item:last-child { border-bottom: none; }
-    .bonus-badge {
-        padding: 3px 10px; border-radius: 6px; font-size: 12px; font-weight: 700; white-space: nowrap;
-    }
-    .bonus-badge.bonus   { background: #F0FDF4; color: #16a34a; }
-    .bonus-badge.kpi     { background: #EFF6FF; color: #2563EB; }
-    .bonus-badge.penalty { background: #FEF2F2; color: var(--red); }
-    .bonus-badge.other   { background: var(--gray-100); color: var(--gray-500); }
-    .bonus-note { flex: 1; font-size: 13px; color: var(--gray-700); }
-    .bonus-amount { font-family: monospace; font-size: 14px; font-weight: 700; }
-    .bonus-amount.plus  { color: #16a34a; }
-    .bonus-amount.minus { color: var(--red); }
-    .del-btn { background: none; border: none; cursor: pointer; color: var(--gray-500); padding: 4px; border-radius: 4px; transition: color .2s; }
-    .del-btn:hover { color: var(--red); }
+/* ─── Form fields ─── */
+.f-group { margin-bottom: 12px; }
+.f-group label { display: block; font-size: 12px; font-weight: 700; color: var(--gray-600, #4b5563); margin-bottom: 5px; text-transform: uppercase; letter-spacing: .3px; }
+.f-input {
+    width: 100%; padding: 9px 12px;
+    border: 1.5px solid var(--gray-200); border-radius: 8px;
+    font-size: 14px; font-weight: 600; color: var(--black); background: var(--white);
+    transition: border-color .2s;
+}
+.f-input:focus { outline: none; border-color: var(--orange); box-shadow: 0 0 0 3px rgba(245,130,32,.12); }
+.f-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.f-submit {
+    width: 100%; padding: 10px; border-radius: 9px; border: none;
+    background: var(--orange); color: #fff; font-size: 14px; font-weight: 700;
+    cursor: pointer; margin-top: 4px; transition: background .2s;
+    display: flex; align-items: center; justify-content: center; gap: 6px;
+}
+.f-submit:hover { background: var(--orange-hover); }
+.f-hint { font-size: 11px; color: var(--gray-500); margin-top: 4px; }
 
-    /* Right panel — attendance rows */
-    .right-panel {}
-    .period-bar {
-        display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
-        background: var(--white); border: 1px solid var(--gray-200);
-        border-radius: 12px; padding: 14px 18px; margin-bottom: 20px;
-    }
-    .period-bar select { padding: 7px 12px; border-radius: 7px; border: 1px solid var(--gray-200); font-size: 14px; font-weight: 600; }
-    .period-bar button { padding: 7px 16px; border-radius: 7px; border: none; background: var(--orange); color: #fff; font-size: 14px; font-weight: 600; cursor: pointer; }
+/* ─── Rate history list ─── */
+.rate-item {
+    display: flex; align-items: center; gap: 10px;
+    padding: 10px 0; border-bottom: 1px dashed var(--gray-200);
+}
+.rate-item:last-child { border-bottom: none; }
+.rate-date-badge {
+    padding: 3px 9px; border-radius: 6px; font-size: 12px; font-weight: 700;
+    background: var(--orange-light); color: var(--orange); white-space: nowrap;
+}
+.rate-date-badge.future { background: #F0FDF4; color: #16a34a; }
+.rate-amount { flex: 1; font-family: monospace; font-weight: 800; font-size: 14px; color: var(--black); }
+.rate-note   { font-size: 12px; color: var(--gray-500); }
+.del-btn {
+    background: none; border: none; cursor: pointer; color: var(--gray-300);
+    padding: 3px; border-radius: 4px; transition: color .2s; flex-shrink: 0;
+}
+.del-btn:hover { color: var(--red); }
 
-    .att-row { display: grid; grid-template-columns: 90px 1fr 1fr 1fr 1fr; gap: 0; align-items: center; }
-    .att-header { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .4px; color: var(--gray-500); padding: 10px 16px; border-bottom: 2px solid var(--gray-200); background: var(--gray-100); }
-    .att-cell { padding: 13px 16px; border-bottom: 1px solid var(--gray-200); font-size: 13px; color: var(--gray-700); }
-    .att-cell.date-cell { font-weight: 700; color: var(--black); font-size: 13px; }
-    .att-cell.earned-cell { font-family: monospace; font-weight: 700; font-size: 13px; color: #16a34a; }
-    .att-cell.zero { color: var(--gray-500); }
+/* ─── Bonus list ─── */
+.bonus-item {
+    display: flex; align-items: center; gap: 8px;
+    padding: 10px 0; border-bottom: 1px dashed var(--gray-200);
+}
+.bonus-item:last-child { border-bottom: none; }
+.bonus-chip {
+    padding: 3px 9px; border-radius: 6px; font-size: 11px; font-weight: 800;
+    text-transform: uppercase; letter-spacing: .3px; white-space: nowrap;
+}
+.chip-bonus   { background: #F0FDF4; color: #16a34a; }
+.chip-kpi     { background: #EFF6FF; color: #2563EB; }
+.chip-penalty { background: #FEF2F2; color: var(--red); }
+.chip-other   { background: var(--gray-100); color: var(--gray-500); }
+.bonus-note  { flex: 1; font-size: 12px; color: var(--gray-700); }
+.bonus-amt   { font-family: monospace; font-weight: 800; font-size: 14px; white-space: nowrap; }
+.bonus-amt.plus  { color: #16a34a; }
+.bonus-amt.minus { color: var(--red); }
 
-    .status-chip {
-        display: inline-block; padding: 3px 9px; border-radius: 6px; font-size: 12px; font-weight: 700;
-    }
-    .chip-present { background: #F0FDF4; color: #16a34a; }
-    .chip-late    { background: var(--orange-light); color: var(--orange); }
-    .chip-absent  { background: #FEF2F2; color: var(--red); }
+/* ─── Attendance table ─── */
+.att-section { background: var(--white); border: 1px solid var(--gray-200); border-radius: 14px; overflow: hidden; box-shadow: 0 1px 4px rgba(0,0,0,.04); }
+.att-sec-head { padding: 16px 20px; border-bottom: 1px solid var(--gray-200); background: var(--gray-100); display: flex; align-items: center; justify-content: space-between; }
+.att-sec-head h3 { font-size: 14px; font-weight: 700; color: var(--black); }
+.att-sec-head span { font-size: 12px; color: var(--gray-500); }
 
-    .time-mono { font-family: monospace; font-size: 12px; color: var(--black); }
-    .time-mono.dim { color: var(--gray-500); }
+.att-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.att-table th { text-align: left; padding: 10px 14px; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .4px; color: var(--gray-500); border-bottom: 2px solid var(--gray-200); background: var(--gray-100); white-space: nowrap; }
+.att-table td { padding: 12px 14px; border-bottom: 1px solid var(--gray-200); vertical-align: middle; }
+.att-table tbody tr:last-child td { border-bottom: none; }
+.att-table tbody tr:hover td { background: var(--gray-100); }
+.att-table tfoot td { background: var(--gray-100); font-weight: 700; border-top: 2px solid var(--gray-200); padding: 12px 14px; font-size: 13px; }
 
-    .section-card {
-        background: var(--white); border: 1px solid var(--gray-200); border-radius: 14px;
-        overflow: hidden; margin-bottom: 20px;
-    }
-    .section-head {
-        padding: 14px 20px; border-bottom: 1px solid var(--gray-200);
-        font-size: 14px; font-weight: 700; color: var(--black);
-        display: flex; justify-content: space-between; align-items: center;
-    }
-    .section-head .head-sub { font-size: 12px; font-weight: 500; color: var(--gray-500); }
+.s-chip { display: inline-block; padding: 3px 9px; border-radius: 6px; font-size: 11px; font-weight: 800; }
+.s-present { background: #F0FDF4; color: #16a34a; }
+.s-late    { background: var(--orange-light); color: var(--orange); }
+.s-absent  { background: #FEF2F2; color: var(--red); }
+
+.t-mono { font-family: monospace; font-size: 13px; font-weight: 700; color: var(--black); }
+.t-dim  { font-size: 11px; color: var(--gray-500); font-family: monospace; }
+.t-earn { font-family: monospace; font-weight: 800; font-size: 13px; color: #16a34a; }
+.t-earn.zero { color: var(--gray-400, #9ca3af); }
+
+/* Rate change indicator */
+.rate-changed {
+    display: inline-flex; align-items: center; gap: 4px;
+    background: #FFF7ED; border: 1px solid #FED7AA;
+    border-radius: 5px; padding: 2px 7px; font-size: 11px; font-weight: 700; color: var(--orange);
+}
+
+/* ─── Section divider ─── */
+.sec-divider {
+    display: flex; align-items: center; gap: 8px;
+    font-size: 12px; font-weight: 700; text-transform: uppercase;
+    letter-spacing: .5px; color: var(--gray-500); margin: 4px 0 8px;
+}
+.sec-divider::after { content: ''; flex: 1; height: 1px; background: var(--gray-200); }
 </style>
 {% endblock %}
 
 {% block content %}
 
-<!-- Period selector -->
-<form method="get" class="period-bar" style="margin-bottom:24px;">
-    <label style="font-size:13px;font-weight:600;color:var(--gray-700);">Yil:</label>
-    <select name="year">
-        {% for y in years %}
-        <option value="{{ y }}" {% if y == year %}selected{% endif %}>{{ y }}</option>
-        {% endfor %}
-    </select>
-    <label style="font-size:13px;font-weight:600;color:var(--gray-700);">Oy:</label>
-    <select name="month">
-        {% for mn in month_names %}
-        <option value="{{ forloop.counter }}" {% if forloop.counter == month %}selected{% endif %}>{{ mn }}</option>
-        {% endfor %}
-    </select>
-    <button type="submit">Ko'rish</button>
-    <span style="margin-left:auto;font-size:16px;font-weight:700;color:var(--black);">{{ employee.name }} — {{ month_name }} {{ year }}</span>
+<!-- Period bar -->
+<form method="get" class="period-bar">
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width:20px;height:20px;color:var(--orange);flex-shrink:0"><path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5"/></svg>
+    <select name="year">{% for y in years %}<option value="{{ y }}" {% if y == year %}selected{% endif %}>{{ y }}</option>{% endfor %}</select>
+    <select name="month">{% for mn in month_names %}<option value="{{ forloop.counter }}" {% if forloop.counter == month %}selected{% endif %}>{{ mn }}</option>{% endfor %}</select>
+    <button type="submit" class="go-btn">Ko'rish</button>
+    <span class="period-label">{{ employee.name }} — {{ month_name }} {{ year }}</span>
 </form>
 
-<div class="detail-layout">
+<div class="detail-grid">
 
-    <!-- LEFT: employee summary + forms -->
-    <div class="left-panel">
+    <!-- ══ LEFT COLUMN ══ -->
+    <div class="left-col">
 
-        <!-- Employee card -->
-        <div class="emp-card">
-            <div class="emp-avatar">{{ employee.name|make_list|first }}</div>
-            <div class="emp-name">{{ employee.name }}</div>
-            <div class="emp-meta">
-                {% if employee.role %}{{ employee.role.name }}{% endif %}
-                {% if employee.department %} · {{ employee.department.name }}{% endif %}
-                {% if employee.shift %} · {{ employee.shift.name }}{% endif %}
+        <!-- Employee hero -->
+        <div class="emp-hero">
+            <div class="emp-hero-top">
+                <div class="emp-avatar-lg">{{ employee.name|make_list|first }}</div>
+                <div>
+                    <div class="emp-hero-name">{{ employee.name }}</div>
+                    <div class="emp-hero-meta">
+                        {% if employee.role %}{{ employee.role.name }}{% endif %}
+                        {% if employee.department %} · {{ employee.department.name }}{% endif %}
+                        {% if employee.shift %} · {{ employee.shift.name }}{% endif %}
+                    </div>
+                </div>
             </div>
-
-            <div style="margin-top:16px;">
-                <div class="stat-row">
-                    <span class="label">Soatlik stavka</span>
-                    <span class="value">
-                        {% if hourly_rate %}{{ hourly_rate|floatformat:0 }} so'm/soat{% else %}—{% endif %}
-                    </span>
+            <div class="stat-grid-2">
+                <div class="mini-stat">
+                    <div class="ms-label">Ishlagan soat</div>
+                    <div class="ms-val">{{ total_hours|floatformat:2 }}</div>
+                    <div class="ms-sub">soat</div>
                 </div>
-                <div class="stat-row">
-                    <span class="label">Ishlagan soatlar</span>
-                    <span class="value">{{ total_hours|floatformat:2 }} soat</span>
+                <div class="mini-stat">
+                    <div class="ms-label">Yozuvlar</div>
+                    <div class="ms-val">{{ total_records }}</div>
+                    <div class="ms-sub">
+                        <span style="color:#4ade80;">{{ present_count }}</span> /
+                        <span style="color:#fb923c;">{{ late_count }}</span> /
+                        <span style="color:#f87171;">{{ absent_count }}</span>
+                    </div>
                 </div>
-                <div class="stat-row">
-                    <span class="label">Davomat yozuvlari</span>
-                    <span class="value">{{ total_records }} ta</span>
+                <div class="mini-stat">
+                    <div class="ms-label">Asosiy maosh</div>
+                    <div class="ms-val" style="font-size:14px;">{{ base_salary|floatformat:0 }}</div>
+                    <div class="ms-sub">so'm</div>
                 </div>
-                <div class="stat-row">
-                    <span class="label">Keldi / Kechikdi / Kelmadi</span>
-                    <span class="value">
-                        <span style="color:#16a34a;">{{ present_count }}</span> /
-                        <span style="color:var(--orange);">{{ late_count }}</span> /
-                        <span style="color:var(--red);">{{ absent_count }}</span>
-                    </span>
-                </div>
-                <div class="stat-row">
-                    <span class="label">Asosiy maosh</span>
-                    <span class="value" style="font-family:monospace;">{{ base_salary|floatformat:0 }} so'm</span>
-                </div>
-                <div class="stat-row">
-                    <span class="label">Bonuslar</span>
-                    <span class="value" style="color:#16a34a;font-family:monospace;">+{{ bonus_total|floatformat:0 }} so'm</span>
-                </div>
-                <div class="stat-row">
-                    <span class="label">Jarimalar</span>
-                    <span class="value" style="color:var(--red);font-family:monospace;">-{{ penalty_total|floatformat:0 }} so'm</span>
+                <div class="mini-stat">
+                    <div class="ms-label">Qo'shimchalar</div>
+                    <div class="ms-val" style="font-size:14px;color:#4ade80;">+{{ bonus_total|floatformat:0 }}</div>
+                    <div class="ms-sub" style="color:#f87171;">−{{ penalty_total|floatformat:0 }}</div>
                 </div>
             </div>
         </div>
 
         <!-- Net total -->
-        <div class="net-total">
-            <div class="nt-label">Jami to'lov ({{ month_name }} {{ year }})</div>
-            <div class="nt-val">{{ net_salary|floatformat:0 }} so'm</div>
+        <div class="net-banner">
+            <div>
+                <div class="nb-label">{{ month_name }} {{ year }} jami to'lov</div>
+                <div style="font-size:11px;color:rgba(255,255,255,.6);margin-top:2px;">stavka × soat + bonus − jarima</div>
+            </div>
+            <div class="nb-val">{{ net_salary|floatformat:0 }} so'm</div>
         </div>
 
-        <!-- Set hourly rate -->
-        <div class="rate-form">
-            <h4>
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width:16px;height:16px;vertical-align:-3px;margin-right:4px;"><path stroke-linecap="round" stroke-linejoin="round" d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.325.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 0 1 1.37.49l1.296 2.247a1.125 1.125 0 0 1-.26 1.431l-1.003.827c-.293.241-.438.613-.43.992a7.723 7.723 0 0 1 0 .255c-.008.378.137.75.43.991l1.004.827c.424.35.534.955.26 1.43l-1.298 2.247a1.125 1.125 0 0 1-1.369.491l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.47 6.47 0 0 1-.22.128c-.331.183-.581.495-.644.869l-.213 1.281c-.09.543-.56.94-1.11.94h-2.594c-.55 0-1.019-.398-1.11-.94l-.213-1.281c-.062-.374-.312-.686-.644-.87a6.52 6.52 0 0 1-.22-.127c-.325-.196-.72-.257-1.076-.124l-1.217.456a1.125 1.125 0 0 1-1.369-.49l-1.297-2.247a1.125 1.125 0 0 1 .26-1.431l1.004-.827c.292-.24.437-.613.43-.991a6.932 6.932 0 0 1 0-.255c.007-.38-.138-.751-.43-.992l-1.004-.827a1.125 1.125 0 0 1-.26-1.43l1.297-2.247a1.125 1.125 0 0 1 1.37-.491l1.216.456c.356.133.751.072 1.076-.124.072-.044.146-.086.22-.128.332-.183.582-.495.644-.869l.214-1.28Z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"/></svg>
-                Soatlik stavka belgilash
-            </h4>
-            <form method="post">
-                {% csrf_token %}
-                <input type="hidden" name="action" value="set_rate">
-                <input type="hidden" name="year" value="{{ year }}">
-                <input type="hidden" name="month" value="{{ month }}">
-                <div class="rate-input-row">
-                    <input type="number" name="hourly_rate" min="0" step="100"
-                           value="{{ hourly_rate|floatformat:0 }}" placeholder="0">
-                    <button type="submit" class="btn btn-primary btn-sm">Saqlash</button>
+        <!-- Breakdown -->
+        <div class="panel">
+            <div class="panel-head">
+                <svg class="ph-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width:16px;height:16px"><path stroke-linecap="round" stroke-linejoin="round" d="M7.5 14.25v2.25m3-4.5v4.5m3-6.75v6.75m3-9v9M6 20.25h12A2.25 2.25 0 0 0 20.25 18V6A2.25 2.25 0 0 0 18 3.75H6A2.25 2.25 0 0 0 3.75 6v12A2.25 2.25 0 0 0 6 20.25Z"/></svg>
+                <h4>Hisob tafsiloti</h4>
+            </div>
+            <div class="panel-body" style="padding:16px 18px;">
+                <div class="info-row">
+                    <span class="ir-label">Stavka (joriy)</span>
+                    <span class="ir-val" style="color:var(--orange);font-family:monospace;">
+                        {% if current_rate %}{{ current_rate|floatformat:0 }} so'm/soat{% else %}Belgilanmagan{% endif %}
+                    </span>
                 </div>
-                <div style="font-size:11px;color:var(--gray-500);margin-top:6px;">so'm / soat</div>
-            </form>
-        </div>
-
-        <!-- Add bonus / KPI / penalty -->
-        <div class="bonus-form">
-            <h4>
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width:16px;height:16px;vertical-align:-3px;margin-right:4px;"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v6m3-3H9m12 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/></svg>
-                Bonus / KPI / Jarima qo'shish
-            </h4>
-            <form method="post">
-                {% csrf_token %}
-                <input type="hidden" name="action" value="add_bonus">
-                <input type="hidden" name="year" value="{{ year }}">
-                <input type="hidden" name="month" value="{{ month }}">
-                <div class="bonus-grid">
-                    <select name="bonus_type">
-                        <option value="bonus">Mukofot</option>
-                        <option value="kpi">KPI</option>
-                        <option value="penalty">Jarima</option>
-                        <option value="other">Boshqa</option>
-                    </select>
-                    <input type="number" name="amount" min="0" step="1000" placeholder="Miqdor (so'm)">
+                <div class="info-row">
+                    <span class="ir-label">Ishlagan soat</span>
+                    <span class="ir-val" style="font-family:monospace;">{{ total_hours|floatformat:2 }} soat</span>
                 </div>
-                <input type="text" name="note" maxlength="255" placeholder="Izoh (ixtiyoriy)"
-                       style="width:100%;margin-top:8px;padding:9px 12px;border:1px solid var(--gray-200);border-radius:8px;font-size:13px;">
-                <button type="submit" class="btn btn-primary btn-sm" style="margin-top:10px;width:100%;justify-content:center;">
-                    Qo'shish
-                </button>
-            </form>
+                <div class="info-row">
+                    <span class="ir-label">Asosiy maosh</span>
+                    <span class="ir-val" style="font-family:monospace;">{{ base_salary|floatformat:0 }} so'm</span>
+                </div>
+                <div class="info-row">
+                    <span class="ir-label">Bonus / KPI</span>
+                    <span class="ir-val" style="color:#16a34a;font-family:monospace;">+{{ bonus_total|floatformat:0 }} so'm</span>
+                </div>
+                <div class="info-row">
+                    <span class="ir-label">Jarima</span>
+                    <span class="ir-val" style="color:var(--red);font-family:monospace;">−{{ penalty_total|floatformat:0 }} so'm</span>
+                </div>
+                <div style="margin-top:12px;padding:12px 14px;background:var(--orange-light);border-radius:9px;display:flex;justify-content:space-between;align-items:center;">
+                    <span style="font-size:13px;font-weight:700;color:var(--orange);">Jami to'lov</span>
+                    <span style="font-family:monospace;font-weight:900;font-size:16px;color:var(--orange);">{{ net_salary|floatformat:0 }} so'm</span>
+                </div>
+            </div>
         </div>
 
-        <!-- Existing bonuses -->
-        {% if bonuses %}
-        <div class="emp-card" style="padding:16px 20px;">
-            <div style="font-size:13px;font-weight:700;color:var(--black);margin-bottom:10px;">Qo'shimcha to'lovlar</div>
-            {% for b in bonuses %}
-            <div class="bonus-item">
-                <span class="bonus-badge {{ b.bonus_type }}">
-                    {% if b.bonus_type == 'bonus' %}Mukofot
-                    {% elif b.bonus_type == 'kpi' %}KPI
-                    {% elif b.bonus_type == 'penalty' %}Jarima
-                    {% else %}Boshqa{% endif %}
-                </span>
-                <span class="bonus-note">{{ b.note|default:"—" }}</span>
-                <span class="bonus-amount {% if b.is_deduction %}minus{% else %}plus{% endif %}">
-                    {% if b.is_deduction %}-{% else %}+{% endif %}{{ b.amount|floatformat:0 }}
-                </span>
-                <form method="post" style="display:inline;">
+        <!-- ── Stavka tarixi ── -->
+        <div class="panel">
+            <div class="panel-head">
+                <svg class="ph-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width:16px;height:16px"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v12m-3-2.818.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33"/></svg>
+                <h4>Stavka tarixi</h4>
+            </div>
+            <div class="panel-body">
+
+                <!-- Yangi stavka qo'shish -->
+                <div class="sec-divider">Yangi stavka belgilash</div>
+                <form method="post">
                     {% csrf_token %}
-                    <input type="hidden" name="action" value="delete_bonus">
-                    <input type="hidden" name="bonus_id" value="{{ b.pk }}">
+                    <input type="hidden" name="action" value="set_rate">
                     <input type="hidden" name="year" value="{{ year }}">
                     <input type="hidden" name="month" value="{{ month }}">
-                    <button type="submit" class="del-btn" title="O'chirish">
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width:15px;height:15px;"><path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0"/></svg>
+                    <div class="f-row">
+                        <div class="f-group">
+                            <label>Soatlik stavka (so'm)</label>
+                            <input type="number" name="hourly_rate" class="f-input" min="0" step="500"
+                                   value="{{ current_rate|floatformat:0 }}" placeholder="10 000">
+                        </div>
+                        <div class="f-group">
+                            <label>Amal qilish sanasi</label>
+                            <input type="date" name="effective_from" class="f-input"
+                                   value="{% now 'Y-m-d' %}" required>
+                        </div>
+                    </div>
+                    <div class="f-group">
+                        <label>Izoh (ixtiyoriy)</label>
+                        <input type="text" name="rate_note" class="f-input" maxlength="255" placeholder="Masalan: ko'tarilish, yangi shartnoma...">
+                    </div>
+                    <div class="f-hint" style="margin-bottom:8px;">
+                        ⚠ Faqat <strong>shu sanadan keyingi</strong> davomat yozuvlariga ta'sir qiladi. Oldingi yozuvlar o'z stavkasida qoladi.
+                    </div>
+                    <button type="submit" class="f-submit">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width:15px;height:15px"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5"/></svg>
+                        Stavkani saqlash
                     </button>
                 </form>
+
+                <!-- Mavjud stavkalar -->
+                {% if rate_entries %}
+                <div class="sec-divider" style="margin-top:16px;">Saqlangan stavkalar</div>
+                {% for entry in rate_entries %}
+                <div class="rate-item">
+                    <span class="rate-date-badge">{{ entry.effective_from|date:"d.m.Y" }}</span>
+                    <span class="rate-amount">{{ entry.hourly_rate|floatformat:0 }} so'm/soat</span>
+                    {% if entry.note %}<span class="rate-note">{{ entry.note }}</span>{% endif %}
+                    <form method="post" style="display:inline;">
+                        {% csrf_token %}
+                        <input type="hidden" name="action" value="delete_rate">
+                        <input type="hidden" name="rate_id" value="{{ entry.pk }}">
+                        <input type="hidden" name="year" value="{{ year }}">
+                        <input type="hidden" name="month" value="{{ month }}">
+                        <button type="submit" class="del-btn" title="O'chirish">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width:15px;height:15px"><path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0"/></svg>
+                        </button>
+                    </form>
+                </div>
+                {% endfor %}
+                {% else %}
+                <p style="font-size:13px;color:var(--gray-500);text-align:center;padding:12px 0;">Hali stavka belgilanmagan</p>
+                {% endif %}
             </div>
-            {% endfor %}
         </div>
-        {% endif %}
+
+        <!-- ── Bonus / KPI / Jarima ── -->
+        <div class="panel">
+            <div class="panel-head">
+                <svg class="ph-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width:16px;height:16px"><path stroke-linecap="round" stroke-linejoin="round" d="M9 14.25l6-6m4.5-3.493V21.75l-3.75-1.5-3.75 1.5-3.75-1.5-3.75 1.5V4.757c0-1.108.806-2.057 1.907-2.185a48.507 48.507 0 0 1 11.186 0c1.1.128 1.907 1.077 1.907 2.185ZM9.75 9h.008v.008H9.75V9Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm4.125 4.5h.008v.008h-.008V13.5Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Z"/></svg>
+                <h4>Bonus / KPI / Jarima — {{ month_name }} {{ year }}</h4>
+            </div>
+            <div class="panel-body">
+                <!-- Add form -->
+                <div class="sec-divider">Qo'shish</div>
+                <form method="post">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="add_bonus">
+                    <input type="hidden" name="year" value="{{ year }}">
+                    <input type="hidden" name="month" value="{{ month }}">
+                    <div class="f-row">
+                        <div class="f-group">
+                            <label>Turi</label>
+                            <select name="bonus_type" class="f-input">
+                                <option value="bonus">🏆 Mukofot</option>
+                                <option value="kpi">📊 KPI</option>
+                                <option value="penalty">⚠ Jarima</option>
+                                <option value="other">📌 Boshqa</option>
+                            </select>
+                        </div>
+                        <div class="f-group">
+                            <label>Miqdor (so'm)</label>
+                            <input type="number" name="amount" class="f-input" min="0" step="1000" placeholder="500 000">
+                        </div>
+                    </div>
+                    <div class="f-group">
+                        <label>Izoh</label>
+                        <input type="text" name="note" class="f-input" maxlength="255" placeholder="Sababi...">
+                    </div>
+                    <button type="submit" class="f-submit">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width:15px;height:15px"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>
+                        Qo'shish
+                    </button>
+                </form>
+
+                <!-- Existing -->
+                {% if bonuses %}
+                <div class="sec-divider" style="margin-top:16px;">Mavjud yozuvlar</div>
+                {% for b in bonuses %}
+                <div class="bonus-item">
+                    <span class="bonus-chip chip-{{ b.bonus_type }}">
+                        {% if b.bonus_type == 'bonus' %}Mukofot{% elif b.bonus_type == 'kpi' %}KPI{% elif b.bonus_type == 'penalty' %}Jarima{% else %}Boshqa{% endif %}
+                    </span>
+                    <span class="bonus-note">{{ b.note|default:"—" }}</span>
+                    <span class="bonus-amt {% if b.is_deduction %}minus{% else %}plus{% endif %}">
+                        {% if b.is_deduction %}−{% else %}+{% endif %}{{ b.amount|floatformat:0 }}
+                    </span>
+                    <form method="post" style="display:inline;">
+                        {% csrf_token %}
+                        <input type="hidden" name="action" value="delete_bonus">
+                        <input type="hidden" name="bonus_id" value="{{ b.pk }}">
+                        <input type="hidden" name="year" value="{{ year }}">
+                        <input type="hidden" name="month" value="{{ month }}">
+                        <button type="submit" class="del-btn" title="O'chirish">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width:15px;height:15px"><path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0"/></svg>
+                        </button>
+                    </form>
+                </div>
+                {% endfor %}
+                {% endif %}
+            </div>
+        </div>
 
     </div>
 
-    <!-- RIGHT: attendance breakdown -->
-    <div class="right-panel">
-        <div class="section-card">
-            <div class="section-head">
-                <span>Davomat yozuvlari — {{ month_name }} {{ year }}</span>
-                <span class="head-sub">{{ total_records }} yozuv · {{ total_hours|floatformat:2 }} soat</span>
+    <!-- ══ RIGHT COLUMN — Attendance breakdown ══ -->
+    <div>
+        <div class="att-section">
+            <div class="att-sec-head">
+                <h3>Davomat yozuvlari — {{ month_name }} {{ year }}</h3>
+                <span>{{ total_records }} yozuv · {{ total_hours|floatformat:2 }} soat · {{ base_salary|floatformat:0 }} so'm</span>
             </div>
 
             {% if att_rows %}
-            <!-- header row -->
-            <div class="att-row att-header">
-                <div style="padding:10px 16px;">Sana</div>
-                <div style="padding:10px 16px;">Holat</div>
-                <div style="padding:10px 16px;">Kirish</div>
-                <div style="padding:10px 16px;">Chiqish / Ishlagan</div>
-                <div style="padding:10px 16px;">Hisoblangan</div>
-            </div>
-            {% for row in att_rows %}
-            <div class="att-row" style="{% if forloop.last %}border-bottom:none;{% endif %}">
-                <!-- Sana -->
-                <div class="att-cell date-cell">{{ row.att.date|date:"d.m" }}</div>
+            <table class="att-table">
+                <thead>
+                    <tr>
+                        <th>Sana</th>
+                        <th>Holat</th>
+                        <th>Kirish</th>
+                        <th>Chiqish</th>
+                        <th>Ishlagan</th>
+                        <th>Stavka</th>
+                        <th>Hisoblangan</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for row in att_rows %}
+                    <tr>
+                        <!-- Sana -->
+                        <td>
+                            <span class="t-mono">{{ row.att.date|date:"d.m" }}</span>
+                            <div style="font-size:11px;color:var(--gray-500);">{{ row.att.date|date:"l"|truncatechars:2 }}</div>
+                        </td>
 
-                <!-- Holat -->
-                <div class="att-cell">
-                    {% if row.att.status == 'present' %}
-                        <span class="status-chip chip-present">Keldi</span>
-                    {% elif row.att.status == 'late' %}
-                        <span class="status-chip chip-late">Kechikdi</span>
-                    {% else %}
-                        <span class="status-chip chip-absent">Kelmadi</span>
-                    {% endif %}
-                    {% if row.att.effective_shift %}
-                    <div style="font-size:11px;color:var(--gray-500);margin-top:3px;">{{ row.att.effective_shift.name }}</div>
-                    {% endif %}
-                </div>
+                        <!-- Holat -->
+                        <td>
+                            {% if row.att.status == 'present' %}<span class="s-chip s-present">Keldi</span>
+                            {% elif row.att.status == 'late' %}<span class="s-chip s-late">Kechikdi</span>
+                            {% else %}<span class="s-chip s-absent">Kelmadi</span>{% endif %}
+                            {% if row.att.effective_shift %}
+                            <div style="font-size:11px;color:var(--gray-500);margin-top:2px;">{{ row.att.effective_shift.name }}</div>
+                            {% endif %}
+                        </td>
 
-                <!-- Kirish -->
-                <div class="att-cell">
-                    {% if row.att.check_in %}
-                    <div class="time-mono">{{ row.att.check_in|date:"H:i" }}</div>
-                    {% if row.att.effective_check_in and row.att.effective_check_in != row.att.check_in %}
-                    <div class="time-mono dim" style="font-size:11px;">hisob: {{ row.att.effective_check_in|date:"H:i" }}</div>
-                    {% endif %}
-                    {% else %}
-                    <span class="time-mono dim">—</span>
-                    {% endif %}
-                </div>
+                        <!-- Kirish -->
+                        <td>
+                            {% if row.att.check_in %}
+                                <span class="t-mono">{{ row.att.check_in|date:"H:i" }}</span>
+                                {% if row.att.effective_check_in and row.att.effective_check_in != row.att.check_in %}
+                                <div class="t-dim">hisob: {{ row.att.effective_check_in|date:"H:i" }}</div>
+                                {% endif %}
+                            {% else %}<span style="color:var(--gray-300);">—</span>{% endif %}
+                        </td>
 
-                <!-- Chiqish / Ishlagan -->
-                <div class="att-cell">
-                    {% if row.att.check_out %}
-                    <div class="time-mono">{{ row.att.check_out|date:"H:i" }}</div>
-                    {% if row.att.actual_check_out and row.att.actual_check_out != row.att.check_out %}
-                    <div class="time-mono dim" style="font-size:11px;">haqiqiy: {{ row.att.actual_check_out|date:"H:i" }}</div>
-                    {% endif %}
-                    {% if row.worked_seconds > 0 %}
-                    <div style="font-size:11px;color:#2563EB;font-family:monospace;margin-top:2px;">
-                        {{ row.worked_hours|floatformat:2 }} soat
-                    </div>
-                    {% endif %}
-                    {% elif row.att.check_in %}
-                    <span class="time-mono dim">Chiqmagan</span>
-                    {% else %}
-                    <span class="time-mono dim">—</span>
-                    {% endif %}
-                </div>
+                        <!-- Chiqish -->
+                        <td>
+                            {% if row.att.check_out %}
+                                <span class="t-mono">{{ row.att.check_out|date:"H:i" }}</span>
+                                {% if row.att.actual_check_out and row.att.actual_check_out != row.att.check_out %}
+                                <div class="t-dim">haqiqiy: {{ row.att.actual_check_out|date:"H:i" }}</div>
+                                {% endif %}
+                            {% elif row.att.check_in %}<span class="t-dim">ochiq</span>
+                            {% else %}<span style="color:var(--gray-300);">—</span>{% endif %}
+                        </td>
 
-                <!-- Hisoblangan -->
-                <div class="att-cell {% if row.earned == 0 %}zero{% else %}earned-cell{% endif %}">
-                    {% if row.earned %}
-                    {{ row.earned|floatformat:0 }} so'm
-                    {% else %}
-                    —
-                    {% endif %}
-                </div>
-            </div>
-            {% endfor %}
+                        <!-- Ishlagan -->
+                        <td>
+                            {% if row.worked_hours > 0 %}
+                            <span class="t-mono" style="color:#2563EB;">{{ row.worked_hours|floatformat:2 }}</span>
+                            <div class="t-dim">soat</div>
+                            {% else %}<span style="color:var(--gray-300);">—</span>{% endif %}
+                        </td>
 
-            <!-- totals row -->
-            <div class="att-row" style="background:var(--gray-100);font-weight:700;border-top:2px solid var(--gray-200);">
-                <div class="att-cell" style="font-weight:700;color:var(--black);">Jami</div>
-                <div class="att-cell" style="color:var(--gray-500);">{{ total_records }} yozuv</div>
-                <div class="att-cell"></div>
-                <div class="att-cell" style="color:#2563EB;font-family:monospace;">{{ total_hours|floatformat:2 }} soat</div>
-                <div class="att-cell" style="color:#16a34a;font-family:monospace;font-size:15px;">{{ base_salary|floatformat:0 }} so'm</div>
-            </div>
+                        <!-- Stavka (o'sha kunda) -->
+                        <td>
+                            {% if row.rate %}
+                            <span class="t-mono" style="font-size:12px;color:var(--orange);">{{ row.rate|floatformat:0 }}</span>
+                            {% else %}<span style="color:var(--gray-300);">—</span>{% endif %}
+                        </td>
 
+                        <!-- Hisoblangan -->
+                        <td>
+                            <span class="t-earn {% if row.earned == 0 %}zero{% endif %}">
+                                {% if row.earned %}{{ row.earned|floatformat:0 }} so'm{% else %}—{% endif %}
+                            </span>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+                <tfoot>
+                    <tr>
+                        <td colspan="4" style="color:var(--gray-500);">Jami ({{ total_records }} yozuv)</td>
+                        <td><span style="font-family:monospace;color:#2563EB;">{{ total_hours|floatformat:2 }} soat</span></td>
+                        <td></td>
+                        <td><span style="font-family:monospace;color:#16a34a;font-size:14px;">{{ base_salary|floatformat:0 }} so'm</span></td>
+                    </tr>
+                </tfoot>
+            </table>
             {% else %}
-            <div class="empty-state" style="padding:40px;">
+            <div class="empty-state" style="padding:50px 20px;">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5"/></svg>
                 <p>Bu oyda davomat yozuvlari topilmadi</p>
             </div>
             {% endif %}

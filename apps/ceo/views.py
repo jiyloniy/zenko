@@ -1415,19 +1415,15 @@ def _calc_worked_seconds(att):
 def _month_salary_for_user(user, year, month, branch):
     """
     Bir hodim uchun bir oylik oylik hisob-kitobi.
-    Qaytaradi: dict bilan to'liq ma'lumot.
+    Har bir davomat yozuvi O'SHA KUNDAGI stavka bilan hisoblanadi
+    (HourlyRateHistory.rate_for_date), shunda stavka o'zgarishi faqat
+    o'sha sanadan keyingi yozuvlarga ta'sir qiladi.
     """
-    from apps.ceo.models import SalarySettings, SalaryBonus
+    from apps.ceo.models import HourlyRateHistory, SalaryBonus
     from decimal import Decimal
-
-    # Soatlik stavka
-    try:
-        hourly_rate = user.salary_settings.hourly_rate
-    except SalarySettings.DoesNotExist:
-        hourly_rate = Decimal('0.00')
+    import calendar
 
     # Oyning boshlanish/tugash sanasi
-    import calendar
     last_day = calendar.monthrange(year, month)[1]
     date_from = datetime.date(year, month, 1)
     date_to   = datetime.date(year, month, last_day)
@@ -1439,41 +1435,61 @@ def _month_salary_for_user(user, year, month, branch):
     if branch:
         qs = qs.filter(branch=branch)
 
+    # Stavka tarixi: shu oy ichida qo'llaniladigan yozuvlar
+    rate_entries = list(
+        HourlyRateHistory.objects.filter(user=user, effective_from__lte=date_to)
+        .order_by('-effective_from')
+    )
+    current_rate = rate_entries[0].hourly_rate if rate_entries else Decimal('0.00')
+
+    def _rate_for_date(date):
+        for entry in rate_entries:
+            if entry.effective_from <= date:
+                return entry.hourly_rate
+        return Decimal('0.00')
+
     att_rows = []
-    total_seconds = 0
+    total_seconds = Decimal('0')
+    base_salary = Decimal('0.00')
+
     for att in qs.order_by('date', 'check_in'):
         secs = _calc_worked_seconds(att)
-        total_seconds += secs
+        rate = _rate_for_date(att.date)
+        hours_dec = Decimal(str(round(secs / 3600, 6)))
+        earned = (hours_dec * rate).quantize(Decimal('0.01'))
+        base_salary += earned
+        total_seconds += Decimal(str(secs))
         att_rows.append({
-            'att': att,
-            'worked_seconds': secs,
-            'worked_hours': round(secs / 3600, 2),
-            'earned': round(Decimal(str(secs / 3600)) * hourly_rate, 2),
+            'att':            att,
+            'worked_seconds': float(secs),
+            'worked_hours':   round(float(secs) / 3600, 2),
+            'rate':           rate,
+            'earned':         earned,
         })
 
-    total_hours = Decimal(str(round(total_seconds / 3600, 4)))
-    base_salary = (total_hours * hourly_rate).quantize(Decimal('0.01'))
+    total_hours = float(total_seconds) / 3600
 
     # Bonus / KPI / jarima
-    bonuses = SalaryBonus.objects.filter(user=user, year=year, month=month).order_by('created_at')
+    bonuses = list(SalaryBonus.objects.filter(user=user, year=year, month=month).order_by('created_at'))
     bonus_total   = sum(b.amount for b in bonuses if not b.is_deduction)
     penalty_total = sum(b.amount for b in bonuses if b.is_deduction)
     net_salary = base_salary + bonus_total - penalty_total
 
     return {
-        'user': user,
-        'hourly_rate': hourly_rate,
-        'att_rows': att_rows,
-        'total_seconds': total_seconds,
-        'total_hours': float(total_hours),
-        'base_salary': base_salary,
-        'bonuses': bonuses,
-        'bonus_total': bonus_total,
+        'user':          user,
+        'current_rate':  current_rate,
+        'rate_entries':  rate_entries,
+        'att_rows':      att_rows,
+        'total_seconds': float(total_seconds),
+        'total_hours':   total_hours,
+        'base_salary':   base_salary,
+        'bonuses':       bonuses,
+        'bonus_total':   bonus_total,
         'penalty_total': penalty_total,
-        'net_salary': net_salary,
+        'net_salary':    net_salary,
         'present_count': qs.filter(status='present').count(),
-        'late_count': qs.filter(status='late').count(),
-        'absent_count': qs.filter(status='absent').count(),
+        'late_count':    qs.filter(status='late').count(),
+        'absent_count':  qs.filter(status='absent').count(),
         'total_records': qs.count(),
     }
 
@@ -1493,7 +1509,7 @@ class SalaryListView(CEORequiredMixin, View):
         month = max(1,    min(month, 12))
 
         users = User.objects.filter(is_active=True).select_related(
-            'role', 'department', 'shift', 'salary_settings',
+            'role', 'department', 'shift',
         )
         if branch:
             users = users.filter(branch=branch)
@@ -1556,10 +1572,6 @@ class SalaryDetailView(CEORequiredMixin, View):
         ]
         years = list(range(2024, now.year + 2))
 
-        # Soatlik stavka tahrirlash
-        if request.method == 'GET' and request.GET.get('set_rate'):
-            pass  # handled in POST
-
         context = {
             'active_nav': 'salary',
             'branch': branch,
@@ -1575,7 +1587,7 @@ class SalaryDetailView(CEORequiredMixin, View):
 
     def post(self, request, pk):
         """Soatlik stavka yangilash yoki bonus/jarima qo'shish."""
-        from apps.ceo.models import SalarySettings, SalaryBonus
+        from apps.ceo.models import HourlyRateHistory, SalaryBonus
         from decimal import Decimal
 
         branch = self.get_branch()
@@ -1595,10 +1607,34 @@ class SalaryDetailView(CEORequiredMixin, View):
                 rate = max(Decimal('0'), rate)
             except Exception:
                 rate = Decimal('0')
-            obj, _ = SalarySettings.objects.get_or_create(user=employee)
-            obj.hourly_rate = rate
-            obj.save()
-            messages.success(request, f'Soatlik stavka {rate:,.0f} so\'mga o\'zgartirildi.')
+            try:
+                eff_from = datetime.date.fromisoformat(request.POST.get('effective_from', ''))
+            except ValueError:
+                eff_from = timezone.localtime().date()
+            # Agar o'sha sanada allaqachon yozuv bo'lsa — yangilaymiz
+            obj, created = HourlyRateHistory.objects.get_or_create(
+                user=employee, effective_from=eff_from,
+                defaults={'hourly_rate': rate},
+            )
+            if not created:
+                obj.hourly_rate = rate
+                obj.save()
+            note_val = request.POST.get('rate_note', '').strip()[:255]
+            if note_val:
+                obj.note = note_val
+                obj.save(update_fields=['note'])
+            messages.success(
+                request,
+                f'Stavka {rate:,.0f} so\'m/soat — {eff_from.strftime("%d.%m.%Y")} sanadan boshlab.'
+            )
+
+        elif action == 'delete_rate':
+            rate_id = request.POST.get('rate_id')
+            try:
+                HourlyRateHistory.objects.filter(pk=rate_id, user=employee).delete()
+                messages.success(request, 'Stavka yozuvi o\'chirildi.')
+            except Exception:
+                pass
 
         elif action == 'add_bonus':
             try:
@@ -1626,6 +1662,4 @@ class SalaryDetailView(CEORequiredMixin, View):
             except Exception:
                 pass
 
-        return redirect(
-            f'{request.path}?year={year}&month={month}'
-        )
+        return redirect(f'{request.path}?year={year}&month={month}')
