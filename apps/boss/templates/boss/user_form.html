@@ -155,6 +155,15 @@
                        {% if form.is_active.value %}checked{% endif %}>
                 <label for="id_is_active">Фаол ходим</label>
             </div>
+            <div class="checkbox-row" style="margin-top:8px;border:1.5px solid #f59e0b;background:linear-gradient(135deg,#fffbeb,#fef3c7);border-radius:10px;">
+                <input type="checkbox" name="is_vip" id="id_is_vip"
+                       {% if form.is_vip.value %}checked{% endif %}
+                       style="width:18px;height:18px;accent-color:#f59e0b;">
+                <label for="id_is_vip" style="color:#92400e;font-weight:600;">
+                    👑 VIP ходим
+                    <span style="display:block;font-size:12px;color:#b45309;font-weight:400;">Келган вақтига қараб смена аниқланади. Кеч келса ҳам тўлиқ смена ойлиги берилади.</span>
+                </label>
+            </div>
 
             <div class="form-actions">
                 <button type="submit" class="btn btn-primary">

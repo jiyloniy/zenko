@@ -225,6 +225,15 @@
                     </div>
                 </label>
             </div>
+            <div class="form-group" style="margin-top:10px;">
+                <label class="checkbox-field" style="border:1.5px solid #f59e0b;background:linear-gradient(135deg,#fffbeb,#fef3c7);">
+                    <input type="checkbox" name="is_vip" {% if form.is_vip.value %}checked{% endif %} style="accent-color:#f59e0b;">
+                    <div>
+                        <div class="cb-text" style="color:#92400e;">👑 VIP hodim</div>
+                        <div class="cb-hint" style="color:#b45309;">Kelgan vaqtiga qarab smena aniqlanadi. Kech kelsa ham to'liq smena oyligi beriladi.</div>
+                    </div>
+                </label>
+            </div>
 
             <div class="form-actions">
                 <button type="submit" class="btn btn-primary">

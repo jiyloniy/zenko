@@ -142,7 +142,7 @@
             <select name="department" id="department" style="min-width:120px;">
                 <option value="">Barchasi</option>
                 {% for dep in departments %}
-                <option value="{{ dep.id }}" {% if dep.id|stringformat:'s' == request.GET.department %}selected{% endif %}>{{ dep.name }}</option>
+                <option value="{{ dep.id }}" {% if dep.id|stringformat:'s' == filter_dept %}selected{% endif %}>{{ dep.name }}</option>
                 {% endfor %}
             </select>
         </div>
@@ -152,8 +152,20 @@
             <select name="role" id="role" style="min-width:120px;">
                 <option value="">Barchasi</option>
                 {% for role in roles %}
-                <option value="{{ role.id }}" {% if role.id|stringformat:'s' == request.GET.role %}selected{% endif %}>{{ role.name }}</option>
+                <option value="{{ role.id }}" {% if role.id|stringformat:'s' == filter_role %}selected{% endif %}>{{ role.name }}</option>
                 {% endfor %}
+            </select>
+        </div>
+        <!-- VIP filter -->
+        <div>
+            <label for="vip" style="font-size:12px;color:var(--gray-500);font-weight:600;">VIP holat</label><br>
+            <select name="vip" id="vip" style="min-width:110px;">
+                <option value="">Barchasi</option>
+                <option value="1" {% if filter_vip == '1' %}selected{% endif %}>
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" style="width:12px;height:12px;vertical-align:middle;color:#f59e0b;margin-right:2px"><path fill-rule="evenodd" d="M10.788 3.21c.448-1.077 1.976-1.077 2.424 0l2.082 5.006 5.404.434c1.164.093 1.636 1.545.749 2.305l-4.117 3.527 1.257 5.273c.271 1.136-.964 2.033-1.96 1.425L12 18.354 7.373 21.18c-.996.608-2.231-.29-1.96-1.425l1.257-5.273-4.117-3.527c-.887-.76-.415-2.212.749-2.305l5.404-.434 2.082-5.005Z" clip-rule="evenodd"/></svg>
+                    Faqat VIP
+                </option>
+                <option value="0" {% if filter_vip == '0' %}selected{% endif %}>VIP emas</option>
             </select>
         </div>
         <!-- Status filter -->
@@ -161,16 +173,22 @@
             <label for="status" style="font-size:12px;color:var(--gray-500);font-weight:600;">Holati</label><br>
             <select name="status" id="status" style="min-width:100px;">
                 <option value="">Barchasi</option>
-                <option value="active" {% if request.GET.status == 'active' %}selected{% endif %}>Faol</option>
-                <option value="inactive" {% if request.GET.status == 'inactive' %}selected{% endif %}>Bo'shagan</option>
+                <option value="active" {% if filter_status == 'active' %}selected{% endif %}>Faol</option>
+                <option value="inactive" {% if filter_status == 'inactive' %}selected{% endif %}>Bo'shagan</option>
             </select>
         </div>
         <!-- Search -->
         <div>
             <label for="search" style="font-size:12px;color:var(--gray-500);font-weight:600;">Qidiruv</label><br>
-            <input type="text" name="search" id="search" value="{{ request.GET.search|default_if_none:'' }}" placeholder="Ism, familiya..." style="padding:8px 12px;border-radius:8px;border:1.5px solid var(--gray-200);font-size:14px;width:140px;">
+            <input type="text" name="search" id="search" value="{{ filter_search|default:'' }}" placeholder="Ism bo'yicha..." style="padding:8px 12px;border-radius:8px;border:1.5px solid var(--gray-200);font-size:14px;width:140px;">
         </div>
         <button type="submit" class="go-btn" style="margin-top:0;align-self:flex-end;">Ko'rish</button>
+        {% if filter_dept or filter_role or filter_vip or filter_status or filter_search %}
+        <a href="?year={{ year }}&month={{ month }}" class="go-btn" style="background:var(--gray-200);color:var(--gray-700);text-decoration:none;display:inline-flex;align-items:center;gap:5px;align-self:flex-end;">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width:14px;height:14px"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12"/></svg>
+            Tozalash
+        </a>
+        {% endif %}
     </div>
     <span class="period-label" style="margin-left:auto;">
         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width:18px;height:18px;color:var(--orange)"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/></svg>
@@ -245,10 +263,14 @@
                         <div class="uc">
                             <div class="uc-avatar">{{ row.user.name|make_list|first }}</div>
                             <div>
-                                <div class="uc-name">{{ row.user.name }}</div>
+                                <div class="uc-name">
+                                    {{ row.user.name }}
+                                    {% if row.user.is_vip %}<span title="VIP hodim" style="font-size:13px;">👑</span>{% endif %}
+                                </div>
                                 <div class="uc-meta">
                                     {% if row.user.role %}{{ row.user.role.name }}{% endif %}
                                     {% if row.user.department %} · {{ row.user.department.name }}{% endif %}
+                                    {% if row.user.is_vip %} · <span style="color:#b45309;font-weight:700;">VIP</span>{% endif %}
                                 </div>
                             </div>
                         </div>

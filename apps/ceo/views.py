@@ -114,12 +114,40 @@ class UserListView(CEORequiredMixin, ListView):
         qs = User.objects.select_related('role', 'department', 'shift')
         if branch:
             qs = qs.filter(branch=branch)
+        # Filterlar
+        role_f   = self.request.GET.get('role', '').strip()
+        dept_f   = self.request.GET.get('department', '').strip()
+        status_f = self.request.GET.get('status', '').strip()
+        vip_f    = self.request.GET.get('vip', '').strip()
+        search_f = self.request.GET.get('search', '').strip()
+        if role_f:
+            qs = qs.filter(role_id=role_f)
+        if dept_f:
+            qs = qs.filter(department_id=dept_f)
+        if status_f == 'active':
+            qs = qs.filter(is_active=True)
+        elif status_f == 'inactive':
+            qs = qs.filter(is_active=False)
+        if vip_f == '1':
+            qs = qs.filter(is_vip=True)
+        elif vip_f == '0':
+            qs = qs.filter(is_vip=False)
+        if search_f:
+            qs = qs.filter(name__icontains=search_f)
         return qs
 
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
+        branch = self.get_branch()
         ctx['active_nav'] = 'users'
-        ctx['branch'] = self.get_branch()
+        ctx['branch'] = branch
+        ctx['roles'] = Role.objects.all()
+        ctx['departments'] = Department.objects.filter(branch=branch) if branch else Department.objects.all()
+        ctx['filter_role']   = self.request.GET.get('role', '')
+        ctx['filter_dept']   = self.request.GET.get('department', '')
+        ctx['filter_status'] = self.request.GET.get('status', '')
+        ctx['filter_vip']    = self.request.GET.get('vip', '')
+        ctx['filter_search'] = self.request.GET.get('search', '')
         return ctx
 
 
@@ -480,11 +508,12 @@ class AttendanceListView(CEORequiredMixin, ListView):
 
     def get_queryset(self):
         branch = self.get_branch()
-        qs = Attendance.objects.select_related('user', 'user__shift')
+        qs = Attendance.objects.select_related(
+            'user', 'user__shift', 'effective_shift',
+        )
         if branch:
             qs = qs.filter(branch=branch)
 
-        # Filters
         date_filter = self.request.GET.get('date')
         status_filter = self.request.GET.get('status')
         user_filter = self.request.GET.get('user')
@@ -497,9 +526,60 @@ class AttendanceListView(CEORequiredMixin, ListView):
         if user_filter:
             qs = qs.filter(user_id=user_filter)
         if shift_filter:
-            qs = qs.filter(user__shift_id=shift_filter)
+            # Filter by effective_shift (detected) OR user's assigned shift
+            qs = qs.filter(
+                Q(effective_shift_id=shift_filter) | Q(user__shift_id=shift_filter)
+            )
 
         return qs
+
+    def _annotate_attendance(self, att):
+        """Har bir davomat yozuviga smena tahlili ma'lumotlarini qo'shadi."""
+        from apps.attendance.view2 import (
+            LATE_GRACE_MINUTES, CHECKOUT_GRACE_MINUTES,
+            _shift_start_dt, _shift_end_dt_from_start,
+        )
+        shift = att.effective_shift or att.user.shift if att.user else None
+        info = {
+            'shift': shift,
+            'shift_mismatch': (
+                att.effective_shift and att.user.shift and
+                att.effective_shift_id != att.user.shift_id
+            ),
+            'late_minutes': None,
+            'early_minutes': None,
+            'early_leave_minutes': None,
+            'grace_applied': False,
+            'billing_in': att.effective_check_in or att.check_in,
+            'billing_out': att.check_out,
+            'actual_in': att.check_in,
+            'actual_out': att.actual_check_out,
+        }
+        if shift and att.check_in:
+            start_dt = _shift_start_dt(shift, att.date)
+            if start_dt:
+                end_dt = _shift_end_dt_from_start(shift, start_dt)
+                diff_in = int(
+                    (timezone.localtime(att.check_in) - timezone.localtime(start_dt)).total_seconds() / 60
+                )
+                if diff_in < 0:
+                    info['early_minutes'] = abs(diff_in)
+                elif diff_in <= LATE_GRACE_MINUTES:
+                    info['late_minutes'] = diff_in
+                else:
+                    info['late_minutes'] = diff_in
+
+                if att.actual_check_out and end_dt:
+                    diff_out = int(
+                        (timezone.localtime(att.actual_check_out) - timezone.localtime(end_dt)).total_seconds() / 60
+                    )
+                    if 0 <= diff_out <= CHECKOUT_GRACE_MINUTES:
+                        info['grace_applied'] = True
+                    elif diff_out < 0:
+                        info['early_leave_minutes'] = abs(diff_out)
+
+        att._shift_info = info
+        return att
 
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
@@ -517,11 +597,13 @@ class AttendanceListView(CEORequiredMixin, ListView):
         absent_today = today_qs.filter(status='absent').count()
         active_now = today_qs.filter(check_in__isnull=False, check_out__isnull=True).count()
 
-        # Smena bo'yicha statistika (hodimning smenasi bo'yicha)
+        # Smena bo'yicha statistika (effective_shift yoki user.shift bo'yicha)
         shift_stats = []
         shifts_qs = Shift.objects.filter(branch=branch) if branch else Shift.objects.none()
         for shift in shifts_qs:
-            shift_today = today_qs.filter(user__shift=shift)
+            shift_today = today_qs.filter(
+                Q(effective_shift=shift) | Q(user__shift=shift, effective_shift__isnull=True)
+            )
             shift_stats.append({
                 'shift': shift,
                 'total': shift_today.count(),
@@ -532,6 +614,10 @@ class AttendanceListView(CEORequiredMixin, ListView):
 
         # Total hodimlar soni (bugun kelishi kerak bo'lganlar)
         total_employees = User.objects.filter(branch=branch, is_active=True).count() if branch else 0
+
+        # Har bir davomat yozuviga smena tahlili qo'shamiz
+        for att in ctx.get('attendances', []):
+            self._annotate_attendance(att)
 
         ctx.update({
             'active_nav': 'attendance',
@@ -545,7 +631,6 @@ class AttendanceListView(CEORequiredMixin, ListView):
             'shifts': shifts_qs,
             'today': today,
             'today_iso': today.isoformat(),
-            # Statistikalar
             'total_today': total_today,
             'present_today': present_today,
             'late_today': late_today,
@@ -554,6 +639,8 @@ class AttendanceListView(CEORequiredMixin, ListView):
             'total_employees': total_employees,
             'attendance_rate': round((total_today / total_employees * 100) if total_employees else 0),
             'shift_stats': shift_stats,
+            'LATE_GRACE_MINUTES': 15,
+            'CHECKOUT_GRACE_MINUTES': 30,
         })
         return ctx
 
@@ -1402,14 +1489,55 @@ class QRCardAllView(CEORequiredMixin, View):
 # SALARY / OYLIK
 # ══════════════════════════════════════════════════════════════════
 
-def _calc_worked_seconds(att):
-    """Davomat yozuvi uchun hisob soatlari (soniyalarda)."""
+def _calc_worked_seconds(att, vip=False):
+    """
+    Davomat yozuvi uchun hisob soatlari (soniyalarda).
+    VIP hodim uchun smena tugash vaqtiga qadar hisoblanadi (check_out = smena end_time).
+    """
     ci = att.effective_check_in or att.check_in
     co = att.check_out
     if ci and co:
         delta = (co - ci).total_seconds()
         return max(delta, 0)
     return 0
+
+
+def _vip_full_shift_seconds(att):
+    """
+    VIP hodim: agar kelgan bo'lsa, smena (effective_shift) ning to'liq soatini qaytaradi.
+    Erta chiqsa (check_out < smena end_time) — haqiqiy vaqt ishlatiladi.
+    """
+    if not att.effective_shift or not att.check_in:
+        return None
+    shift = att.effective_shift
+    if not shift.start_time or not shift.end_time:
+        return None
+
+    from apps.attendance.view2 import _shift_start_dt, _shift_end_dt_from_start
+    from django.utils import timezone
+
+    check_in_date = timezone.localtime(att.check_in).date()
+    start_dt = _shift_start_dt(shift, check_in_date)
+    end_dt = _shift_end_dt_from_start(shift, start_dt)
+
+    if not start_dt or not end_dt:
+        return None
+
+    # effective_check_in = smena start_time (VIP logikasida har doim shunday)
+    ci = att.effective_check_in or att.check_in
+    co = att.check_out
+
+    if not co:
+        return None
+
+    # Erta chiqdi: haqiqiy vaqt (smena tugashidan oldin ketdi)
+    if co < end_dt:
+        delta = (co - ci).total_seconds()
+        return max(delta, 0), False
+
+    # Kech yoki vaqtida chiqdi: to'liq smena soati (start→end)
+    delta = (end_dt - start_dt).total_seconds()
+    return max(delta, 0), True
 
 
 def _month_salary_for_user(user, year, month, branch):
@@ -1448,12 +1576,45 @@ def _month_salary_for_user(user, year, month, branch):
                 return entry.hourly_rate
         return Decimal('0.00')
 
+    from apps.users.models import VipStatusHistory
+
     att_rows = []
     total_seconds = Decimal('0')
     base_salary = Decimal('0.00')
 
+    # VIP tarix yozuvlarini oldindan yuklash (har kun uchun DB ga bormaslik uchun)
+    vip_history = list(
+        VipStatusHistory.objects.filter(user=user, effective_from__lte=date_to)
+        .order_by('-effective_from', '-created_at')
+    )
+    _vip_cache = {}
+
+    def _is_vip_on(date):
+        if date in _vip_cache:
+            return _vip_cache[date]
+        result = None
+        for entry in vip_history:
+            if entry.effective_from <= date:
+                result = entry.is_vip
+                break
+        if result is None:
+            result = getattr(user, 'is_vip', False)
+        _vip_cache[date] = result
+        return result
+
     for att in qs.order_by('date', 'check_in'):
-        secs = _calc_worked_seconds(att)
+        vip_full_shift = False
+        day_is_vip = _is_vip_on(att.date)
+
+        if day_is_vip and att.status != 'absent':
+            vip_result = _vip_full_shift_seconds(att)
+            if vip_result is not None:
+                secs, vip_full_shift = vip_result
+            else:
+                secs = _calc_worked_seconds(att)
+        else:
+            secs = _calc_worked_seconds(att)
+
         rate = _rate_for_date(att.date)
         hours_dec = Decimal(str(round(secs / 3600, 6)))
         earned = (hours_dec * rate).quantize(Decimal('0.01'))
@@ -1465,6 +1626,8 @@ def _month_salary_for_user(user, year, month, branch):
             'worked_hours':   round(float(secs) / 3600, 2),
             'rate':           rate,
             'earned':         earned,
+            'vip_full_shift': vip_full_shift,
+            'day_is_vip':     day_is_vip,
         })
 
     total_hours = float(total_seconds) / 3600
@@ -1514,10 +1677,32 @@ class SalaryListView(CEORequiredMixin, View):
         if branch:
             users = users.filter(branch=branch)
 
+        # ── Filterlar ──
+        filter_dept   = request.GET.get('department', '').strip()
+        filter_role   = request.GET.get('role', '').strip()
+        filter_status = request.GET.get('status', '').strip()
+        filter_vip    = request.GET.get('vip', '').strip()
+        filter_search = request.GET.get('search', '').strip()
+
+        if filter_dept:
+            users = users.filter(department_id=filter_dept)
+        if filter_role:
+            users = users.filter(role_id=filter_role)
+        if filter_status == 'active':
+            users = users.filter(is_active=True)
+        elif filter_status == 'inactive':
+            users = users.filter(is_active=False)
+        if filter_vip == '1':
+            users = users.filter(is_vip=True)
+        elif filter_vip == '0':
+            users = users.filter(is_vip=False)
+        if filter_search:
+            users = users.filter(name__icontains=filter_search)
+
         rows = []
         grand_base = grand_net = grand_hours = 0
-        for user in users:
-            data = _month_salary_for_user(user, year, month, branch)
+        for u in users:
+            data = _month_salary_for_user(u, year, month, branch)
             rows.append(data)
             grand_base  += float(data['base_salary'])
             grand_net   += float(data['net_salary'])
@@ -1529,21 +1714,29 @@ class SalaryListView(CEORequiredMixin, View):
             'Iyul', 'Avgust', 'Sentabr', 'Oktabr', 'Noyabr', 'Dekabr',
         ]
 
-        # Yil tanlash uchun diapason
         years = list(range(2024, now.year + 2))
+        departments = Department.objects.filter(branch=branch) if branch else Department.objects.all()
+        roles = Role.objects.all()
 
         context = {
-            'active_nav': 'salary',
-            'branch': branch,
-            'year': year,
-            'month': month,
-            'month_name': month_names[month],
-            'rows': rows,
-            'grand_base': round(grand_base, 2),
-            'grand_net': round(grand_net, 2),
-            'grand_hours': round(grand_hours, 2),
-            'month_names': month_names[1:],
-            'years': years,
+            'active_nav':    'salary',
+            'branch':        branch,
+            'year':          year,
+            'month':         month,
+            'month_name':    month_names[month],
+            'rows':          rows,
+            'grand_base':    round(grand_base, 2),
+            'grand_net':     round(grand_net, 2),
+            'grand_hours':   round(grand_hours, 2),
+            'month_names':   month_names[1:],
+            'years':         years,
+            'departments':   departments,
+            'roles':         roles,
+            'filter_dept':   filter_dept,
+            'filter_role':   filter_role,
+            'filter_status': filter_status,
+            'filter_vip':    filter_vip,
+            'filter_search': filter_search,
         }
         return render(request, 'ceo/salary_list.html', context)
 
@@ -1566,6 +1759,13 @@ class SalaryDetailView(CEORequiredMixin, View):
 
         data = _month_salary_for_user(employee, year, month, branch)
 
+        from apps.users.models import VipStatusHistory
+        vip_history = list(
+            VipStatusHistory.objects.filter(user=employee)
+            .order_by('-effective_from', '-created_at')
+            .select_related('created_by')[:20]
+        )
+
         month_names = [
             '', 'Yanvar', 'Fevral', 'Mart', 'Aprel', 'May', 'Iyun',
             'Iyul', 'Avgust', 'Sentabr', 'Oktabr', 'Noyabr', 'Dekabr',
@@ -1581,6 +1781,8 @@ class SalaryDetailView(CEORequiredMixin, View):
             'month_name': month_names[month],
             'years': years,
             'month_names': month_names[1:],
+            'vip_history': vip_history,
+            'today': now.date(),
             **data,
         }
         return render(request, 'ceo/salary_detail.html', context)
@@ -1659,6 +1861,40 @@ class SalaryDetailView(CEORequiredMixin, View):
             try:
                 SalaryBonus.objects.filter(pk=bonus_id, user=employee).delete()
                 messages.success(request, 'O\'chirildi.')
+            except Exception:
+                pass
+
+        elif action == 'set_vip_status':
+            from apps.users.models import VipStatusHistory
+            new_vip = request.POST.get('vip_status') == '1'
+            try:
+                eff_from = datetime.date.fromisoformat(request.POST.get('vip_effective_from', ''))
+            except ValueError:
+                eff_from = timezone.localtime().date()
+            note_vip = request.POST.get('vip_note', '').strip()[:255]
+            VipStatusHistory.objects.create(
+                user=employee,
+                is_vip=new_vip,
+                effective_from=eff_from,
+                note=note_vip,
+                created_by=request.user,
+            )
+            # User.is_vip ni ham yangilaymiz (joriy holat uchun)
+            employee.is_vip = new_vip
+            employee.save(update_fields=['is_vip'])
+            label = 'berildi' if new_vip else 'olindi'
+            messages.success(request, f'VIP status {label} — {eff_from.strftime("%d.%m.%Y")} sanadan.')
+
+        elif action == 'delete_vip_history':
+            from apps.users.models import VipStatusHistory
+            vid = request.POST.get('vip_id')
+            try:
+                VipStatusHistory.objects.filter(pk=vid, user=employee).delete()
+                messages.success(request, 'VIP yozuvi o\'chirildi.')
+                # Oxirgi yozuvga qarab User.is_vip ni yangilaymiz
+                last = VipStatusHistory.objects.filter(user=employee).order_by('-effective_from', '-created_at').first()
+                employee.is_vip = last.is_vip if last else False
+                employee.save(update_fields=['is_vip'])
             except Exception:
                 pass
 

@@ -1418,7 +1418,8 @@ function handleToken(token){
 const IC = {
   check:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>`,
   out:  `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M15.75 9V5.25A2.25 2.25 0 0 0 13.5 3h-6A2.25 2.25 0 0 0 5.25 5.25v13.5A2.25 2.25 0 0 0 7.5 21h6a2.25 2.25 0 0 0 2.25-2.25V15m3 0 3-3m0 0-3-3m3 3H9"/></svg>`,
-  x:    `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M6 18 18 6M6 6l12 12"/></svg>`
+  x:    `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M6 18 18 6M6 6l12 12"/></svg>`,
+  dup:  `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z"/></svg>`
 };
 
 /* ── SHOW RESULT ─────────────────────────────── */
@@ -1446,6 +1447,23 @@ function showResult(data){
 
   if(data._photo){ pi.src = data._photo; ph.style.display='block'; }
 
+  if(data.duplicate){
+    // Duplicate scan — alohida xabar
+    card.classList.add('err');
+    av.className  = 'r-avatar err';
+    av.innerHTML  = IC.dup;
+    tag.innerHTML = '<span class="r-tag err">Takror skan</span>';
+    nm.textContent= 'Allaqachon skanerlangan';
+    sub.textContent = data.msg || '';
+    am.className = 'r-alert late';
+    am.innerHTML = `<div>Bir necha soniya ichida qayta skanerlash rad etildi. Biroz kuting.</div>`;
+    setStatus('Takror skan', 'error');
+    signalFlash('err');
+    _scheduleClose(4000);
+    scanning = true;
+    return;
+  }
+
   if(data.ok){
     const isOut   = data.action === 'check_out';
     const isEarly = data.is_early;
@@ -1458,7 +1476,7 @@ function showResult(data){
     tag.innerHTML = isOut
       ? '<span class="r-tag out">Chiqish</span>'
       : '<span class="r-tag in">Kirish</span>';
-    nm.textContent = data.user_name || '';
+    nm.textContent = (data.is_vip ? '👑 ' : '') + (data.user_name || '');
     sub.textContent= data.msg       || '';
 
     if(!isOut && isEarly && data.diff_minutes){
@@ -1466,7 +1484,11 @@ function showResult(data){
       am.innerHTML   = `<div><strong>Erta kelish</strong> · Smenadan ${Math.abs(data.diff_minutes)} daqiqa oldin · hisob ${data.hisob_time||data.shift_start}dan boshlanadi</div>`;
     } else if(!isOut && isLate && data.diff_minutes){
       am.className   = 'r-alert late';
-      am.innerHTML   = `<div><strong>Kechikish</strong> · ${data.diff_minutes} daqiqa kech keldi</div>`;
+      if(data.is_vip){
+        am.innerHTML = `<div><strong>👑 VIP · Kechikish</strong> · ${data.diff_minutes} daqiqa kech keldi → to'liq smena oyligi beriladi</div>`;
+      } else {
+        am.innerHTML = `<div><strong>Kechikish</strong> · ${data.diff_minutes} daqiqa kech keldi</div>`;
+      }
     }
     if(!isOut && data.shift_name){
       as_.className   = 'r-alert info';

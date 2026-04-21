@@ -1,0 +1,3 @@
+Django
+# Agar boshqa paketlar kerak bo'lsa, shu yerga qo'shing:
+django-widget-tweaks

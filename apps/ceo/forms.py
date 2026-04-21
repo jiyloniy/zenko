@@ -10,13 +10,13 @@ from apps.attendance.utils import parse_time_24h
 class UserCreateForm(UserCreationForm):
     class Meta:
         model = User
-        fields = ('username', 'password1', 'password2', 'name', 'phone', 'role', 'department', 'shift', 'is_active')
+        fields = ('username', 'password1', 'password2', 'name', 'phone', 'role', 'department', 'shift', 'is_active', 'is_vip')
 
 
 class UserUpdateForm(forms.ModelForm):
     class Meta:
         model = User
-        fields = ('username', 'name', 'phone', 'role', 'department', 'shift', 'is_active')
+        fields = ('username', 'name', 'phone', 'role', 'department', 'shift', 'is_active', 'is_vip')
 
 
 class RoleForm(forms.ModelForm):
@@ -132,10 +132,15 @@ class AttendanceForm(forms.ModelForm):
             eff_shift, start_dt, _ = _detect_effective_shift(att.user, ci)
             att.effective_shift = eff_shift
 
-            in_info = _compute_check_in_info(actual_in=ci, start_dt=start_dt)
-            att.effective_check_in = in_info['effective_in']
-            status = in_info['status']
-            att.status = status if status != 'early' else Attendance.STATUS_PRESENT
+            is_vip = getattr(att.user, 'is_vip', False)
+            if is_vip and eff_shift and start_dt:
+                att.effective_check_in = start_dt
+                att.status = Attendance.STATUS_PRESENT
+            else:
+                in_info = _compute_check_in_info(actual_in=ci, start_dt=start_dt)
+                att.effective_check_in = in_info['effective_in']
+                status = in_info['status']
+                att.status = status if status != 'early' else Attendance.STATUS_PRESENT
 
             if co:
                 if timezone.is_naive(co):
@@ -151,8 +156,12 @@ class AttendanceForm(forms.ModelForm):
                     s_dt = _shift_start_dt(eff_shift, check_in_date)
                     end_dt = _shift_end_dt_from_start(eff_shift, s_dt)
 
-                out_info = _compute_check_out_info(actual_out=co, end_dt=end_dt)
-                att.check_out = out_info['effective_out']
+                if is_vip and end_dt and co >= end_dt:
+                    # VIP: smena end_time ga qadar yoki kech chiqqan — to'liq smena
+                    att.check_out = end_dt
+                else:
+                    out_info = _compute_check_out_info(actual_out=co, end_dt=end_dt)
+                    att.check_out = out_info['effective_out']
             else:
                 att.actual_check_out = None
                 att.check_out = None

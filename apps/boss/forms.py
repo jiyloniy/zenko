@@ -45,10 +45,10 @@ class BranchShiftForm(forms.ModelForm):
 class BranchUserCreateForm(UserCreationForm):
     class Meta:
         model = User
-        fields = ('username', 'password1', 'password2', 'name', 'phone', 'role', 'department', 'shift', 'is_active')
+        fields = ('username', 'password1', 'password2', 'name', 'phone', 'role', 'department', 'shift', 'is_active', 'is_vip')
 
 
 class BranchUserUpdateForm(forms.ModelForm):
     class Meta:
         model = User
-        fields = ('username', 'name', 'phone', 'role', 'department', 'shift', 'is_active')
+        fields = ('username', 'name', 'phone', 'role', 'department', 'shift', 'is_active', 'is_vip')

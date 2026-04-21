@@ -5,12 +5,116 @@
 
 {% block topbar_actions %}
 <a href="{% url 'ceo:user_create' %}" class="btn btn-primary">
-    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width:16px;height:16px"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>
     Yangi hodim
 </a>
 {% endblock %}
 
+{% block extra_css %}
+<style>
+.filter-bar {
+    background: var(--white); border: 1px solid var(--gray-200);
+    border-radius: 14px; padding: 16px 20px; margin-bottom: 20px;
+    display: flex; flex-wrap: wrap; gap: 10px; align-items: flex-end;
+    box-shadow: 0 1px 3px rgba(0,0,0,.04);
+}
+.f-group { display: flex; flex-direction: column; gap: 4px; min-width: 120px; flex: 1; }
+.f-group label { font-size: 11px; font-weight: 700; color: var(--gray-500); text-transform: uppercase; letter-spacing: .5px; }
+.f-group select, .f-group input {
+    padding: 7px 11px; border-radius: 8px; border: 1.5px solid var(--gray-200);
+    font-size: 13px; background: var(--white); color: var(--black);
+    transition: border-color .2s;
+}
+.f-group select:focus, .f-group input:focus { outline: none; border-color: var(--orange); }
+.f-actions { display: flex; gap: 8px; align-items: flex-end; }
+.f-btn { padding: 7px 18px; border-radius: 8px; border: none; font-size: 13px; font-weight: 700; cursor: pointer; }
+.f-btn.primary { background: var(--orange); color: #fff; }
+.f-btn.secondary { background: var(--gray-100); color: var(--gray-700); border: 1px solid var(--gray-200); text-decoration: none; display: inline-flex; align-items: center; gap: 5px; }
+.f-btn:hover { opacity: .88; }
+
+.vip-badge {
+    display: inline-flex; align-items: center; gap: 4px;
+    padding: 2px 8px; border-radius: 6px;
+    background: linear-gradient(135deg, #fef3c7, #fde68a);
+    color: #92400e; font-size: 11px; font-weight: 800;
+    border: 1px solid #f59e0b;
+}
+.user-name-cell { display: flex; align-items: center; gap: 8px; }
+.ua { width: 32px; height: 32px; border-radius: 50%; background: var(--orange-light); color: var(--orange); display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 13px; flex-shrink: 0; }
+</style>
+{% endblock %}
+
 {% block content %}
+
+<!-- Filter bar -->
+<form method="get" class="filter-bar">
+    <div class="f-group" style="max-width:170px;">
+        <label>
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width:11px;height:11px;vertical-align:middle;margin-right:2px"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z"/></svg>
+            Qidiruv
+        </label>
+        <input type="text" name="search" value="{{ filter_search|default:'' }}" placeholder="Ism bo'yicha...">
+    </div>
+    <div class="f-group">
+        <label>
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width:11px;height:11px;vertical-align:middle;margin-right:2px"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 21h19.5m-18-18v18m10.5-18v18m6-13.5V21M6.75 6.75h.75m-.75 3h.75m-.75 3h.75m3-6h.75m-.75 3h.75m-.75 3h.75M6.75 21v-3.375c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21"/></svg>
+            Bo'lim
+        </label>
+        <select name="department">
+            <option value="">Barchasi</option>
+            {% for dep in departments %}
+            <option value="{{ dep.pk }}" {% if dep.pk|stringformat:'s' == filter_dept %}selected{% endif %}>{{ dep.name }}</option>
+            {% endfor %}
+        </select>
+    </div>
+    <div class="f-group">
+        <label>
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width:11px;height:11px;vertical-align:middle;margin-right:2px"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75m-3-7.036A11.959 11.959 0 0 1 3.598 6 11.99 11.99 0 0 0 3 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285Z"/></svg>
+            Rol
+        </label>
+        <select name="role">
+            <option value="">Barchasi</option>
+            {% for r in roles %}
+            <option value="{{ r.pk }}" {% if r.pk|stringformat:'s' == filter_role %}selected{% endif %}>{{ r.name }}</option>
+            {% endfor %}
+        </select>
+    </div>
+    <div class="f-group" style="max-width:130px;">
+        <label>
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" style="width:11px;height:11px;vertical-align:middle;margin-right:2px;color:#f59e0b"><path fill-rule="evenodd" d="M10.788 3.21c.448-1.077 1.976-1.077 2.424 0l2.082 5.006 5.404.434c1.164.093 1.636 1.545.749 2.305l-4.117 3.527 1.257 5.273c.271 1.136-.964 2.033-1.96 1.425L12 18.354 7.373 21.18c-.996.608-2.231-.29-1.96-1.425l1.257-5.273-4.117-3.527c-.887-.76-.415-2.212.749-2.305l5.404-.434 2.082-5.005Z" clip-rule="evenodd"/></svg>
+            VIP holat
+        </label>
+        <select name="vip">
+            <option value="">Barchasi</option>
+            <option value="1" {% if filter_vip == '1' %}selected{% endif %}>Faqat VIP</option>
+            <option value="0" {% if filter_vip == '0' %}selected{% endif %}>VIP emas</option>
+        </select>
+    </div>
+    <div class="f-group" style="max-width:120px;">
+        <label>
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width:11px;height:11px;vertical-align:middle;margin-right:2px"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/></svg>
+            Holati
+        </label>
+        <select name="status">
+            <option value="">Barchasi</option>
+            <option value="active" {% if filter_status == 'active' %}selected{% endif %}>Faol</option>
+            <option value="inactive" {% if filter_status == 'inactive' %}selected{% endif %}>Nofaol</option>
+        </select>
+    </div>
+    <div class="f-actions">
+        <button type="submit" class="f-btn primary">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" style="width:14px;height:14px;vertical-align:middle;margin-right:4px"><path stroke-linecap="round" stroke-linejoin="round" d="M12 3c2.755 0 5.455.232 8.083.678.533.09.917.556.917 1.096v1.044a2.25 2.25 0 0 1-.659 1.591l-5.432 5.432a2.25 2.25 0 0 0-.659 1.591v2.927a2.25 2.25 0 0 1-1.244 2.013L9.75 21v-6.568a2.25 2.25 0 0 0-.659-1.591L3.659 7.409A2.25 2.25 0 0 1 3 5.818V4.774c0-.54.384-1.006.917-1.096A48.32 48.32 0 0 1 12 3Z"/></svg>
+            Filter
+        </button>
+        {% if filter_search or filter_dept or filter_role or filter_vip or filter_status %}
+        <a href="{% url 'ceo:user_list' %}" class="f-btn secondary">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" style="width:13px;height:13px"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12"/></svg>
+            Tozalash
+        </a>
+        {% endif %}
+    </div>
+</form>
+
 <div class="card">
     <div class="table-wrapper">
         <table>
@@ -31,8 +135,21 @@
                 {% for user in users %}
                 <tr>
                     <td>{{ forloop.counter }}</td>
-                    <td><strong>{{ user.name }}</strong></td>
-                    <td>{{ user.username }}</td>
+                    <td>
+                        <div class="user-name-cell">
+                            <div class="ua">{{ user.name|make_list|first }}</div>
+                            <div>
+                                <div style="font-weight:700;font-size:14px;">{{ user.name }}</div>
+                                {% if user.is_vip %}
+                                <span class="vip-badge">
+                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" style="width:10px;height:10px"><path fill-rule="evenodd" d="M10.788 3.21c.448-1.077 1.976-1.077 2.424 0l2.082 5.006 5.404.434c1.164.093 1.636 1.545.749 2.305l-4.117 3.527 1.257 5.273c.271 1.136-.964 2.033-1.96 1.425L12 18.354 7.373 21.18c-.996.608-2.231-.29-1.96-1.425l1.257-5.273-4.117-3.527c-.887-.76-.415-2.212.749-2.305l5.404-.434 2.082-5.005Z" clip-rule="evenodd"/></svg>
+                                    VIP
+                                </span>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </td>
+                    <td style="font-family:monospace;font-size:13px;">{{ user.username }}</td>
                     <td>{{ user.phone|default:"—" }}</td>
                     <td>
                         {% if user.role %}
@@ -41,9 +158,9 @@
                     </td>
                     <td>{{ user.department|default:"—" }}</td>
                     <td>
-                        {% for s in user.shifts.all %}
-                        <span class="badge badge-orange" style="font-size:11px;margin:1px;">{{ s.name }}</span>
-                        {% empty %}—{% endfor %}
+                        {% if user.shift %}
+                        <span class="badge badge-orange" style="font-size:11px;">{{ user.shift.name }}</span>
+                        {% else %}—{% endif %}
                     </td>
                     <td>
                         {% if user.is_active %}
@@ -54,9 +171,18 @@
                     </td>
                     <td>
                         <div class="actions-cell">
-                            <a href="{% url 'ceo:qr_card' user.pk %}" class="btn btn-secondary btn-sm" title="QR kod">QR</a>
-                            <a href="{% url 'ceo:user_update' user.pk %}" class="btn btn-secondary btn-sm">Tahrirlash</a>
-                            <a href="{% url 'ceo:user_delete' user.pk %}" class="btn btn-danger btn-sm">O'chirish</a>
+                            <a href="{% url 'ceo:qr_card' user.pk %}" class="btn btn-secondary btn-sm" title="QR kod">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width:14px;height:14px"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 4.875c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-4.5A1.125 1.125 0 0 1 3.75 9.375v-4.5ZM3.75 14.625c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-4.5a1.125 1.125 0 0 1-1.125-1.125v-4.5ZM13.5 4.875c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-4.5A1.125 1.125 0 0 1 13.5 9.375v-4.5Z"/><path d="M6.75 6.75h.75v.75h-.75v-.75ZM6.75 16.5h.75v.75h-.75v-.75ZM16.5 6.75h.75v.75h-.75v-.75ZM13.5 13.5h.75v.75h-.75v-.75ZM13.5 19.5h.75v.75h-.75v-.75ZM19.5 13.5h.75v.75h-.75v-.75ZM19.5 19.5h.75v.75h-.75v-.75ZM16.5 16.5h.75v.75h-.75v-.75Z"/></svg>
+                                QR
+                            </a>
+                            <a href="{% url 'ceo:user_update' user.pk %}" class="btn btn-secondary btn-sm">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width:14px;height:14px"><path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125"/></svg>
+                                Tahrirlash
+                            </a>
+                            <a href="{% url 'ceo:user_delete' user.pk %}" class="btn btn-danger btn-sm">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width:14px;height:14px"><path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0"/></svg>
+                                O'chirish
+                            </a>
                         </div>
                     </td>
                 </tr>
@@ -64,8 +190,10 @@
                 <tr><td colspan="9">
                     <div class="empty-state">
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19.128a9.38 9.38 0 0 0 2.625.372 9.337 9.337 0 0 0 4.121-.952 4.125 4.125 0 0 0-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 0 1 8.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0 1 11.964-3.07M12 6.375a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0Zm8.25 2.25a2.625 2.625 0 1 1-5.25 0 2.625 2.625 0 0 1 5.25 0Z"/></svg>
-                        <p>Hali hodimlar qo'shilmagan</p>
+                        <p>Hodimlar topilmadi</p>
+                        {% if not filter_search and not filter_dept and not filter_role and not filter_vip and not filter_status %}
                         <a href="{% url 'ceo:user_create' %}" class="btn btn-primary">Birinchi hodimni qo'shing</a>
+                        {% endif %}
                     </div>
                 </td></tr>
                 {% endfor %}

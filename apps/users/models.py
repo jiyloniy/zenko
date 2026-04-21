@@ -90,6 +90,52 @@ class Shift(models.Model):
         return f'{self.name} ({self.start_time:%H:%M}–{self.end_time:%H:%M})'
 
 
+class VipStatusHistory(models.Model):
+    """
+    VIP statusining berilgan/olingan tarixi.
+    Oylik hisobda shu tarixga qarab qaysi kunlar VIP sifatida hisoblanishi aniqlanadi.
+    """
+    user = models.ForeignKey(
+        'User',
+        on_delete=models.CASCADE,
+        related_name='vip_history',
+        verbose_name='Hodim',
+    )
+    is_vip = models.BooleanField('VIP holati', help_text='True=berildi, False=olindi')
+    effective_from = models.DateField('Amal qilish boshlanishi')
+    note = models.CharField('Izoh', max_length=255, blank=True)
+    created_by = models.ForeignKey(
+        'User',
+        on_delete=models.SET_NULL,
+        null=True, blank=True,
+        related_name='vip_changes_made',
+        verbose_name='O\'zgartirgan',
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = 'VIP status tarixi'
+        verbose_name_plural = 'VIP status tarixi'
+        ordering = ['-effective_from', '-created_at']
+
+    def __str__(self):
+        action = 'berildi' if self.is_vip else 'olindi'
+        return f'{self.user.name}: VIP {action} ({self.effective_from})'
+
+    @classmethod
+    def is_vip_on_date(cls, user, date):
+        """Berilgan sanada hodim VIP bo'lganmi?"""
+        entry = (
+            cls.objects.filter(user=user, effective_from__lte=date)
+            .order_by('-effective_from', '-created_at')
+            .first()
+        )
+        if entry:
+            return entry.is_vip
+        # Tarix yo'q — User.is_vip maydoniga qaraymiz (backward compat)
+        return getattr(user, 'is_vip', False)
+
+
 class User(AbstractUser):
     """
     Custom User model.
@@ -134,6 +180,15 @@ class User(AbstractUser):
         related_name='users',
         null=True,
         blank=True,
+    )
+    is_vip = models.BooleanField(
+        'VIP hodim',
+        default=False,
+        help_text=(
+            'VIP hodim kunduzgi yoki kechki smenada ishlashi mumkin. '
+            'Kelgan vaqtiga qarab smena aniqlanadi va o\'sha smenaning '
+            'to\'liq soati maoshga qo\'shiladi (kech kelsa ham to\'liq smena oyligi beriladi).'
+        ),
     )
 
     REQUIRED_FIELDS = ['name']

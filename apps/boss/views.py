@@ -361,11 +361,45 @@ class UserListView(BOSSRequiredMixin, ListView):
     model = User
     template_name = 'boss/user_list.html'
     context_object_name = 'users'
-    queryset = User.objects.select_related('role', 'department', 'branch', 'shift')
+
+    def get_queryset(self):
+        qs = User.objects.select_related('role', 'department', 'branch', 'shift')
+        role_f    = self.request.GET.get('role', '').strip()
+        dept_f    = self.request.GET.get('department', '').strip()
+        branch_f  = self.request.GET.get('branch', '').strip()
+        status_f  = self.request.GET.get('status', '').strip()
+        vip_f     = self.request.GET.get('vip', '').strip()
+        search_f  = self.request.GET.get('search', '').strip()
+        if role_f:
+            qs = qs.filter(role_id=role_f)
+        if dept_f:
+            qs = qs.filter(department_id=dept_f)
+        if branch_f:
+            qs = qs.filter(branch_id=branch_f)
+        if status_f == 'active':
+            qs = qs.filter(is_active=True)
+        elif status_f == 'inactive':
+            qs = qs.filter(is_active=False)
+        if vip_f == '1':
+            qs = qs.filter(is_vip=True)
+        elif vip_f == '0':
+            qs = qs.filter(is_vip=False)
+        if search_f:
+            qs = qs.filter(name__icontains=search_f)
+        return qs
 
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
         ctx['active_nav'] = 'users'
+        ctx['roles'] = Role.objects.all()
+        ctx['departments'] = Department.objects.select_related('branch')
+        ctx['branches'] = Branch.objects.filter(is_active=True)
+        ctx['filter_role']   = self.request.GET.get('role', '')
+        ctx['filter_dept']   = self.request.GET.get('department', '')
+        ctx['filter_branch'] = self.request.GET.get('branch', '')
+        ctx['filter_status'] = self.request.GET.get('status', '')
+        ctx['filter_vip']    = self.request.GET.get('vip', '')
+        ctx['filter_search'] = self.request.GET.get('search', '')
         return ctx
 
 

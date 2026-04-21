@@ -1,51 +1,151 @@
 {% extends "boss/base.html" %}
 
-{% block title %}Ходимлар — Zenko BOSS{% endblock %}
-{% block page_title %}Ходимлар{% endblock %}
+{% block title %}Hodimlar — Zenko BOSS{% endblock %}
+{% block page_title %}Hodimlar{% endblock %}
 
 {% block topbar_actions %}
 <a href="{% url 'boss:user_create' %}" class="btn btn-primary btn-sm">
-    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>
-    Янги ходим
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width:15px;height:15px"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>
+    Yangi hodim
 </a>
 {% endblock %}
 
+{% block extra_css %}
+<style>
+.filter-bar {
+    background: var(--white); border: 1px solid var(--gray-200);
+    border-radius: 14px; padding: 14px 18px; margin-bottom: 18px;
+    display: flex; flex-wrap: wrap; gap: 10px; align-items: flex-end;
+    box-shadow: 0 1px 3px rgba(0,0,0,.04);
+}
+.f-group { display: flex; flex-direction: column; gap: 4px; min-width: 110px; flex: 1; }
+.f-group label { font-size: 11px; font-weight: 700; color: var(--gray-500); text-transform: uppercase; letter-spacing: .5px; }
+.f-group select, .f-group input {
+    padding: 7px 10px; border-radius: 8px; border: 1.5px solid var(--gray-200);
+    font-size: 13px; background: var(--white); color: var(--black);
+}
+.f-group select:focus, .f-group input:focus { outline: none; border-color: var(--primary); }
+.f-actions { display: flex; gap: 8px; align-items: flex-end; }
+.f-btn { padding: 7px 16px; border-radius: 8px; border: none; font-size: 13px; font-weight: 700; cursor: pointer; }
+.f-btn.primary { background: var(--primary); color: #fff; }
+.f-btn.secondary { background: var(--gray-100); color: var(--gray-700); border: 1px solid var(--gray-200); text-decoration: none; display: inline-flex; align-items: center; gap: 5px; }
+.vip-badge {
+    display: inline-flex; align-items: center; gap: 4px;
+    padding: 2px 7px; border-radius: 5px;
+    background: linear-gradient(135deg, #fef3c7, #fde68a);
+    color: #92400e; font-size: 11px; font-weight: 800;
+    border: 1px solid #f59e0b;
+}
+.user-name-cell { display: flex; flex-direction: column; gap: 2px; }
+</style>
+{% endblock %}
+
 {% block content %}
+
+<!-- Filter bar -->
+<form method="get" class="filter-bar">
+    <div class="f-group" style="max-width:160px;">
+        <label>Qidiruv</label>
+        <input type="text" name="search" value="{{ filter_search|default:'' }}" placeholder="Ism...">
+    </div>
+    <div class="f-group">
+        <label>Filial</label>
+        <select name="branch">
+            <option value="">Barchasi</option>
+            {% for b in branches %}
+            <option value="{{ b.pk }}" {% if b.pk|stringformat:'s' == filter_branch %}selected{% endif %}>{{ b.name }}</option>
+            {% endfor %}
+        </select>
+    </div>
+    <div class="f-group">
+        <label>Bo'lim</label>
+        <select name="department">
+            <option value="">Barchasi</option>
+            {% for dep in departments %}
+            <option value="{{ dep.pk }}" {% if dep.pk|stringformat:'s' == filter_dept %}selected{% endif %}>{{ dep.name }}{% if dep.branch %} ({{ dep.branch.name }}){% endif %}</option>
+            {% endfor %}
+        </select>
+    </div>
+    <div class="f-group">
+        <label>Rol</label>
+        <select name="role">
+            <option value="">Barchasi</option>
+            {% for r in roles %}
+            <option value="{{ r.pk }}" {% if r.pk|stringformat:'s' == filter_role %}selected{% endif %}>{{ r.name }}</option>
+            {% endfor %}
+        </select>
+    </div>
+    <div class="f-group" style="max-width:120px;">
+        <label>
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" style="width:11px;height:11px;vertical-align:middle;color:#f59e0b"><path fill-rule="evenodd" d="M10.788 3.21c.448-1.077 1.976-1.077 2.424 0l2.082 5.006 5.404.434c1.164.093 1.636 1.545.749 2.305l-4.117 3.527 1.257 5.273c.271 1.136-.964 2.033-1.96 1.425L12 18.354 7.373 21.18c-.996.608-2.231-.29-1.96-1.425l1.257-5.273-4.117-3.527c-.887-.76-.415-2.212.749-2.305l5.404-.434 2.082-5.005Z" clip-rule="evenodd"/></svg>
+            VIP
+        </label>
+        <select name="vip">
+            <option value="">Barchasi</option>
+            <option value="1" {% if filter_vip == '1' %}selected{% endif %}>Faqat VIP</option>
+            <option value="0" {% if filter_vip == '0' %}selected{% endif %}>VIP emas</option>
+        </select>
+    </div>
+    <div class="f-group" style="max-width:110px;">
+        <label>Holat</label>
+        <select name="status">
+            <option value="">Barchasi</option>
+            <option value="active" {% if filter_status == 'active' %}selected{% endif %}>Faol</option>
+            <option value="inactive" {% if filter_status == 'inactive' %}selected{% endif %}>Nofaol</option>
+        </select>
+    </div>
+    <div class="f-actions">
+        <button type="submit" class="f-btn primary">Filter</button>
+        {% if filter_search or filter_dept or filter_branch or filter_role or filter_vip or filter_status %}
+        <a href="{% url 'boss:user_list' %}" class="f-btn secondary">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" style="width:13px;height:13px"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12"/></svg>
+            Tozalash
+        </a>
+        {% endif %}
+    </div>
+</form>
+
 <div class="card">
     {% if users %}
     <div class="table-wrapper">
         <table>
             <thead>
                 <tr>
-                    <th>Исм</th>
+                    <th>Ism</th>
                     <th>Username</th>
-                    <th>Рол</th>
-                    <th>Бўлим</th>
-                    <th>Филиал</th>
-                    <th>Смена</th>
-                    <th>Ҳолати</th>
-                    <th>Амаллар</th>
+                    <th>Rol</th>
+                    <th>Bo'lim</th>
+                    <th>Filial</th>
+                    <th>Smena</th>
+                    <th>Holati</th>
+                    <th>Amallar</th>
                 </tr>
             </thead>
             <tbody>
                 {% for u in users %}
                 <tr>
-                    <td><strong>{{ u.name }}</strong></td>
+                    <td>
+                        <div class="user-name-cell">
+                            <strong>{{ u.name }}</strong>
+                            {% if u.is_vip %}
+                            <span class="vip-badge">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" style="width:9px;height:9px"><path fill-rule="evenodd" d="M10.788 3.21c.448-1.077 1.976-1.077 2.424 0l2.082 5.006 5.404.434c1.164.093 1.636 1.545.749 2.305l-4.117 3.527 1.257 5.273c.271 1.136-.964 2.033-1.96 1.425L12 18.354 7.373 21.18c-.996.608-2.231-.29-1.96-1.425l1.257-5.273-4.117-3.527c-.887-.76-.415-2.212.749-2.305l5.404-.434 2.082-5.005Z" clip-rule="evenodd"/></svg>
+                                VIP
+                            </span>
+                            {% endif %}
+                        </div>
+                    </td>
                     <td>{{ u.username }}</td>
                     <td>
                         {% if u.role %}
                         <span class="badge badge-purple">{{ u.role.name }}</span>
-                        {% else %}
-                        <span class="badge badge-gray">—</span>
-                        {% endif %}
+                        {% else %}<span class="badge badge-gray">—</span>{% endif %}
                     </td>
                     <td>{{ u.department.name|default:"—" }}</td>
                     <td>
                         {% if u.branch %}
                         <span class="badge badge-purple">{{ u.branch.name }}</span>
-                        {% else %}
-                        <span class="badge badge-gray">—</span>
-                        {% endif %}
+                        {% else %}<span class="badge badge-gray">—</span>{% endif %}
                     </td>
                     <td>
                         {% if u.shift %}
@@ -54,15 +154,21 @@
                     </td>
                     <td>
                         {% if u.is_active %}
-                        <span class="badge badge-green">Фаол</span>
+                        <span class="badge badge-green">Faol</span>
                         {% else %}
-                        <span class="badge badge-red">Нофаол</span>
+                        <span class="badge badge-red">Nofaol</span>
                         {% endif %}
                     </td>
                     <td>
                         <div class="actions-cell">
-                            <a href="{% url 'boss:user_update' u.pk %}" class="btn btn-sm btn-secondary">Таҳрирлаш</a>
-                            <a href="{% url 'boss:user_delete' u.pk %}" class="btn btn-sm btn-danger">Ўчириш</a>
+                            <a href="{% url 'boss:user_update' u.pk %}" class="btn btn-sm btn-secondary">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width:13px;height:13px"><path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Z"/></svg>
+                                Tahrirlash
+                            </a>
+                            <a href="{% url 'boss:user_delete' u.pk %}" class="btn btn-sm btn-danger">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width:13px;height:13px"><path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0"/></svg>
+                                O'chirish
+                            </a>
                         </div>
                     </td>
                 </tr>
@@ -72,8 +178,10 @@
     </div>
     {% else %}
     <div class="empty-state">
-        <p>Ҳали ходимлар қўшилмаган</p>
-        <a href="{% url 'boss:user_create' %}" class="btn btn-primary">Ходим қўшиш</a>
+        <p>Hodimlar topilmadi</p>
+        {% if not filter_search and not filter_dept and not filter_branch and not filter_role and not filter_vip and not filter_status %}
+        <a href="{% url 'boss:user_create' %}" class="btn btn-primary">Hodim qo'shish</a>
+        {% endif %}
     </div>
     {% endif %}
 </div>

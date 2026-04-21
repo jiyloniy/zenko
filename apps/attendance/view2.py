@@ -525,16 +525,21 @@ def _tg_checkin_message(
         assigned_shift and eff_shift and assigned_shift.pk != eff_shift.pk
     )
 
+    is_vip = getattr(user, 'is_vip', False)
+    vip_prefix = '👑 VIP · ' if is_vip else ''
+
     status_line = {
-        'early':   f'⬆️ Smenadan {abs(diff_minutes)} daqiqa oldin keldi',
-        'present': '✅ Vaqtida keldi',
-        'late':    f'⚠️ {diff_minutes} daqiqa kechikdi',
+        'early':   f'{vip_prefix}⬆️ Smenadan {abs(diff_minutes)} daqiqa oldin keldi',
+        'present': f'{vip_prefix}✅ Vaqtida keldi',
+        'late':    f'{vip_prefix}⚠️ {diff_minutes} daqiqa kechikdi',
     }.get(status, _esc(note))
 
     effective_note = ''
-    if status == 'early':
+    if is_vip and status == 'late':
+        effective_note = '\n👑 <i>VIP hodim — to\'liq smena oyligi beriladi.</i>'
+    elif status == 'early':
         effective_note = '\n💡 <i>Ish vaqti smena boshlanishidan hisoblanadi.</i>'
-    elif status == 'late':
+    elif status == 'late' and not is_vip:
         effective_note = '\n💡 <i>Kechikish davomati hisobiga kiradi.</i>'
 
     if shift_mismatch:
@@ -609,9 +614,13 @@ def _tg_checkout_message(
 
     worked_str = _fmt_duration(worked_seconds)
 
+    is_vip_out = getattr(user, 'is_vip', False)
     if early_leave:
         holat = f'⚠️ Smenadan {abs(diff_minutes)} daqiqa oldin chiqdi'
         hisob_note = '\n💡 <i>Erta chiqish — haqiqiy vaqt yozildi.</i>'
+    elif is_vip_out and diff_minutes > CHECKOUT_GRACE_MINUTES:
+        holat = f'👑 VIP · Smenadan {diff_minutes} daqiqa keyin chiqdi → smena tugash vaqti yozildi'
+        hisob_note = '\n👑 <i>VIP hodim — to\'liq smena oyligi beriladi.</i>'
     elif 0 <= diff_minutes <= CHECKOUT_GRACE_MINUTES:
         holat = f'✅ Smena tugadi (+{diff_minutes} daqiqa — kiyim almashish)'
         hisob_note = '\n💡 <i>Smena tugash vaqti hisobga olindi.</i>'
@@ -801,48 +810,75 @@ class AttendanceScanAPIView(View):
             notify_error(user.name, branch_msg, photo_bytes)
             return JsonResponse({'ok': False, 'msg': branch_msg}, status=400)
 
-        # ── 4. Asosiy mantiq ─────────────────────────────────────────────────
-        now    = timezone.localtime()
-        today  = now.date()
-        branch = user.branch
+        # ── 4. Asosiy mantiq (DB tranzaksiya ichida — race condition himoyasi) ──
+        from django.db import transaction
+        with transaction.atomic():
+            now    = timezone.localtime()
+            today  = now.date()
+            branch = user.branch
 
-        # ── 4a. Ochiq yozuv → CHECK-OUT ──────────────────────────────────────
-        # MUHIM: Tungi smena hodimi kecha kirgan bo'lishi mumkin (att.date = kecha),
-        # shuning uchun faqat bugungi yozuvlarni emas, BARCHA ochiq yozuvlarni
-        # tekshiramiz. auto_checkout_expired dan OLDIN qilishimiz kerak — aks holda
-        # tungi smena yozuvi 14 soat o'tmagan bo'lsa ham "yopilishi" mumkin edi.
-        open_att = (
-            Attendance.objects.filter(
-                user=user,
-                check_in__isnull=False,
-                check_out__isnull=True,
+            # ── Debounce: bir xil hodimdan 10 soniya ichida ikkinchi scan ─────
+            # Ikki tezkor skan (masalan, eshik oldida QR ni ikki marta o'tkazib yuborish)
+            # bir xil yozuvni yaratib qo'ymasligi uchun.
+            DEBOUNCE_SECONDS = 10
+            last_any = (
+                Attendance.objects.filter(user=user)
+                .order_by('-check_in')
+                .values('check_in', 'check_out')
+                .first()
             )
-            .order_by('check_in', 'id')
-            .first()
-        )
-        if open_att:
-            return self._do_checkout(open_att, user, branch, now, photo_bytes)
+            if last_any:
+                last_ci = last_any['check_in']
+                last_co_time = last_any.get('check_out')
+                # Oxirgi check_in dan DEBOUNCE_SECONDS o'tmagan bo'lsa — rad etamiz
+                if last_ci and (now - last_ci).total_seconds() < DEBOUNCE_SECONDS:
+                    return JsonResponse({
+                        'ok': False,
+                        'duplicate': True,
+                        'msg': f"Skan allaqachon qabul qilindi. {DEBOUNCE_SECONDS} soniya kuting.",
+                    }, status=429)
+                # Oxirgi check_out dan DEBOUNCE_SECONDS o'tmagan bo'lsa — rad etamiz
+                if last_co_time and (now - last_co_time).total_seconds() < DEBOUNCE_SECONDS:
+                    return JsonResponse({
+                        'ok': False,
+                        'duplicate': True,
+                        'msg': f"Skan allaqachon qabul qilindi. {DEBOUNCE_SECONDS} soniya kuting.",
+                    }, status=429)
 
-        auto_checkout_expired(user, now)
+            # ── 4a. Ochiq yozuv → CHECK-OUT ──────────────────────────────────
+            # MUHIM: Tungi smena hodimi kecha kirgan bo'lishi mumkin (att.date = kecha),
+            # shuning uchun faqat bugungi yozuvlarni emas, BARCHA ochiq yozuvlarni
+            # tekshiramiz. select_for_update() → parallel so'rovlar kutadi.
+            open_att = (
+                Attendance.objects.select_for_update()
+                .filter(
+                    user=user,
+                    check_in__isnull=False,
+                    check_out__isnull=True,
+                )
+                .order_by('check_in', 'id')
+                .first()
+            )
+            if open_att:
+                return self._do_checkout(open_att, user, branch, now, photo_bytes)
 
-        qs = _today_rows(user, today)
+            auto_checkout_expired(user, now)
 
-        # ── 4b. Bugun allaqachon yopilgan → 409 ──────────────────────────────
-        # (disabled — admin vaqtni qayta tahrirlashi mumkin, yoki ikkinchi smena)
+            qs = _today_rows(user, today)
 
-        # ── 4c. 'absent' yozuvi bor → CHECK-IN (yangilanadi) ─────────────────
-        absent_row = (
-            qs.filter(status=Attendance.STATUS_ABSENT, check_in__isnull=True)
-            .order_by('id')
-            .first()
-        )
-        if absent_row:
-            return self._do_checkin(absent_row, user, branch, now, photo_bytes)
+            # ── 4c. 'absent' yozuvi bor → CHECK-IN (yangilanadi) ─────────────
+            absent_row = (
+                qs.filter(status=Attendance.STATUS_ABSENT, check_in__isnull=True)
+                .order_by('id')
+                .first()
+            )
+            if absent_row:
+                return self._do_checkin(absent_row, user, branch, now, photo_bytes)
 
-        # ── 4d. Yangi CHECK-IN ────────────────────────────────────────────────
-        att = Attendance(user=user, branch=branch, date=today)
-        att.save()
-        return self._do_checkin(att, user, branch, now, photo_bytes)
+            # ── 4d. Yangi CHECK-IN ────────────────────────────────────────────
+            att = Attendance(user=user, branch=branch, date=today)
+            att.save()
+            return self._do_checkin(att, user, branch, now, photo_bytes)
 
     # ─────────────────────────────────────────────────────────────────────────
     def _do_checkin(self, att, user, branch, now, photo_bytes):
@@ -852,11 +888,32 @@ class AttendanceScanAPIView(View):
         Smart shift detection: hodim kelish vaqtiga qarab, uning filialidagi
         barcha smenalardan eng mos keladiganini topadi. Shunda kunduzgi smenaga
         yozilgan hodim kechki smenaga kelganda ham to'g'ri hisoblanadi.
+
+        VIP hodim: kelgan vaqtiga qarab smena aniqlanadi va smena boshlanish
+        vaqtidan hisoblanadi (kech kelsa ham to'liq smena oyligi beriladi).
         """
         actual_in = now
         eff_shift, start_dt, _end_dt = _detect_effective_shift(user, actual_in)
 
-        info = _compute_check_in_info(actual_in=actual_in, start_dt=start_dt)
+        if getattr(user, 'is_vip', False) and eff_shift and start_dt:
+            # VIP: har doim smena boshidan hisob, status = present
+            effective_in = start_dt
+            status = Attendance.STATUS_PRESENT
+            diff_minutes = int((timezone.localtime(actual_in) - timezone.localtime(start_dt)).total_seconds() / 60)
+            if diff_minutes < 0:
+                note = f'VIP · Smenadan {abs(diff_minutes)} daqiqa oldin keldi'
+            elif diff_minutes == 0:
+                note = 'VIP · Vaqtida keldi'
+            else:
+                note = f'VIP · {diff_minutes} daqiqa kechikdi (to\'liq smena beriladi)'
+            info = {
+                'effective_in': effective_in,
+                'status': status,
+                'diff_minutes': diff_minutes,
+                'note': note,
+            }
+        else:
+            info = _compute_check_in_info(actual_in=actual_in, start_dt=start_dt)
 
         att.check_in            = actual_in
         att.effective_check_in  = info['effective_in']
@@ -894,6 +951,7 @@ class AttendanceScanAPIView(View):
             'hisob_time':    _fmt_time(info['effective_in']),
             'is_early':      info['status'] == 'early',
             'is_late':       info['status'] == Attendance.STATUS_LATE,
+            'is_vip':        getattr(user, 'is_vip', False),
             'diff_minutes':  info['diff_minutes'],
             'status':        att.status,
             'shift_matched': bool(eff_shift and user.shift_id and eff_shift.pk != user.shift_id),
@@ -928,7 +986,24 @@ class AttendanceScanAPIView(View):
             start_dt = _shift_start_dt(eff_shift, check_in_local_date)
             end_dt = _shift_end_dt_from_start(eff_shift, start_dt)
 
-        info = _compute_check_out_info(actual_out=actual_out, end_dt=end_dt)
+        if getattr(user, 'is_vip', False) and end_dt:
+            # VIP: smena tugash vaqtiga qadar ishlasa ham, tugashdan keyin chiqsa ham
+            # har doim smena end_time hisob vaqti sifatida ishlatiladi.
+            # Faqat erta chiqsa (smena tugashidan oldin) — haqiqiy vaqt yoziladi.
+            actual_diff = int((timezone.localtime(actual_out) - timezone.localtime(end_dt)).total_seconds() / 60)
+            if actual_diff < 0:
+                # Erta chiqdi — haqiqiy vaqt (VIP imtiyozi yo'q)
+                info = _compute_check_out_info(actual_out=actual_out, end_dt=end_dt)
+            else:
+                # Vaqtida yoki kech — to'liq smena end_time
+                info = {
+                    'effective_out': end_dt,
+                    'early_leave': False,
+                    'diff_minutes': actual_diff,
+                    'note': f"VIP · smena tugash vaqti hisoblandi (+{actual_diff} daqiqa)" if actual_diff > 0 else "VIP · Vaqtida chiqdi",
+                }
+        else:
+            info = _compute_check_out_info(actual_out=actual_out, end_dt=end_dt)
 
         effective_in = open_att.effective_check_in or open_att.check_in
 

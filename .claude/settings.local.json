@@ -2,7 +2,8 @@
   "permissions": {
     "allow": [
       "Bash(python manage.py migrate attendance)",
-      "Bash(python manage.py check)"
+      "Bash(python manage.py check)",
+      "Bash(xargs grep *)"
     ]
   }
 }
