@@ -1,0 +1,217 @@
+{% extends "ceo/base.html" %}
+
+{% block title %}Oylik hisob — {{ month_name }} {{ year }}{% endblock %}
+{% block page_title %}Oylik hisob{% endblock %}
+
+{% block extra_css %}
+<style>
+    .period-bar {
+        display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+        background: var(--white); border: 1px solid var(--gray-200);
+        border-radius: 12px; padding: 16px 20px; margin-bottom: 24px;
+    }
+    .period-bar select, .period-bar button {
+        padding: 8px 14px; border-radius: 8px; border: 1px solid var(--gray-200);
+        font-size: 14px; font-weight: 600; background: var(--white); cursor: pointer;
+    }
+    .period-bar button {
+        background: var(--orange); color: #fff; border-color: var(--orange); transition: background .2s;
+    }
+    .period-bar button:hover { background: var(--orange-hover); }
+    .period-title {
+        font-size: 18px; font-weight: 700; color: var(--black); margin-left: auto;
+    }
+
+    .summary-grid {
+        display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        gap: 16px; margin-bottom: 24px;
+    }
+    .sum-card {
+        background: var(--white); border: 1px solid var(--gray-200); border-radius: 12px;
+        padding: 18px 20px;
+    }
+    .sum-card .sc-label { font-size: 12px; color: var(--gray-500); font-weight: 600; text-transform: uppercase; letter-spacing: .4px; margin-bottom: 6px; }
+    .sum-card .sc-val  { font-size: 24px; font-weight: 800; color: var(--black); }
+    .sum-card .sc-sub  { font-size: 12px; color: var(--gray-500); margin-top: 2px; }
+    .sum-card.accent   { background: var(--orange); border-color: var(--orange); }
+    .sum-card.accent .sc-label, .sum-card.accent .sc-val, .sum-card.accent .sc-sub { color: #fff; }
+
+    .rate-badge {
+        display: inline-block; padding: 3px 9px; border-radius: 6px;
+        font-size: 12px; font-weight: 700;
+        background: var(--orange-light); color: var(--orange);
+    }
+    .rate-badge.zero { background: var(--gray-100); color: var(--gray-500); }
+
+    .salary-table th { white-space: nowrap; }
+    .salary-table td { vertical-align: middle; }
+    .user-cell { display: flex; align-items: center; gap: 10px; }
+    .user-avatar {
+        width: 34px; height: 34px; border-radius: 50%;
+        background: var(--orange-light); color: var(--orange);
+        display: flex; align-items: center; justify-content: center;
+        font-weight: 800; font-size: 14px; flex-shrink: 0;
+    }
+    .user-name { font-weight: 600; color: var(--black); font-size: 14px; }
+    .user-role { font-size: 12px; color: var(--gray-500); }
+
+    .money { font-family: monospace; font-weight: 700; font-size: 14px; }
+    .money.net { color: #16a34a; font-size: 15px; }
+    .money.zero { color: var(--gray-500); }
+
+    .hours-pill {
+        display: inline-block; padding: 3px 10px; border-radius: 20px;
+        font-size: 12px; font-weight: 700; font-family: monospace;
+        background: #EFF6FF; color: #2563EB;
+    }
+    .detail-btn { white-space: nowrap; }
+
+    .status-dots { display: flex; gap: 4px; }
+    .dot {
+        width: 8px; height: 8px; border-radius: 50%; display: inline-block;
+    }
+    .dot-green  { background: var(--green); }
+    .dot-orange { background: var(--orange); }
+    .dot-red    { background: var(--red); }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<!-- Period selector -->
+<form method="get" class="period-bar">
+    <label style="font-size:13px;font-weight:600;color:var(--gray-700);">Yil:</label>
+    <select name="year">
+        {% for y in years %}
+        <option value="{{ y }}" {% if y == year %}selected{% endif %}>{{ y }}</option>
+        {% endfor %}
+    </select>
+    <label style="font-size:13px;font-weight:600;color:var(--gray-700);">Oy:</label>
+    <select name="month">
+        {% for mn in month_names %}
+        <option value="{{ forloop.counter }}" {% if forloop.counter == month %}selected{% endif %}>{{ mn }}</option>
+        {% endfor %}
+    </select>
+    <button type="submit">Ko'rish</button>
+    <span class="period-title">{{ month_name }} {{ year }}</span>
+</form>
+
+<!-- Summary cards -->
+<div class="summary-grid">
+    <div class="sum-card">
+        <div class="sc-label">Hodimlar soni</div>
+        <div class="sc-val">{{ rows|length }}</div>
+        <div class="sc-sub">faol hodim</div>
+    </div>
+    <div class="sum-card">
+        <div class="sc-label">Jami soatlar</div>
+        <div class="sc-val">{{ grand_hours|floatformat:1 }}</div>
+        <div class="sc-sub">soat ishlandi</div>
+    </div>
+    <div class="sum-card">
+        <div class="sc-label">Asosiy maosh</div>
+        <div class="sc-val">{{ grand_base|floatformat:0 }}</div>
+        <div class="sc-sub">so'm (stavka × soat)</div>
+    </div>
+    <div class="sum-card accent">
+        <div class="sc-label">Jami to'lov</div>
+        <div class="sc-val">{{ grand_net|floatformat:0 }}</div>
+        <div class="sc-sub">so'm (bonus/jarima bilan)</div>
+    </div>
+</div>
+
+<!-- Table -->
+<div class="card" style="padding:0;overflow:hidden;">
+    {% if rows %}
+    <div class="table-wrapper">
+        <table class="salary-table">
+            <thead>
+                <tr>
+                    <th>Hodim</th>
+                    <th>Stavka</th>
+                    <th>Soatlar</th>
+                    <th>Davomat</th>
+                    <th>Asosiy maosh</th>
+                    <th>Bonus</th>
+                    <th>Jarima</th>
+                    <th>Jami to'lov</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for row in rows %}
+                <tr>
+                    <td>
+                        <div class="user-cell">
+                            <div class="user-avatar">{{ row.user.name|make_list|first }}</div>
+                            <div>
+                                <div class="user-name">{{ row.user.name }}</div>
+                                <div class="user-role">
+                                    {% if row.user.role %}{{ row.user.role.name }}{% else %}—{% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </td>
+                    <td>
+                        {% if row.hourly_rate %}
+                        <span class="rate-badge">{{ row.hourly_rate|floatformat:0 }} so'm/s</span>
+                        {% else %}
+                        <span class="rate-badge zero">Belgilanmagan</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <span class="hours-pill">{{ row.total_hours|floatformat:1 }} soat</span>
+                    </td>
+                    <td>
+                        <div class="status-dots" title="Keldi / Kechikdi / Kelmadi">
+                            <span class="dot dot-green" title="Keldi: {{ row.present_count }}"></span>
+                            <span style="font-size:11px;color:var(--gray-500);">{{ row.present_count }}</span>
+                            <span class="dot dot-orange" style="margin-left:6px;" title="Kechikdi: {{ row.late_count }}"></span>
+                            <span style="font-size:11px;color:var(--gray-500);">{{ row.late_count }}</span>
+                            <span class="dot dot-red" style="margin-left:6px;" title="Kelmadi: {{ row.absent_count }}"></span>
+                            <span style="font-size:11px;color:var(--gray-500);">{{ row.absent_count }}</span>
+                        </div>
+                    </td>
+                    <td>
+                        <span class="money {% if row.base_salary == 0 %}zero{% endif %}">
+                            {{ row.base_salary|floatformat:0 }}
+                        </span>
+                    </td>
+                    <td>
+                        {% if row.bonus_total %}
+                        <span class="money" style="color:#16a34a;">+{{ row.bonus_total|floatformat:0 }}</span>
+                        {% else %}—{% endif %}
+                    </td>
+                    <td>
+                        {% if row.penalty_total %}
+                        <span class="money" style="color:var(--red);">-{{ row.penalty_total|floatformat:0 }}</span>
+                        {% else %}—{% endif %}
+                    </td>
+                    <td>
+                        <span class="money net {% if row.net_salary == 0 %}zero{% endif %}">
+                            {{ row.net_salary|floatformat:0 }} so'm
+                        </span>
+                    </td>
+                    <td>
+                        <a href="{% url 'ceo:salary_detail' row.user.pk %}?year={{ year }}&month={{ month }}"
+                           class="btn btn-sm btn-secondary detail-btn">Batafsil</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="empty-state">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 18.75a60.07 60.07 0 0 1 15.797 2.101c.727.198 1.453-.342 1.453-1.096V18.75M3.75 4.5v.75A.75.75 0 0 1 3 6h-.75m0 0v-.375c0-.621.504-1.125 1.125-1.125H20.25M2.25 6v9m18-10.5v.75c0 .414.336.75.75.75h.75m-1.5-1.5h.375c.621 0 1.125.504 1.125 1.125v9.75c0 .621-.504 1.125-1.125 1.125h-.375m1.5-1.5H21a.75.75 0 0 0-.75.75v.75m0 0H3.75m0 0h-.375a1.125 1.125 0 0 1-1.125-1.125V15m1.5 1.5v-.75A.75.75 0 0 0 3 15h-.75M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0Zm3 0h.008v.008H18V10.5Zm-12 0h.008v.008H6V10.5Z"/></svg>
+        <p>Bu oyda hodim ma'lumoti topilmadi</p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// enumerate filter polyfill for template
+</script>
+{% endblock %}

@@ -1,0 +1,382 @@
+{% extends "ceo/base.html" %}
+
+{% block title %}{{ employee.name }} — Oylik {{ month_name }} {{ year }}{% endblock %}
+{% block page_title %}Oylik batafsil{% endblock %}
+
+{% block topbar_actions %}
+<a href="{% url 'ceo:salary_list' %}?year={{ year }}&month={{ month }}" class="btn btn-secondary btn-sm">
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width:15px;height:15px"><path stroke-linecap="round" stroke-linejoin="round" d="M9 15 3 9m0 0 6-6M3 9h12a6 6 0 0 1 0 12h-3"/></svg>
+    Orqaga
+</a>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .detail-layout { display: grid; grid-template-columns: 340px 1fr; gap: 24px; align-items: start; }
+    @media(max-width:900px){ .detail-layout { grid-template-columns: 1fr; } }
+
+    /* Left panel */
+    .left-panel { display: flex; flex-direction: column; gap: 16px; }
+
+    .emp-card {
+        background: var(--white); border: 1px solid var(--gray-200); border-radius: 14px; padding: 24px;
+    }
+    .emp-avatar {
+        width: 60px; height: 60px; border-radius: 50%; background: var(--orange);
+        display: flex; align-items: center; justify-content: center;
+        font-weight: 800; font-size: 24px; color: #fff; margin-bottom: 14px;
+    }
+    .emp-name { font-size: 18px; font-weight: 800; color: var(--black); margin-bottom: 4px; }
+    .emp-meta { font-size: 13px; color: var(--gray-500); }
+
+    .stat-row { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid var(--gray-200); }
+    .stat-row:last-child { border-bottom: none; }
+    .stat-row .label { font-size: 13px; color: var(--gray-500); }
+    .stat-row .value { font-size: 14px; font-weight: 700; color: var(--black); }
+
+    .net-total {
+        background: var(--orange); border-radius: 12px; padding: 20px 24px;
+        display: flex; justify-content: space-between; align-items: center;
+    }
+    .net-total .nt-label { font-size: 14px; font-weight: 600; color: rgba(255,255,255,.85); }
+    .net-total .nt-val   { font-size: 22px; font-weight: 900; color: #fff; font-family: monospace; }
+
+    /* Rate form */
+    .rate-form { background: var(--white); border: 1px solid var(--gray-200); border-radius: 14px; padding: 20px; }
+    .rate-form h4 { font-size: 14px; font-weight: 700; color: var(--black); margin-bottom: 12px; }
+    .rate-input-row { display: flex; gap: 8px; }
+    .rate-input-row input {
+        flex: 1; padding: 9px 12px; border: 1px solid var(--gray-200); border-radius: 8px;
+        font-size: 14px; font-weight: 600;
+    }
+    .rate-input-row input:focus { outline: none; border-color: var(--orange); box-shadow: 0 0 0 3px rgba(245,130,32,.15); }
+
+    /* Bonus form */
+    .bonus-form { background: var(--white); border: 1px solid var(--gray-200); border-radius: 14px; padding: 20px; }
+    .bonus-form h4 { font-size: 14px; font-weight: 700; color: var(--black); margin-bottom: 12px; }
+    .bonus-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    .bonus-grid input, .bonus-grid select {
+        padding: 9px 12px; border: 1px solid var(--gray-200); border-radius: 8px;
+        font-size: 13px; width: 100%;
+    }
+    .bonus-grid input:focus, .bonus-grid select:focus {
+        outline: none; border-color: var(--orange); box-shadow: 0 0 0 3px rgba(245,130,32,.15);
+    }
+
+    /* Bonus list */
+    .bonus-item {
+        display: flex; align-items: center; gap: 10px; padding: 10px 0;
+        border-bottom: 1px solid var(--gray-200);
+    }
+    .bonus-item:last-child { border-bottom: none; }
+    .bonus-badge {
+        padding: 3px 10px; border-radius: 6px; font-size: 12px; font-weight: 700; white-space: nowrap;
+    }
+    .bonus-badge.bonus   { background: #F0FDF4; color: #16a34a; }
+    .bonus-badge.kpi     { background: #EFF6FF; color: #2563EB; }
+    .bonus-badge.penalty { background: #FEF2F2; color: var(--red); }
+    .bonus-badge.other   { background: var(--gray-100); color: var(--gray-500); }
+    .bonus-note { flex: 1; font-size: 13px; color: var(--gray-700); }
+    .bonus-amount { font-family: monospace; font-size: 14px; font-weight: 700; }
+    .bonus-amount.plus  { color: #16a34a; }
+    .bonus-amount.minus { color: var(--red); }
+    .del-btn { background: none; border: none; cursor: pointer; color: var(--gray-500); padding: 4px; border-radius: 4px; transition: color .2s; }
+    .del-btn:hover { color: var(--red); }
+
+    /* Right panel — attendance rows */
+    .right-panel {}
+    .period-bar {
+        display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+        background: var(--white); border: 1px solid var(--gray-200);
+        border-radius: 12px; padding: 14px 18px; margin-bottom: 20px;
+    }
+    .period-bar select { padding: 7px 12px; border-radius: 7px; border: 1px solid var(--gray-200); font-size: 14px; font-weight: 600; }
+    .period-bar button { padding: 7px 16px; border-radius: 7px; border: none; background: var(--orange); color: #fff; font-size: 14px; font-weight: 600; cursor: pointer; }
+
+    .att-row { display: grid; grid-template-columns: 90px 1fr 1fr 1fr 1fr; gap: 0; align-items: center; }
+    .att-header { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .4px; color: var(--gray-500); padding: 10px 16px; border-bottom: 2px solid var(--gray-200); background: var(--gray-100); }
+    .att-cell { padding: 13px 16px; border-bottom: 1px solid var(--gray-200); font-size: 13px; color: var(--gray-700); }
+    .att-cell.date-cell { font-weight: 700; color: var(--black); font-size: 13px; }
+    .att-cell.earned-cell { font-family: monospace; font-weight: 700; font-size: 13px; color: #16a34a; }
+    .att-cell.zero { color: var(--gray-500); }
+
+    .status-chip {
+        display: inline-block; padding: 3px 9px; border-radius: 6px; font-size: 12px; font-weight: 700;
+    }
+    .chip-present { background: #F0FDF4; color: #16a34a; }
+    .chip-late    { background: var(--orange-light); color: var(--orange); }
+    .chip-absent  { background: #FEF2F2; color: var(--red); }
+
+    .time-mono { font-family: monospace; font-size: 12px; color: var(--black); }
+    .time-mono.dim { color: var(--gray-500); }
+
+    .section-card {
+        background: var(--white); border: 1px solid var(--gray-200); border-radius: 14px;
+        overflow: hidden; margin-bottom: 20px;
+    }
+    .section-head {
+        padding: 14px 20px; border-bottom: 1px solid var(--gray-200);
+        font-size: 14px; font-weight: 700; color: var(--black);
+        display: flex; justify-content: space-between; align-items: center;
+    }
+    .section-head .head-sub { font-size: 12px; font-weight: 500; color: var(--gray-500); }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<!-- Period selector -->
+<form method="get" class="period-bar" style="margin-bottom:24px;">
+    <label style="font-size:13px;font-weight:600;color:var(--gray-700);">Yil:</label>
+    <select name="year">
+        {% for y in years %}
+        <option value="{{ y }}" {% if y == year %}selected{% endif %}>{{ y }}</option>
+        {% endfor %}
+    </select>
+    <label style="font-size:13px;font-weight:600;color:var(--gray-700);">Oy:</label>
+    <select name="month">
+        {% for mn in month_names %}
+        <option value="{{ forloop.counter }}" {% if forloop.counter == month %}selected{% endif %}>{{ mn }}</option>
+        {% endfor %}
+    </select>
+    <button type="submit">Ko'rish</button>
+    <span style="margin-left:auto;font-size:16px;font-weight:700;color:var(--black);">{{ employee.name }} — {{ month_name }} {{ year }}</span>
+</form>
+
+<div class="detail-layout">
+
+    <!-- LEFT: employee summary + forms -->
+    <div class="left-panel">
+
+        <!-- Employee card -->
+        <div class="emp-card">
+            <div class="emp-avatar">{{ employee.name|make_list|first }}</div>
+            <div class="emp-name">{{ employee.name }}</div>
+            <div class="emp-meta">
+                {% if employee.role %}{{ employee.role.name }}{% endif %}
+                {% if employee.department %} · {{ employee.department.name }}{% endif %}
+                {% if employee.shift %} · {{ employee.shift.name }}{% endif %}
+            </div>
+
+            <div style="margin-top:16px;">
+                <div class="stat-row">
+                    <span class="label">Soatlik stavka</span>
+                    <span class="value">
+                        {% if hourly_rate %}{{ hourly_rate|floatformat:0 }} so'm/soat{% else %}—{% endif %}
+                    </span>
+                </div>
+                <div class="stat-row">
+                    <span class="label">Ishlagan soatlar</span>
+                    <span class="value">{{ total_hours|floatformat:2 }} soat</span>
+                </div>
+                <div class="stat-row">
+                    <span class="label">Davomat yozuvlari</span>
+                    <span class="value">{{ total_records }} ta</span>
+                </div>
+                <div class="stat-row">
+                    <span class="label">Keldi / Kechikdi / Kelmadi</span>
+                    <span class="value">
+                        <span style="color:#16a34a;">{{ present_count }}</span> /
+                        <span style="color:var(--orange);">{{ late_count }}</span> /
+                        <span style="color:var(--red);">{{ absent_count }}</span>
+                    </span>
+                </div>
+                <div class="stat-row">
+                    <span class="label">Asosiy maosh</span>
+                    <span class="value" style="font-family:monospace;">{{ base_salary|floatformat:0 }} so'm</span>
+                </div>
+                <div class="stat-row">
+                    <span class="label">Bonuslar</span>
+                    <span class="value" style="color:#16a34a;font-family:monospace;">+{{ bonus_total|floatformat:0 }} so'm</span>
+                </div>
+                <div class="stat-row">
+                    <span class="label">Jarimalar</span>
+                    <span class="value" style="color:var(--red);font-family:monospace;">-{{ penalty_total|floatformat:0 }} so'm</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Net total -->
+        <div class="net-total">
+            <div class="nt-label">Jami to'lov ({{ month_name }} {{ year }})</div>
+            <div class="nt-val">{{ net_salary|floatformat:0 }} so'm</div>
+        </div>
+
+        <!-- Set hourly rate -->
+        <div class="rate-form">
+            <h4>
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width:16px;height:16px;vertical-align:-3px;margin-right:4px;"><path stroke-linecap="round" stroke-linejoin="round" d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.325.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 0 1 1.37.49l1.296 2.247a1.125 1.125 0 0 1-.26 1.431l-1.003.827c-.293.241-.438.613-.43.992a7.723 7.723 0 0 1 0 .255c-.008.378.137.75.43.991l1.004.827c.424.35.534.955.26 1.43l-1.298 2.247a1.125 1.125 0 0 1-1.369.491l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.47 6.47 0 0 1-.22.128c-.331.183-.581.495-.644.869l-.213 1.281c-.09.543-.56.94-1.11.94h-2.594c-.55 0-1.019-.398-1.11-.94l-.213-1.281c-.062-.374-.312-.686-.644-.87a6.52 6.52 0 0 1-.22-.127c-.325-.196-.72-.257-1.076-.124l-1.217.456a1.125 1.125 0 0 1-1.369-.49l-1.297-2.247a1.125 1.125 0 0 1 .26-1.431l1.004-.827c.292-.24.437-.613.43-.991a6.932 6.932 0 0 1 0-.255c.007-.38-.138-.751-.43-.992l-1.004-.827a1.125 1.125 0 0 1-.26-1.43l1.297-2.247a1.125 1.125 0 0 1 1.37-.491l1.216.456c.356.133.751.072 1.076-.124.072-.044.146-.086.22-.128.332-.183.582-.495.644-.869l.214-1.28Z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"/></svg>
+                Soatlik stavka belgilash
+            </h4>
+            <form method="post">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="set_rate">
+                <input type="hidden" name="year" value="{{ year }}">
+                <input type="hidden" name="month" value="{{ month }}">
+                <div class="rate-input-row">
+                    <input type="number" name="hourly_rate" min="0" step="100"
+                           value="{{ hourly_rate|floatformat:0 }}" placeholder="0">
+                    <button type="submit" class="btn btn-primary btn-sm">Saqlash</button>
+                </div>
+                <div style="font-size:11px;color:var(--gray-500);margin-top:6px;">so'm / soat</div>
+            </form>
+        </div>
+
+        <!-- Add bonus / KPI / penalty -->
+        <div class="bonus-form">
+            <h4>
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width:16px;height:16px;vertical-align:-3px;margin-right:4px;"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v6m3-3H9m12 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/></svg>
+                Bonus / KPI / Jarima qo'shish
+            </h4>
+            <form method="post">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="add_bonus">
+                <input type="hidden" name="year" value="{{ year }}">
+                <input type="hidden" name="month" value="{{ month }}">
+                <div class="bonus-grid">
+                    <select name="bonus_type">
+                        <option value="bonus">Mukofot</option>
+                        <option value="kpi">KPI</option>
+                        <option value="penalty">Jarima</option>
+                        <option value="other">Boshqa</option>
+                    </select>
+                    <input type="number" name="amount" min="0" step="1000" placeholder="Miqdor (so'm)">
+                </div>
+                <input type="text" name="note" maxlength="255" placeholder="Izoh (ixtiyoriy)"
+                       style="width:100%;margin-top:8px;padding:9px 12px;border:1px solid var(--gray-200);border-radius:8px;font-size:13px;">
+                <button type="submit" class="btn btn-primary btn-sm" style="margin-top:10px;width:100%;justify-content:center;">
+                    Qo'shish
+                </button>
+            </form>
+        </div>
+
+        <!-- Existing bonuses -->
+        {% if bonuses %}
+        <div class="emp-card" style="padding:16px 20px;">
+            <div style="font-size:13px;font-weight:700;color:var(--black);margin-bottom:10px;">Qo'shimcha to'lovlar</div>
+            {% for b in bonuses %}
+            <div class="bonus-item">
+                <span class="bonus-badge {{ b.bonus_type }}">
+                    {% if b.bonus_type == 'bonus' %}Mukofot
+                    {% elif b.bonus_type == 'kpi' %}KPI
+                    {% elif b.bonus_type == 'penalty' %}Jarima
+                    {% else %}Boshqa{% endif %}
+                </span>
+                <span class="bonus-note">{{ b.note|default:"—" }}</span>
+                <span class="bonus-amount {% if b.is_deduction %}minus{% else %}plus{% endif %}">
+                    {% if b.is_deduction %}-{% else %}+{% endif %}{{ b.amount|floatformat:0 }}
+                </span>
+                <form method="post" style="display:inline;">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="delete_bonus">
+                    <input type="hidden" name="bonus_id" value="{{ b.pk }}">
+                    <input type="hidden" name="year" value="{{ year }}">
+                    <input type="hidden" name="month" value="{{ month }}">
+                    <button type="submit" class="del-btn" title="O'chirish">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width:15px;height:15px;"><path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0"/></svg>
+                    </button>
+                </form>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+    </div>
+
+    <!-- RIGHT: attendance breakdown -->
+    <div class="right-panel">
+        <div class="section-card">
+            <div class="section-head">
+                <span>Davomat yozuvlari — {{ month_name }} {{ year }}</span>
+                <span class="head-sub">{{ total_records }} yozuv · {{ total_hours|floatformat:2 }} soat</span>
+            </div>
+
+            {% if att_rows %}
+            <!-- header row -->
+            <div class="att-row att-header">
+                <div style="padding:10px 16px;">Sana</div>
+                <div style="padding:10px 16px;">Holat</div>
+                <div style="padding:10px 16px;">Kirish</div>
+                <div style="padding:10px 16px;">Chiqish / Ishlagan</div>
+                <div style="padding:10px 16px;">Hisoblangan</div>
+            </div>
+            {% for row in att_rows %}
+            <div class="att-row" style="{% if forloop.last %}border-bottom:none;{% endif %}">
+                <!-- Sana -->
+                <div class="att-cell date-cell">{{ row.att.date|date:"d.m" }}</div>
+
+                <!-- Holat -->
+                <div class="att-cell">
+                    {% if row.att.status == 'present' %}
+                        <span class="status-chip chip-present">Keldi</span>
+                    {% elif row.att.status == 'late' %}
+                        <span class="status-chip chip-late">Kechikdi</span>
+                    {% else %}
+                        <span class="status-chip chip-absent">Kelmadi</span>
+                    {% endif %}
+                    {% if row.att.effective_shift %}
+                    <div style="font-size:11px;color:var(--gray-500);margin-top:3px;">{{ row.att.effective_shift.name }}</div>
+                    {% endif %}
+                </div>
+
+                <!-- Kirish -->
+                <div class="att-cell">
+                    {% if row.att.check_in %}
+                    <div class="time-mono">{{ row.att.check_in|date:"H:i" }}</div>
+                    {% if row.att.effective_check_in and row.att.effective_check_in != row.att.check_in %}
+                    <div class="time-mono dim" style="font-size:11px;">hisob: {{ row.att.effective_check_in|date:"H:i" }}</div>
+                    {% endif %}
+                    {% else %}
+                    <span class="time-mono dim">—</span>
+                    {% endif %}
+                </div>
+
+                <!-- Chiqish / Ishlagan -->
+                <div class="att-cell">
+                    {% if row.att.check_out %}
+                    <div class="time-mono">{{ row.att.check_out|date:"H:i" }}</div>
+                    {% if row.att.actual_check_out and row.att.actual_check_out != row.att.check_out %}
+                    <div class="time-mono dim" style="font-size:11px;">haqiqiy: {{ row.att.actual_check_out|date:"H:i" }}</div>
+                    {% endif %}
+                    {% if row.worked_seconds > 0 %}
+                    <div style="font-size:11px;color:#2563EB;font-family:monospace;margin-top:2px;">
+                        {{ row.worked_hours|floatformat:2 }} soat
+                    </div>
+                    {% endif %}
+                    {% elif row.att.check_in %}
+                    <span class="time-mono dim">Chiqmagan</span>
+                    {% else %}
+                    <span class="time-mono dim">—</span>
+                    {% endif %}
+                </div>
+
+                <!-- Hisoblangan -->
+                <div class="att-cell {% if row.earned == 0 %}zero{% else %}earned-cell{% endif %}">
+                    {% if row.earned %}
+                    {{ row.earned|floatformat:0 }} so'm
+                    {% else %}
+                    —
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+
+            <!-- totals row -->
+            <div class="att-row" style="background:var(--gray-100);font-weight:700;border-top:2px solid var(--gray-200);">
+                <div class="att-cell" style="font-weight:700;color:var(--black);">Jami</div>
+                <div class="att-cell" style="color:var(--gray-500);">{{ total_records }} yozuv</div>
+                <div class="att-cell"></div>
+                <div class="att-cell" style="color:#2563EB;font-family:monospace;">{{ total_hours|floatformat:2 }} soat</div>
+                <div class="att-cell" style="color:#16a34a;font-family:monospace;font-size:15px;">{{ base_salary|floatformat:0 }} so'm</div>
+            </div>
+
+            {% else %}
+            <div class="empty-state" style="padding:40px;">
+                <p>Bu oyda davomat yozuvlari topilmadi</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+</div>
+{% endblock %}

@@ -48,4 +48,8 @@ urlpatterns = [
     # QR Cards
     path('users/<int:pk>/qr/', views.QRCardView.as_view(), name='qr_card'),
     path('qr-cards/', views.QRCardAllView.as_view(), name='qr_cards_all'),
+
+    # Salary
+    path('salary/', views.SalaryListView.as_view(), name='salary_list'),
+    path('salary/<int:pk>/', views.SalaryDetailView.as_view(), name='salary_detail'),
 ]

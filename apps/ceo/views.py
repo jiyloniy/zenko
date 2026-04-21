@@ -1396,3 +1396,236 @@ class QRCardAllView(CEORequiredMixin, View):
             'filter_shift': shift_filter,
             'filter_search': search,
         })
+
+
+# ══════════════════════════════════════════════════════════════════
+# SALARY / OYLIK
+# ══════════════════════════════════════════════════════════════════
+
+def _calc_worked_seconds(att):
+    """Davomat yozuvi uchun hisob soatlari (soniyalarda)."""
+    ci = att.effective_check_in or att.check_in
+    co = att.check_out
+    if ci and co:
+        delta = (co - ci).total_seconds()
+        return max(delta, 0)
+    return 0
+
+
+def _month_salary_for_user(user, year, month, branch):
+    """
+    Bir hodim uchun bir oylik oylik hisob-kitobi.
+    Qaytaradi: dict bilan to'liq ma'lumot.
+    """
+    from apps.ceo.models import SalarySettings, SalaryBonus
+    from decimal import Decimal
+
+    # Soatlik stavka
+    try:
+        hourly_rate = user.salary_settings.hourly_rate
+    except SalarySettings.DoesNotExist:
+        hourly_rate = Decimal('0.00')
+
+    # Oyning boshlanish/tugash sanasi
+    import calendar
+    last_day = calendar.monthrange(year, month)[1]
+    date_from = datetime.date(year, month, 1)
+    date_to   = datetime.date(year, month, last_day)
+
+    # Davomat yozuvlari (faqat shu oyda, shu filialdagi)
+    qs = Attendance.objects.filter(
+        user=user, date__gte=date_from, date__lte=date_to,
+    ).select_related('effective_shift')
+    if branch:
+        qs = qs.filter(branch=branch)
+
+    att_rows = []
+    total_seconds = 0
+    for att in qs.order_by('date', 'check_in'):
+        secs = _calc_worked_seconds(att)
+        total_seconds += secs
+        att_rows.append({
+            'att': att,
+            'worked_seconds': secs,
+            'worked_hours': round(secs / 3600, 2),
+            'earned': round(Decimal(str(secs / 3600)) * hourly_rate, 2),
+        })
+
+    total_hours = Decimal(str(round(total_seconds / 3600, 4)))
+    base_salary = (total_hours * hourly_rate).quantize(Decimal('0.01'))
+
+    # Bonus / KPI / jarima
+    bonuses = SalaryBonus.objects.filter(user=user, year=year, month=month).order_by('created_at')
+    bonus_total   = sum(b.amount for b in bonuses if not b.is_deduction)
+    penalty_total = sum(b.amount for b in bonuses if b.is_deduction)
+    net_salary = base_salary + bonus_total - penalty_total
+
+    return {
+        'user': user,
+        'hourly_rate': hourly_rate,
+        'att_rows': att_rows,
+        'total_seconds': total_seconds,
+        'total_hours': float(total_hours),
+        'base_salary': base_salary,
+        'bonuses': bonuses,
+        'bonus_total': bonus_total,
+        'penalty_total': penalty_total,
+        'net_salary': net_salary,
+        'present_count': qs.filter(status='present').count(),
+        'late_count': qs.filter(status='late').count(),
+        'absent_count': qs.filter(status='absent').count(),
+        'total_records': qs.count(),
+    }
+
+
+class SalaryListView(CEORequiredMixin, View):
+    """Barcha hodimlar uchun oylik ro'yxati."""
+
+    def get(self, request):
+        branch = self.get_branch()
+        now = timezone.localtime()
+
+        year  = int(request.GET.get('year',  now.year))
+        month = int(request.GET.get('month', now.month))
+
+        # Yil/oy tekshiruv
+        year  = max(2020, min(year,  2100))
+        month = max(1,    min(month, 12))
+
+        users = User.objects.filter(is_active=True).select_related(
+            'role', 'department', 'shift', 'salary_settings',
+        )
+        if branch:
+            users = users.filter(branch=branch)
+
+        rows = []
+        grand_base = grand_net = grand_hours = 0
+        for user in users:
+            data = _month_salary_for_user(user, year, month, branch)
+            rows.append(data)
+            grand_base  += float(data['base_salary'])
+            grand_net   += float(data['net_salary'])
+            grand_hours += data['total_hours']
+
+        # Oy nomi
+        month_names = [
+            '', 'Yanvar', 'Fevral', 'Mart', 'Aprel', 'May', 'Iyun',
+            'Iyul', 'Avgust', 'Sentabr', 'Oktabr', 'Noyabr', 'Dekabr',
+        ]
+
+        # Yil tanlash uchun diapason
+        years = list(range(2024, now.year + 2))
+
+        context = {
+            'active_nav': 'salary',
+            'branch': branch,
+            'year': year,
+            'month': month,
+            'month_name': month_names[month],
+            'rows': rows,
+            'grand_base': round(grand_base, 2),
+            'grand_net': round(grand_net, 2),
+            'grand_hours': round(grand_hours, 2),
+            'month_names': month_names[1:],
+            'years': years,
+        }
+        return render(request, 'ceo/salary_list.html', context)
+
+
+class SalaryDetailView(CEORequiredMixin, View):
+    """Bitta hodim uchun oylik batafsil."""
+
+    def get(self, request, pk):
+        branch = self.get_branch()
+        qs = User.objects.all()
+        if branch:
+            qs = qs.filter(branch=branch)
+        employee = get_object_or_404(qs.select_related('role', 'department', 'shift'), pk=pk)
+
+        now   = timezone.localtime()
+        year  = int(request.GET.get('year',  now.year))
+        month = int(request.GET.get('month', now.month))
+        year  = max(2020, min(year,  2100))
+        month = max(1,    min(month, 12))
+
+        data = _month_salary_for_user(employee, year, month, branch)
+
+        month_names = [
+            '', 'Yanvar', 'Fevral', 'Mart', 'Aprel', 'May', 'Iyun',
+            'Iyul', 'Avgust', 'Sentabr', 'Oktabr', 'Noyabr', 'Dekabr',
+        ]
+        years = list(range(2024, now.year + 2))
+
+        # Soatlik stavka tahrirlash
+        if request.method == 'GET' and request.GET.get('set_rate'):
+            pass  # handled in POST
+
+        context = {
+            'active_nav': 'salary',
+            'branch': branch,
+            'employee': employee,
+            'year': year,
+            'month': month,
+            'month_name': month_names[month],
+            'years': years,
+            'month_names': month_names[1:],
+            **data,
+        }
+        return render(request, 'ceo/salary_detail.html', context)
+
+    def post(self, request, pk):
+        """Soatlik stavka yangilash yoki bonus/jarima qo'shish."""
+        from apps.ceo.models import SalarySettings, SalaryBonus
+        from decimal import Decimal
+
+        branch = self.get_branch()
+        qs = User.objects.all()
+        if branch:
+            qs = qs.filter(branch=branch)
+        employee = get_object_or_404(qs, pk=pk)
+
+        now   = timezone.localtime()
+        year  = int(request.POST.get('year',  now.year))
+        month = int(request.POST.get('month', now.month))
+        action = request.POST.get('action', '')
+
+        if action == 'set_rate':
+            try:
+                rate = Decimal(request.POST.get('hourly_rate', '0').replace(',', '.'))
+                rate = max(Decimal('0'), rate)
+            except Exception:
+                rate = Decimal('0')
+            obj, _ = SalarySettings.objects.get_or_create(user=employee)
+            obj.hourly_rate = rate
+            obj.save()
+            messages.success(request, f'Soatlik stavka {rate:,.0f} so\'mga o\'zgartirildi.')
+
+        elif action == 'add_bonus':
+            try:
+                amount = Decimal(request.POST.get('amount', '0').replace(',', '.'))
+                amount = max(Decimal('0'), amount)
+            except Exception:
+                amount = Decimal('0')
+            bonus_type = request.POST.get('bonus_type', 'bonus')
+            note = request.POST.get('note', '').strip()[:255]
+            if amount > 0:
+                SalaryBonus.objects.create(
+                    user=employee, year=year, month=month,
+                    bonus_type=bonus_type, amount=amount, note=note,
+                )
+                label = 'Jarima' if bonus_type == 'penalty' else 'Bonus/KPI'
+                messages.success(request, f'{label} qo\'shildi: {amount:,.0f} so\'m')
+            else:
+                messages.warning(request, 'Miqdor 0 dan katta bo\'lishi kerak.')
+
+        elif action == 'delete_bonus':
+            bonus_id = request.POST.get('bonus_id')
+            try:
+                SalaryBonus.objects.filter(pk=bonus_id, user=employee).delete()
+                messages.success(request, 'O\'chirildi.')
+            except Exception:
+                pass
+
+        return redirect(
+            f'{request.path}?year={year}&month={month}'
+        )

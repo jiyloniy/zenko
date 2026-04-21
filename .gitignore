@@ -1,1 +1,10 @@
 db.sqlite3
+__pycache__/
+*.pyc
+*.pyo
+
+# db
+db.sqlite3
+# media
+media/
+db.sqlite3
