@@ -1,7 +1,7 @@
 {% extends "boss/base.html" %}
 
-{% block title %}O'chirish — Zenko BOSS{% endblock %}
-{% block page_title %}O'chirish{% endblock %}
+{% block title %}Ўчириш — Zenko BOSS{% endblock %}
+{% block page_title %}Ўчириш{% endblock %}
 
 {% block extra_css %}
 <style>
@@ -40,14 +40,14 @@
                 <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z"/>
             </svg>
         </div>
-        <h3>O'chirishni tasdiqlaysizmi?</h3>
-        <p>Bu amalni qaytarib bo'lmaydi. Quyidagi element butunlay o'chiriladi:</p>
+        <h3>Ўчиришни тасдиқлайсизми?</h3>
+        <p>Бу амални қайтариб бўлмайди. Қуйидаги элемент бутунлай ўчирилади:</p>
         <div class="object-name">{{ object }}</div>
         <form method="post">
             {% csrf_token %}
             <div class="btn-row">
-                <a href="{{ cancel_url }}" class="btn btn-secondary">Bekor qilish</a>
-                <button type="submit" class="btn btn-danger">Ha, o'chirish</button>
+                <a href="{{ cancel_url }}" class="btn btn-secondary">Бекор қилиш</a>
+                <button type="submit" class="btn btn-danger">Ҳа, ўчириш</button>
             </div>
         </form>
     </div>

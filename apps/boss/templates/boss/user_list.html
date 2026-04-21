@@ -1,12 +1,12 @@
 {% extends "boss/base.html" %}
 
-{% block title %}Hodimlar — Zenko BOSS{% endblock %}
-{% block page_title %}Hodimlar{% endblock %}
+{% block title %}Ходимлар — Zenko BOSS{% endblock %}
+{% block page_title %}Ходимлар{% endblock %}
 
 {% block topbar_actions %}
 <a href="{% url 'boss:user_create' %}" class="btn btn-primary btn-sm">
     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>
-    Yangi hodim
+    Янги ходим
 </a>
 {% endblock %}
 
@@ -17,14 +17,14 @@
         <table>
             <thead>
                 <tr>
-                    <th>Ism</th>
+                    <th>Исм</th>
                     <th>Username</th>
-                    <th>Rol</th>
-                    <th>Bo'lim</th>
-                    <th>Filial</th>
-                    <th>Smena</th>
-                    <th>Holati</th>
-                    <th>Amallar</th>
+                    <th>Рол</th>
+                    <th>Бўлим</th>
+                    <th>Филиал</th>
+                    <th>Смена</th>
+                    <th>Ҳолати</th>
+                    <th>Амаллар</th>
                 </tr>
             </thead>
             <tbody>
@@ -34,7 +34,7 @@
                     <td>{{ u.username }}</td>
                     <td>
                         {% if u.role %}
-                        <span class="badge badge-blue">{{ u.role.name }}</span>
+                        <span class="badge badge-purple">{{ u.role.name }}</span>
                         {% else %}
                         <span class="badge badge-gray">—</span>
                         {% endif %}
@@ -48,21 +48,21 @@
                         {% endif %}
                     </td>
                     <td>
-                        {% for s in u.shifts.all %}
-                        <span class="badge badge-blue" style="font-size:11px;margin:1px;">{{ s.name }}</span>
-                        {% empty %}—{% endfor %}
+                        {% if u.shift %}
+                        <span class="badge badge-orange" style="font-size:11px;">{{ u.shift.name }}</span>
+                        {% else %}—{% endif %}
                     </td>
                     <td>
                         {% if u.is_active %}
-                        <span class="badge badge-green">Faol</span>
+                        <span class="badge badge-green">Фаол</span>
                         {% else %}
-                        <span class="badge badge-red">Nofaol</span>
+                        <span class="badge badge-red">Нофаол</span>
                         {% endif %}
                     </td>
                     <td>
                         <div class="actions-cell">
-                            <a href="{% url 'boss:user_update' u.pk %}" class="btn btn-sm btn-secondary">Tahrirlash</a>
-                            <a href="{% url 'boss:user_delete' u.pk %}" class="btn btn-sm btn-danger">O'chirish</a>
+                            <a href="{% url 'boss:user_update' u.pk %}" class="btn btn-sm btn-secondary">Таҳрирлаш</a>
+                            <a href="{% url 'boss:user_delete' u.pk %}" class="btn btn-sm btn-danger">Ўчириш</a>
                         </div>
                     </td>
                 </tr>
@@ -72,8 +72,8 @@
     </div>
     {% else %}
     <div class="empty-state">
-        <p>Hali hodimlar qo'shilmagan</p>
-        <a href="{% url 'boss:user_create' %}" class="btn btn-primary">Hodim qo'shish</a>
+        <p>Ҳали ходимлар қўшилмаган</p>
+        <a href="{% url 'boss:user_create' %}" class="btn btn-primary">Ходим қўшиш</a>
     </div>
     {% endif %}
 </div>

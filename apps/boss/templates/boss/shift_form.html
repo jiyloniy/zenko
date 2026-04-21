@@ -42,13 +42,13 @@
             </div>
             <div class="header-text">
                 <h3>{{ title }}</h3>
-                <p>Smena ma'lumotlarini kiriting (24 soat formati)</p>
+                <p>Смена маълумотларини киринг (24 соат формати)</p>
             </div>
         </div>
 
         {% if form.errors %}
         <div class="form-errors">
-            <strong>Xatoliklar:</strong>
+            <strong>Хатоликлар:</strong>
             <ul>
             {% for field in form %}
                 {% for error in field.errors %}<li>{{ field.label }}: {{ error }}</li>{% endfor %}
@@ -60,56 +60,56 @@
         <form method="post">
             {% csrf_token %}
             <div class="form-group">
-                <label for="id_name">Nomi</label>
+                <label for="id_name">Номи</label>
                 <input type="text" name="name" id="id_name" class="form-control"
-                       value="{{ form.name.value|default:'' }}" required placeholder="Masalan: Kunduzgi smena">
+                       value="{{ form.name.value|default:'' }}" required placeholder="Масалан: Кундузги смена">
             </div>
             <div class="form-group">
-                <label for="id_branch">Filial</label>
+                <label for="id_branch">Филиал</label>
                 <select name="branch" id="id_branch" class="form-control">
-                    <option value="">— Tanlanmagan —</option>
+                    <option value="">— Танланмаган —</option>
                     {% for b in branches %}
                     <option value="{{ b.pk }}" {% if object.branch_id|stringformat:"s" == b.pk|stringformat:"s" %}selected{% endif %}>{{ b.name }}</option>
                     {% endfor %}
                 </select>
             </div>
 
-            <div class="section-label">Ish vaqti</div>
+            <div class="section-label">Иш вақти</div>
             <div class="time-row">
                 <div class="form-group">
-                    <label for="id_start_time">Boshlanish</label>
+                    <label for="id_start_time">Бошланиш</label>
                     {{ form.start_time }}
                 </div>
                 <div class="form-group">
-                    <label for="id_end_time">Tugash</label>
+                    <label for="id_end_time">Тугаш</label>
                     {{ form.end_time }}
                 </div>
             </div>
 
-            <div class="section-label">Tanaffus</div>
+            <div class="section-label">Танаффус</div>
             <div class="time-row">
                 <div class="form-group">
-                    <label for="id_break_start">Boshlanish</label>
+                    <label for="id_break_start">Бошланиш</label>
                     {{ form.break_start }}
                 </div>
                 <div class="form-group">
-                    <label for="id_break_end">Tugash</label>
+                    <label for="id_break_end">Тугаш</label>
                     {{ form.break_end }}
                 </div>
             </div>
 
             <div class="form-group" style="margin-top:12px">
-                <label for="id_description">Tavsif</label>
+                <label for="id_description">Тавсиф</label>
                 <textarea name="description" id="id_description" class="form-control" rows="3"
-                          placeholder="Smena haqida qisqacha...">{{ form.description.value|default:'' }}</textarea>
+                          placeholder="Смена ҳақида қисқача...">{{ form.description.value|default:'' }}</textarea>
             </div>
 
             <div class="form-actions">
                 <button type="submit" class="btn btn-primary">
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width:16px;height:16px"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5"/></svg>
-                    Saqlash
+                    Сақлаш
                 </button>
-                <a href="{{ cancel_url }}" class="btn btn-secondary">Bekor qilish</a>
+                <a href="{{ cancel_url }}" class="btn btn-secondary">Бекор қилиш</a>
             </div>
         </form>
     </div>

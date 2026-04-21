@@ -3,36 +3,45 @@
 {% block title %}{{ title }} — Zenko BOSS{% endblock %}
 {% block page_title %}{{ title }}{% endblock %}
 
+{% block topbar_actions %}
+<a href="{% url 'boss:user_list' %}" class="btn btn-secondary btn-sm">
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width:15px;height:15px"><path stroke-linecap="round" stroke-linejoin="round" d="M9 15 3 9m0 0 6-6M3 9h12a6 6 0 0 1 0 12h-3"/></svg>
+    Орқага
+</a>
+{% endblock %}
+
 {% block extra_css %}
 <style>
     .form-wrapper { display: flex; justify-content: center; padding: 20px 0; }
     .form-card {
         width: 100%; max-width: 580px;
         background: var(--white); border-radius: 16px;
-        border: 1px solid var(--gray-200);
-        padding: 36px 32px 28px;
+        border: 1px solid var(--gray-200); padding: 36px 32px 28px;
         box-shadow: 0 1px 3px rgba(0,0,0,.04), 0 6px 24px rgba(0,0,0,.03);
     }
     .form-card .form-header {
         display: flex; align-items: center; gap: 14px;
-        margin-bottom: 28px; padding-bottom: 20px;
-        border-bottom: 1px solid var(--gray-200);
+        margin-bottom: 28px; padding-bottom: 20px; border-bottom: 1px solid var(--gray-200);
     }
     .form-card .form-header .icon-box {
-        width: 44px; height: 44px;
-        background: var(--primary-light); border-radius: 12px;
-        display: flex; align-items: center; justify-content: center;
-        color: var(--primary); flex-shrink: 0;
+        width: 44px; height: 44px; background: var(--primary-light); border-radius: 12px;
+        display: flex; align-items: center; justify-content: center; color: var(--primary); flex-shrink: 0;
     }
     .form-card .form-header .icon-box svg { width: 22px; height: 22px; }
     .form-card .form-header .header-text h3 { font-size: 17px; font-weight: 700; color: var(--black); margin-bottom: 2px; }
     .form-card .form-header .header-text p { font-size: 13px; color: var(--gray-500); }
-    .section-label { font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: .5px; color: var(--primary); margin: 20px 0 10px; }
+    .section-label {
+        font-size: 11px; font-weight: 700; text-transform: uppercase;
+        letter-spacing: .8px; color: var(--gray-500); margin: 22px 0 12px;
+        display: flex; align-items: center; gap: 8px;
+    }
+    .section-label::after { content: ''; flex: 1; height: 1px; background: var(--gray-200); }
     .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
     .form-card .form-actions { margin-top: 8px; padding-top: 20px; border-top: 1px solid var(--gray-200); }
-    .checkbox-row { display: flex; align-items: center; gap: 8px; margin-top: 8px; }
+    .checkbox-row { display: flex; align-items: center; gap: 10px; padding: 12px 14px; background: var(--gray-50); border-radius: 10px; margin-top: 4px; }
     .checkbox-row input[type="checkbox"] { width: 18px; height: 18px; accent-color: var(--primary); }
-    .checkbox-row label { font-size: 14px; margin: 0; }
+    .checkbox-row label { font-size: 14px; font-weight: 500; margin: 0; cursor: pointer; }
+    @media (max-width: 520px) { .form-card { padding: 24px 18px 20px; } .two-col { grid-template-columns: 1fr; } }
 </style>
 {% endblock %}
 
@@ -45,13 +54,13 @@
             </div>
             <div class="header-text">
                 <h3>{{ title }}</h3>
-                <p>Hodim ma'lumotlarini kiriting</p>
+                <p>Ходим маълумотларини киринг</p>
             </div>
         </div>
 
         {% if form.errors %}
         <div class="form-errors">
-            <strong>Xatoliklar:</strong>
+            <strong>Хатоликлар:</strong>
             <ul>
             {% for field in form %}
                 {% for error in field.errors %}<li>{{ field.label }}: {{ error }}</li>{% endfor %}
@@ -64,7 +73,7 @@
         <form method="post">
             {% csrf_token %}
 
-            <div class="section-label">Hisob</div>
+            <div class="section-label">Ҳисоб</div>
             <div class="form-group">
                 <label for="id_username">Username</label>
                 <input type="text" name="username" id="id_username" class="form-control"
@@ -73,35 +82,35 @@
             {% if form.password1 %}
             <div class="two-col">
                 <div class="form-group">
-                    <label for="id_password1">Parol</label>
+                    <label for="id_password1">Парол</label>
                     <input type="password" name="password1" id="id_password1" class="form-control" required>
                 </div>
                 <div class="form-group">
-                    <label for="id_password2">Parolni tasdiqlang</label>
+                    <label for="id_password2">Паролни тасдиқланг</label>
                     <input type="password" name="password2" id="id_password2" class="form-control" required>
                 </div>
             </div>
             {% endif %}
 
-            <div class="section-label">Shaxsiy</div>
+            <div class="section-label">Шахсий</div>
             <div class="two-col">
                 <div class="form-group">
-                    <label for="id_name">Ism</label>
+                    <label for="id_name">Исм</label>
                     <input type="text" name="name" id="id_name" class="form-control"
                            value="{{ form.name.value|default:'' }}" required>
                 </div>
                 <div class="form-group">
-                    <label for="id_phone">Telefon</label>
+                    <label for="id_phone">Телефон</label>
                     <input type="text" name="phone" id="id_phone" class="form-control"
                            value="{{ form.phone.value|default:'' }}" placeholder="+998...">
                 </div>
             </div>
 
-            <div class="section-label">Tashkiliy</div>
+            <div class="section-label">Ташкилий</div>
             <div class="form-group">
-                <label for="id_branch">Filial</label>
+                <label for="id_branch">Филиал</label>
                 <select name="branch" id="id_branch" class="form-control">
-                    <option value="">— Tanlanmagan —</option>
+                    <option value="">— Танланмаган —</option>
                     {% for b in branches %}
                     <option value="{{ b.pk }}" {% if object.branch_id|stringformat:"s" == b.pk|stringformat:"s" %}selected{% endif %}>{{ b.name }}</option>
                     {% endfor %}
@@ -109,18 +118,18 @@
             </div>
             <div class="two-col">
                 <div class="form-group">
-                    <label for="id_role">Rol</label>
+                    <label for="id_role">Рол</label>
                     <select name="role" id="id_role" class="form-control">
-                        <option value="">— Tanlanmagan —</option>
+                        <option value="">— Танланмаган —</option>
                         {% for r in roles %}
                         <option value="{{ r.pk }}" {% if form.role.value|stringformat:"s" == r.pk|stringformat:"s" %}selected{% endif %}>{{ r.name }}</option>
                         {% endfor %}
                     </select>
                 </div>
                 <div class="form-group">
-                    <label for="id_department">Bo'lim</label>
+                    <label for="id_department">Бўлим</label>
                     <select name="department" id="id_department" class="form-control">
-                        <option value="">— Tanlanmagan —</option>
+                        <option value="">— Танланмаган —</option>
                         {% for d in departments %}
                         <option value="{{ d.pk }}" {% if form.department.value|stringformat:"s" == d.pk|stringformat:"s" %}selected{% endif %}>
                             {{ d.name }}{% if d.branch %} ({{ d.branch.name }}){% endif %}
@@ -130,9 +139,9 @@
                 </div>
             </div>
             <div class="form-group">
-                <label for="id_shift">Smena</label>
+                <label for="id_shift">Смена</label>
                 <select name="shift" id="id_shift" class="form-control">
-                    <option value="">— Tanlanmagan —</option>
+                    <option value="">— Танланмаган —</option>
                     {% for s in shifts %}
                     <option value="{{ s.pk }}" {% if form.shift.value|stringformat:"s" == s.pk|stringformat:"s" %}selected{% endif %}>
                         {{ s.name }}{% if s.branch %} ({{ s.branch.name }}){% endif %}
@@ -144,15 +153,15 @@
             <div class="checkbox-row">
                 <input type="checkbox" name="is_active" id="id_is_active"
                        {% if form.is_active.value %}checked{% endif %}>
-                <label for="id_is_active">Faol</label>
+                <label for="id_is_active">Фаол ходим</label>
             </div>
 
             <div class="form-actions">
                 <button type="submit" class="btn btn-primary">
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width:16px;height:16px"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5"/></svg>
-                    Saqlash
+                    Сақлаш
                 </button>
-                <a href="{% url 'boss:user_list' %}" class="btn btn-secondary">Bekor qilish</a>
+                <a href="{% url 'boss:user_list' %}" class="btn btn-secondary">Бекор қилиш</a>
             </div>
         </form>
     </div>

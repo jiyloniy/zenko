@@ -3,26 +3,29 @@
 {% block title %}{{ title }} — Zenko BOSS{% endblock %}
 {% block page_title %}{{ title }}{% endblock %}
 
+{% block topbar_actions %}
+<a href="{% url 'boss:branch_list' %}" class="btn btn-secondary btn-sm">
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width:15px;height:15px"><path stroke-linecap="round" stroke-linejoin="round" d="M9 15 3 9m0 0 6-6M3 9h12a6 6 0 0 1 0 12h-3"/></svg>
+    Орқага
+</a>
+{% endblock %}
+
 {% block extra_css %}
 <style>
     .form-wrapper { display: flex; justify-content: center; padding: 20px 0; }
     .form-card {
         width: 100%; max-width: 580px;
         background: var(--white); border-radius: 16px;
-        border: 1px solid var(--gray-200);
-        padding: 36px 32px 28px;
+        border: 1px solid var(--gray-200); padding: 36px 32px 28px;
         box-shadow: 0 1px 3px rgba(0,0,0,.04), 0 6px 24px rgba(0,0,0,.03);
     }
     .form-card .form-header {
         display: flex; align-items: center; gap: 14px;
-        margin-bottom: 28px; padding-bottom: 20px;
-        border-bottom: 1px solid var(--gray-200);
+        margin-bottom: 28px; padding-bottom: 20px; border-bottom: 1px solid var(--gray-200);
     }
     .form-card .form-header .icon-box {
-        width: 44px; height: 44px;
-        background: var(--primary-light); border-radius: 12px;
-        display: flex; align-items: center; justify-content: center;
-        color: var(--primary); flex-shrink: 0;
+        width: 44px; height: 44px; background: var(--primary-light); border-radius: 12px;
+        display: flex; align-items: center; justify-content: center; color: var(--primary); flex-shrink: 0;
     }
     .form-card .form-header .icon-box svg { width: 22px; height: 22px; }
     .form-card .form-header .header-text h3 { font-size: 17px; font-weight: 700; color: var(--black); margin-bottom: 2px; }
@@ -52,13 +55,13 @@
             </div>
             <div class="header-text">
                 <h3>{{ title }}</h3>
-                <p>Filial ma'lumotlarini kiriting</p>
+                <p>Филиал маълумотларини киринг</p>
             </div>
         </div>
 
         {% if form.errors %}
         <div class="form-errors">
-            <strong>Xatoliklar:</strong>
+            <strong>Хатоликлар:</strong>
             <ul>
             {% for field in form %}
                 {% for error in field.errors %}<li>{{ field.label }}: {{ error }}</li>{% endfor %}
@@ -69,40 +72,37 @@
 
         <form method="post">
             {% csrf_token %}
-
-            <div class="section-label">Filial ma'lumotlari</div>
+            <div class="section-label">Филиал маълумотлари</div>
             <div class="form-group">
-                <label for="id_name">Nomi</label>
+                <label for="id_name">Номи</label>
                 <input type="text" name="name" id="id_name" class="form-control"
-                       value="{{ form.name.value|default:'' }}" required placeholder="Masalan: Toshkent filiali">
+                       value="{{ form.name.value|default:'' }}" required placeholder="Масалан: Тошкент филиали">
             </div>
             <div class="form-group">
-                <label for="id_address">Manzil</label>
+                <label for="id_address">Манзил</label>
                 <input type="text" name="address" id="id_address" class="form-control"
-                       value="{{ form.address.value|default:'' }}" placeholder="Manzilni kiriting">
+                       value="{{ form.address.value|default:'' }}" placeholder="Манзилни киринг">
             </div>
             <div class="form-group">
-                <label for="id_phone">Telefon</label>
+                <label for="id_phone">Телефон</label>
                 <input type="text" name="phone" id="id_phone" class="form-control"
                        value="{{ form.phone.value|default:'' }}" placeholder="+998 XX XXX XX XX">
             </div>
-
             <div class="form-group">
                 <label class="checkbox-field">
                     <input type="checkbox" name="is_active" {% if form.is_active.value %}checked{% endif %}>
                     <div>
-                        <div class="cb-text">Faol filial</div>
-                        <div class="cb-hint">Nofaol filiallar ro'yxatda ko'rinmaydi</div>
+                        <div class="cb-text">Фаол филиал</div>
+                        <div class="cb-hint">Нофаол филиаллар рўйхатда кўринмайди</div>
                     </div>
                 </label>
             </div>
-
             <div class="form-actions">
                 <button type="submit" class="btn btn-primary">
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width:16px;height:16px"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5"/></svg>
-                    Saqlash
+                    Сақлаш
                 </button>
-                <a href="{{ cancel_url }}" class="btn btn-secondary">Bekor qilish</a>
+                <a href="{{ cancel_url }}" class="btn btn-secondary">Бекор қилиш</a>
             </div>
         </form>
     </div>

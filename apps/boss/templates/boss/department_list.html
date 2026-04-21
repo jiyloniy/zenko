@@ -1,12 +1,12 @@
 {% extends "boss/base.html" %}
 
-{% block title %}Bo'limlar — Zenko BOSS{% endblock %}
-{% block page_title %}Bo'limlar{% endblock %}
+{% block title %}Бўлимлар — Zenko BOSS{% endblock %}
+{% block page_title %}Бўлимлар{% endblock %}
 
 {% block topbar_actions %}
 <a href="{% url 'boss:department_create' %}" class="btn btn-primary btn-sm">
     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>
-    Yangi bo'lim
+    Янги бўлим
 </a>
 {% endblock %}
 
@@ -17,10 +17,10 @@
         <table>
             <thead>
                 <tr>
-                    <th>Nomi</th>
-                    <th>Filial</th>
-                    <th>Tavsif</th>
-                    <th>Amallar</th>
+                    <th>Номи</th>
+                    <th>Филиал</th>
+                    <th>Тавсиф</th>
+                    <th>Амаллар</th>
                 </tr>
             </thead>
             <tbody>
@@ -37,8 +37,8 @@
                     <td>{{ d.description|default:"—" }}</td>
                     <td>
                         <div class="actions-cell">
-                            <a href="{% url 'boss:department_update' d.pk %}" class="btn btn-sm btn-secondary">Tahrirlash</a>
-                            <a href="{% url 'boss:department_delete' d.pk %}" class="btn btn-sm btn-danger">O'chirish</a>
+                            <a href="{% url 'boss:department_update' d.pk %}" class="btn btn-sm btn-secondary">Таҳрирлаш</a>
+                            <a href="{% url 'boss:department_delete' d.pk %}" class="btn btn-sm btn-danger">Ўчириш</a>
                         </div>
                     </td>
                 </tr>
@@ -48,8 +48,8 @@
     </div>
     {% else %}
     <div class="empty-state">
-        <p>Hali bo'limlar qo'shilmagan</p>
-        <a href="{% url 'boss:department_create' %}" class="btn btn-primary">Bo'lim qo'shish</a>
+        <p>Ҳали бўлимлар қўшилмаган</p>
+        <a href="{% url 'boss:department_create' %}" class="btn btn-primary">Бўлим қўшиш</a>
     </div>
     {% endif %}
 </div>

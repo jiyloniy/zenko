@@ -1,12 +1,12 @@
 {% extends "boss/base.html" %}
 
-{% block title %}Filiallar — Zenko BOSS{% endblock %}
-{% block page_title %}Filiallar{% endblock %}
+{% block title %}Филиаллар — Zenko BOSS{% endblock %}
+{% block page_title %}Филиаллар{% endblock %}
 
 {% block topbar_actions %}
 <a href="{% url 'boss:branch_create' %}" class="btn btn-primary btn-sm">
     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>
-    Yangi filial
+    Янги филиал
 </a>
 {% endblock %}
 
@@ -17,12 +17,12 @@
         <table>
             <thead>
                 <tr>
-                    <th>Nomi</th>
-                    <th>Manzil</th>
-                    <th>Telefon</th>
+                    <th>Номи</th>
+                    <th>Манзил</th>
+                    <th>Телефон</th>
                     <th>CEO</th>
-                    <th>Holati</th>
-                    <th>Amallar</th>
+                    <th>Ҳолати</th>
+                    <th>Амаллар</th>
                 </tr>
             </thead>
             <tbody>
@@ -34,15 +34,15 @@
                     <td>{{ b.ceo_users.0.name|default:"—" }}</td>
                     <td>
                         {% if b.is_active %}
-                        <span class="badge badge-green">Faol</span>
+                        <span class="badge badge-green">Фаол</span>
                         {% else %}
-                        <span class="badge badge-red">Nofaol</span>
+                        <span class="badge badge-red">Нофаол</span>
                         {% endif %}
                     </td>
                     <td>
                         <div class="actions-cell">
-                            <a href="{% url 'boss:branch_update' b.pk %}" class="btn btn-sm btn-secondary">Tahrirlash</a>
-                            <a href="{% url 'boss:branch_delete' b.pk %}" class="btn btn-sm btn-danger">O'chirish</a>
+                            <a href="{% url 'boss:branch_update' b.pk %}" class="btn btn-sm btn-secondary">Таҳрирлаш</a>
+                            <a href="{% url 'boss:branch_delete' b.pk %}" class="btn btn-sm btn-danger">Ўчириш</a>
                         </div>
                     </td>
                 </tr>
@@ -52,8 +52,8 @@
     </div>
     {% else %}
     <div class="empty-state">
-        <p>Hali filiallar qo'shilmagan</p>
-        <a href="{% url 'boss:branch_create' %}" class="btn btn-primary">Filial qo'shish</a>
+        <p>Ҳали филиаллар қўшилмаган</p>
+        <a href="{% url 'boss:branch_create' %}" class="btn btn-primary">Филиал қўшиш</a>
     </div>
     {% endif %}
 </div>
