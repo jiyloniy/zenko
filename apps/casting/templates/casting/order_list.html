@@ -5,30 +5,23 @@
 {% block extra_css %}
 <style>
 .filter-bar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:20px;}
-.filter-inp{padding:8px 13px;border:1.5px solid rgba(255,255,255,.1);border-radius:8px;font-size:13px;background:rgba(255,255,255,.06);color:#fff;min-width:160px;}
-.filter-inp:focus{outline:none;border-color:#0EA5E9;}
-.filter-inp option{background:#1E293B;color:#fff;}
-.order-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px;}
-.order-card{background:#1E293B;border:1px solid rgba(255,255,255,.08);border-radius:14px;overflow:hidden;display:flex;flex-direction:column;transition:border-color .2s,box-shadow .2s;}
-.order-card:hover{border-color:rgba(14,165,233,.4);box-shadow:0 4px 20px rgba(14,165,233,.08);}
-.order-card-img{width:100%;height:160px;object-fit:cover;}
-.order-card-img-ph{width:100%;height:160px;background:rgba(255,255,255,.04);display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,.15);}
-.order-card-img-ph svg{width:42px;height:42px;}
-.order-card-body{padding:16px;flex:1;display:flex;flex-direction:column;}
-.order-card-name{font-size:15px;font-weight:700;color:#fff;margin-bottom:4px;}
-.order-card-num{font-size:11px;color:rgba(255,255,255,.3);font-family:monospace;margin-bottom:10px;}
-.order-meta{font-size:12px;color:rgba(255,255,255,.45);display:flex;flex-direction:column;gap:5px;margin-bottom:12px;}
-.order-meta span{display:flex;align-items:center;gap:5px;}
-.order-meta svg{width:12px;height:12px;flex-shrink:0;}
-.order-card-footer{display:flex;justify-content:space-between;align-items:center;padding-top:12px;border-top:1px solid rgba(255,255,255,.06);margin-top:auto;gap:6px;}
-.order-actions{display:flex;gap:6px;}
-.prog-wrap{height:5px;background:rgba(255,255,255,.07);border-radius:99px;overflow:hidden;margin-top:8px;}
+.filter-inp{padding:8px 12px;border:1.5px solid #E2E8F0;border-radius:8px;font-size:13px;background:#fff;color:#0F172A;min-width:160px;}
+.filter-inp:focus{outline:none;border-color:#1D4ED8;}
+.order-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:16px;}
+.order-card{background:#fff;border:1px solid #E2E8F0;border-radius:12px;overflow:hidden;display:flex;flex-direction:column;transition:box-shadow .2s,border-color .2s;}
+.order-card:hover{border-color:#BFDBFE;box-shadow:0 4px 20px rgba(29,78,216,.08);}
+.order-card-img{width:100%;height:155px;object-fit:cover;}
+.order-card-img-ph{width:100%;height:155px;background:#F8FAFC;display:flex;align-items:center;justify-content:center;color:#CBD5E1;}
+.order-card-img-ph svg{width:40px;height:40px;}
+.order-card-body{padding:15px;flex:1;display:flex;flex-direction:column;}
+.oc-name{font-size:14.5px;font-weight:700;color:#0F172A;margin-bottom:2px;}
+.oc-num{font-size:11px;color:#94A3B8;font-family:monospace;margin-bottom:10px;}
+.oc-meta{font-size:12px;color:#64748B;display:flex;flex-direction:column;gap:5px;margin-bottom:12px;}
+.oc-meta span{display:flex;align-items:center;gap:5px;}
+.oc-meta svg{width:12px;height:12px;flex-shrink:0;}
+.oc-footer{display:flex;justify-content:space-between;align-items:center;padding-top:11px;border-top:1px solid #F1F5F9;margin-top:auto;}
+.prog-wrap{height:5px;background:#F1F5F9;border-radius:99px;overflow:hidden;margin-top:7px;}
 .prog-bar{height:100%;border-radius:99px;}
-.badge{display:inline-flex;align-items:center;padding:3px 9px;border-radius:20px;font-size:11px;font-weight:600;}
-.badge-pending{background:rgba(255,255,255,.08);color:rgba(255,255,255,.5);}
-.badge-in_process{background:rgba(14,165,233,.2);color:#38BDF8;}
-.badge-completed{background:rgba(34,197,94,.15);color:#4ADE80;}
-@media(max-width:600px){.order-grid{grid-template-columns:1fr;}}
 </style>
 {% endblock %}
 
@@ -42,7 +35,7 @@
         {% endfor %}
     </select>
     <button type="submit" class="btn btn-secondary btn-sm">
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width:14px;height:14px;"><path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z"/></svg>
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z"/></svg>
         Qidirish
     </button>
 </form>
@@ -59,39 +52,36 @@
         </div>
         {% endif %}
         <div class="order-card-body">
-            <div class="order-card-name">{{ order.name }}</div>
-            <div class="order-card-num">#{{ order.order_number }}</div>
-            <div class="order-meta">
+            <div class="oc-name">{{ order.name }}</div>
+            <div class="oc-num">#{{ order.order_number }}</div>
+            <div class="oc-meta">
                 <span>
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5"/></svg>
-                    Muddat: <strong style="color:{% if order.is_overdue %}#F87171{% else %}rgba(255,255,255,.7){% endif %};">{{ order.deadline|date:"d.m.Y" }}</strong>{% if order.is_overdue %} ⚠{% endif %}
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25"/></svg>
+                    Muddat:
+                    <strong style="color:{% if order.is_overdue %}#DC2626{% else %}#0F172A{% endif %};">{{ order.deadline|date:"d.m.Y" }}</strong>
+                    {% if order.is_overdue %}<span style="color:#DC2626;font-size:10px;">muddati o'tgan</span>{% endif %}
                 </span>
                 <span>
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6.429 9.75 2.25 12l4.179 2.25m0-4.5 5.571 3 5.571-3m-11.142 0L2.25 7.5 12 2.25l9.75 5.25-4.179 2.25m0 0L21.75 12l-4.179 2.25m0 0 4.179 2.25L12 21.75 2.25 16.5l4.179-2.25m11.142 0-5.571 3-5.571-3"/></svg>
-                    Jami: <strong style="color:rgba(255,255,255,.7);">{{ order.quantity }} dona</strong>
+                    Miqdor: <strong style="color:#0F172A;">{{ order.quantity }} dona</strong>
                 </span>
             </div>
             {% if order.casting %}
             <div style="margin-bottom:10px;">
                 <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px;">
                     <span class="badge badge-{{ order.casting.status }}">{{ order.casting.get_status_display }}</span>
-                    {% if order.quantity %}
-                    <span style="font-size:11px;color:rgba(255,255,255,.3);">{{ order.casting.total_quantity|default:0 }} / {{ order.quantity }}</span>
-                    {% endif %}
                 </div>
                 <div class="prog-wrap">
-                    <div class="prog-bar" style="width:{% if order.quantity %}{% widthratio order.casting.total_quantity|default:0 order.quantity 100 %}{% else %}0{% endif %}%;background:{% if order.casting.status == 'completed' %}#22C55E{% elif order.casting.status == 'in_process' %}#0EA5E9{% else %}rgba(255,255,255,.2){% endif %};"></div>
+                    <div class="prog-bar" style="width:{% if order.quantity %}{% widthratio order.casting.total_quantity|default:0 order.quantity 100 %}{% else %}0{% endif %}%;background:{% if order.casting.status == 'completed' %}#16A34A{% elif order.casting.status == 'in_process' %}#1D4ED8{% else %}#CBD5E1{% endif %};"></div>
                 </div>
             </div>
             {% endif %}
-            <div class="order-card-footer">
-                <small style="color:rgba(255,255,255,.25);font-size:11px;">{{ order.created_at|date:"d.m.Y" }}</small>
-                <div class="order-actions">
-                    <a href="{% url 'casting:order_detail' order.pk %}" class="btn btn-primary btn-sm">
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width:13px;height:13px;"><path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
-                        Ochish
-                    </a>
-                </div>
+            <div class="oc-footer">
+                <small style="color:#94A3B8;font-size:11px;">{{ order.created_at|date:"d.m.Y" }}</small>
+                <a href="{% url 'casting:order_detail' order.pk %}" class="btn btn-primary btn-sm">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3"/></svg>
+                    Ochish
+                </a>
             </div>
         </div>
     </div>
@@ -100,7 +90,7 @@
 {% else %}
 <div class="empty-state">
     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h3.75M9 15h3.75M9 18h3.75m3 .75H18a2.25 2.25 0 0 0 2.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.424 48.424 0 0 0-1.123-.08m-5.801 0c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 0 0 .75-.75 2.25 2.25 0 0 0-.1-.664m-5.8 0A2.251 2.251 0 0 1 13.5 2.25H15c1.012 0 1.867.668 2.15 1.586m-5.8 0c-.376.023-.75.05-1.124.08C9.095 4.01 8.25 4.973 8.25 6.108V8.25m0 0H4.875c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V9.375c0-.621-.504-1.125-1.125-1.125H8.25Z"/></svg>
-    <p>{% if q or current_status %}Qidiruv natijasi topilmadi.{% else %}Hali quyish bo'limiga zakaz kelmagan.{% endif %}</p>
+    <p>{% if q or current_status %}Qidiruv natijasi topilmadi.{% else %}Hali zakaz yo'q.{% endif %}</p>
 </div>
 {% endif %}
 {% endblock %}
