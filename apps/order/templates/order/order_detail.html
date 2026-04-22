@@ -1,16 +1,23 @@
 {% extends "ceo/base.html" %}
-
 {% block title %}{{ order.name }} — Zenko{% endblock %}
-{% block page_title %}{{ order.name }}{% endblock %}
+{% block page_title %}Buyurtma #{{ order.order_number }}{% endblock %}
 
 {% block topbar_actions %}
-<div style="display:flex;gap:8px;">
+<div style="display:flex;gap:8px;align-items:center;">
+    <form method="post" style="display:inline;">
+        {% csrf_token %}
+        <select name="set_status" onchange="this.form.submit()" style="padding:7px 12px;border:1.5px solid var(--gray-200);border-radius:9px;font-size:13px;font-weight:600;background:var(--white);cursor:pointer;color:var(--black);">
+            {% for val,label in order.Status.choices %}
+            <option value="{{ val }}" {% if order.status == val %}selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+        </select>
+    </form>
     <a href="{% url 'order:order_edit' order.pk %}" class="btn btn-secondary btn-sm">
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125"/></svg>
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width:15px;height:15px"><path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Z"/></svg>
         Tahrirlash
     </a>
     <a href="{% url 'order:order_delete' order.pk %}" class="btn btn-danger btn-sm">
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0"/></svg>
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width:15px;height:15px"><path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0"/></svg>
         O'chirish
     </a>
 </div>
@@ -18,1243 +25,509 @@
 
 {% block extra_css %}
 <style>
-    /* ── HERO CARD ── */
-    .hero-card {
-        background: linear-gradient(135deg, #1A1A1A 0%, #2D2D2D 50%, #3a3a3a 100%);
-        border-radius: 20px;
-        overflow: hidden;
-        margin-bottom: 28px;
-        position: relative;
-    }
-    .hero-card::before {
-        content: '';
-        position: absolute;
-        top: -50%;
-        right: -20%;
-        width: 400px;
-        height: 400px;
-        background: radial-gradient(circle, rgba(245,130,32,.15) 0%, transparent 70%);
-        border-radius: 50%;
-        pointer-events: none;
-    }
-    .hero-card::after {
-        content: '';
-        position: absolute;
-        bottom: -30%;
-        left: -10%;
-        width: 300px;
-        height: 300px;
-        background: radial-gradient(circle, rgba(99,102,241,.1) 0%, transparent 70%);
-        border-radius: 50%;
-        pointer-events: none;
-    }
-    .hero-inner {
-        display: grid;
-        grid-template-columns: 240px 1fr;
-        gap: 32px;
-        padding: 28px;
-        position: relative;
-        z-index: 1;
-    }
-    .hero-img-wrap {
-        border-radius: 16px;
-        overflow: hidden;
-        border: 2px solid rgba(255,255,255,.1);
-        aspect-ratio: 1;
-        background: rgba(255,255,255,.05);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-    }
-    .hero-img-wrap img {
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-    }
-    .hero-img-wrap svg { width: 64px; height: 64px; color: rgba(255,255,255,.15); }
-    .hero-info { display: flex; flex-direction: column; justify-content: center; gap: 16px; }
-    .hero-title-row {
-        display: flex;
-        align-items: center;
-        gap: 14px;
-        flex-wrap: wrap;
-    }
-    .hero-title-row h2 {
-        font-size: 26px;
-        font-weight: 800;
-        color: #fff;
-        margin: 0;
-        letter-spacing: -.3px;
-    }
-
-    /* Status badges */
-    .status-pill {
-        display: inline-flex;
-        align-items: center;
-        gap: 6px;
-        padding: 5px 14px;
-        border-radius: 50px;
-        font-size: 12px;
-        font-weight: 700;
-        letter-spacing: .3px;
-    }
-    .status-pill .dot {
-        width: 7px; height: 7px;
-        border-radius: 50%;
-        display: inline-block;
-    }
-    .pill-new        { background: rgba(59,130,246,.15); color: #60A5FA; }
-    .pill-new .dot   { background: #60A5FA; }
-    .pill-accepted   { background: rgba(16,185,129,.15); color: #34D399; }
-    .pill-accepted .dot { background: #34D399; }
-    .pill-in_process { background: rgba(245,130,32,.2); color: #F59E0B; }
-    .pill-in_process .dot { background: #F59E0B; animation: pulse-dot 2s infinite; }
-    .pill-ready      { background: rgba(34,197,94,.15); color: #4ADE80; }
-    .pill-ready .dot { background: #4ADE80; }
-    .pill-delivered  { background: rgba(255,255,255,.1); color: rgba(255,255,255,.5); }
-    .pill-delivered .dot { background: rgba(255,255,255,.4); }
-    .pill-cancelled  { background: rgba(239,68,68,.15); color: #F87171; }
-    .pill-cancelled .dot { background: #F87171; }
-    .pill-overdue    { background: rgba(239,68,68,.2); color: #FCA5A5; border: 1px solid rgba(239,68,68,.3); }
-    .pill-overdue .dot { background: #EF4444; animation: pulse-dot 1.5s infinite; }
-
-    @keyframes pulse-dot {
-        0%, 100% { opacity: 1; transform: scale(1); }
-        50% { opacity: .4; transform: scale(1.4); }
-    }
-
-    /* Info chips */
-    .hero-chips {
-        display: flex;
-        gap: 12px;
-        flex-wrap: wrap;
-    }
-    .chip {
-        display: inline-flex;
-        align-items: center;
-        gap: 8px;
-        padding: 8px 16px;
-        border-radius: 12px;
-        background: rgba(255,255,255,.07);
-        border: 1px solid rgba(255,255,255,.08);
-        backdrop-filter: blur(10px);
-        font-size: 13px;
-        color: rgba(255,255,255,.7);
-        transition: all .2s;
-    }
-    .chip:hover { background: rgba(255,255,255,.12); }
-    .chip svg { width: 16px; height: 16px; flex-shrink: 0; }
-    .chip strong { color: #fff; font-weight: 600; }
-    .chip.chip-green strong { color: #4ADE80; }
-    .chip.chip-red strong { color: #F87171; }
-
-    /* Mini stats row */
-    .hero-stats {
-        display: flex;
-        gap: 24px;
-        padding-top: 8px;
-        border-top: 1px solid rgba(255,255,255,.08);
-        margin-top: 4px;
-    }
-    .hero-stat {
-        text-align: center;
-    }
-    .hero-stat .val {
-        font-size: 24px;
-        font-weight: 800;
-        color: #fff;
-    }
-    .hero-stat .val.orange { color: var(--orange); }
-    .hero-stat .val.green { color: #4ADE80; }
-    .hero-stat .val.red { color: #F87171; }
-    .hero-stat .lbl {
-        font-size: 11px;
-        color: rgba(255,255,255,.4);
-        text-transform: uppercase;
-        letter-spacing: 1px;
-        font-weight: 600;
-        margin-top: 2px;
-    }
-
-    /* Note bar */
-    .note-bar {
-        background: rgba(245,130,32,.08);
-        border-left: 3px solid var(--orange);
-        border-radius: 0 10px 10px 0;
-        padding: 10px 16px;
-        color: rgba(255,255,255,.6);
-        font-size: 13px;
-        display: flex;
-        align-items: flex-start;
-        gap: 8px;
-    }
-    .note-bar svg { width: 16px; height: 16px; color: var(--orange); flex-shrink: 0; margin-top: 1px; }
-
-    /* ── PIPELINE ── */
-    .pipeline-section {
-        margin-bottom: 32px;
-    }
-    .pipeline-track {
-        display: flex;
-        align-items: flex-start;
-        position: relative;
-        padding: 0 8px;
-    }
-    .pipeline-track::before {
-        content: '';
-        position: absolute;
-        top: 28px;
-        left: 40px;
-        right: 40px;
-        height: 3px;
-        background: var(--gray-200);
-        border-radius: 2px;
-        z-index: 0;
-    }
-    .pipe-node {
-        flex: 1;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        text-decoration: none;
-        position: relative;
-        z-index: 1;
-        transition: transform .2s;
-    }
-    .pipe-node:hover { transform: translateY(-3px); }
-    .pipe-circle {
-        width: 56px;
-        height: 56px;
-        border-radius: 16px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        margin-bottom: 10px;
-        transition: all .3s;
-        border: 2px solid var(--gray-200);
-        background: var(--white);
-        box-shadow: 0 2px 8px rgba(0,0,0,.04);
-    }
-    .pipe-circle svg { width: 24px; height: 24px; color: var(--gray-300); transition: color .3s; }
-    .pipe-label {
-        font-size: 12px;
-        font-weight: 600;
-        color: var(--gray-500);
-        text-align: center;
-        margin-bottom: 4px;
-    }
-    .pipe-sub {
-        font-size: 10px;
-        font-weight: 500;
-        color: var(--gray-300);
-        text-align: center;
-        padding: 2px 8px;
-        border-radius: 4px;
-    }
-
-    /* Pipeline states */
-    .pipe-node.active .pipe-circle {
-        background: linear-gradient(135deg, #F58220, #FF9F43);
-        border-color: transparent;
-        box-shadow: 0 6px 20px rgba(245,130,32,.35);
-    }
-    .pipe-node.active .pipe-circle svg { color: #fff; }
-    .pipe-node.active .pipe-label { color: var(--orange); }
-    .pipe-node.active .pipe-sub { background: var(--orange-light); color: var(--orange); }
-
-    .pipe-node.done .pipe-circle {
-        background: linear-gradient(135deg, #22C55E, #4ADE80);
-        border-color: transparent;
-        box-shadow: 0 4px 14px rgba(34,197,94,.25);
-    }
-    .pipe-node.done .pipe-circle svg { color: #fff; }
-    .pipe-node.done .pipe-label { color: #22C55E; }
-    .pipe-node.done .pipe-sub { background: #F0FDF4; color: #22C55E; }
-
-    .pipe-node.rejected .pipe-circle {
-        background: linear-gradient(135deg, #EF4444, #F87171);
-        border-color: transparent;
-        box-shadow: 0 4px 14px rgba(239,68,68,.25);
-    }
-    .pipe-node.rejected .pipe-circle svg { color: #fff; }
-    .pipe-node.rejected .pipe-label { color: #EF4444; }
-
-    /* ── SECTION HEADER ── */
-    .sec-header {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        margin: 36px 0 20px;
-    }
-    .sec-title {
-        display: flex;
-        align-items: center;
-        gap: 12px;
-        font-size: 18px;
-        font-weight: 800;
-        color: var(--black);
-    }
-    .sec-title .sec-icon {
-        width: 36px;
-        height: 36px;
-        border-radius: 10px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-    }
-    .sec-icon svg { width: 20px; height: 20px; }
-    .sec-icon.orange { background: var(--orange-light); color: var(--orange); }
-    .sec-icon.blue { background: #EFF6FF; color: #3B82F6; }
-    .sec-icon.purple { background: #F3E8FF; color: #8B5CF6; }
-    .sec-icon.green { background: #F0FDF4; color: #22C55E; }
-
-    /* ── STAGE CARDS (colorful) ── */
-    .stages-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-        gap: 16px;
-        margin-bottom: 8px;
-    }
-    .stage-card {
-        background: var(--white);
-        border-radius: 16px;
-        overflow: hidden;
-        transition: all .25s;
-        border: 1px solid var(--gray-200);
-        position: relative;
-    }
-    .stage-card::before {
-        content: '';
-        position: absolute;
-        top: 0; left: 0;
-        width: 4px;
-        height: 100%;
-        border-radius: 4px 0 0 4px;
-    }
-    .stage-card:hover {
-        box-shadow: 0 8px 24px rgba(0,0,0,.08);
-        transform: translateY(-2px);
-    }
-    .stage-card.color-orange::before { background: linear-gradient(180deg, #F58220, #FF9F43); }
-    .stage-card.color-blue::before { background: linear-gradient(180deg, #3B82F6, #60A5FA); }
-    .stage-card.color-purple::before { background: linear-gradient(180deg, #8B5CF6, #A78BFA); }
-    .stage-card.color-pink::before { background: linear-gradient(180deg, #EC4899, #F472B6); }
-    .stage-card.color-teal::before { background: linear-gradient(180deg, #14B8A6, #2DD4BF); }
-    .stage-card.color-indigo::before { background: linear-gradient(180deg, #6366F1, #818CF8); }
-
-    .stage-card-top {
-        padding: 18px 20px 14px;
-        display: flex;
-        justify-content: space-between;
-        align-items: flex-start;
-    }
-    .stage-card-name {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-    }
-    .stage-card-name .sc-icon {
-        width: 38px;
-        height: 38px;
-        border-radius: 10px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-    }
-    .sc-icon svg { width: 18px; height: 18px; }
-    .sc-icon.orange { background: #FFF7ED; color: #EA580C; }
-    .sc-icon.blue { background: #EFF6FF; color: #2563EB; }
-    .sc-icon.purple { background: #F5F3FF; color: #7C3AED; }
-    .sc-icon.pink { background: #FDF2F8; color: #DB2777; }
-    .sc-icon.teal { background: #F0FDFA; color: #0D9488; }
-    .sc-icon.indigo { background: #EEF2FF; color: #4F46E5; }
-    .stage-card-name h4 {
-        font-size: 14px;
-        font-weight: 700;
-        color: var(--black);
-        margin: 0;
-    }
-    .stage-card-name small {
-        font-size: 11px;
-        color: var(--gray-500);
-    }
-
-    /* Status chips */
-    .sc-status {
-        display: inline-flex;
-        align-items: center;
-        gap: 5px;
-        padding: 4px 10px;
-        border-radius: 20px;
-        font-size: 11px;
-        font-weight: 700;
-    }
-    .sc-status .sdot {
-        width: 6px; height: 6px;
-        border-radius: 50%;
-        display: inline-block;
-    }
-    .sc-pending  { background: #F4F4F5; color: #71717A; }
-    .sc-pending .sdot { background: #A1A1AA; }
-    .sc-active   { background: #FFF7ED; color: #EA580C; }
-    .sc-active .sdot { background: #F59E0B; animation: pulse-dot 2s infinite; }
-    .sc-done     { background: #F0FDF4; color: #16A34A; }
-    .sc-done .sdot { background: #22C55E; }
-    .sc-rejected { background: #FEF2F2; color: #DC2626; }
-    .sc-rejected .sdot { background: #EF4444; }
-
-    /* Stats grid in card */
-    .sc-stats {
-        display: grid;
-        grid-template-columns: repeat(2, 1fr);
-        gap: 1px;
-        background: var(--gray-100);
-        border-top: 1px solid var(--gray-100);
-    }
-    .sc-stat {
-        background: var(--white);
-        padding: 12px 20px;
-        text-align: center;
-    }
-    .sc-stat .num {
-        font-size: 20px;
-        font-weight: 800;
-        color: var(--black);
-        line-height: 1;
-    }
-    .sc-stat .num.red { color: #EF4444; }
-    .sc-stat .txt {
-        font-size: 11px;
-        color: var(--gray-500);
-        margin-top: 3px;
-        font-weight: 500;
-    }
-
-    /* Worker + footer */
-    .sc-footer {
-        padding: 12px 20px;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        border-top: 1px solid var(--gray-100);
-    }
-    .sc-worker {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        font-size: 12px;
-        color: var(--gray-500);
-    }
-    .sc-worker .w-avatar {
-        width: 26px;
-        height: 26px;
-        border-radius: 50%;
-        background: linear-gradient(135deg, var(--orange), #FF9F43);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        color: #fff;
-        font-weight: 700;
-        font-size: 11px;
-    }
-    .sc-worker strong { color: var(--black); font-weight: 600; }
-
-    .btn-edit-sm {
-        display: inline-flex;
-        align-items: center;
-        gap: 4px;
-        padding: 6px 14px;
-        border-radius: 8px;
-        font-size: 12px;
-        font-weight: 600;
-        text-decoration: none;
-        color: var(--gray-700);
-        background: var(--gray-100);
-        border: 1px solid var(--gray-200);
-        transition: all .2s;
-    }
-    .btn-edit-sm:hover { background: var(--gray-200); }
-    .btn-edit-sm svg { width: 14px; height: 14px; }
-
-    /* ── OUTSOURCE CARDS ── */
-    .outsource-card {
-        background: var(--white);
-        border: 1px solid var(--gray-200);
-        border-radius: 16px;
-        overflow: hidden;
-        transition: all .25s;
-        position: relative;
-    }
-    .outsource-card::before {
-        content: '';
-        position: absolute;
-        top: 0; left: 0;
-        width: 100%;
-        height: 3px;
-        background: linear-gradient(90deg, #6366F1, #8B5CF6, #A78BFA);
-    }
-    .outsource-card:hover {
-        box-shadow: 0 8px 24px rgba(0,0,0,.08);
-        transform: translateY(-2px);
-    }
-    .oc-top {
-        padding: 18px 20px;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-    }
-    .oc-contractor {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-    }
-    .oc-contractor .oc-avatar {
-        width: 40px;
-        height: 40px;
-        border-radius: 12px;
-        background: linear-gradient(135deg, #6366F1, #8B5CF6);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        color: #fff;
-        font-weight: 800;
-        font-size: 16px;
-    }
-    .oc-contractor h4 { font-size: 14px; font-weight: 700; margin: 0; }
-    .oc-contractor small { font-size: 11px; color: var(--gray-500); }
-    .oc-body {
-        padding: 0 20px 16px;
-    }
-    .oc-desc {
-        font-size: 13px;
-        color: var(--gray-500);
-        margin-bottom: 12px;
-        padding: 8px 12px;
-        background: var(--gray-100);
-        border-radius: 8px;
-    }
-    .oc-nums {
-        display: grid;
-        grid-template-columns: repeat(3, 1fr);
-        gap: 8px;
-    }
-    .oc-num {
-        text-align: center;
-        padding: 10px;
-        background: var(--gray-100);
-        border-radius: 10px;
-    }
-    .oc-num .val { font-size: 18px; font-weight: 800; color: var(--black); }
-    .oc-num .val.red { color: #EF4444; }
-    .oc-num .lbl { font-size: 10px; color: var(--gray-500); font-weight: 600; text-transform: uppercase; letter-spacing: .5px; }
-    .oc-footer {
-        padding: 12px 20px;
-        border-top: 1px solid var(--gray-100);
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-    }
-    .oc-return {
-        font-size: 11px;
-        color: var(--gray-500);
-        display: flex;
-        align-items: center;
-        gap: 4px;
-    }
-    .oc-return svg { width: 14px; height: 14px; }
-    .oc-return strong { color: var(--black); }
-
-    /* ── QUALITY TABLE ── */
-    .qc-card {
-        background: var(--white);
-        border: 1px solid var(--gray-200);
-        border-radius: 16px;
-        overflow: hidden;
-    }
-    .qc-card table { margin: 0; }
-    .qc-card table th {
-        background: #FAFAFA;
-        padding: 14px 16px;
-    }
-    .qc-card table td { padding: 14px 16px; }
-    .qc-result {
-        display: inline-flex;
-        align-items: center;
-        gap: 5px;
-        padding: 4px 10px;
-        border-radius: 20px;
-        font-size: 11px;
-        font-weight: 700;
-    }
-    .qc-passed  { background: #F0FDF4; color: #16A34A; }
-    .qc-failed  { background: #FEF2F2; color: #DC2626; }
-    .qc-partial { background: #FFFBEB; color: #D97706; }
-    .qc-pending { background: #F4F4F5; color: #71717A; }
-
-    /* ── EMPTY STATE ── */
-    .empty-block {
-        text-align: center;
-        padding: 40px 20px;
-        background: var(--white);
-        border: 2px dashed var(--gray-200);
-        border-radius: 16px;
-        color: var(--gray-500);
-    }
-    .empty-block svg { width: 40px; height: 40px; margin-bottom: 12px; opacity: .3; }
-    .empty-block p { font-size: 14px; margin: 0; }
-
-    /* ── RESPONSIVE ── */
-    @media (max-width: 768px) {
-        .hero-inner { grid-template-columns: 1fr; }
-        .hero-img-wrap { max-height: 200px; aspect-ratio: 16/9; }
-        .pipeline-track { flex-wrap: wrap; gap: 8px; }
-        .pipeline-track::before { display: none; }
-        .pipe-node { min-width: 80px; }
-        .stages-grid { grid-template-columns: 1fr; }
-        .hero-stats { flex-wrap: wrap; gap: 16px; }
-        .oc-nums { grid-template-columns: repeat(3, 1fr); }
-    }
+.detail-grid{display:grid;grid-template-columns:320px 1fr;gap:22px;align-items:start;}
+.left-panel,.right-panel{display:flex;flex-direction:column;gap:18px;}
+.info-card{background:var(--white);border:1px solid var(--gray-200);border-radius:16px;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.05);}
+.ic-header{padding:13px 18px;border-bottom:1px solid var(--gray-100);display:flex;align-items:center;justify-content:space-between;}
+.ic-header h4{font-size:11.5px;font-weight:700;color:var(--gray-500);text-transform:uppercase;letter-spacing:.6px;margin:0;}
+.ic-body{padding:18px;}
+.order-img-wrap{border-radius:12px;overflow:hidden;aspect-ratio:4/3;background:var(--gray-100);display:flex;align-items:center;justify-content:center;}
+.order-img-wrap img{width:100%;height:100%;object-fit:cover;}
+.order-img-wrap svg{width:56px;height:56px;color:var(--gray-300);}
+.meta-row{display:flex;align-items:flex-start;gap:10px;padding:9px 0;border-bottom:1px solid var(--gray-100);}
+.meta-row:last-child{border-bottom:none;padding-bottom:0;}
+.meta-row:first-child{padding-top:0;}
+.meta-icon{width:32px;height:32px;border-radius:8px;background:var(--orange-light);display:flex;align-items:center;justify-content:center;flex-shrink:0;color:var(--orange);}
+.meta-icon svg{width:15px;height:15px;}
+.meta-label{font-size:10.5px;color:var(--gray-400);font-weight:600;text-transform:uppercase;letter-spacing:.4px;}
+.meta-val{font-size:13.5px;font-weight:600;color:var(--black);margin-top:1px;}
+.spill{display:inline-flex;align-items:center;gap:6px;padding:4px 12px;border-radius:50px;font-size:12px;font-weight:700;}
+.spill .dot{width:7px;height:7px;border-radius:50%;}
+.sp-new{background:#EFF6FF;color:#1D4ED8;} .sp-new .dot{background:#3B82F6;}
+.sp-accepted{background:#F0FDF4;color:#15803D;} .sp-accepted .dot{background:#22C55E;}
+.sp-in_process{background:#FFF7ED;color:#C2410C;} .sp-in_process .dot{background:#F97316;animation:blink 2s infinite;}
+.sp-ready{background:#ECFDF5;color:#065F46;} .sp-ready .dot{background:#10B981;}
+.sp-delivered{background:var(--gray-100);color:var(--gray-500);} .sp-delivered .dot{background:var(--gray-300);}
+.sp-cancelled{background:#FEF2F2;color:#B91C1C;} .sp-cancelled .dot{background:#EF4444;}
+@keyframes blink{0%,100%{opacity:1;}50%{opacity:.35;}}
+.qty-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;}
+.qty-tile{text-align:center;padding:12px 8px;background:var(--gray-50);border-radius:10px;border:1px solid var(--gray-100);}
+.qty-tile .qn{font-size:22px;font-weight:800;color:var(--black);}
+.qty-tile .ql{font-size:10.5px;color:var(--gray-400);font-weight:600;text-transform:uppercase;margin-top:2px;}
+.qty-tile.defect .qn{color:#DC2626;}
+.qty-tile.good .qn{color:#16A34A;}
+/* pipeline */
+.pipeline-wrap{background:var(--white);border:1px solid var(--gray-200);border-radius:16px;padding:20px 24px;box-shadow:0 1px 4px rgba(0,0,0,.05);}
+.pipeline-wrap h4{font-size:11.5px;font-weight:700;color:var(--gray-500);text-transform:uppercase;letter-spacing:.6px;margin:0 0 16px;}
+.pipeline{display:flex;align-items:center;overflow-x:auto;padding-bottom:4px;}
+.pipe-node{display:flex;flex-direction:column;align-items:center;gap:6px;text-decoration:none;flex:1;min-width:64px;position:relative;}
+.pipe-node:not(:last-child)::after{content:'';position:absolute;top:18px;left:calc(50% + 18px);right:calc(-50% + 18px);height:2px;background:var(--gray-200);z-index:0;}
+.pipe-dot{width:36px;height:36px;border-radius:50%;background:var(--gray-100);border:2px solid var(--gray-300);display:flex;align-items:center;justify-content:center;color:var(--gray-400);position:relative;z-index:1;}
+.pipe-dot svg{width:16px;height:16px;}
+.pipe-label{font-size:10px;font-weight:600;color:var(--gray-400);text-align:center;}
+.pipe-node.active .pipe-dot{background:var(--orange);border-color:var(--orange);color:#fff;box-shadow:0 0 0 4px rgba(249,115,22,.2);}
+.pipe-node.active .pipe-label{color:var(--orange);}
+.pipe-node.done .pipe-dot{background:#22C55E;border-color:#22C55E;color:#fff;}
+.pipe-node.done .pipe-label{color:#16A34A;}
+.pipe-node.done:not(:last-child)::after{background:#22C55E;}
+.pipe-node.rejected .pipe-dot{background:#FEE2E2;border-color:#EF4444;color:#EF4444;}
+.pipe-node.rejected .pipe-label{color:#DC2626;}
+/* stage cards */
+.stage-card{background:var(--white);border:1px solid var(--gray-200);border-radius:16px;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.05);}
+.stage-card.active-stage{border-color:var(--orange);box-shadow:0 0 0 2px rgba(249,115,22,.12);}
+.sc-head{padding:14px 20px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;user-select:none;}
+.sc-head-left{display:flex;align-items:center;gap:12px;}
+.sc-icon{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.sc-icon svg{width:18px;height:18px;}
+.sc-title{font-size:14px;font-weight:700;color:var(--black);}
+.sc-sub{font-size:11.5px;color:var(--gray-400);margin-top:1px;}
+.sc-badge{display:inline-flex;align-items:center;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;}
+.sb-pending{background:#F1F5F9;color:#64748B;}.sb-in_process{background:#FFF7ED;color:#C2410C;}.sb-completed{background:#F0FDF4;color:#15803D;}.sb-rejected{background:#FEF2F2;color:#B91C1C;}
+.sc-chevron{width:18px;height:18px;color:var(--gray-400);transition:transform .25s;}
+.sc-body{padding:0 20px 20px;display:none;}
+.sc-body.open{display:block;}
+.stage-meta-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:14px;}
+.smt{padding:10px 12px;background:var(--gray-50);border-radius:10px;}
+.smt .sml{font-size:10.5px;color:var(--gray-400);font-weight:600;text-transform:uppercase;}
+.smt .smv{font-size:15px;font-weight:700;color:var(--black);margin-top:2px;}
+.smt .smv.red{color:#DC2626;}.smt .smv.green{color:#16A34A;}
+.stage-note{background:#FFFBEB;border:1px solid #FDE68A;border-radius:10px;padding:10px 14px;font-size:13px;color:#92400E;margin-bottom:14px;}
+.log-table-wrap{border:1px solid var(--gray-100);border-radius:10px;overflow:hidden;}
+.log-table{width:100%;border-collapse:collapse;font-size:12.5px;}
+.log-table th{text-align:left;padding:8px 12px;font-size:10.5px;font-weight:700;color:var(--gray-500);text-transform:uppercase;letter-spacing:.5px;background:var(--gray-50);border-bottom:1px solid var(--gray-100);}
+.log-table td{padding:9px 12px;border-bottom:1px solid var(--gray-50);color:var(--gray-700);vertical-align:middle;}
+.log-table tbody tr:last-child td{border-bottom:none;}
+.log-table tbody tr:hover td{background:#FAFAFA;}
+.btn-edit-sm{display:inline-flex;align-items:center;gap:4px;padding:4px 9px;background:var(--gray-100);border-radius:6px;font-size:11px;font-weight:600;color:var(--gray-600);text-decoration:none;}
+.btn-edit-sm:hover{background:var(--gray-200);}
+.btn-del-sm{display:inline-flex;align-items:center;padding:4px 9px;background:#FEF2F2;border-radius:6px;font-size:11px;font-weight:600;color:#DC2626;text-decoration:none;}
+.btn-del-sm:hover{background:#FEE2E2;}
+/* timeline */
+.timeline-card{background:var(--white);border:1px solid var(--gray-200);border-radius:16px;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.05);}
+.tc-head{padding:16px 20px;border-bottom:1px solid var(--gray-100);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;}
+.tc-head h4{font-size:11.5px;font-weight:700;color:var(--gray-500);text-transform:uppercase;letter-spacing:.6px;margin:0;}
+.tc-filter{display:flex;gap:5px;flex-wrap:wrap;}
+.tf-btn{padding:4px 11px;border-radius:20px;font-size:11.5px;font-weight:600;text-decoration:none;background:var(--gray-100);color:var(--gray-600);}
+.tf-btn:hover{background:var(--gray-200);}
+.tf-btn.active{background:var(--orange-light);color:var(--orange);}
+.timeline{padding:16px 20px;display:flex;flex-direction:column;gap:12px;}
+.tl-item{display:flex;gap:12px;}
+.tl-dot{width:32px;height:32px;border-radius:50%;background:var(--orange-light);display:flex;align-items:center;justify-content:center;flex-shrink:0;color:var(--orange);margin-top:2px;}
+.tl-dot svg{width:14px;height:14px;}
+.tl-body{flex:1;}
+.tl-head-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+.tl-stage-tag{display:inline-block;padding:2px 8px;border-radius:5px;font-size:10.5px;font-weight:700;background:var(--orange-light);color:var(--orange);}
+.tl-from{font-size:11px;color:var(--gray-400);}
+.tl-qty{font-size:13px;font-weight:700;color:var(--black);}
+.tl-meta{font-size:11.5px;color:var(--gray-500);margin-top:3px;}
+.tl-note{font-size:12px;color:var(--gray-600);background:var(--gray-50);border-radius:7px;padding:5px 10px;margin-top:5px;font-style:italic;}
+.tl-actions{display:flex;gap:5px;margin-top:6px;}
+.empty-stage{padding:18px;text-align:center;color:var(--gray-400);font-size:13px;}
+.deadline-late{color:#DC2626;font-weight:700;}
+@media(max-width:900px){.detail-grid{grid-template-columns:1fr;}}
+@media(max-width:540px){.qty-row{grid-template-columns:1fr 1fr;}.stage-meta-grid{grid-template-columns:1fr 1fr;}}
 </style>
 {% endblock %}
 
 {% block content %}
-
-<!-- ═══ HERO CARD ═══ -->
-<div class="hero-card">
-    <div class="hero-inner">
-        <div class="hero-img-wrap">
-            {% if order.image %}
-            <img src="{{ order.image.url }}" alt="{{ order.name }}">
-            {% else %}
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m2.25 15.75 5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159m-1.5-1.5 1.409-1.409a2.25 2.25 0 0 1 3.182 0l2.909 2.909M3.75 21h16.5A2.25 2.25 0 0 0 22.5 18.75V5.25A2.25 2.25 0 0 0 20.25 3H3.75A2.25 2.25 0 0 0 1.5 5.25v13.5A2.25 2.25 0 0 0 3.75 21Z"/></svg>
-            {% endif %}
-        </div>
-        <div class="hero-info">
-            <div class="hero-title-row">
-                <h2>{{ order.name }}</h2>
-                <span class="chip" style="background:rgba(245,130,32,.12);color:var(--orange);font-weight:700;">
-                    #{{ order.order_number }}
-                </span>
-                <span class="status-pill pill-{{ order.status }}"><span class="dot"></span> {{ order.get_status_display }}</span>
-                {% if order.is_overdue %}<span class="status-pill pill-overdue"><span class="dot"></span> Muddati o'tgan</span>{% endif %}
-            <!-- ═══ STATUS TOGGLE (bosqichma-bosqich) ═══ -->
-            <div style="margin:18px 0 0 0;display:flex;gap:10px;align-items:center;">
-                {% for key, label in order.Status.choices %}
-                    <form method="post" action="" style="display:inline;">
-                        {% csrf_token %}
-                        <input type="hidden" name="set_status" value="{{ key }}">
-                        <button type="submit" class="status-pill pill-{{ key }}" style="outline:none;cursor:pointer;{% if order.status == key %}box-shadow:0 0 0 2px var(--orange);border:2px solid var(--orange);{% endif %}">
-                            <span class="dot"></span> {{ label }}
-                        </button>
-                    </form>
-                {% endfor %}
-            </div>
-            </div>
-
-            <div class="hero-chips">
-                <span class="chip">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5"/></svg>
-                    Muddat: <strong>{{ order.deadline|date:"d.m.Y" }}</strong>
-                </span>
-                {% if order.current_stage %}
-                <span class="chip">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5"/></svg>
-                    Joriy: <strong>{{ order.get_current_stage_display }}</strong>
-                </span>
-                {% endif %}
-                {% if order.created_by %}
-                <span class="chip">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z"/></svg>
-                    {{ order.created_by.name }}
-                </span>
-                {% endif %}
-            </div>
-
-            <div class="hero-stats">
-                <div class="hero-stat">
-                    <div class="val orange">{{ order.quantity }}</div>
-                    <div class="lbl">Umumiy</div>
-                </div>
-                {% if order.total_defect %}
-                <div class="hero-stat">
-                    <div class="val green">{{ order.good_quantity }}</div>
-                    <div class="lbl">Yaroqli</div>
-                </div>
-                <div class="hero-stat">
-                    <div class="val red">{{ order.total_defect }}</div>
-                    <div class="lbl">Yaroqsiz</div>
-                </div>
-                {% endif %}
-            </div>
-
-            {% if order.note %}
-            <div class="note-bar">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M7.5 8.25h9m-9 3H12m-9.75 1.51c0 1.6 1.123 2.994 2.707 3.227 1.129.166 2.27.293 3.423.379.35.026.67.21.865.501L12 21l2.755-4.133a1.14 1.14 0 01.865-.501 48.172 48.172 0 003.423-.379c1.584-.233 2.707-1.626 2.707-3.228V6.741c0-1.602-1.123-2.995-2.707-3.228A48.394 48.394 0 0012 3c-2.392 0-4.744.175-7.043.513C3.373 3.746 2.25 5.14 2.25 6.741v6.018Z"/></svg>
-                {{ order.note }}
-            </div>
-            {% endif %}
-        </div>
-    </div>
-</div>
-
-<!-- ═══ PIPELINE ═══ -->
 {% with casting=order.casting montaj=order.montaj hanging=order.hanging stone=order.stone_setting packaging=order.packaging warehouse=order.warehouse %}
-<div class="pipeline-section">
-    <div class="pipeline-track">
+<div class="detail-grid">
+
+  <!-- LEFT -->
+  <div class="left-panel">
+
+    {% if order.image %}
+    <div class="info-card">
+      <div class="ic-body" style="padding:14px;">
+        <div class="order-img-wrap"><img src="{{ order.image.url }}" alt="{{ order.name }}"></div>
+      </div>
+    </div>
+    {% endif %}
+
+    <div class="info-card">
+      <div class="ic-header">
+        <h4>Buyurtma ma'lumotlari</h4>
+        <span class="spill sp-{{ order.status }}"><span class="dot"></span>{{ order.get_status_display }}</span>
+      </div>
+      <div class="ic-body">
+        <div class="meta-row">
+          <div class="meta-icon"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M5.25 8.25h15m-16.5 7.5h15m-1.8-13.5-3.9 19.5m-2.1-19.5-3.9 19.5"/></svg></div>
+          <div><div class="meta-label">Raqam</div><div class="meta-val" style="font-family:monospace;">{{ order.order_number }}</div></div>
+        </div>
+        <div class="meta-row">
+          <div class="meta-icon"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9.568 3H5.25A2.25 2.25 0 0 0 3 5.25v4.318c0 .597.237 1.17.659 1.591l9.581 9.581c.699.699 1.78.872 2.607.33a18.095 18.095 0 0 0 5.223-5.223c.542-.827.369-1.908-.33-2.607L11.16 3.66A2.25 2.25 0 0 0 9.568 3Z"/></svg></div>
+          <div><div class="meta-label">Nomi</div><div class="meta-val">{{ order.name }}</div></div>
+        </div>
+        <div class="meta-row">
+          <div class="meta-icon"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 9v7.5"/></svg></div>
+          <div>
+            <div class="meta-label">Muddat</div>
+            <div class="meta-val {% if order.is_overdue %}deadline-late{% endif %}">{{ order.deadline|date:"d.m.Y" }}</div>
+            {% if order.is_overdue %}<div style="font-size:11px;color:#DC2626;font-weight:600;">Kechikmoqda!</div>{% endif %}
+          </div>
+        </div>
+        {% if order.current_stage %}
+        <div class="meta-row">
+          <div class="meta-icon" style="background:#EFF6FF;color:#3B82F6;"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M8.25 6.75h12M8.25 12h12m-12 5.25h12M3.75 6.75h.007v.008H3.75V6.75Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0ZM3.75 12h.007v.008H3.75V12Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm-.375 5.25h.007v.008H3.75v-.008Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Z"/></svg></div>
+          <div><div class="meta-label">Joriy bosqich</div><div class="meta-val">{{ order.get_current_stage_display }}</div></div>
+        </div>
+        {% endif %}
+        {% if order.created_by %}
+        <div class="meta-row">
+          <div class="meta-icon" style="background:#F5F3FF;color:#7C3AED;"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z"/></svg></div>
+          <div><div class="meta-label">Yaratuvchi</div><div class="meta-val">{{ order.created_by.name|default:order.created_by.username }}</div></div>
+        </div>
+        {% endif %}
+        <div class="meta-row">
+          <div class="meta-icon" style="background:#F0FDF4;color:#16A34A;"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/></svg></div>
+          <div><div class="meta-label">Yaratilgan</div><div class="meta-val">{{ order.created_at|date:"d.m.Y H:i" }}</div></div>
+        </div>
+        {% if order.note %}
+        <div style="margin-top:10px;padding:10px 14px;background:#FFFBEB;border:1px solid #FDE68A;border-radius:10px;font-size:13px;color:#92400E;">
+          <div style="font-size:10.5px;font-weight:700;color:#B45309;text-transform:uppercase;margin-bottom:4px;">Izoh</div>
+          {{ order.note }}
+        </div>
+        {% endif %}
+      </div>
+    </div>
+
+    <div class="info-card">
+      <div class="ic-header"><h4>Miqdor xulosasi</h4></div>
+      <div class="ic-body">
+        <div class="qty-row">
+          <div class="qty-tile"><div class="qn">{{ order.quantity }}</div><div class="ql">Jami</div></div>
+          <div class="qty-tile defect"><div class="qn">{{ order.total_defect }}</div><div class="ql">Yaroqsiz</div></div>
+          <div class="qty-tile good"><div class="qn">{{ order.good_quantity }}</div><div class="ql">Yaroqli</div></div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- RIGHT -->
+  <div class="right-panel">
+
+    <!-- Pipeline -->
+    <div class="pipeline-wrap">
+      <h4>Ishlab chiqarish yo'li</h4>
+      <div class="pipeline">
         <a href="{% url 'order:casting_edit' order.pk %}" class="pipe-node {% if order.current_stage == 'casting' %}active{% elif casting and casting.status == 'completed' %}done{% elif casting and casting.status == 'rejected' %}rejected{% endif %}">
-            <div class="pipe-circle">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15.362 5.214A8.252 8.252 0 0 1 12 21 8.25 8.25 0 0 1 6.038 7.047 8.287 8.287 0 0 0 9 9.601a8.983 8.983 0 0 1 3.361-6.867 8.21 8.21 0 0 0 3 2.48Z"/></svg>
-            </div>
-            <span class="pipe-label">Quyish</span>
-            {% if casting %}<span class="pipe-sub">{{ casting.get_status_display }}</span>{% endif %}
+          <div class="pipe-dot"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15.362 5.214A8.252 8.252 0 0 1 12 21 8.25 8.25 0 0 1 6.038 7.047 8.287 8.287 0 0 0 9 9.601a8.983 8.983 0 0 1 3.361-6.867 8.21 8.21 0 0 0 3 2.48Z"/></svg></div>
+          <div class="pipe-label">Quyish</div>
         </a>
         <a href="{% url 'order:montaj_edit' order.pk %}" class="pipe-node {% if order.current_stage == 'montaj' %}active{% elif montaj and montaj.status == 'completed' %}done{% elif montaj and montaj.status == 'rejected' %}rejected{% endif %}">
-            <div class="pipe-circle">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M11.42 15.17 17.25 21A2.652 2.652 0 0 0 21 17.25l-5.877-5.877M11.42 15.17l2.496-3.03c.317-.384.74-.626 1.208-.766M11.42 15.17l-4.655 5.653a2.548 2.548 0 1 1-3.586-3.586l5.653-4.657m5.014-2.024-.001-.463a4.5 4.5 0 0 1 3.015-4.243l2.387-.796a4.5 4.5 0 0 0-3.015 4.243v.463Z"/></svg>
-            </div>
-            <span class="pipe-label">Montaj</span>
-            {% if montaj %}<span class="pipe-sub">{{ montaj.get_status_display }}</span>{% endif %}
+          <div class="pipe-dot"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M11.42 15.17 17.25 21A2.652 2.652 0 0 0 21 17.25l-5.877-5.877M11.42 15.17l2.496-3.03c.317-.384.74-.626 1.208-.766M11.42 15.17l-4.655 5.653a2.548 2.548 0 1 1-3.586-3.586l5.653-4.655m5.833-4.322a4.015 4.015 0 0 0-1.208.766"/></svg></div>
+          <div class="pipe-label">Montaj</div>
         </a>
         <a href="{% url 'order:hanging_edit' order.pk %}" class="pipe-node {% if order.current_stage == 'hanging' %}active{% elif hanging and hanging.status == 'completed' %}done{% elif hanging and hanging.status == 'rejected' %}rejected{% endif %}">
-            <div class="pipe-circle">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9.75 3.104v5.714a2.25 2.25 0 0 1-.659 1.591L5 14.5M9.75 3.104c-.251.023-.501.05-.75.082m.75-.082a24.301 24.301 0 0 1 4.5 0m0 0v5.714c0 .597.237 1.17.659 1.591L19.8 15.3M14.25 3.104c.251.023.501.05.75.082M19.8 15.3l-1.57.393A9.065 9.065 0 0 1 12 15a9.065 9.065 0 0 0-6.23.693L5 14.5m14.8.8 1.402 1.402c1.232 1.232.65 3.318-1.067 3.611A48.309 48.309 0 0 1 12 21c-2.773 0-5.491-.235-8.135-.687-1.718-.293-2.3-2.379-1.067-3.61L5 14.5"/></svg>
-            </div>
-            <span class="pipe-label">Ilish</span>
-            {% if hanging %}<span class="pipe-sub">{{ hanging.get_status_display }}</span>{% endif %}
+          <div class="pipe-dot"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M13.19 8.688a4.5 4.5 0 0 1 1.242 7.244l-4.5 4.5a4.5 4.5 0 0 1-6.364-6.364l1.757-1.757m13.35-.622 1.757-1.757a4.5 4.5 0 0 0-6.364-6.364l-4.5 4.5a4.5 4.5 0 0 0 1.242 7.244"/></svg></div>
+          <div class="pipe-label">Ilish</div>
         </a>
         <a href="{% url 'order:stone_edit' order.pk %}" class="pipe-node {% if order.current_stage == 'stone_setting' %}active{% elif stone and stone.status == 'completed' %}done{% elif stone and stone.status == 'rejected' %}rejected{% endif %}">
-            <div class="pipe-circle">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9.813 15.904 9 18.75l-.813-2.846a4.5 4.5 0 0 0-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 0 0 3.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 0 0 3.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 0 0-3.09 3.09ZM18.259 8.715 18 9.75l-.259-1.035a3.375 3.375 0 0 0-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 0 0 2.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 0 0 2.455 2.456L21.75 6l-1.036.259a3.375 3.375 0 0 0-2.455 2.456ZM16.894 20.567 16.5 21.75l-.394-1.183a2.25 2.25 0 0 0-1.423-1.423L13.5 18.75l1.183-.394a2.25 2.25 0 0 0 1.423-1.423l.394-1.183.394 1.183a2.25 2.25 0 0 0 1.423 1.423l1.183.394-1.183.394a2.25 2.25 0 0 0-1.423 1.423Z"/></svg>
-            </div>
-            <span class="pipe-label">Tosh qadash</span>
-            {% if stone %}<span class="pipe-sub">{{ stone.get_status_display }}</span>{% endif %}
+          <div class="pipe-dot"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M21 11.25v8.25a1.5 1.5 0 0 1-1.5 1.5H5.25a1.5 1.5 0 0 1-1.5-1.5v-8.25M12 4.875A2.625 2.625 0 1 0 9.375 7.5H12m0-2.625V7.5m0-2.625A2.625 2.625 0 1 1 14.625 7.5H12m0 0V21m-8.625-9.75h18c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125h-18c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125Z"/></svg></div>
+          <div class="pipe-label">Tosh qadash</div>
         </a>
         <a href="{% url 'order:packaging_edit' order.pk %}" class="pipe-node {% if order.current_stage == 'packaging' %}active{% elif packaging and packaging.status == 'completed' %}done{% elif packaging and packaging.status == 'rejected' %}rejected{% endif %}">
-            <div class="pipe-circle">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m21 7.5-9-5.25L3 7.5m18 0-9 5.25m9-5.25v9l-9 5.25M3 7.5l9 5.25M3 7.5v9l9 5.25m0-9v9"/></svg>
-            </div>
-            <span class="pipe-label">Upakovka</span>
-            {% if packaging %}<span class="pipe-sub">{{ packaging.get_status_display }}</span>{% endif %}
+          <div class="pipe-dot"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M20.25 7.5l-.625 10.632a2.25 2.25 0 0 1-2.247 2.118H6.622a2.25 2.25 0 0 1-2.247-2.118L3.75 7.5M10 11.25h4M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125Z"/></svg></div>
+          <div class="pipe-label">Upakovka</div>
         </a>
         <a href="{% url 'order:warehouse_edit' order.pk %}" class="pipe-node {% if order.current_stage == 'warehouse' %}active{% elif warehouse and warehouse.status == 'delivered' %}done{% endif %}">
-            <div class="pipe-circle">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 21v-7.5a.75.75 0 0 1 .75-.75h3a.75.75 0 0 1 .75.75V21m-4.5 0H2.36m11.14 0H18m0 0h3.64m-1.39 0V9.349M3.75 21V9.349m0 0a3.001 3.001 0 0 0 3.75-.615A2.993 2.993 0 0 0 9.75 9.75c.896 0 1.7-.393 2.25-1.016a2.993 2.993 0 0 0 2.25 1.016c.896 0 1.7-.393 2.25-1.015a3.001 3.001 0 0 0 3.75.614m-16.5 0a3.004 3.004 0 0 1-.621-4.72l1.189-1.19A1.5 1.5 0 0 1 5.378 3h13.243a1.5 1.5 0 0 1 1.06.44l1.19 1.189a3 3 0 0 1-.621 4.72M6.75 18h3.75a.75.75 0 0 0 .75-.75V13.5a.75.75 0 0 0-.75-.75H6.75a.75.75 0 0 0-.75.75v3.75c0 .414.336.75.75.75Z"/></svg>
-            </div>
-            <span class="pipe-label">Ombor</span>
-            {% if warehouse %}<span class="pipe-sub">{{ warehouse.get_status_display }}</span>{% endif %}
+          <div class="pipe-dot"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M8.25 21v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21m0 0h4.5V3.545M12.75 21h7.5V10.75M2.25 21h1.5m18 0h-18M2.25 9l4.5-1.636M18.75 3l-1.5.545m0 6.205 3 1m1.5.5-1.5-.5M6.75 7.364V3h-3v18m3-13.636 10.5-3.819"/></svg></div>
+          <div class="pipe-label">Ombor</div>
         </a>
+      </div>
     </div>
+
+    <!-- Stage Cards -->
+    {% if casting %}
+    <div class="stage-card {% if order.current_stage == 'casting' %}active-stage{% endif %}">
+      <div class="sc-head" onclick="toggleStage('casting')">
+        <div class="sc-head-left">
+          <div class="sc-icon" style="background:#FFF7ED;color:#EA580C;"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15.362 5.214A8.252 8.252 0 0 1 12 21 8.25 8.25 0 0 1 6.038 7.047 8.287 8.287 0 0 0 9 9.601a8.983 8.983 0 0 1 3.361-6.867 8.21 8.21 0 0 0 3 2.48Z"/></svg></div>
+          <div><div class="sc-title">Quyish bo'limi</div><div class="sc-sub">{% if casting.started_at %}{{ casting.started_at|date:"d.m.Y" }}{% else %}Boshlanmagan{% endif %}</div></div>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px;">
+          <span class="sc-badge sb-{{ casting.status }}">{{ casting.get_status_display }}</span>
+          <svg class="sc-chevron" id="chev-casting" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5"/></svg>
+        </div>
+      </div>
+      <div class="sc-body {% if order.current_stage == 'casting' %}open{% endif %}" id="body-casting">
+        <div class="stage-meta-grid">
+          <div class="smt"><div class="sml">Umumiy</div><div class="smv">{{ casting.total_quantity }} dona</div></div>
+          <div class="smt"><div class="sml">Yaroqsiz</div><div class="smv red">{{ casting.defect_quantity }} dona</div></div>
+          <div class="smt"><div class="sml">Holati</div><div class="smv">{{ casting.get_status_display }}</div></div>
+        </div>
+        {% if casting.note %}<div class="stage-note">{{ casting.note }}</div>{% endif %}
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+          <div style="font-size:11.5px;font-weight:700;color:var(--gray-500);text-transform:uppercase;letter-spacing:.5px;">Harakatlar ({{ casting_logs.count }})</div>
+          <div style="display:flex;gap:6px;">
+            <a href="{% url 'order:stage_log_create' order.pk %}?stage=casting" class="btn btn-primary btn-sm" style="font-size:12px;padding:5px 12px;">+ Yangi</a>
+            <a href="{% url 'order:casting_edit' order.pk %}" class="btn-edit-sm"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width:13px;height:13px"><path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Z"/></svg> Tahrirlash</a>
+          </div>
+        </div>
+        {% if casting_logs %}
+        <div class="log-table-wrap"><table class="log-table">
+          <thead><tr><th>Xodim</th><th>Miqdor</th><th>Vaqt</th><th>Izoh</th><th></th></tr></thead>
+          <tbody>{% for log in casting_logs %}<tr>
+            <td>{% if log.worker %}{{ log.worker.name|default:log.worker.username }}{% else %}—{% endif %}</td>
+            <td><strong>{{ log.quantity }}</strong></td>
+            <td style="white-space:nowrap;color:var(--gray-400);font-size:11.5px;">{{ log.created_at|date:"d.m H:i" }}</td>
+            <td style="color:var(--gray-500);font-size:12px;">{{ log.note|truncatechars:30 }}</td>
+            <td><div style="display:flex;gap:4px;justify-content:flex-end;">
+              <a href="{% url 'order:stage_log_edit' log.pk %}" class="btn-edit-sm" title="Tahrirlash"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width:12px;height:12px"><path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Z"/></svg></a>
+              <a href="{% url 'order:stage_log_delete' log.pk %}" class="btn-del-sm" title="O'chirish"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width:12px;height:12px"><path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79"/></svg></a>
+            </div></td>
+          </tr>{% endfor %}</tbody>
+        </table></div>
+        {% else %}<div class="empty-stage">Hali harakat yo'q</div>{% endif %}
+      </div>
+    </div>
+    {% endif %}
+
+    {% if montaj %}
+    <div class="stage-card {% if order.current_stage == 'montaj' %}active-stage{% endif %}">
+      <div class="sc-head" onclick="toggleStage('montaj')">
+        <div class="sc-head-left">
+          <div class="sc-icon" style="background:#F0F9FF;color:#0284C7;"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M11.42 15.17 17.25 21A2.652 2.652 0 0 0 21 17.25l-5.877-5.877M11.42 15.17l2.496-3.03c.317-.384.74-.626 1.208-.766M11.42 15.17l-4.655 5.653a2.548 2.548 0 1 1-3.586-3.586l5.653-4.655m5.833-4.322a4.015 4.015 0 0 0-1.208.766"/></svg></div>
+          <div><div class="sc-title">Montaj bo'limi</div><div class="sc-sub">{% if montaj.started_at %}{{ montaj.started_at|date:"d.m.Y" }}{% else %}Boshlanmagan{% endif %}</div></div>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px;">
+          <span class="sc-badge sb-{{ montaj.status }}">{{ montaj.get_status_display }}</span>
+          <svg class="sc-chevron" id="chev-montaj" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5"/></svg>
+        </div>
+      </div>
+      <div class="sc-body {% if order.current_stage == 'montaj' %}open{% endif %}" id="body-montaj">
+        <div class="stage-meta-grid">
+          <div class="smt"><div class="sml">Umumiy</div><div class="smv">{{ montaj.total_quantity }} dona</div></div>
+          <div class="smt"><div class="sml">Yaroqsiz</div><div class="smv red">{{ montaj.defect_quantity }} dona</div></div>
+          <div class="smt"><div class="sml">Holati</div><div class="smv">{{ montaj.get_status_display }}</div></div>
+        </div>
+        {% if montaj.note %}<div class="stage-note">{{ montaj.note }}</div>{% endif %}
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+          <div style="font-size:11.5px;font-weight:700;color:var(--gray-500);text-transform:uppercase;letter-spacing:.5px;">Harakatlar ({{ montaj_logs.count }})</div>
+          <div style="display:flex;gap:6px;">
+            <a href="{% url 'order:stage_log_create' order.pk %}?stage=montaj" class="btn btn-primary btn-sm" style="font-size:12px;padding:5px 12px;">+ Yangi</a>
+            <a href="{% url 'order:montaj_edit' order.pk %}" class="btn-edit-sm"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width:13px;height:13px"><path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Z"/></svg> Tahrirlash</a>
+          </div>
+        </div>
+        {% if montaj_logs %}
+        <div class="log-table-wrap"><table class="log-table">
+          <thead><tr><th>Xodim</th><th>Miqdor</th><th>Vaqt</th><th>Izoh</th><th></th></tr></thead>
+          <tbody>{% for log in montaj_logs %}<tr>
+            <td>{% if log.worker %}{{ log.worker.name|default:log.worker.username }}{% else %}—{% endif %}</td>
+            <td><strong>{{ log.quantity }}</strong></td>
+            <td style="white-space:nowrap;color:var(--gray-400);font-size:11.5px;">{{ log.created_at|date:"d.m H:i" }}</td>
+            <td style="color:var(--gray-500);font-size:12px;">{{ log.note|truncatechars:30 }}</td>
+            <td><div style="display:flex;gap:4px;justify-content:flex-end;">
+              <a href="{% url 'order:stage_log_edit' log.pk %}" class="btn-edit-sm" title="Tahrirlash"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width:12px;height:12px"><path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Z"/></svg></a>
+              <a href="{% url 'order:stage_log_delete' log.pk %}" class="btn-del-sm" title="O'chirish"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width:12px;height:12px"><path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79"/></svg></a>
+            </div></td>
+          </tr>{% endfor %}</tbody>
+        </table></div>
+        {% else %}<div class="empty-stage">Hali harakat yo'q</div>{% endif %}
+      </div>
+    </div>
+    {% endif %}
+
+    {% if hanging %}
+    <div class="stage-card {% if order.current_stage == 'hanging' %}active-stage{% endif %}">
+      <div class="sc-head" onclick="toggleStage('hanging')">
+        <div class="sc-head-left">
+          <div class="sc-icon" style="background:#F5F3FF;color:#7C3AED;"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M13.19 8.688a4.5 4.5 0 0 1 1.242 7.244l-4.5 4.5a4.5 4.5 0 0 1-6.364-6.364l1.757-1.757m13.35-.622 1.757-1.757a4.5 4.5 0 0 0-6.364-6.364l-4.5 4.5a4.5 4.5 0 0 0 1.242 7.244"/></svg></div>
+          <div><div class="sc-title">Ilish bo'limi</div><div class="sc-sub">{% if hanging.started_at %}{{ hanging.started_at|date:"d.m.Y" }}{% else %}Boshlanmagan{% endif %}</div></div>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px;">
+          <span class="sc-badge sb-{{ hanging.status }}">{{ hanging.get_status_display }}</span>
+          <svg class="sc-chevron" id="chev-hanging" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5"/></svg>
+        </div>
+      </div>
+      <div class="sc-body {% if order.current_stage == 'hanging' %}open{% endif %}" id="body-hanging">
+        <div class="stage-meta-grid">
+          <div class="smt"><div class="sml">Umumiy</div><div class="smv">{{ hanging.total_quantity }} dona</div></div>
+          <div class="smt"><div class="sml">Yaroqsiz</div><div class="smv red">{{ hanging.defect_quantity }} dona</div></div>
+          <div class="smt"><div class="sml">Holati</div><div class="smv">{{ hanging.get_status_display }}</div></div>
+        </div>
+        {% if hanging.note %}<div class="stage-note">{{ hanging.note }}</div>{% endif %}
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+          <div style="font-size:11.5px;font-weight:700;color:var(--gray-500);text-transform:uppercase;letter-spacing:.5px;">Harakatlar ({{ hanging_logs.count }})</div>
+          <div style="display:flex;gap:6px;">
+            <a href="{% url 'order:stage_log_create' order.pk %}?stage=hanging" class="btn btn-primary btn-sm" style="font-size:12px;padding:5px 12px;">+ Yangi</a>
+            <a href="{% url 'order:hanging_edit' order.pk %}" class="btn-edit-sm"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width:13px;height:13px"><path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Z"/></svg> Tahrirlash</a>
+          </div>
+        </div>
+        {% if hanging_logs %}
+        <div class="log-table-wrap"><table class="log-table">
+          <thead><tr><th>Xodim</th><th>Miqdor</th><th>Vaqt</th><th>Izoh</th><th></th></tr></thead>
+          <tbody>{% for log in hanging_logs %}<tr>
+            <td>{% if log.worker %}{{ log.worker.name|default:log.worker.username }}{% else %}—{% endif %}</td>
+            <td><strong>{{ log.quantity }}</strong></td>
+            <td style="white-space:nowrap;color:var(--gray-400);font-size:11.5px;">{{ log.created_at|date:"d.m H:i" }}</td>
+            <td style="color:var(--gray-500);font-size:12px;">{{ log.note|truncatechars:30 }}</td>
+            <td><div style="display:flex;gap:4px;justify-content:flex-end;">
+              <a href="{% url 'order:stage_log_edit' log.pk %}" class="btn-edit-sm" title="Tahrirlash"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width:12px;height:12px"><path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Z"/></svg></a>
+              <a href="{% url 'order:stage_log_delete' log.pk %}" class="btn-del-sm" title="O'chirish"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width:12px;height:12px"><path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79"/></svg></a>
+            </div></td>
+          </tr>{% endfor %}</tbody>
+        </table></div>
+        {% else %}<div class="empty-stage">Hali harakat yo'q</div>{% endif %}
+      </div>
+    </div>
+    {% endif %}
+
+    {% if stone %}
+    <div class="stage-card {% if order.current_stage == 'stone_setting' %}active-stage{% endif %}">
+      <div class="sc-head" onclick="toggleStage('stone')">
+        <div class="sc-head-left">
+          <div class="sc-icon" style="background:#FFF1F2;color:#E11D48;"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M21 11.25v8.25a1.5 1.5 0 0 1-1.5 1.5H5.25a1.5 1.5 0 0 1-1.5-1.5v-8.25M12 4.875A2.625 2.625 0 1 0 9.375 7.5H12m0-2.625V7.5m0-2.625A2.625 2.625 0 1 1 14.625 7.5H12m0 0V21m-8.625-9.75h18c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125h-18c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125Z"/></svg></div>
+          <div><div class="sc-title">Tosh qadash bo'limi</div><div class="sc-sub">{% if stone.started_at %}{{ stone.started_at|date:"d.m.Y" }}{% else %}Boshlanmagan{% endif %}</div></div>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px;">
+          <span class="sc-badge sb-{{ stone.status }}">{{ stone.get_status_display }}</span>
+          <svg class="sc-chevron" id="chev-stone" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5"/></svg>
+        </div>
+      </div>
+      <div class="sc-body {% if order.current_stage == 'stone_setting' %}open{% endif %}" id="body-stone">
+        <div class="stage-meta-grid">
+          <div class="smt"><div class="sml">Umumiy</div><div class="smv">{{ stone.total_quantity }} dona</div></div>
+          <div class="smt"><div class="sml">Yaroqsiz</div><div class="smv red">{{ stone.defect_quantity }} dona</div></div>
+          <div class="smt"><div class="sml">Holati</div><div class="smv">{{ stone.get_status_display }}</div></div>
+        </div>
+        {% if stone.note %}<div class="stage-note">{{ stone.note }}</div>{% endif %}
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+          <div style="font-size:11.5px;font-weight:700;color:var(--gray-500);text-transform:uppercase;letter-spacing:.5px;">Harakatlar ({{ stone_logs.count }})</div>
+          <div style="display:flex;gap:6px;">
+            <a href="{% url 'order:stage_log_create' order.pk %}?stage=stone_setting" class="btn btn-primary btn-sm" style="font-size:12px;padding:5px 12px;">+ Yangi</a>
+            <a href="{% url 'order:stone_edit' order.pk %}" class="btn-edit-sm"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width:13px;height:13px"><path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Z"/></svg> Tahrirlash</a>
+          </div>
+        </div>
+        {% if stone_logs %}
+        <div class="log-table-wrap"><table class="log-table">
+          <thead><tr><th>Xodim</th><th>Miqdor</th><th>Vaqt</th><th>Izoh</th><th></th></tr></thead>
+          <tbody>{% for log in stone_logs %}<tr>
+            <td>{% if log.worker %}{{ log.worker.name|default:log.worker.username }}{% else %}—{% endif %}</td>
+            <td><strong>{{ log.quantity }}</strong></td>
+            <td style="white-space:nowrap;color:var(--gray-400);font-size:11.5px;">{{ log.created_at|date:"d.m H:i" }}</td>
+            <td style="color:var(--gray-500);font-size:12px;">{{ log.note|truncatechars:30 }}</td>
+            <td><div style="display:flex;gap:4px;justify-content:flex-end;">
+              <a href="{% url 'order:stage_log_edit' log.pk %}" class="btn-edit-sm" title="Tahrirlash"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width:12px;height:12px"><path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Z"/></svg></a>
+              <a href="{% url 'order:stage_log_delete' log.pk %}" class="btn-del-sm" title="O'chirish"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width:12px;height:12px"><path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79"/></svg></a>
+            </div></td>
+          </tr>{% endfor %}</tbody>
+        </table></div>
+        {% else %}<div class="empty-stage">Hali harakat yo'q</div>{% endif %}
+      </div>
+    </div>
+    {% endif %}
+
+    {% if packaging %}
+    <div class="stage-card {% if order.current_stage == 'packaging' %}active-stage{% endif %}">
+      <div class="sc-head" onclick="toggleStage('packaging')">
+        <div class="sc-head-left">
+          <div class="sc-icon" style="background:#F0FDF4;color:#15803D;"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M20.25 7.5l-.625 10.632a2.25 2.25 0 0 1-2.247 2.118H6.622a2.25 2.25 0 0 1-2.247-2.118L3.75 7.5M10 11.25h4M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125Z"/></svg></div>
+          <div><div class="sc-title">Upakovka bo'limi</div><div class="sc-sub">{% if packaging.started_at %}{{ packaging.started_at|date:"d.m.Y" }}{% else %}Boshlanmagan{% endif %}</div></div>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px;">
+          <span class="sc-badge sb-{{ packaging.status }}">{{ packaging.get_status_display }}</span>
+          <svg class="sc-chevron" id="chev-packaging" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5"/></svg>
+        </div>
+      </div>
+      <div class="sc-body {% if order.current_stage == 'packaging' %}open{% endif %}" id="body-packaging">
+        <div class="stage-meta-grid">
+          <div class="smt"><div class="sml">Umumiy</div><div class="smv">{{ packaging.total_quantity }} dona</div></div>
+          <div class="smt"><div class="sml">Yaroqsiz</div><div class="smv red">{{ packaging.defect_quantity }} dona</div></div>
+          <div class="smt"><div class="sml">Holati</div><div class="smv">{{ packaging.get_status_display }}</div></div>
+        </div>
+        {% if packaging.note %}<div class="stage-note">{{ packaging.note }}</div>{% endif %}
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+          <div style="font-size:11.5px;font-weight:700;color:var(--gray-500);text-transform:uppercase;letter-spacing:.5px;">Harakatlar ({{ packaging_logs.count }})</div>
+          <div style="display:flex;gap:6px;">
+            <a href="{% url 'order:stage_log_create' order.pk %}?stage=packaging" class="btn btn-primary btn-sm" style="font-size:12px;padding:5px 12px;">+ Yangi</a>
+            <a href="{% url 'order:packaging_edit' order.pk %}" class="btn-edit-sm"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width:13px;height:13px"><path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Z"/></svg> Tahrirlash</a>
+          </div>
+        </div>
+        {% if packaging_logs %}
+        <div class="log-table-wrap"><table class="log-table">
+          <thead><tr><th>Xodim</th><th>Miqdor</th><th>Vaqt</th><th>Izoh</th><th></th></tr></thead>
+          <tbody>{% for log in packaging_logs %}<tr>
+            <td>{% if log.worker %}{{ log.worker.name|default:log.worker.username }}{% else %}—{% endif %}</td>
+            <td><strong>{{ log.quantity }}</strong></td>
+            <td style="white-space:nowrap;color:var(--gray-400);font-size:11.5px;">{{ log.created_at|date:"d.m H:i" }}</td>
+            <td style="color:var(--gray-500);font-size:12px;">{{ log.note|truncatechars:30 }}</td>
+            <td><div style="display:flex;gap:4px;justify-content:flex-end;">
+              <a href="{% url 'order:stage_log_edit' log.pk %}" class="btn-edit-sm" title="Tahrirlash"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width:12px;height:12px"><path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Z"/></svg></a>
+              <a href="{% url 'order:stage_log_delete' log.pk %}" class="btn-del-sm" title="O'chirish"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width:12px;height:12px"><path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79"/></svg></a>
+            </div></td>
+          </tr>{% endfor %}</tbody>
+        </table></div>
+        {% else %}<div class="empty-stage">Hali harakat yo'q</div>{% endif %}
+      </div>
+    </div>
+    {% endif %}
+
+    <!-- All Logs Timeline -->
+    <div class="timeline-card">
+      <div class="tc-head">
+        <h4>Barcha harakatlar</h4>
+        <div class="tc-filter">
+          <a href="?stage=all" class="tf-btn {% if stage_filter == 'all' %}active{% endif %}">Barchasi</a>
+          <a href="?stage=casting" class="tf-btn {% if stage_filter == 'casting' %}active{% endif %}">Quyish</a>
+          <a href="?stage=montaj" class="tf-btn {% if stage_filter == 'montaj' %}active{% endif %}">Montaj</a>
+          <a href="?stage=hanging" class="tf-btn {% if stage_filter == 'hanging' %}active{% endif %}">Ilish</a>
+          <a href="?stage=stone_setting" class="tf-btn {% if stage_filter == 'stone_setting' %}active{% endif %}">Tosh</a>
+          <a href="?stage=packaging" class="tf-btn {% if stage_filter == 'packaging' %}active{% endif %}">Upakovka</a>
+        </div>
+      </div>
+      {% if stage_logs %}
+      <div class="timeline">
+        {% for log in stage_logs %}
+        <div class="tl-item">
+          <div class="tl-dot"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 12c0-1.232-.046-2.453-.138-3.662a4.006 4.006 0 0 0-3.7-3.7 48.678 48.678 0 0 0-7.324 0 4.006 4.006 0 0 0-3.7 3.7c-.017.22-.032.441-.046.662M19.5 12l3-3m-3 3-3-3m-12 3c0 1.232.046 2.453.138 3.662a4.006 4.006 0 0 0 3.7 3.7 48.656 48.656 0 0 0 7.324 0 4.006 4.006 0 0 0 3.7-3.7c.017-.22.032-.441.046-.662M4.5 12l3 3m-3-3-3 3"/></svg></div>
+          <div class="tl-body">
+            <div class="tl-head-row">
+              <span class="tl-stage-tag">{{ log.get_stage_display }}</span>
+              {% if log.from_department %}<span class="tl-from">{{ log.from_department }} &rarr;</span>{% endif %}
+              <span class="tl-qty">{{ log.quantity }} dona</span>
+            </div>
+            <div class="tl-meta">
+              {% if log.worker %}{{ log.worker.name|default:log.worker.username }}{% endif %}
+              {% if log.accepted_by %} &rarr; {{ log.accepted_by.name|default:log.accepted_by.username }}{% endif %}
+              &middot; {{ log.created_at|date:"d.m.Y H:i" }}
+            </div>
+            {% if log.note %}<div class="tl-note">{{ log.note }}</div>{% endif %}
+            <div class="tl-actions">
+              <a href="{% url 'order:stage_log_edit' log.pk %}" class="btn-edit-sm">Tahrirlash</a>
+              <a href="{% url 'order:stage_log_delete' log.pk %}" class="btn-del-sm">O'chirish</a>
+            </div>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+      {% else %}
+      <div style="padding:40px 20px;text-align:center;color:var(--gray-400);">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width:40px;height:40px;margin-bottom:10px;opacity:.28;"><path stroke-linecap="round" stroke-linejoin="round" d="M8.25 6.75h12M8.25 12h12m-12 5.25h12M3.75 6.75h.007v.008H3.75V6.75Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0ZM3.75 12h.007v.008H3.75V12Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm-.375 5.25h.007v.008H3.75v-.008Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Z"/></svg>
+        <p style="font-size:14px;margin:0;">Hali hech qanday harakat yo'q</p>
+      </div>
+      {% endif %}
+    </div>
+
+  </div>
 </div>
 {% endwith %}
+{% endblock %}
 
-<!-- ═══ STAGE DETAIL CARDS ═══ -->
-<div class="sec-header">
-    <div class="sec-title">
-        <span class="sec-icon orange"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5"/></svg></span>
-        Bo'limlar holati
-    </div>
-</div>
-<div class="stages-grid">
-
-    <!-- Quyish -->
-    {% with s=order.casting %}
-    {% if s %}
-    <div class="stage-card color-orange">
-        <div class="stage-card-top">
-            <div class="stage-card-name">
-                <span class="sc-icon orange"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15.362 5.214A8.252 8.252 0 0 1 12 21 8.25 8.25 0 0 1 6.038 7.047 8.287 8.287 0 0 0 9 9.601a8.983 8.983 0 0 1 3.361-6.867 8.21 8.21 0 0 0 3 2.48Z"/></svg></span>
-                <div><h4>Quyish bo'limi</h4><small>1-bosqich</small></div>
-            </div>
-            <span class="sc-status {% if s.status == 'completed' %}sc-done{% elif s.status == 'rejected' %}sc-rejected{% elif s.status == 'pending' %}sc-pending{% else %}sc-active{% endif %}"><span class="sdot"></span> {{ s.get_status_display }}</span>
-        </div>
-        <div class="sc-stats">
-            <div class="sc-stat"><div class="num">{{ s.total_quantity }}</div><div class="txt">Umumiy</div></div>
-            <div class="sc-stat"><div class="num">{{ s.separated_quantity }}</div><div class="txt">Ajratilgan</div></div>
-            <div class="sc-stat"><div class="num">{{ s.washed_quantity }}</div><div class="txt">Yuvilgan</div></div>
-            <div class="sc-stat"><div class="num">{{ s.chemical_quantity }}</div><div class="txt">Himiyadan</div></div>
-            {% if s.defect_quantity %}<div class="sc-stat"><div class="num red">{{ s.defect_quantity }}</div><div class="txt">Yaroqsiz</div></div>{% endif %}
-        </div>
-        <div class="sc-footer">
-            <div style="flex:1;">
-                <span style="font-size:12px;color:var(--gray-400);font-weight:600;">Quyish loglari:</span>
-                {% if casting_logs %}
-                    <div style="margin-top:4px;max-height:70px;overflow-y:auto;">
-                        {% for log in casting_logs|slice:':4' %}
-                            <div style="font-size:12px;color:var(--gray-700);margin-bottom:2px;display:flex;align-items:center;gap:8px;">
-                                <span style="color:var(--orange);font-weight:700;">{{ log.worker.name }}</span>
-                                <span style="color:var(--gray-500);">({{ log.quantity }} dona)</span>
-                                <span style="color:var(--gray-400);">→ {{ log.created_at|date:'d.m H:i' }}</span>
-                                <a href="{% url 'order:stage_log_edit' log.pk %}" class="btn-edit-sm" title="Tahrirlash"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width:14px;height:14px;"><path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Z"/></svg></a>
-                                <a href="{% url 'order:stage_log_delete' log.pk %}" class="btn btn-danger btn-sm" style="padding:4px 8px;" title="O'chirish"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width:12px;height:12px;"><path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79"/></svg></a>
-                            </div>
-                        {% endfor %}
-                        {% if casting_logs|length > 4 %}
-                            <div style="font-size:12px;color:var(--gray-400);margin-top:2px;">... va yana {{ casting_logs|length|add:'-4' }} ta</div>
-                        {% endif %}
-                    </div>
-                {% else %}
-                    <span style="color:var(--gray-400);">Loglar yo‘q</span>
-                {% endif %}
-            </div>
-            <a href="{% url 'order:casting_edit' order.pk %}" class="btn-edit-sm"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Z"/></svg> Tahrirlash</a>
-        </div>
-    <!-- ═══ BOSQICH HARAKATLARI TARIXI (LOG) ═══ -->
-    <div class="sec-header" style="margin-top:36px;display:flex;align-items:center;justify-content:space-between;gap:12px;">
-        <div class="sec-title" style="display:flex;align-items:center;gap:10px;">
-            <span class="sec-icon blue"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5"/></svg></span>
-            Harakatlar tarixi
-        </div>
-        <a href="{% url 'order:stage_log_create' order.pk %}" class="btn btn-primary btn-sm">+ Yangi harakat</a>
-    </div>
-    <div style="margin:18px 0 18px 0;display:flex;gap:8px;flex-wrap:wrap;">
-        <a href="?stage=all" class="chip {% if stage_filter == 'all' %}chip-active{% endif %}">Hammasi</a>
-        {% for key, label in order.CurrentStage.choices %}
-            <a href="?stage={{ key }}" class="chip {% if stage_filter == key %}chip-active{% endif %}">{{ label }}</a>
-        {% endfor %}
-    </div>
-    <div class="card" style="margin-bottom:24px;">
-        <div class="table-wrapper">
-            <table>
-                <thead>
-                    <tr>
-                        <th>Bosqich</th>
-                        <th>Ishchi</th>
-                        <th>Miqdor</th>
-                        <th>Qayerdan</th>
-                        <th>Qayerga</th>
-                        <th>Qabul qiluvchi</th>
-                        <th>Vaqt</th>
-                        <th>Izoh</th>
-                        <th></th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for log in stage_logs %}
-                    <tr>
-                        <td>{{ log.get_stage_display }}</td>
-                        <td>{% if log.worker %}{{ log.worker.name }}{% else %}-{% endif %}</td>
-                        <td>{{ log.quantity }}</td>
-                        <td>{{ log.from_department }}</td>
-                        <td>{{ log.to_department }}</td>
-                        <td>{% if log.accepted_by %}{{ log.accepted_by.name }}{% else %}-{% endif %}</td>
-                        <td>{{ log.created_at|date:'d.m.Y H:i' }}</td>
-                        <td>{{ log.note|default:'-' }}</td>
-                        <td style="white-space:nowrap;">
-                            <a href="{% url 'order:stage_log_edit' log.pk %}" class="btn-edit-sm" title="Tahrirlash"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width:16px;height:16px;"><path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Z"/></svg></a>
-                            <a href="{% url 'order:stage_log_delete' log.pk %}" class="btn btn-danger btn-sm" style="padding:6px 10px;" title="O'chirish"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width:14px;height:14px;"><path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79"/></svg></a>
-                        </td>
-                    </tr>
-                    {% empty %}
-                    <tr><td colspan="9" style="color:var(--gray-400);text-align:center;">Loglar yo‘q</td></tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
-    </div>
-    </div>
-    {% endif %}
-    {% endwith %}
-
-    <!-- Montaj -->
-    {% with s=order.montaj %}
-    {% if s %}
-    <div class="stage-card color-blue">
-        <div class="stage-card-top">
-            <div class="stage-card-name">
-                <span class="sc-icon blue"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M11.42 15.17 17.25 21A2.652 2.652 0 0 0 21 17.25l-5.877-5.877M11.42 15.17l2.496-3.03c.317-.384.74-.626 1.208-.766M11.42 15.17l-4.655 5.653a2.548 2.548 0 1 1-3.586-3.586l5.653-4.657m5.014-2.024-.001-.463a4.5 4.5 0 0 1 3.015-4.243l2.387-.796a4.5 4.5 0 0 0-3.015 4.243v.463Z"/></svg></span>
-                <div><h4>Montaj bo'limi</h4><small>2-bosqich</small></div>
-            </div>
-            <span class="sc-status {% if s.status == 'completed' %}sc-done{% elif s.status == 'rejected' %}sc-rejected{% elif s.status == 'pending' %}sc-pending{% else %}sc-active{% endif %}"><span class="sdot"></span> {{ s.get_status_display }}</span>
-        </div>
-        <div class="sc-stats">
-            <div class="sc-stat"><div class="num">{{ s.total_quantity }}</div><div class="txt">Umumiy</div></div>
-            <div class="sc-stat"><div class="num">{{ s.assembled_quantity }}</div><div class="txt">Til qadalgan</div></div>
-            {% if s.defect_quantity %}<div class="sc-stat"><div class="num red">{{ s.defect_quantity }}</div><div class="txt">Yaroqsiz</div></div>{% endif %}
-        </div>
-        <div class="sc-footer">
-            <div style="flex:1;">
-                <span style="font-size:12px;color:var(--gray-400);font-weight:600;">Montaj loglari:</span>
-                {% if montaj_logs %}
-                    <div style="margin-top:4px;max-height:70px;overflow-y:auto;">
-                        {% for log in montaj_logs|slice:':4' %}
-                            <div style="font-size:12px;color:var(--gray-700);margin-bottom:2px;display:flex;align-items:center;gap:8px;">
-                                <span style="color:var(--blue);font-weight:700;">{{ log.worker.name }}</span>
-                                <span style="color:var(--gray-500);">({{ log.quantity }} dona)</span>
-                                <span style="color:var(--gray-400);">→ {{ log.created_at|date:'d.m H:i' }}</span>
-                                <a href="{% url 'order:stage_log_edit' log.pk %}" class="btn-edit-sm" title="Tahrirlash"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width:14px;height:14px;"><path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Z"/></svg></a>
-                                <a href="{% url 'order:stage_log_delete' log.pk %}" class="btn btn-danger btn-sm" style="padding:4px 8px;" title="O'chirish"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width:12px;height:12px;"><path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79"/></svg></a>
-                            </div>
-                        {% endfor %}
-                        {% if montaj_logs|length > 4 %}
-                            <div style="font-size:12px;color:var(--gray-400);margin-top:2px;">... va yana {{ montaj_logs|length|add:'-4' }} ta</div>
-                        {% endif %}
-                    </div>
-                {% else %}
-                    <span style="color:var(--gray-400);">Loglar yo‘q</span>
-                {% endif %}
-            </div>
-            <a href="{% url 'order:montaj_edit' order.pk %}" class="btn-edit-sm"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Z"/></svg> Tahrirlash</a>
-        </div>
-    </div>
-    {% endif %}
-    {% endwith %}
-
-    <!-- Ilish -->
-    {% with s=order.hanging %}
-    {% if s %}
-    <div class="stage-card color-purple">
-        <div class="stage-card-top">
-            <div class="stage-card-name">
-                <span class="sc-icon purple"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9.75 3.104v5.714a2.25 2.25 0 0 1-.659 1.591L5 14.5M9.75 3.104c-.251.023-.501.05-.75.082m.75-.082a24.301 24.301 0 0 1 4.5 0m0 0v5.714c0 .597.237 1.17.659 1.591L19.8 15.3M14.25 3.104c.251.023.501.05.75.082"/></svg></span>
-                <div><h4>Ilish bo'limi</h4><small>3-bosqich</small></div>
-            </div>
-            <span class="sc-status {% if s.status == 'completed' %}sc-done{% elif s.status == 'rejected' %}sc-rejected{% elif s.status == 'pending' %}sc-pending{% else %}sc-active{% endif %}"><span class="sdot"></span> {{ s.get_status_display }}</span>
-        </div>
-        <div class="sc-stats">
-            <div class="sc-stat"><div class="num">{{ s.total_quantity }}</div><div class="txt">Umumiy</div></div>
-            <div class="sc-stat"><div class="num">{{ s.hung_quantity }}</div><div class="txt">Ilingan</div></div>
-            <div class="sc-stat"><div class="num">{{ s.soaked_quantity }}</div><div class="txt">Bo'ktirilgan</div></div>
-            {% if s.defect_quantity %}<div class="sc-stat"><div class="num red">{{ s.defect_quantity }}</div><div class="txt">Yaroqsiz</div></div>{% endif %}
-        </div>
-        <div class="sc-footer">
-            <div style="flex:1;">
-                <span style="font-size:12px;color:var(--gray-400);font-weight:600;">Ilish loglari:</span>
-                {% if hanging_logs %}
-                    <div style="margin-top:4px;max-height:70px;overflow-y:auto;">
-                        {% for log in hanging_logs|slice:':4' %}
-                            <div style="font-size:12px;color:var(--gray-700);margin-bottom:2px;display:flex;align-items:center;gap:8px;">
-                                <span style="color:purple;font-weight:700;">{{ log.worker.name }}</span>
-                                <span style="color:var(--gray-500);">({{ log.quantity }} dona)</span>
-                                <span style="color:var(--gray-400);">→ {{ log.created_at|date:'d.m H:i' }}</span>
-                                <a href="{% url 'order:stage_log_edit' log.pk %}" class="btn-edit-sm" title="Tahrirlash"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width:14px;height:14px;"><path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Z"/></svg></a>
-                                <a href="{% url 'order:stage_log_delete' log.pk %}" class="btn btn-danger btn-sm" style="padding:4px 8px;" title="O'chirish"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width:12px;height:12px;"><path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79"/></svg></a>
-                            </div>
-                        {% endfor %}
-                        {% if hanging_logs|length > 4 %}
-                            <div style="font-size:12px;color:var(--gray-400);margin-top:2px;">... va yana {{ hanging_logs|length|add:'-4' }} ta</div>
-                        {% endif %}
-                    </div>
-                {% else %}
-                    <span style="color:var(--gray-400);">Loglar yo‘q</span>
-                {% endif %}
-            </div>
-            <a href="{% url 'order:hanging_edit' order.pk %}" class="btn-edit-sm"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Z"/></svg> Tahrirlash</a>
-        </div>
-    </div>
-    {% endif %}
-    {% endwith %}
-
-    <!-- Tosh qadash -->
-        {% with s=order.stone_setting %}
-        {% if s %}
-        <div class="stage-card color-pink">
-            <div class="stage-card-top">
-                <div class="stage-card-name">
-                    <span class="sc-icon pink"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9.813 15.904 9 18.75l-.813-2.846a4.5 4.5 0 0 0-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 0 0 3.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 0 0 3.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 0 0-3.09 3.09Z"/></svg></span>
-                    <div><h4>Tosh qadash</h4><small>4-bosqich</small></div>
-                </div>
-                <span class="sc-status {% if s.status == 'completed' %}sc-done{% elif s.status == 'rejected' %}sc-rejected{% elif s.status == 'pending' %}sc-pending{% else %}sc-active{% endif %}"><span class="sdot"></span> {{ s.get_status_display }}</span>
-            </div>
-            <div class="sc-stats">
-                <div class="sc-stat"><div class="num">{{ s.total_quantity }}</div><div class="txt">Umumiy</div></div>
-                <div class="sc-stat"><div class="num">{{ s.stones_set_quantity }}</div><div class="txt">Tosh qadalgan</div></div>
-                {% if s.defect_quantity %}<div class="sc-stat"><div class="num red">{{ s.defect_quantity }}</div><div class="txt">Yaroqsiz</div></div>{% endif %}
-            </div>
-            <div class="sc-footer">
-                <div style="flex:1;">
-                    <span style="font-size:12px;color:var(--gray-400);font-weight:600;">Tosh qadash loglari:</span>
-                    {% if stone_logs %}
-                        <div style="margin-top:4px;max-height:70px;overflow-y:auto;">
-                            {% for log in stone_logs|slice:':4' %}
-                                <div style="font-size:12px;color:var(--gray-700);margin-bottom:2px;display:flex;align-items:center;gap:8px;">
-                                    <span style="color:deeppink;font-weight:700;">{{ log.worker.name }}</span>
-                                    <span style="color:var(--gray-500);">({{ log.quantity }} dona)</span>
-                                    <span style="color:var(--gray-400);">→ {{ log.created_at|date:'d.m H:i' }}</span>
-                                    <a href="{% url 'order:stage_log_edit' log.pk %}" class="btn-edit-sm" title="Tahrirlash"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width:14px;height:14px;"><path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Z"/></svg></a>
-                                    <a href="{% url 'order:stage_log_delete' log.pk %}" class="btn btn-danger btn-sm" style="padding:4px 8px;" title="O'chirish"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width:12px;height:12px;"><path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79"/></svg></a>
-                                </div>
-                            {% endfor %}
-                            {% if stone_logs|length > 4 %}
-                                <div style="font-size:12px;color:var(--gray-400);margin-top:2px;">... va yana {{ stone_logs|length|add:'-4' }} ta</div>
-                            {% endif %}
-                        </div>
-                    {% else %}
-                        <span style="color:var(--gray-400);">Loglar yo‘q</span>
-                    {% endif %}
-                </div>
-                <a href="{% url 'order:stone_edit' order.pk %}" class="btn-edit-sm"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Z"/></svg> Tahrirlash</a>
-            </div>
-        </div>
-        {% endif %}
-        {% endwith %}
-    {% with s=order.stone_setting %}
-    {% if s %}
-    <div class="stage-card color-pink">
-        <div class="stage-card-top">
-            <div class="stage-card-name">
-                <span class="sc-icon pink"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9.813 15.904 9 18.75l-.813-2.846a4.5 4.5 0 0 0-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 0 0 3.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 0 0 3.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 0 0-3.09 3.09Z"/></svg></span>
-                <div><h4>Tosh qadash</h4><small>4-bosqich</small></div>
-            </div>
-            <span class="sc-status {% if s.status == 'completed' %}sc-done{% elif s.status == 'rejected' %}sc-rejected{% elif s.status == 'pending' %}sc-pending{% else %}sc-active{% endif %}"><span class="sdot"></span> {{ s.get_status_display }}</span>
-        </div>
-        <div class="sc-stats">
-            <div class="sc-stat"><div class="num">{{ s.total_quantity }}</div><div class="txt">Umumiy</div></div>
-            <div class="sc-stat"><div class="num">{{ s.stones_set_quantity }}</div><div class="txt">Tosh qadalgan</div></div>
-            {% if s.defect_quantity %}<div class="sc-stat"><div class="num red">{{ s.defect_quantity }}</div><div class="txt">Yaroqsiz</div></div>{% endif %}
-        </div>
-        <div class="sc-footer">
-            {% if s.worker %}
-            <div class="sc-worker"><span class="w-avatar">{{ s.worker.name|make_list|first }}</span> <strong>{{ s.worker.name }}</strong></div>
-            {% else %}<span></span>{% endif %}
-            <a href="{% url 'order:stone_edit' order.pk %}" class="btn-edit-sm"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Z"/></svg> Tahrirlash</a>
-        </div>
-    </div>
-    {% endif %}
-    {% endwith %}
-
-    <!-- Upakovka -->
-        {% with s=order.packaging %}
-        {% if s %}
-        <div class="stage-card color-teal">
-            <div class="stage-card-top">
-                <div class="stage-card-name">
-                    <span class="sc-icon teal"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m21 7.5-9-5.25L3 7.5m18 0-9 5.25m9-5.25v9l-9 5.25M3 7.5l9 5.25M3 7.5v9l9 5.25m0-9v9"/></svg></span>
-                    <div><h4>Upakovka</h4><small>5-bosqich</small></div>
-                </div>
-                <span class="sc-status {% if s.status == 'completed' %}sc-done{% elif s.status == 'rejected' %}sc-rejected{% elif s.status == 'pending' %}sc-pending{% else %}sc-active{% endif %}"><span class="sdot"></span> {{ s.get_status_display }}</span>
-            </div>
-            <div class="sc-stats">
-                <div class="sc-stat"><div class="num">{{ s.total_quantity }}</div><div class="txt">Umumiy</div></div>
-                <div class="sc-stat"><div class="num">{{ s.packed_quantity }}</div><div class="txt">Qadoqlangan</div></div>
-                {% if s.defect_quantity %}<div class="sc-stat"><div class="num red">{{ s.defect_quantity }}</div><div class="txt">Yaroqsiz</div></div>{% endif %}
-            </div>
-            <div class="sc-footer">
-                <div style="flex:1;">
-                    <span style="font-size:12px;color:var(--gray-400);font-weight:600;">Upakovka loglari:</span>
-                    {% if packaging_logs %}
-                        <div style="margin-top:4px;max-height:70px;overflow-y:auto;">
-                            {% for log in packaging_logs|slice:':4' %}
-                                <div style="font-size:12px;color:var(--gray-700);margin-bottom:2px;display:flex;align-items:center;gap:8px;">
-                                    <span style="color:teal;font-weight:700;">{{ log.worker.name }}</span>
-                                    <span style="color:var(--gray-500);">({{ log.quantity }} dona)</span>
-                                    <span style="color:var(--gray-400);">→ {{ log.created_at|date:'d.m H:i' }}</span>
-                                    <a href="{% url 'order:stage_log_edit' log.pk %}" class="btn-edit-sm" title="Tahrirlash"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width:14px;height:14px;"><path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Z"/></svg></a>
-                                    <a href="{% url 'order:stage_log_delete' log.pk %}" class="btn btn-danger btn-sm" style="padding:4px 8px;" title="O'chirish"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width:12px;height:12px;"><path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79"/></svg></a>
-                                </div>
-                            {% endfor %}
-                            {% if packaging_logs|length > 4 %}
-                                <div style="font-size:12px;color:var(--gray-400);margin-top:2px;">... va yana {{ packaging_logs|length|add:'-4' }} ta</div>
-                            {% endif %}
-                        </div>
-                    {% else %}
-                        <span style="color:var(--gray-400);">Loglar yo‘q</span>
-                    {% endif %}
-                </div>
-                <a href="{% url 'order:packaging_edit' order.pk %}" class="btn-edit-sm"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Z"/></svg> Tahrirlash</a>
-            </div>
-        </div>
-        {% endif %}
-        {% endwith %}
-    {% with s=order.packaging %}
-    {% if s %}
-    <div class="stage-card color-teal">
-        <div class="stage-card-top">
-            <div class="stage-card-name">
-                <span class="sc-icon teal"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m21 7.5-9-5.25L3 7.5m18 0-9 5.25m9-5.25v9l-9 5.25M3 7.5l9 5.25M3 7.5v9l9 5.25m0-9v9"/></svg></span>
-                <div><h4>Upakovka</h4><small>5-bosqich</small></div>
-            </div>
-            <span class="sc-status {% if s.status == 'completed' %}sc-done{% elif s.status == 'rejected' %}sc-rejected{% elif s.status == 'pending' %}sc-pending{% else %}sc-active{% endif %}"><span class="sdot"></span> {{ s.get_status_display }}</span>
-        </div>
-        <div class="sc-stats">
-            <div class="sc-stat"><div class="num">{{ s.total_quantity }}</div><div class="txt">Umumiy</div></div>
-            <div class="sc-stat"><div class="num">{{ s.packed_quantity }}</div><div class="txt">Qadoqlangan</div></div>
-            {% if s.defect_quantity %}<div class="sc-stat"><div class="num red">{{ s.defect_quantity }}</div><div class="txt">Yaroqsiz</div></div>{% endif %}
-        </div>
-        <div class="sc-footer">
-            {% if s.worker %}
-            <div class="sc-worker"><span class="w-avatar">{{ s.worker.name|make_list|first }}</span> <strong>{{ s.worker.name }}</strong></div>
-            {% else %}<span></span>{% endif %}
-            <a href="{% url 'order:packaging_edit' order.pk %}" class="btn-edit-sm"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Z"/></svg> Tahrirlash</a>
-        </div>
-    </div>
-    {% endif %}
-    {% endwith %}
-
-    <!-- Ombor -->
-        {% with s=order.warehouse %}
-        {% if s %}
-        <div class="stage-card color-indigo">
-            <div class="stage-card-top">
-                <div class="stage-card-name">
-                    <span class="sc-icon indigo"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 21v-7.5a.75.75 0 0 1 .75-.75h3a.75.75 0 0 1 .75.75V21m-4.5 0H2.36m11.14 0H18m0 0h3.64m-1.39 0V9.349M3.75 21V9.349"/></svg></span>
-                    <div><h4>Ombor</h4><small>6-bosqich</small></div>
-                </div>
-                <span class="sc-status {% if s.status == 'delivered' %}sc-done{% elif s.status == 'pending' %}sc-pending{% else %}sc-active{% endif %}"><span class="sdot"></span> {{ s.get_status_display }}</span>
-            </div>
-            <div class="sc-stats">
-                <div class="sc-stat"><div class="num">{{ s.received_quantity }}</div><div class="txt">Qabul qilingan</div></div>
-                <div class="sc-stat"><div class="num">{{ s.delivered_quantity }}</div><div class="txt">Yetkazilgan</div></div>
-            </div>
-            <div class="sc-footer">
-                <div style="flex:1;">
-                    <span style="font-size:12px;color:var(--gray-400);font-weight:600;">Ombor loglari:</span>
-                    {% if warehouse_logs %}
-                        <div style="margin-top:4px;max-height:70px;overflow-y:auto;">
-                            {% for log in warehouse_logs|slice:':4' %}
-                                <div style="font-size:12px;color:var(--gray-700);margin-bottom:2px;display:flex;align-items:center;gap:8px;">
-                                    <span style="color:indigo;font-weight:700;">{{ log.worker.name }}</span>
-                                    <span style="color:var(--gray-500);">({{ log.quantity }} dona)</span>
-                                    <span style="color:var(--gray-400);">→ {{ log.created_at|date:'d.m H:i' }}</span>
-                                    <a href="{% url 'order:stage_log_edit' log.pk %}" class="btn-edit-sm" title="Tahrirlash"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width:14px;height:14px;"><path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Z"/></svg></a>
-                                    <a href="{% url 'order:stage_log_delete' log.pk %}" class="btn btn-danger btn-sm" style="padding:4px 8px;" title="O'chirish"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width:12px;height:12px;"><path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79"/></svg></a>
-                                </div>
-                            {% endfor %}
-                            {% if warehouse_logs|length > 4 %}
-                                <div style="font-size:12px;color:var(--gray-400);margin-top:2px;">... va yana {{ warehouse_logs|length|add:'-4' }} ta</div>
-                            {% endif %}
-                        </div>
-                    {% else %}
-                        <span style="color:var(--gray-400);">Loglar yo‘q</span>
-                    {% endif %}
-                </div>
-                <a href="{% url 'order:warehouse_edit' order.pk %}" class="btn-edit-sm"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Z"/></svg> Tahrirlash</a>
-            </div>
-        </div>
-        {% endif %}
-        {% endwith %}
-    {% with s=order.warehouse %}
-    {% if s %}
-    <div class="stage-card color-indigo">
-        <div class="stage-card-top">
-            <div class="stage-card-name">
-                <span class="sc-icon indigo"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 21v-7.5a.75.75 0 0 1 .75-.75h3a.75.75 0 0 1 .75.75V21m-4.5 0H2.36m11.14 0H18m0 0h3.64m-1.39 0V9.349M3.75 21V9.349"/></svg></span>
-                <div><h4>Ombor</h4><small>6-bosqich</small></div>
-            </div>
-            <span class="sc-status {% if s.status == 'delivered' %}sc-done{% elif s.status == 'pending' %}sc-pending{% else %}sc-active{% endif %}"><span class="sdot"></span> {{ s.get_status_display }}</span>
-        </div>
-        <div class="sc-stats">
-            <div class="sc-stat"><div class="num">{{ s.received_quantity }}</div><div class="txt">Qabul qilingan</div></div>
-            <div class="sc-stat"><div class="num">{{ s.delivered_quantity }}</div><div class="txt">Yetkazilgan</div></div>
-        </div>
-        <div class="sc-footer">
-            {% if s.receiver %}
-            <div class="sc-worker"><span class="w-avatar">{{ s.receiver.name|make_list|first }}</span> <strong>{{ s.receiver.name }}</strong></div>
-            {% else %}<span></span>{% endif %}
-            <a href="{% url 'order:warehouse_edit' order.pk %}" class="btn-edit-sm"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Z"/></svg> Tahrirlash</a>
-        </div>
-    </div>
-    {% endif %}
-    {% endwith %}
-
-</div>
-
-<!-- ═══ TASHQI ISHLOV ═══ -->
-<div class="sec-header">
-    <div class="sec-title">
-        <span class="sec-icon purple"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25"/></svg></span>
-        Tashqi ishlovlar
-    </div>
-    <a href="{% url 'order:outsource_create' order.pk %}" class="btn btn-primary btn-sm">
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>
-        Qo'shish
-    </a>
-</div>
-{% if order.outsource_works.all %}
-<div class="stages-grid">
-    {% for ow in order.outsource_works.all %}
-    <div class="outsource-card">
-        <div class="oc-top">
-            <div class="oc-contractor">
-                <div class="oc-avatar">{{ ow.contractor|make_list|first }}</div>
-                <div>
-                    <h4>{{ ow.contractor }}</h4>
-                    {% if ow.contractor_phone %}<small>{{ ow.contractor_phone }}</small>{% endif %}
-                </div>
-            </div>
-            <span class="sc-status {% if ow.status == 'completed' %}sc-done{% elif ow.status == 'rejected' %}sc-rejected{% elif ow.status == 'pending' %}sc-pending{% else %}sc-active{% endif %}"><span class="sdot"></span> {{ ow.get_status_display }}</span>
-        </div>
-        <div class="oc-body">
-            <div class="oc-desc">{{ ow.work_description|truncatewords:20 }}</div>
-            <div class="oc-nums">
-                <div class="oc-num"><div class="val">{{ ow.sent_quantity }}</div><div class="lbl">Yuborilgan</div></div>
-                <div class="oc-num"><div class="val">{{ ow.received_quantity }}</div><div class="lbl">Qaytgan</div></div>
-                <div class="oc-num"><div class="val {% if ow.defect_quantity %}red{% endif %}">{{ ow.defect_quantity }}</div><div class="lbl">Yaroqsiz</div></div>
-            </div>
-        </div>
-        <div class="oc-footer">
-            <div class="oc-return">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9 15 3 9m0 0 6-6M3 9h12a6 6 0 0 1 0 12h-3"/></svg>
-                Qaytish: <strong>{{ ow.get_return_to_stage_display }}</strong>
-            </div>
-            <div style="display:flex;gap:6px;">
-                <a href="{% url 'order:outsource_edit' order.pk ow.pk %}" class="btn-edit-sm"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Z"/></svg></a>
-                <a href="{% url 'order:outsource_delete' order.pk ow.pk %}" class="btn btn-danger btn-sm" style="padding:6px 10px;"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width:14px;height:14px;"><path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79"/></svg></a>
-            </div>
-        </div>
-    </div>
-    {% endfor %}
-</div>
-{% else %}
-<div class="empty-block">
-    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25"/></svg>
-    <p>Hali tashqi ishlov qo'shilmagan</p>
-</div>
-{% endif %}
-
-<!-- ═══ SIFAT NAZORATI ═══ -->
-<div class="sec-header">
-    <div class="sec-title">
-        <span class="sec-icon green"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75m-3-7.036A11.959 11.959 0 0 1 3.598 6 11.99 11.99 0 0 0 3 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285Z"/></svg></span>
-        Sifat nazorati
-    </div>
-    <a href="{% url 'order:quality_create' order.pk %}" class="btn btn-primary btn-sm">
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>
-        Qo'shish
-    </a>
-</div>
-{% if order.quality_checks.all %}
-<div class="qc-card">
-    <div class="table-wrapper">
-        <table>
-            <thead>
-                <tr>
-                    <th>Bosqich</th>
-                    <th>Natija</th>
-                    <th>Tekshirilgan</th>
-                    <th>Yaroqli</th>
-                    <th>Yaroqsiz</th>
-                    <th>Sana</th>
-                    <th></th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for qc in order.quality_checks.all %}
-                <tr>
-                    <td style="font-weight:600;">{{ qc.get_stage_display }}</td>
-                    <td>
-                        <span class="qc-result {% if qc.result == 'passed' %}qc-passed{% elif qc.result == 'failed' %}qc-failed{% elif qc.result == 'partial' %}qc-partial{% else %}qc-pending{% endif %}">{{ qc.get_result_display }}</span>
-                    </td>
-                    <td><strong>{{ qc.checked_quantity }}</strong></td>
-                    <td style="color:#22C55E;font-weight:600;">{{ qc.passed_quantity }}</td>
-                    <td>{% if qc.defect_quantity %}<span style="color:#EF4444;font-weight:700;">{{ qc.defect_quantity }}</span>{% else %}<span style="color:var(--gray-300);">0</span>{% endif %}</td>
-                    <td style="color:var(--gray-500);font-size:13px;">{{ qc.created_at|date:"d.m.Y H:i" }}</td>
-                    <td>
-                        <div style="display:flex;gap:6px;justify-content:flex-end;">
-                            <a href="{% url 'order:quality_edit' order.pk qc.pk %}" class="btn-edit-sm"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Z"/></svg></a>
-                            <a href="{% url 'order:quality_delete' order.pk qc.pk %}" class="btn btn-danger btn-sm" style="padding:6px 10px;"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width:14px;height:14px;"><path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79"/></svg></a>
-                        </div>
-                    </td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    </div>
-</div>
-{% else %}
-<div class="empty-block">
-    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75m-3-7.036A11.959 11.959 0 0 1 3.598 6 11.99 11.99 0 0 0 3 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285Z"/></svg>
-    <p>Hali sifat tekshiruvi qo'shilmagan</p>
-</div>
-{% endif %}
-
+{% block extra_js %}
+<script>
+function toggleStage(name) {
+  var body = document.getElementById('body-' + name);
+  var chev = document.getElementById('chev-' + name);
+  if (!body) return;
+  var open = body.classList.toggle('open');
+  if (chev) chev.style.transform = open ? 'rotate(180deg)' : '';
+}
+document.querySelectorAll('.sc-body.open').forEach(function(el) {
+  var id = el.id.replace('body-', '');
+  var chev = document.getElementById('chev-' + id);
+  if (chev) chev.style.transform = 'rotate(180deg)';
+});
+</script>
 {% endblock %}
