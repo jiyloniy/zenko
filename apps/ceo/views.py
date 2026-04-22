@@ -66,6 +66,8 @@ class LoginView(View):
         role_name = user.role.name if user.role else None
         if role_name == 'BOSS':
             return redirect('boss:dashboard')
+        if role_name == 'CASTINGMANAGER':
+            return redirect('casting:dashboard')
         if role_name == 'CEO' or user.is_superuser:
             return redirect('ceo:dashboard')
         return redirect('ceo:dashboard')
