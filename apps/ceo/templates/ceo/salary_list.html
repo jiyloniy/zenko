@@ -1,4 +1,5 @@
 {% extends "ceo/base.html" %}
+{% load ceo_filters %}
 {% block title %}Oylik hisob — {{ month_name }} {{ year }}{% endblock %}
 {% block page_title %}Oylik hisob{% endblock %}
 
@@ -211,8 +212,8 @@
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/></svg>
         </div>
         <div class="sc-label">Jami soat</div>
-        <div class="sc-val">{{ grand_hours|floatformat:1 }}</div>
-        <div class="sc-sub">soat ishlandi</div>
+        <div class="sc-val" style="font-size:18px;">{{ grand_hours|hours_to_hm }}</div>
+        <div class="sc-sub">ishlandi</div>
     </div>
     <div class="strip-card">
         <div class="sc-icon orange">
@@ -288,7 +289,7 @@
                     </td>
                     <!-- Soatlar -->
                     <td>
-                        <span class="hours-pill">{{ row.total_hours|floatformat:1 }} soat</span>
+                        <span class="hours-pill">{{ row.total_hours|hours_to_hm }}</span>
                         {% if row.total_hours > 0 %}
                         <div class="prog-bar" style="width:80px;">
                             <div class="prog-fill" style="width:{% widthratio row.total_hours 200 100 %}%;max-width:100%;"></div>
@@ -339,7 +340,7 @@
             <tfoot>
                 <tr class="tfoot-row">
                     <td colspan="2" style="color:var(--gray-500);font-size:13px;">Jami ({{ rows|length }} hodim)</td>
-                    <td><span class="hours-pill">{{ grand_hours|floatformat:1 }} soat</span></td>
+                    <td><span class="hours-pill">{{ grand_hours|hours_to_hm }}</span></td>
                     <td></td>
                     <td><span class="money">{{ grand_base|floatformat:0 }} so'm</span></td>
                     <td></td>

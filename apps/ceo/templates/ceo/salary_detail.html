@@ -1,4 +1,5 @@
 {% extends "ceo/base.html" %}
+{% load ceo_filters %}
 {% block title %}{{ employee.name }} — Oylik {{ month_name }} {{ year }}{% endblock %}
 {% block page_title %}Oylik batafsil{% endblock %}
 
@@ -226,9 +227,9 @@
             </div>
             <div class="stat-grid-2">
                 <div class="mini-stat">
-                    <div class="ms-label">Ishlagan soat</div>
-                    <div class="ms-val">{{ total_hours|floatformat:2 }}</div>
-                    <div class="ms-sub">soat</div>
+                    <div class="ms-label">Ishlagan vaqt</div>
+                    <div class="ms-val" style="font-size:18px;">{{ total_hours|hours_to_hm }}</div>
+                    <div class="ms-sub">&nbsp;</div>
                 </div>
                 <div class="mini-stat">
                     <div class="ms-label">Yozuvlar</div>
@@ -275,8 +276,8 @@
                     </span>
                 </div>
                 <div class="info-row">
-                    <span class="ir-label">Ishlagan soat</span>
-                    <span class="ir-val" style="font-family:monospace;">{{ total_hours|floatformat:2 }} soat</span>
+                    <span class="ir-label">Ishlagan vaqt</span>
+                    <span class="ir-val" style="font-family:monospace;">{{ total_hours|hours_to_hm }}</span>
                 </div>
                 <div class="info-row">
                     <span class="ir-label">Asosiy maosh</span>
@@ -532,7 +533,7 @@
         <div class="att-section">
             <div class="att-sec-head">
                 <h3>Davomat yozuvlari — {{ month_name }} {{ year }}</h3>
-                <span>{{ total_records }} yozuv · {{ total_hours|floatformat:2 }} soat · {{ base_salary|floatformat:0 }} so'm</span>
+                <span>{{ total_records }} yozuv · {{ total_hours|hours_to_hm }} · {{ base_salary|floatformat:0 }} so'm</span>
             </div>
 
             {% if att_rows %}
@@ -597,8 +598,7 @@
                         <!-- Ishlagan -->
                         <td>
                             {% if row.worked_hours > 0 %}
-                            <span class="t-mono" style="color:#2563EB;">{{ row.worked_hours|floatformat:2 }}</span>
-                            <div class="t-dim">soat</div>
+                            <span class="t-mono" style="color:#2563EB;font-size:13px;">{{ row.worked_hours|hours_to_hm }}</span>
                             {% else %}<span style="color:var(--gray-300);">—</span>{% endif %}
                         </td>
 
@@ -621,7 +621,7 @@
                 <tfoot>
                     <tr>
                         <td colspan="4" style="color:var(--gray-500);">Jami ({{ total_records }} yozuv)</td>
-                        <td><span style="font-family:monospace;color:#2563EB;">{{ total_hours|floatformat:2 }} soat</span></td>
+                        <td><span style="font-family:monospace;color:#2563EB;">{{ total_hours|hours_to_hm }}</span></td>
                         <td></td>
                         <td><span style="font-family:monospace;color:#16a34a;font-size:14px;">{{ base_salary|floatformat:0 }} so'm</span></td>
                     </tr>
