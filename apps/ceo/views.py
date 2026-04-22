@@ -214,6 +214,44 @@ class UserUpdateView(CEORequiredMixin, UpdateView):
         return super().form_valid(form)
 
 
+class UserResetPasswordView(CEORequiredMixin, View):
+    def get(self, request, pk):
+        user = get_object_or_404(User, pk=pk)
+        return render(request, 'ceo/user_reset_password.html', {
+            'employee': user,
+            'active_nav': 'users',
+        })
+
+    def post(self, request, pk):
+        user = get_object_or_404(User, pk=pk)
+        new_password = request.POST.get('new_password', '').strip()
+        confirm = request.POST.get('confirm_password', '').strip()
+
+        if not new_password:
+            messages.error(request, 'Parol bo\'sh bo\'lishi mumkin emas.')
+            return render(request, 'ceo/user_reset_password.html', {
+                'employee': user,
+                'active_nav': 'users',
+            })
+        if new_password != confirm:
+            messages.error(request, 'Parollar mos kelmadi.')
+            return render(request, 'ceo/user_reset_password.html', {
+                'employee': user,
+                'active_nav': 'users',
+            })
+        if len(new_password) < 4:
+            messages.error(request, 'Parol kamida 4 ta belgidan iborat bo\'lishi kerak.')
+            return render(request, 'ceo/user_reset_password.html', {
+                'employee': user,
+                'active_nav': 'users',
+            })
+
+        user.set_password(new_password)
+        user.save()
+        messages.success(request, f'{user.name} uchun parol muvaffaqiyatli yangilandi.')
+        return redirect('ceo:user_update', pk=pk)
+
+
 class UserDeleteView(CEORequiredMixin, DeleteView):
     model = User
     template_name = 'ceo/confirm_delete.html'
