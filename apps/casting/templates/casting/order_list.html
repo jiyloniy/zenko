@@ -4,33 +4,38 @@
 
 {% block extra_css %}
 <style>
-    .filter-bar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:20px;}
-    .filter-bar select,.filter-bar input[type="text"]{padding:8px 12px;border:1.5px solid var(--gray-200);border-radius:8px;font-size:13px;background:var(--white);min-width:160px;}
-    .filter-bar select:focus,.filter-bar input:focus{outline:none;border-color:var(--primary);}
-    .order-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px;}
-    .order-card{background:var(--white);border:1px solid var(--gray-200);border-radius:14px;overflow:hidden;transition:box-shadow .2s,transform .2s;display:flex;flex-direction:column;}
-    .order-card:hover{box-shadow:0 8px 24px rgba(0,0,0,.08);transform:translateY(-2px);}
-    .order-card-img{width:100%;height:160px;object-fit:cover;background:var(--gray-100);}
-    .order-card-img-placeholder{width:100%;height:160px;background:var(--gray-100);display:flex;align-items:center;justify-content:center;color:var(--gray-300);}
-    .order-card-img-placeholder svg{width:40px;height:40px;}
-    .order-card-body{padding:16px;flex:1;display:flex;flex-direction:column;}
-    .order-card-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px;gap:8px;}
-    .order-card-header h3{font-size:15px;font-weight:700;color:var(--black);}
-    .order-meta{font-size:12.5px;color:var(--gray-500);display:flex;flex-direction:column;gap:5px;margin-bottom:12px;}
-    .order-meta span{display:flex;align-items:center;gap:5px;}
-    .order-meta svg{width:13px;height:13px;flex-shrink:0;}
-    .order-card-footer{display:flex;justify-content:space-between;align-items:center;padding-top:12px;border-top:1px solid var(--gray-100);margin-top:auto;gap:6px;}
-    .order-actions{display:flex;gap:6px;}
-    .casting-progress{margin-top:8px;}
-    .casting-progress .label{display:flex;justify-content:space-between;font-size:11px;color:var(--gray-500);margin-bottom:4px;}
-    @media(max-width:600px){.order-grid{grid-template-columns:1fr;}}
+.filter-bar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:20px;}
+.filter-inp{padding:8px 13px;border:1.5px solid rgba(255,255,255,.1);border-radius:8px;font-size:13px;background:rgba(255,255,255,.06);color:#fff;min-width:160px;}
+.filter-inp:focus{outline:none;border-color:#0EA5E9;}
+.filter-inp option{background:#1E293B;color:#fff;}
+.order-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px;}
+.order-card{background:#1E293B;border:1px solid rgba(255,255,255,.08);border-radius:14px;overflow:hidden;display:flex;flex-direction:column;transition:border-color .2s,box-shadow .2s;}
+.order-card:hover{border-color:rgba(14,165,233,.4);box-shadow:0 4px 20px rgba(14,165,233,.08);}
+.order-card-img{width:100%;height:160px;object-fit:cover;}
+.order-card-img-ph{width:100%;height:160px;background:rgba(255,255,255,.04);display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,.15);}
+.order-card-img-ph svg{width:42px;height:42px;}
+.order-card-body{padding:16px;flex:1;display:flex;flex-direction:column;}
+.order-card-name{font-size:15px;font-weight:700;color:#fff;margin-bottom:4px;}
+.order-card-num{font-size:11px;color:rgba(255,255,255,.3);font-family:monospace;margin-bottom:10px;}
+.order-meta{font-size:12px;color:rgba(255,255,255,.45);display:flex;flex-direction:column;gap:5px;margin-bottom:12px;}
+.order-meta span{display:flex;align-items:center;gap:5px;}
+.order-meta svg{width:12px;height:12px;flex-shrink:0;}
+.order-card-footer{display:flex;justify-content:space-between;align-items:center;padding-top:12px;border-top:1px solid rgba(255,255,255,.06);margin-top:auto;gap:6px;}
+.order-actions{display:flex;gap:6px;}
+.prog-wrap{height:5px;background:rgba(255,255,255,.07);border-radius:99px;overflow:hidden;margin-top:8px;}
+.prog-bar{height:100%;border-radius:99px;}
+.badge{display:inline-flex;align-items:center;padding:3px 9px;border-radius:20px;font-size:11px;font-weight:600;}
+.badge-pending{background:rgba(255,255,255,.08);color:rgba(255,255,255,.5);}
+.badge-in_process{background:rgba(14,165,233,.2);color:#38BDF8;}
+.badge-completed{background:rgba(34,197,94,.15);color:#4ADE80;}
+@media(max-width:600px){.order-grid{grid-template-columns:1fr;}}
 </style>
 {% endblock %}
 
 {% block content %}
 <form class="filter-bar" method="get">
-    <input type="text" name="q" value="{{ q }}" placeholder="Qidirish...">
-    <select name="status" onchange="this.form.submit()">
+    <input type="text" name="q" value="{{ q }}" placeholder="Qidirish..." class="filter-inp">
+    <select name="status" onchange="this.form.submit()" class="filter-inp">
         <option value="">Barcha statuslar</option>
         {% for val,label in casting_statuses %}
         <option value="{{ val }}" {% if val == current_status %}selected{% endif %}>{{ label }}</option>
@@ -49,56 +54,42 @@
         {% if order.image %}
         <img src="{{ order.image.url }}" alt="{{ order.name }}" class="order-card-img">
         {% else %}
-        <div class="order-card-img-placeholder">
+        <div class="order-card-img-ph">
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m2.25 15.75 5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159m-1.5-1.5 1.409-1.409a2.25 2.25 0 0 1 3.182 0l2.909 2.909M3.75 21h16.5A2.25 2.25 0 0 0 22.5 18.75V5.25A2.25 2.25 0 0 0 20.25 3H3.75A2.25 2.25 0 0 0 1.5 5.25v13.5A2.25 2.25 0 0 0 3.75 21Z"/></svg>
         </div>
         {% endif %}
         <div class="order-card-body">
-            <div class="order-card-header">
-                <h3>{{ order.name }}</h3>
-                {% if order.casting %}
-                <span class="badge badge-{{ order.casting.status }}">{{ order.casting.get_status_display }}</span>
-                {% else %}
-                <span class="badge badge-pending">Yangi</span>
-                {% endif %}
-            </div>
+            <div class="order-card-name">{{ order.name }}</div>
+            <div class="order-card-num">#{{ order.order_number }}</div>
             <div class="order-meta">
                 <span>
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5"/></svg>
+                    Muddat: <strong style="color:{% if order.is_overdue %}#F87171{% else %}rgba(255,255,255,.7){% endif %};">{{ order.deadline|date:"d.m.Y" }}</strong>{% if order.is_overdue %} ⚠{% endif %}
+                </span>
+                <span>
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6.429 9.75 2.25 12l4.179 2.25m0-4.5 5.571 3 5.571-3m-11.142 0L2.25 7.5 12 2.25l9.75 5.25-4.179 2.25m0 0L21.75 12l-4.179 2.25m0 0 4.179 2.25L12 21.75 2.25 16.5l4.179-2.25m11.142 0-5.571 3-5.571-3"/></svg>
-                    {{ order.quantity }} dona
-                </span>
-                <span>
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5"/></svg>
-                    Muddat: {{ order.deadline|date:"d.m.Y" }}
-                    {% if order.is_overdue %}<span class="badge badge-overdue" style="margin-left:4px;font-size:10px;">Muddati o'tgan</span>{% endif %}
-                </span>
-                <span>
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M5.25 8.25h15m-16.5 7.5h15m-1.8-13.5-3.9 19.5m-2.1-19.5-3.9 19.5"/></svg>
-                    {{ order.order_number }}
+                    Jami: <strong style="color:rgba(255,255,255,.7);">{{ order.quantity }} dona</strong>
                 </span>
             </div>
             {% if order.casting %}
-            <div class="casting-progress">
-                <div class="label">
-                    <span>Quyilgan</span>
-                    <span>{{ order.casting.total_quantity }}/{{ order.quantity }} dona</span>
+            <div style="margin-bottom:10px;">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px;">
+                    <span class="badge badge-{{ order.casting.status }}">{{ order.casting.get_status_display }}</span>
+                    {% if order.quantity %}
+                    <span style="font-size:11px;color:rgba(255,255,255,.3);">{{ order.casting.total_quantity|default:0 }} / {{ order.quantity }}</span>
+                    {% endif %}
                 </div>
-                <div class="progress-wrap">
-                    {% widthratio order.casting.total_quantity order.quantity 100 as pct %}
-                    <div class="progress-bar" style="width:{{ pct }}%;"></div>
+                <div class="prog-wrap">
+                    <div class="prog-bar" style="width:{% if order.quantity %}{% widthratio order.casting.total_quantity|default:0 order.quantity 100 %}{% else %}0{% endif %}%;background:{% if order.casting.status == 'completed' %}#22C55E{% elif order.casting.status == 'in_process' %}#0EA5E9{% else %}rgba(255,255,255,.2){% endif %};"></div>
                 </div>
             </div>
             {% endif %}
             <div class="order-card-footer">
-                <small style="color:var(--gray-400);">{{ order.created_at|date:"d.m.Y" }}</small>
+                <small style="color:rgba(255,255,255,.25);font-size:11px;">{{ order.created_at|date:"d.m.Y" }}</small>
                 <div class="order-actions">
-                    <a href="{% url 'casting:order_detail' order.pk %}" class="btn btn-secondary btn-sm">
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width:13px;height:13px;"><path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
-                        Ko'rish
-                    </a>
                     <a href="{% url 'casting:order_detail' order.pk %}" class="btn btn-primary btn-sm">
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width:13px;height:13px;"><path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Z"/></svg>
-                        Yangilash
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width:13px;height:13px;"><path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                        Ochish
                     </a>
                 </div>
             </div>
@@ -108,8 +99,8 @@
 </div>
 {% else %}
 <div class="empty-state">
-    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M20.25 7.5l-.625 10.632a2.25 2.25 0 01-2.247 2.118H6.622a2.25 2.25 0 01-2.247-2.118L3.75 7.5M10 11.25h4M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125z"/></svg>
-    <p>Quyish bo'limida zakazlar yo'q</p>
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h3.75M9 15h3.75M9 18h3.75m3 .75H18a2.25 2.25 0 0 0 2.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.424 48.424 0 0 0-1.123-.08m-5.801 0c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 0 0 .75-.75 2.25 2.25 0 0 0-.1-.664m-5.8 0A2.251 2.251 0 0 1 13.5 2.25H15c1.012 0 1.867.668 2.15 1.586m-5.8 0c-.376.023-.75.05-1.124.08C9.095 4.01 8.25 4.973 8.25 6.108V8.25m0 0H4.875c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V9.375c0-.621-.504-1.125-1.125-1.125H8.25Z"/></svg>
+    <p>{% if q or current_status %}Qidiruv natijasi topilmadi.{% else %}Hali quyish bo'limiga zakaz kelmagan.{% endif %}</p>
 </div>
 {% endif %}
 {% endblock %}
