@@ -51,6 +51,51 @@
     </div>
 </div>
 
+{% if pending_transfers %}
+<div class="card" style="border:1px solid rgba(14,165,233,.3);background:rgba(14,165,233,.06);">
+    <div class="card-header">
+        <div class="card-title" style="color:#38BDF8;">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3"/></svg>
+            Kiruvchi transferlar — qabul kutilmoqda
+        </div>
+        <span style="background:rgba(239,68,68,.15);color:#F87171;padding:2px 10px;border-radius:99px;font-size:12px;font-weight:600;">{{ pending_transfers|length }} ta</span>
+    </div>
+    <div class="table-wrapper">
+        <table>
+            <thead>
+                <tr>
+                    <th>Zakaz</th>
+                    <th>Kimdan</th>
+                    <th>Kim yubordi</th>
+                    <th>Miqdor</th>
+                    <th>Vaqt</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for t in pending_transfers %}
+                <tr>
+                    <td>
+                        <a href="{% url 'casting:order_detail' t.order.pk %}" style="color:#38BDF8;font-weight:600;text-decoration:none;">
+                            {{ t.order.name }}
+                        </a>
+                        <div style="font-size:11px;color:var(--gray-400);">{{ t.order.order_number }}</div>
+                    </td>
+                    <td>{{ t.get_from_stage_display }}</td>
+                    <td>{{ t.sent_by.name|default:"—" }}</td>
+                    <td><strong>{{ t.sent_quantity }}</strong> dona</td>
+                    <td style="color:var(--gray-500);font-size:12px;">{{ t.sent_at|date:"d.m.Y H:i" }}</td>
+                    <td>
+                        <a href="{% url 'casting:order_detail' t.order.pk %}" class="btn btn-sm" style="background:#0EA5E9;color:#fff;">Qabul qilish</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endif %}
+
 <div class="card">
     <div class="card-header">
         <div class="card-title">

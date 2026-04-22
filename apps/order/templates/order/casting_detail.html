@@ -3,110 +3,115 @@
 {% block page_title %}Quyish bo'limi{% endblock %}
 
 {% block topbar_actions %}
-<div style="display:flex;gap:8px;align-items:center;">
-    <a href="{% url 'order:order_detail' order.pk %}" class="btn btn-secondary btn-sm">
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width:15px;height:15px"><path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18"/></svg>
-        Buyurtmaga qaytish
-    </a>
-</div>
+<a href="{% url 'order:order_detail' order.pk %}" class="btn btn-secondary btn-sm">
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width:15px;height:15px"><path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18"/></svg>
+    Buyurtmaga qaytish
+</a>
 {% endblock %}
 
 {% block extra_css %}
 <style>
-/* ── ORDER HEADER BANNER ── */
-.order-banner{background:linear-gradient(135deg,#18181B 0%,#27272A 60%,#3F3F46 100%);border-radius:16px;padding:22px 28px;margin-bottom:24px;display:flex;align-items:center;gap:20px;position:relative;overflow:hidden;}
-.order-banner::after{content:'';position:absolute;right:-40px;top:-40px;width:180px;height:180px;background:radial-gradient(circle,rgba(249,115,22,.18) 0%,transparent 70%);border-radius:50%;}
-.ob-icon{width:52px;height:52px;background:rgba(249,115,22,.15);border-radius:14px;display:flex;align-items:center;justify-content:center;flex-shrink:0;border:1px solid rgba(249,115,22,.25);}
-.ob-icon svg{width:26px;height:26px;color:#F97316;}
-.ob-name{font-size:20px;font-weight:800;color:#fff;margin-bottom:2px;}
-.ob-meta{font-size:13px;color:#A1A1AA;display:flex;gap:16px;flex-wrap:wrap;}
-.ob-meta span{display:flex;align-items:center;gap:5px;}
-.ob-meta svg{width:13px;height:13px;}
-.ob-num{font-family:monospace;font-size:11px;color:#71717A;margin-top:3px;}
-
-/* ── STATUS BAR ── */
-.status-bar{background:var(--white);border:1px solid var(--gray-200);border-radius:14px;padding:18px 24px;margin-bottom:22px;display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;box-shadow:0 1px 4px rgba(0,0,0,.05);}
+/* ORDER BANNER */
+.order-banner{background:linear-gradient(135deg,#18181B 0%,#27272A 60%,#3F3F46 100%);border-radius:16px;padding:20px 26px;margin-bottom:22px;display:flex;align-items:center;gap:18px;position:relative;overflow:hidden;}
+.order-banner::after{content:'';position:absolute;right:-40px;top:-40px;width:160px;height:160px;background:radial-gradient(circle,rgba(249,115,22,.2) 0%,transparent 70%);border-radius:50%;pointer-events:none;}
+.ob-icon{width:48px;height:48px;background:rgba(249,115,22,.15);border-radius:13px;display:flex;align-items:center;justify-content:center;flex-shrink:0;border:1px solid rgba(249,115,22,.25);}
+.ob-icon svg{width:24px;height:24px;color:#F97316;}
+.ob-name{font-size:18px;font-weight:800;color:#fff;}
+.ob-meta{font-size:12.5px;color:#A1A1AA;display:flex;gap:14px;flex-wrap:wrap;margin-top:3px;}
+.ob-num{font-family:monospace;font-size:11px;color:#71717A;margin-bottom:2px;}
+/* STATUS BAR */
+.status-bar{background:var(--white);border:1px solid var(--gray-200);border-radius:14px;padding:16px 22px;margin-bottom:20px;display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;box-shadow:0 1px 4px rgba(0,0,0,.05);}
 .status-steps{display:flex;align-items:center;gap:0;}
-.ss-item{display:flex;align-items:center;gap:8px;}
-.ss-dot{width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0;border:2px solid var(--gray-300);background:var(--gray-100);color:var(--gray-400);}
-.ss-label{font-size:12.5px;font-weight:600;color:var(--gray-400);}
+.ss-item{display:flex;align-items:center;gap:7px;}
+.ss-dot{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11.5px;font-weight:700;flex-shrink:0;border:2px solid var(--gray-200);background:var(--gray-100);color:var(--gray-400);}
+.ss-label{font-size:12px;font-weight:600;color:var(--gray-400);}
 .ss-item.done .ss-dot{background:#22C55E;border-color:#22C55E;color:#fff;}
 .ss-item.done .ss-label{color:#16A34A;}
 .ss-item.active .ss-dot{background:var(--orange);border-color:var(--orange);color:#fff;box-shadow:0 0 0 3px rgba(249,115,22,.2);}
 .ss-item.active .ss-label{color:var(--orange);font-weight:700;}
-.ss-arrow{width:32px;height:2px;background:var(--gray-200);margin:0 4px;flex-shrink:0;}
+.ss-arrow{width:28px;height:2px;background:var(--gray-200);margin:0 4px;flex-shrink:0;}
 .ss-arrow.done{background:#22C55E;}
-.status-actions{display:flex;gap:8px;}
-.btn-status{padding:9px 18px;border-radius:10px;font-size:13px;font-weight:700;border:none;cursor:pointer;transition:all .2s;}
+.btn-status{padding:8px 16px;border-radius:9px;font-size:13px;font-weight:700;border:none;cursor:pointer;}
 .btn-start{background:#EFF6FF;color:#1D4ED8;border:1.5px solid #BFDBFE;}
 .btn-start:hover{background:#1D4ED8;color:#fff;}
 .btn-finish{background:#F0FDF4;color:#15803D;border:1.5px solid #BBF7D0;}
 .btn-finish:hover{background:#15803D;color:#fff;}
-.btn-completed-tag{padding:9px 18px;border-radius:10px;font-size:13px;font-weight:700;background:#F0FDF4;color:#15803D;border:1.5px solid #BBF7D0;cursor:default;}
-
-/* ── STATS ROW ── */
-.stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:22px;}
-.stat-card{background:var(--white);border:1px solid var(--gray-200);border-radius:14px;padding:20px 18px;box-shadow:0 1px 4px rgba(0,0,0,.04);position:relative;overflow:hidden;}
+.tag-done{padding:8px 16px;border-radius:9px;font-size:13px;font-weight:700;background:#F0FDF4;color:#15803D;border:1.5px solid #BBF7D0;}
+/* STATS */
+.stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:13px;margin-bottom:20px;}
+.stat-card{background:var(--white);border:1px solid var(--gray-200);border-radius:14px;padding:18px 16px 14px;box-shadow:0 1px 4px rgba(0,0,0,.04);position:relative;overflow:hidden;}
 .stat-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;border-radius:14px 14px 0 0;}
-.sc-total::before{background:#6366F1;}
-.sc-done::before{background:#22C55E;}
-.sc-bad::before{background:#EF4444;}
-.sc-left::before{background:#F97316;}
-.stat-card .sv{font-size:30px;font-weight:900;color:var(--black);line-height:1;margin-bottom:4px;}
-.stat-card .sl{font-size:11.5px;font-weight:600;color:var(--gray-500);text-transform:uppercase;letter-spacing:.5px;}
-.stat-card .si{position:absolute;right:16px;top:50%;transform:translateY(-50%);width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;}
-.stat-card .si svg{width:22px;height:22px;}
-.si-total{background:#EEF2FF;color:#6366F1;}
-.si-done{background:#F0FDF4;color:#22C55E;}
-.si-bad{background:#FEF2F2;color:#EF4444;}
-.si-left{background:#FFF7ED;color:#F97316;}
-.progress-outer{margin-top:10px;height:6px;background:var(--gray-100);border-radius:10px;overflow:hidden;}
-.progress-inner{height:100%;border-radius:10px;transition:width .5s;}
-
-/* ── MAIN GRID ── */
-.main-grid{display:grid;grid-template-columns:1fr 380px;gap:22px;align-items:start;}
-
-/* ── LOG TABLE ── */
+.sc-total::before{background:#6366F1;}.sc-done::before{background:#22C55E;}.sc-bad::before{background:#EF4444;}.sc-left::before{background:#F97316;}
+.stat-card .sv{font-size:28px;font-weight:900;color:var(--black);line-height:1.1;}
+.stat-card .sl{font-size:11px;font-weight:600;color:var(--gray-500);text-transform:uppercase;letter-spacing:.4px;margin-bottom:4px;}
+.stat-card .su{font-size:11px;color:var(--gray-400);margin-top:2px;}
+.stat-icon{position:absolute;right:14px;top:50%;transform:translateY(-50%);width:38px;height:38px;border-radius:10px;display:flex;align-items:center;justify-content:center;}
+.stat-icon svg{width:19px;height:19px;}
+.si-v{background:#EEF2FF;color:#6366F1;}.si-g{background:#F0FDF4;color:#22C55E;}.si-r{background:#FEF2F2;color:#EF4444;}.si-o{background:#FFF7ED;color:#F97316;}
+.prog{margin-top:8px;height:5px;background:var(--gray-100);border-radius:10px;overflow:hidden;}
+.prog-in{height:100%;border-radius:10px;}
+/* INCOMING NOTICE */
+.incoming-notice{background:linear-gradient(135deg,#EFF6FF,#DBEAFE);border:1.5px solid #BFDBFE;border-radius:14px;padding:16px 20px;margin-bottom:20px;}
+.incoming-notice h4{font-size:13px;font-weight:700;color:#1D4ED8;margin:0 0 12px;display:flex;align-items:center;gap:7px;}
+.incoming-notice h4 svg{width:16px;height:16px;}
+.transfer-item{background:#fff;border:1px solid #BFDBFE;border-radius:10px;padding:14px 16px;margin-bottom:8px;}
+.transfer-item:last-child{margin-bottom:0;}
+/* MAIN GRID */
+.page-grid{display:grid;grid-template-columns:1fr 360px;gap:20px;align-items:start;}
+/* SECTION CARD */
 .section-card{background:var(--white);border:1px solid var(--gray-200);border-radius:16px;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.05);}
-.section-card .sc-head{padding:14px 20px;border-bottom:1px solid var(--gray-100);display:flex;align-items:center;justify-content:space-between;}
-.section-card .sc-head h4{font-size:12px;font-weight:700;color:var(--gray-500);text-transform:uppercase;letter-spacing:.6px;margin:0;}
+.sc-head{padding:13px 18px;border-bottom:1px solid var(--gray-100);display:flex;align-items:center;justify-content:space-between;}
+.sc-head h4{font-size:11.5px;font-weight:700;color:var(--gray-500);text-transform:uppercase;letter-spacing:.5px;margin:0;}
+/* LOG TABLE */
 .log-table{width:100%;border-collapse:collapse;font-size:13px;}
-.log-table th{text-align:left;padding:10px 16px;font-size:10.5px;font-weight:700;color:var(--gray-500);text-transform:uppercase;letter-spacing:.5px;background:var(--gray-50);border-bottom:1px solid var(--gray-100);}
-.log-table td{padding:12px 16px;border-bottom:1px solid var(--gray-50);color:var(--gray-700);vertical-align:middle;}
+.log-table th{text-align:left;padding:9px 16px;font-size:10.5px;font-weight:700;color:var(--gray-500);text-transform:uppercase;letter-spacing:.4px;background:var(--gray-50);border-bottom:1px solid var(--gray-100);}
+.log-table td{padding:11px 16px;border-bottom:1px solid var(--gray-50);color:var(--gray-700);vertical-align:middle;}
 .log-table tbody tr:last-child td{border-bottom:none;}
 .log-table tbody tr:hover td{background:#FAFAFA;}
-.log-qty{font-size:16px;font-weight:800;color:#1D4ED8;}
-.log-bad{font-size:13px;font-weight:700;color:#DC2626;}
-.log-good{font-size:13px;font-weight:600;color:#16A34A;}
+.log-qty{font-size:15px;font-weight:800;color:#1D4ED8;}
 .log-worker{font-weight:600;color:var(--black);}
-.log-time{font-size:11.5px;color:var(--gray-400);}
-.log-note{font-size:12px;color:var(--gray-500);font-style:italic;margin-top:2px;}
-.empty-logs{padding:50px 20px;text-align:center;color:var(--gray-400);}
-.empty-logs svg{width:44px;height:44px;opacity:.28;margin-bottom:10px;}
-
-/* ── ADD LOG FORM ── */
-.add-form-card{background:var(--white);border:1px solid var(--gray-200);border-radius:16px;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.05);}
-.afc-head{padding:14px 20px;border-bottom:1px solid var(--gray-100);background:linear-gradient(135deg,#FFF7ED,#FFFBEB);}
-.afc-head h4{font-size:13px;font-weight:700;color:#92400E;margin:0;display:flex;align-items:center;gap:8px;}
-.afc-head h4 svg{width:16px;height:16px;}
-.afc-body{padding:20px;}
+.log-time{font-size:11px;color:var(--gray-400);}
+.summary-row{padding:12px 18px;background:var(--gray-50);border-top:2px solid var(--gray-200);display:flex;gap:20px;flex-wrap:wrap;}
+.summary-row span{font-size:13px;}
+/* TRANSFERS TABLE */
+.t-status{display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:20px;font-size:11.5px;font-weight:700;}
+.ts-pending{background:#FFF7ED;color:#C2410C;}.ts-accepted{background:#F0FDF4;color:#15803D;}.ts-rejected{background:#FEF2F2;color:#B91C1C;}
+.empty-state{padding:44px 20px;text-align:center;color:var(--gray-400);}
+.empty-state svg{width:40px;height:40px;opacity:.25;margin-bottom:10px;}
+/* RIGHT FORMS */
+.form-card{background:var(--white);border:1px solid var(--gray-200);border-radius:16px;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.05);margin-bottom:16px;}
+.form-card-head{padding:13px 18px;border-bottom:1px solid var(--gray-100);}
+.form-card-head h4{font-size:13px;font-weight:700;margin:0;display:flex;align-items:center;gap:7px;}
+.form-card-head h4 svg{width:15px;height:15px;}
+.form-card-body{padding:18px;}
 .f-label{font-size:12px;font-weight:600;color:var(--gray-600);margin-bottom:5px;}
-.f-input{width:100%;padding:9px 12px;border:1.5px solid var(--gray-200);border-radius:9px;font-size:14px;color:var(--black);background:var(--white);transition:border-color .18s;box-sizing:border-box;}
+.f-input{width:100%;padding:9px 12px;border:1.5px solid var(--gray-200);border-radius:9px;font-size:14px;color:var(--black);background:var(--white);box-sizing:border-box;transition:border-color .15s;}
 .f-input:focus{outline:none;border-color:var(--orange);}
-.f-group{margin-bottom:14px;}
-.two-col{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
-.btn-add-log{width:100%;padding:11px;background:var(--orange);color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;transition:background .2s;}
-.btn-add-log:hover{background:#EA580C;}
-.btn-add-log svg{width:17px;height:17px;}
-.locked-notice{padding:16px;background:#F1F5F9;border-radius:10px;text-align:center;color:var(--gray-500);font-size:13px;font-weight:600;}
-.locked-notice svg{width:20px;height:20px;vertical-align:middle;margin-right:5px;}
-
-/* delete btn */
-.btn-del-log{display:inline-flex;align-items:center;padding:4px 8px;background:#FEF2F2;border-radius:6px;font-size:11px;font-weight:600;color:#DC2626;border:none;cursor:pointer;}
-.btn-del-log:hover{background:#FEE2E2;}
-
-@media(max-width:900px){.main-grid{grid-template-columns:1fr;}.stats-row{grid-template-columns:1fr 1fr;}}
-@media(max-width:540px){.stats-row{grid-template-columns:1fr 1fr;}.order-banner{flex-direction:column;align-items:flex-start;}}
+.f-group{margin-bottom:13px;}
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:11px;}
+.btn-primary-full{width:100%;padding:10px;background:var(--orange);color:#fff;border:none;border-radius:9px;font-size:14px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:7px;}
+.btn-primary-full:hover{background:#EA580C;}
+.btn-primary-full svg{width:16px;height:16px;}
+.btn-blue-full{width:100%;padding:10px;background:#1D4ED8;color:#fff;border:none;border-radius:9px;font-size:14px;font-weight:700;cursor:pointer;}
+.btn-blue-full:hover{background:#1E40AF;}
+.locked-box{padding:14px;background:#F1F5F9;border-radius:10px;text-align:center;color:var(--gray-500);font-size:13px;font-weight:600;}
+.btn-del{display:inline-flex;align-items:center;padding:4px 8px;background:#FEF2F2;border-radius:6px;font-size:11px;font-weight:600;color:#DC2626;border:none;cursor:pointer;}
+.btn-del:hover{background:#FEE2E2;}
+.divider{border:none;border-top:1px solid var(--gray-100);margin:14px 0;}
+/* TRANSFER HISTORY */
+.th-row{padding:12px 18px;border-bottom:1px solid var(--gray-50);display:flex;align-items:flex-start;gap:12px;}
+.th-row:last-child{border-bottom:none;}
+.th-dot{width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.th-dot svg{width:15px;height:15px;}
+.th-dot.pending{background:#FFF7ED;color:#C2410C;}
+.th-dot.accepted{background:#F0FDF4;color:#15803D;}
+.th-dot.rejected{background:#FEF2F2;color:#B91C1C;}
+.th-info{flex:1;}
+.th-title{font-size:13.5px;font-weight:700;color:var(--black);}
+.th-meta{font-size:11.5px;color:var(--gray-500);margin-top:3px;}
+.th-accept{margin-top:6px;font-size:12px;color:var(--gray-600);background:var(--gray-50);border-radius:7px;padding:6px 10px;}
+@media(max-width:960px){.page-grid{grid-template-columns:1fr;}.stats-row{grid-template-columns:1fr 1fr;}}
+@media(max-width:520px){.stats-row{grid-template-columns:1fr 1fr;}.order-banner{flex-direction:column;align-items:flex-start;}}
 </style>
 {% endblock %}
 
@@ -121,211 +126,295 @@
         <div class="ob-num">#{{ order.order_number }}</div>
         <div class="ob-name">{{ order.name }}</div>
         <div class="ob-meta">
-            <span><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5M12 17.25h8.25"/></svg>Jami: <strong style="color:#fff;">{{ order.quantity }} dona</strong></span>
-            <span><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25"/></svg>Muddat: <strong style="color:{% if order.is_overdue %}#F87171{% else %}#fff{% endif %};">{{ order.deadline|date:"d.m.Y" }}</strong></span>
+            <span>Jami: <strong style="color:#fff;">{{ order.quantity }} dona</strong></span>
+            <span>Muddat: <strong style="color:{% if order.is_overdue %}#F87171{% else %}#fff{% endif %};">{{ order.deadline|date:"d.m.Y" }}</strong></span>
         </div>
     </div>
     {% if order.image %}
-    <img src="{{ order.image.url }}" alt="" style="width:70px;height:70px;border-radius:12px;object-fit:cover;border:2px solid rgba(255,255,255,.1);flex-shrink:0;">
+    <img src="{{ order.image.url }}" alt="" style="width:64px;height:64px;border-radius:12px;object-fit:cover;border:2px solid rgba(255,255,255,.1);flex-shrink:0;">
     {% endif %}
 </div>
 
 <!-- STATUS BAR -->
 <div class="status-bar">
     <div class="status-steps">
-        <div class="ss-item {% if stage.status == 'pending' %}active{% elif stage.status != 'pending' %}done{% endif %}">
-            <div class="ss-dot">
-                {% if stage.status != 'pending' %}<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" style="width:14px;height:14px"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5"/></svg>{% else %}1{% endif %}
-            </div>
+        <div class="ss-item {% if stage.status == 'pending' %}active{% else %}done{% endif %}">
+            <div class="ss-dot">{% if stage.status != 'pending' %}<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" style="width:13px;height:13px"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5"/></svg>{% else %}1{% endif %}</div>
             <span class="ss-label">Kutilmoqda</span>
         </div>
         <div class="ss-arrow {% if stage.status != 'pending' %}done{% endif %}"></div>
         <div class="ss-item {% if stage.status == 'in_process' %}active{% elif stage.status == 'completed' %}done{% endif %}">
-            <div class="ss-dot">
-                {% if stage.status == 'completed' %}<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" style="width:14px;height:14px"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5"/></svg>{% else %}2{% endif %}
-            </div>
+            <div class="ss-dot">{% if stage.status == 'completed' %}<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" style="width:13px;height:13px"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5"/></svg>{% else %}2{% endif %}</div>
             <span class="ss-label">Quyilmoqda</span>
         </div>
         <div class="ss-arrow {% if stage.status == 'completed' %}done{% endif %}"></div>
         <div class="ss-item {% if stage.status == 'completed' %}done{% endif %}">
-            <div class="ss-dot">
-                {% if stage.status == 'completed' %}<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" style="width:14px;height:14px"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5"/></svg>{% else %}3{% endif %}
-            </div>
+            <div class="ss-dot">{% if stage.status == 'completed' %}<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" style="width:13px;height:13px"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5"/></svg>{% else %}3{% endif %}</div>
             <span class="ss-label">Yakunlandi</span>
         </div>
     </div>
-    <div class="status-actions">
+    <div style="display:flex;gap:8px;align-items:center;">
         {% if stage.status == 'pending' %}
         <form method="post">{% csrf_token %}<input type="hidden" name="action" value="set_status"><input type="hidden" name="status" value="in_process">
             <button type="submit" class="btn-status btn-start">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width:15px;height:15px;vertical-align:middle;margin-right:4px"><path stroke-linecap="round" stroke-linejoin="round" d="M5.25 5.653c0-.856.917-1.398 1.667-.986l11.54 6.347a1.125 1.125 0 0 1 0 1.972l-11.54 6.347a1.125 1.125 0 0 1-1.667-.986V5.653Z"/></svg>
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width:14px;height:14px;vertical-align:middle;margin-right:4px"><path stroke-linecap="round" stroke-linejoin="round" d="M5.25 5.653c0-.856.917-1.398 1.667-.986l11.54 6.347a1.125 1.125 0 0 1 0 1.972l-11.54 6.347a1.125 1.125 0 0 1-1.667-.986V5.653Z"/></svg>
                 Boshlash
             </button>
         </form>
         {% elif stage.status == 'in_process' %}
         <form method="post">{% csrf_token %}<input type="hidden" name="action" value="set_status"><input type="hidden" name="status" value="completed">
-            <button type="submit" class="btn-status btn-finish" onclick="return confirm('Quyish bosqichini yakunlash? Buyurtma avtomatik Montaj bo\'limiga o\'tadi.')">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width:15px;height:15px;vertical-align:middle;margin-right:4px"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5"/></svg>
+            <button type="submit" class="btn-status btn-finish" onclick="return confirm('Quyish bosqichini yakunlash?')">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width:14px;height:14px;vertical-align:middle;margin-right:4px"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5"/></svg>
                 Yakunlash
             </button>
         </form>
         {% else %}
-        <span class="btn-completed-tag">
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width:15px;height:15px;vertical-align:middle;margin-right:4px"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/></svg>
-            Yakunlangan · {{ stage.finished_at|date:"d.m.Y H:i" }}
+        <span class="tag-done">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width:14px;height:14px;vertical-align:middle;margin-right:4px"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/></svg>
+            Yakunlangan · {% if stage.finished_at %}{{ stage.finished_at|date:"d.m.Y H:i" }}{% endif %}
         </span>
         {% endif %}
     </div>
 </div>
 
+<!-- INCOMING TRANSFERS (kutilayotgan qabul) -->
+{% if incoming %}
+<div class="incoming-notice">
+    <h4>
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9 3.75H6.912a2.25 2.25 0 0 0-2.15 1.588L2.35 13.177a2.25 2.25 0 0 0-.1.661V18a2.25 2.25 0 0 0 2.25 2.25h15A2.25 2.25 0 0 0 21.75 18v-4.162c0-.224-.034-.447-.1-.661L19.24 5.338a2.25 2.25 0 0 0-2.15-1.588H15M2.25 13.5h3.86a2.25 2.25 0 0 1 2.012 1.244l.256.512a2.25 2.25 0 0 0 2.013 1.244h3.218a2.25 2.25 0 0 0 2.013-1.244l.256-.512a2.25 2.25 0 0 1 2.013-1.244h3.859M12 3v8.25m0 0-3-3m3 3 3-3"/></svg>
+        Kiruvchi transferlar — Qabul kutilmoqda ({{ incoming|length }})
+    </h4>
+    {% for tr in incoming %}
+    <div class="transfer-item">
+        <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-wrap:wrap;">
+            <div>
+                <div style="font-size:14px;font-weight:700;color:var(--black);">
+                    {{ tr.get_from_stage_display }} &rarr; Quyish bo'limi
+                </div>
+                <div style="font-size:12.5px;color:#3B82F6;font-weight:700;margin-top:2px;">
+                    {{ tr.sent_quantity }} dona yuborilgan
+                </div>
+                <div style="font-size:12px;color:var(--gray-500);margin-top:3px;">
+                    Yubordi: <strong>{% if tr.sent_by %}{{ tr.sent_by.name|default:tr.sent_by.username }}{% else %}Noma'lum{% endif %}</strong>
+                    · {{ tr.sent_at|date:"d.m.Y H:i" }}
+                </div>
+                {% if tr.note %}<div style="font-size:12px;color:var(--gray-600);font-style:italic;margin-top:4px;">{{ tr.note }}</div>{% endif %}
+            </div>
+            <div style="display:flex;gap:7px;align-items:flex-start;">
+                <button onclick="document.getElementById('accept-form-{{ tr.pk }}').style.display='block';this.style.display='none';" style="padding:7px 14px;background:#F0FDF4;color:#15803D;border:1.5px solid #BBF7D0;border-radius:8px;font-size:12.5px;font-weight:700;cursor:pointer;">
+                    Qabul qilish
+                </button>
+                <form method="post" onsubmit="return confirm('Rad etasizmi?')">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="reject_transfer">
+                    <input type="hidden" name="transfer_id" value="{{ tr.pk }}">
+                    <button type="submit" style="padding:7px 14px;background:#FEF2F2;color:#DC2626;border:1.5px solid #FCA5A5;border-radius:8px;font-size:12.5px;font-weight:700;cursor:pointer;">Rad etish</button>
+                </form>
+            </div>
+        </div>
+        <div id="accept-form-{{ tr.pk }}" style="display:none;margin-top:12px;background:#F0FDF4;border-radius:9px;padding:14px;">
+            <form method="post">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="accept_transfer">
+                <input type="hidden" name="transfer_id" value="{{ tr.pk }}">
+                <div class="two-col" style="margin-bottom:10px;">
+                    <div>
+                        <div class="f-label">Qabul qilingan soni *</div>
+                        <input type="number" name="accepted_quantity" class="f-input" min="0" max="{{ tr.sent_quantity }}" value="{{ tr.sent_quantity }}" required>
+                    </div>
+                    <div>
+                        <div class="f-label">Izoh</div>
+                        <input type="text" name="accept_note" class="f-input" placeholder="Ixtiyoriy...">
+                    </div>
+                </div>
+                <button type="submit" style="padding:8px 20px;background:#15803D;color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;">
+                    Tasdiqlash
+                </button>
+            </form>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% endif %}
+
 <!-- STATS -->
-{% with pct=stats.total_entered|default:0 %}
 <div class="stats-row">
     <div class="stat-card sc-total">
-        <div class="sl">Jami kiritildi</div>
+        <div class="sl">Jami qurildi</div>
         <div class="sv">{{ stats.total_entered }}</div>
-        <div style="font-size:11.5px;color:var(--gray-400);">/ {{ order.quantity }} dona</div>
-        <div class="progress-outer"><div class="progress-inner" style="width:{% if order.quantity %}{% widthratio stats.total_entered order.quantity 100 %}{% else %}0{% endif %}%;background:#6366F1;"></div></div>
-        <div class="si si-total"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5M12 17.25h8.25"/></svg></div>
+        <div class="su">/ {{ order.quantity }} dona</div>
+        <div class="prog"><div class="prog-in" style="width:{% if order.quantity %}{% widthratio stats.total_entered order.quantity 100 %}{% else %}0{% endif %}%;background:#6366F1;"></div></div>
+        <div class="stat-icon si-v"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15.362 5.214A8.252 8.252 0 0 1 12 21 8.25 8.25 0 0 1 6.038 7.047 8.287 8.287 0 0 0 9 9.601a8.983 8.983 0 0 1 3.361-6.867 8.21 8.21 0 0 0 3 2.48Z"/></svg></div>
     </div>
     <div class="stat-card sc-done">
-        <div class="sl">Yaroqli (tayyor)</div>
+        <div class="sl">Yaroqli</div>
         <div class="sv">{{ stats.good }}</div>
-        <div style="font-size:11.5px;color:var(--gray-400);">dona</div>
-        <div class="progress-outer"><div class="progress-inner" style="width:{% if order.quantity %}{% widthratio stats.good order.quantity 100 %}{% else %}0{% endif %}%;background:#22C55E;"></div></div>
-        <div class="si si-done"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/></svg></div>
+        <div class="su">dona</div>
+        <div class="prog"><div class="prog-in" style="width:{% if order.quantity %}{% widthratio stats.good order.quantity 100 %}{% else %}0{% endif %}%;background:#22C55E;"></div></div>
+        <div class="stat-icon si-g"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/></svg></div>
     </div>
     <div class="stat-card sc-bad">
-        <div class="sl">Yaroqsiz (nuqsonli)</div>
+        <div class="sl">Yaroqsiz</div>
         <div class="sv">{{ stats.defect }}</div>
-        <div style="font-size:11.5px;color:var(--gray-400);">dona</div>
-        <div class="progress-outer"><div class="progress-inner" style="width:{% if order.quantity %}{% widthratio stats.defect order.quantity 100 %}{% else %}0{% endif %}%;background:#EF4444;"></div></div>
-        <div class="si si-bad"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z"/></svg></div>
+        <div class="su">dona</div>
+        <div class="prog"><div class="prog-in" style="width:{% if order.quantity %}{% widthratio stats.defect order.quantity 100 %}{% else %}0{% endif %}%;background:#EF4444;"></div></div>
+        <div class="stat-icon si-r"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z"/></svg></div>
     </div>
     <div class="stat-card sc-left">
-        <div class="sl">Qoldiq (hali yo'q)</div>
+        <div class="sl">Qoldiq</div>
         <div class="sv">{{ stats.remaining }}</div>
-        <div style="font-size:11.5px;color:var(--gray-400);">dona</div>
-        <div class="progress-outer"><div class="progress-inner" style="width:{% if order.quantity %}{% widthratio stats.remaining order.quantity 100 %}{% else %}0{% endif %}%;background:#F97316;"></div></div>
-        <div class="si si-left"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/></svg></div>
+        <div class="su">dona</div>
+        <div class="prog"><div class="prog-in" style="width:{% if order.quantity %}{% widthratio stats.remaining order.quantity 100 %}{% else %}0{% endif %}%;background:#F97316;"></div></div>
+        <div class="stat-icon si-o"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/></svg></div>
     </div>
 </div>
-{% endwith %}
 
-<!-- MAIN GRID: logs + add form -->
-<div class="main-grid">
+<!-- MAIN GRID -->
+<div class="page-grid">
 
-    <!-- LOGS TABLE -->
-    <div class="section-card">
-        <div class="sc-head">
-            <h4>Quyish harakatlari ({{ logs|length }} ta yozuv)</h4>
+    <!-- LEFT: LOG + TRANSFERS -->
+    <div style="display:flex;flex-direction:column;gap:18px;">
+
+        <!-- QUYISH LOGLARI -->
+        <div class="section-card">
+            <div class="sc-head">
+                <h4>Quyish jarayoni loglari ({{ logs|length }})</h4>
+                {% if logs %}<span style="font-size:12px;color:var(--gray-400);">Jami: {{ stats.total_entered }} dona</span>{% endif %}
+            </div>
             {% if logs %}
-            <span style="font-size:12px;color:var(--gray-400);">Jami: {{ stats.total_entered }} dona</span>
+            <table class="log-table">
+                <thead><tr>
+                    <th>#</th><th>Ishchi</th><th>Qurildi</th><th>Vaqt</th><th>Izoh</th><th></th>
+                </tr></thead>
+                <tbody>
+                {% for log in logs %}
+                <tr>
+                    <td style="color:var(--gray-400);font-size:12px;">{{ forloop.counter }}</td>
+                    <td><div class="log-worker">{% if log.worker %}{{ log.worker.name|default:log.worker.username }}{% else %}<span style="color:var(--gray-400);">—</span>{% endif %}</div></td>
+                    <td><span class="log-qty">{{ log.quantity }}</span> <span style="font-size:11px;color:var(--gray-400);">dona</span></td>
+                    <td><div class="log-time">{{ log.created_at|date:"d.m.Y" }}</div><div class="log-time">{{ log.created_at|date:"H:i" }}</div></td>
+                    <td style="max-width:160px;">{% if log.note %}<div style="font-size:12px;color:var(--gray-500);font-style:italic;">{{ log.note|truncatechars:40 }}</div>{% else %}<span style="color:var(--gray-300);">—</span>{% endif %}</td>
+                    <td>{% if stage.status != 'completed' %}
+                        <form method="post" onsubmit="return confirm('O\'chirasizmi?')">
+                            {% csrf_token %}<input type="hidden" name="action" value="delete_log"><input type="hidden" name="log_id" value="{{ log.pk }}">
+                            <button type="submit" class="btn-del" title="O'chirish"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width:13px;height:13px"><path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916"/></svg></button>
+                        </form>
+                    {% endif %}</td>
+                </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+            <div class="summary-row">
+                <span><strong style="color:#6366F1;">{{ stats.total_entered }}</strong> <span style="color:var(--gray-500);">qurildi</span></span>
+                <span><strong style="color:#16A34A;">{{ stats.good }}</strong> <span style="color:var(--gray-500);">yaroqli</span></span>
+                <span><strong style="color:#DC2626;">{{ stats.defect }}</strong> <span style="color:var(--gray-500);">yaroqsiz</span></span>
+                <span><strong style="color:#EA580C;">{{ stats.remaining }}</strong> <span style="color:var(--gray-500);">qoldiq</span></span>
+            </div>
+            {% else %}
+            <div class="empty-state">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15.666 3.888A2.25 2.25 0 0 0 13.5 2.25h-3c-1.03 0-1.9.693-2.166 1.638m7.332 0c.055.194.084.4.084.612v0a.75.75 0 0 1-.75.75H9a.75.75 0 0 1-.75-.75v0c0-.212.03-.418.084-.612m7.332 0c.646.049 1.288.11 1.927.184 1.1.128 1.907 1.077 1.907 2.185V19.5a2.25 2.25 0 0 1-2.25 2.25H6.75A2.25 2.25 0 0 1 4.5 19.5V6.257c0-1.108.806-2.057 1.907-2.185a48.208 48.208 0 0 1 1.927-.184"/></svg>
+                <p>Hali log yo'q. O'ng tarafdan kiriting.</p>
+            </div>
             {% endif %}
         </div>
-        {% if logs %}
-        <table class="log-table">
-            <thead>
-                <tr>
-                    <th>#</th>
-                    <th>Ishchi</th>
-                    <th>Qurilgan</th>
-                    <th>Vaqt</th>
-                    <th>Izoh</th>
-                    <th></th>
-                </tr>
-            </thead>
-            <tbody>
-            {% for log in logs %}
-            <tr>
-                <td style="color:var(--gray-400);font-size:12px;">{{ forloop.counter }}</td>
-                <td>
-                    <div class="log-worker">{% if log.worker %}{{ log.worker.name|default:log.worker.username }}{% else %}<span style="color:var(--gray-400);">Noma'lum</span>{% endif %}</div>
-                </td>
-                <td><span class="log-qty">{{ log.quantity }}</span> <span style="font-size:11.5px;color:var(--gray-400);">dona</span></td>
-                <td>
-                    <div class="log-time">{{ log.created_at|date:"d.m.Y" }}</div>
-                    <div class="log-time">{{ log.created_at|date:"H:i" }}</div>
-                </td>
-                <td>{% if log.note %}<div class="log-note">{{ log.note|truncatechars:40 }}</div>{% else %}<span style="color:var(--gray-300);">—</span>{% endif %}</td>
-                <td>
-                    {% if stage.status != 'completed' %}
-                    <form method="post" onsubmit="return confirm('Bu logni o\'chirasizmi?')">
-                        {% csrf_token %}
-                        <input type="hidden" name="action" value="delete_log">
-                        <input type="hidden" name="log_id" value="{{ log.pk }}">
-                        <button type="submit" class="btn-del-log" title="O'chirish">
-                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width:13px;height:13px"><path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916"/></svg>
-                        </button>
-                    </form>
+
+        <!-- TRANSFERLAR TARIXI -->
+        <div class="section-card">
+            <div class="sc-head">
+                <h4>Yuborilgan transferlar ({{ transfers|length }})</h4>
+            </div>
+            {% if transfers %}
+            {% for tr in transfers %}
+            <div class="th-row">
+                <div class="th-dot {{ tr.status }}">
+                    {% if tr.status == 'accepted' %}<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5"/></svg>
+                    {% elif tr.status == 'rejected' %}<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12"/></svg>
+                    {% else %}<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/></svg>{% endif %}
+                </div>
+                <div class="th-info">
+                    <div class="th-title">
+                        Quyish &rarr; {{ tr.get_to_stage_display }}
+                        <span class="t-status ts-{{ tr.status }}" style="margin-left:6px;">{{ tr.get_status_display }}</span>
+                    </div>
+                    <div class="th-meta">
+                        Yuborildi: <strong style="color:#1D4ED8;">{{ tr.sent_quantity }} dona</strong>
+                        {% if tr.sent_by %} · {{ tr.sent_by.name|default:tr.sent_by.username }}{% endif %}
+                        · {{ tr.sent_at|date:"d.m.Y H:i" }}
+                    </div>
+                    {% if tr.status == 'accepted' %}
+                    <div class="th-accept">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width:12px;height:12px;vertical-align:middle;color:#16A34A;margin-right:3px"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5"/></svg>
+                        Qabul: <strong style="color:#16A34A;">{{ tr.accepted_quantity }} dona</strong>
+                        {% if tr.rejected_quantity > 0 %} · Rad: <strong style="color:#DC2626;">{{ tr.rejected_quantity }}</strong>{% endif %}
+                        {% if tr.accepted_by %} · {{ tr.accepted_by.name|default:tr.accepted_by.username }}{% endif %}
+                        {% if tr.accepted_at %} · {{ tr.accepted_at|date:"d.m.Y H:i" }}{% endif %}
+                        {% if tr.accept_note %}<div style="font-style:italic;color:var(--gray-600);margin-top:2px;">{{ tr.accept_note }}</div>{% endif %}
+                    </div>
+                    {% elif tr.status == 'rejected' %}
+                    <div class="th-accept" style="background:#FEF2F2;">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width:12px;height:12px;vertical-align:middle;color:#DC2626;margin-right:3px"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12"/></svg>
+                        Rad etdi: {% if tr.accepted_by %}{{ tr.accepted_by.name|default:tr.accepted_by.username }}{% endif %}
+                        {% if tr.accepted_at %} · {{ tr.accepted_at|date:"d.m.Y H:i" }}{% endif %}
+                        {% if tr.accept_note %}<div style="font-style:italic;color:#DC2626;margin-top:2px;">{{ tr.accept_note }}</div>{% endif %}
+                    </div>
                     {% endif %}
-                </td>
-            </tr>
+                    {% if tr.note %}<div style="font-size:12px;color:var(--gray-500);font-style:italic;margin-top:4px;">Izoh: {{ tr.note }}</div>{% endif %}
+                </div>
+            </div>
             {% endfor %}
-            </tbody>
-        </table>
-        <!-- SUMMARY ROW -->
-        <div style="padding:14px 20px;background:var(--gray-50);border-top:2px solid var(--gray-200);display:flex;gap:24px;flex-wrap:wrap;">
-            <div style="font-size:13px;"><span style="color:var(--gray-500);font-weight:600;">Jami kiritildi:</span> <strong style="color:#6366F1;">{{ stats.total_entered }} dona</strong></div>
-            <div style="font-size:13px;"><span style="color:var(--gray-500);font-weight:600;">Yaroqli:</span> <strong style="color:#16A34A;">{{ stats.good }} dona</strong></div>
-            <div style="font-size:13px;"><span style="color:var(--gray-500);font-weight:600;">Yaroqsiz:</span> <strong style="color:#DC2626;">{{ stats.defect }} dona</strong></div>
-            <div style="font-size:13px;"><span style="color:var(--gray-500);font-weight:600;">Qoldiq:</span> <strong style="color:#EA580C;">{{ stats.remaining }} dona</strong></div>
+            {% else %}
+            <div class="empty-state">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M7.5 21 3 16.5m0 0L7.5 12M3 16.5h13.5m0-13.5L21 7.5m0 0L16.5 12M21 7.5H7.5"/></svg>
+                <p>Hali transfer yo'q.</p>
+            </div>
+            {% endif %}
         </div>
-        {% else %}
-        <div class="empty-logs">
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15.666 3.888A2.25 2.25 0 0 0 13.5 2.25h-3c-1.03 0-1.9.693-2.166 1.638m7.332 0c.055.194.084.4.084.612v0a.75.75 0 0 1-.75.75H9a.75.75 0 0 1-.75-.75v0c0-.212.03-.418.084-.612m7.332 0c.646.049 1.288.11 1.927.184 1.1.128 1.907 1.077 1.907 2.185V19.5a2.25 2.25 0 0 1-2.25 2.25H6.75A2.25 2.25 0 0 1 4.5 19.5V6.257c0-1.108.806-2.057 1.907-2.185a48.208 48.208 0 0 1 1.927-.184"/></svg>
-            <p>Hali hech qanday harakat yo'q.<br>O'ng tarafdan birinchi logni kiriting.</p>
-        </div>
-        {% endif %}
+
     </div>
 
-    <!-- ADD LOG FORM -->
+    <!-- RIGHT: FORMS -->
     <div>
-        <div class="add-form-card">
-            <div class="afc-head">
-                <h4>
+
+        <!-- LOG QO'SHISH -->
+        <div class="form-card">
+            <div class="form-card-head" style="background:linear-gradient(135deg,#FFF7ED,#FFFBEB);">
+                <h4 style="color:#92400E;">
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>
-                    Yangi harakat qo'shish
+                    Quyish logi qo'shish
                 </h4>
             </div>
-            <div class="afc-body">
+            <div class="form-card-body">
                 {% if stage.status == 'completed' %}
-                <div class="locked-notice">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 1 0-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 0 0 2.25-2.25v-6.75a2.25 2.25 0 0 0-2.25-2.25H6.75a2.25 2.25 0 0 0-2.25 2.25v6.75a2.25 2.25 0 0 0 2.25 2.25Z"/></svg>
-                    Bosqich yakunlangan.<br>Yangi harakat qo'shib bo'lmaydi.
+                <div class="locked-box">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width:18px;height:18px;vertical-align:middle;margin-right:5px"><path stroke-linecap="round" stroke-linejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 1 0-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 0 0 2.25-2.25v-6.75a2.25 2.25 0 0 0-2.25-2.25H6.75a2.25 2.25 0 0 0-2.25 2.25v6.75a2.25 2.25 0 0 0 2.25 2.25Z"/></svg>
+                    Bosqich yakunlangan. Log qo'shib bo'lmaydi.
                 </div>
                 {% else %}
                 <form method="post">
                     {% csrf_token %}
                     <input type="hidden" name="action" value="add_log">
-
                     <div class="f-group">
                         <div class="f-label">Ishchi</div>
                         <select name="worker_id" class="f-input">
                             <option value="">— Tanlanmagan —</option>
-                            {% for w in workers %}
-                            <option value="{{ w.pk }}">{{ w.name|default:w.username }}</option>
-                            {% endfor %}
+                            {% for w in workers %}<option value="{{ w.pk }}">{{ w.name|default:w.username }}</option>{% endfor %}
                         </select>
                     </div>
-
                     <div class="two-col">
                         <div class="f-group">
-                            <div class="f-label">Qurilgan soni <span style="color:#DC2626;">*</span></div>
-                            <input type="number" name="quantity" class="f-input" min="1" max="{{ order.quantity }}" placeholder="0" required>
+                            <div class="f-label">Qurilgan soni *</div>
+                            <input type="number" name="quantity" class="f-input" min="1" placeholder="0" required>
                         </div>
                         <div class="f-group">
-                            <div class="f-label">Yaroqsiz soni</div>
-                            <input type="number" name="defect_quantity" class="f-input" min="0" placeholder="0" value="0">
+                            <div class="f-label">Yaroqsiz (jami)</div>
+                            <input type="number" name="defect_quantity" class="f-input" min="0" placeholder="0" value="{{ stats.defect }}">
                         </div>
                     </div>
-
                     <div class="f-group">
-                        <div class="f-label">Izoh (ixtiyoriy)</div>
-                        <textarea name="note" class="f-input" rows="2" placeholder="Quyish jarayoni haqida izoh..."></textarea>
+                        <div class="f-label">Izoh</div>
+                        <textarea name="note" class="f-input" rows="2" placeholder="Ixtiyoriy..."></textarea>
                     </div>
-
-                    <button type="submit" class="btn-add-log">
+                    <button type="submit" class="btn-primary-full">
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>
                         Log qo'shish
                     </button>
@@ -334,35 +423,76 @@
             </div>
         </div>
 
-        <!-- Stage info -->
+        <!-- TRANSFER YUBORISH -->
+        <div class="form-card">
+            <div class="form-card-head" style="background:linear-gradient(135deg,#EFF6FF,#DBEAFE);">
+                <h4 style="color:#1E40AF;">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6 12 3.269 3.125A59.769 59.769 0 0 1 21.485 12 59.768 59.768 0 0 1 3.27 20.875L5.999 12Zm0 0h7.5"/></svg>
+                    Keyingi bo'limga yuborish
+                </h4>
+            </div>
+            <div class="form-card-body">
+                {% if stage.status != 'completed' %}
+                <div class="locked-box" style="background:#FFFBEB;color:#B45309;">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width:18px;height:18px;vertical-align:middle;margin-right:5px"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z"/></svg>
+                    Avval bosqichni <strong>Yakunlash</strong> kerak.
+                </div>
+                {% else %}
+                <form method="post">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="send_transfer">
+                    <div class="f-group">
+                        <div class="f-label">Qaysi bo'limga *</div>
+                        <select name="to_stage" class="f-input" required>
+                            <option value="">— Tanlang —</option>
+                            {% for val, label in next_stages %}
+                            <option value="{{ val }}">{{ label }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="f-group">
+                        <div class="f-label">Yuborilayotgan miqdor *</div>
+                        <input type="number" name="transfer_quantity" class="f-input" min="1" max="{{ stats.good }}" placeholder="0" value="{{ stats.good }}" required>
+                        <div style="font-size:11px;color:var(--gray-400);margin-top:4px;">Yaroqli: {{ stats.good }} dona</div>
+                    </div>
+                    <div class="f-group">
+                        <div class="f-label">Izoh</div>
+                        <textarea name="transfer_note" class="f-input" rows="2" placeholder="Ixtiyoriy..."></textarea>
+                    </div>
+                    <button type="submit" class="btn-primary-full" style="background:#1D4ED8;" onclick="return confirm('Transferni yuborasizmi?')">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6 12 3.269 3.125A59.769 59.769 0 0 1 21.485 12 59.768 59.768 0 0 1 3.27 20.875L5.999 12Zm0 0h7.5"/></svg>
+                        Yuborish
+                    </button>
+                </form>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- VAQT MA'LUMOTLARI -->
         {% if stage.started_at or stage.finished_at %}
-        <div style="margin-top:14px;background:var(--white);border:1px solid var(--gray-200);border-radius:14px;padding:16px 18px;box-shadow:0 1px 4px rgba(0,0,0,.04);">
-            <div style="font-size:11.5px;font-weight:700;color:var(--gray-500);text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px;">Vaqt ma'lumotlari</div>
-            {% if stage.started_at %}
-            <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
-                <div style="width:28px;height:28px;background:#EFF6FF;border-radius:7px;display:flex;align-items:center;justify-content:center;">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width:14px;height:14px;color:#3B82F6"><path stroke-linecap="round" stroke-linejoin="round" d="M5.25 5.653c0-.856.917-1.398 1.667-.986l11.54 6.347a1.125 1.125 0 0 1 0 1.972l-11.54 6.347a1.125 1.125 0 0 1-1.667-.986V5.653Z"/></svg>
+        <div class="form-card">
+            <div class="form-card-head"><h4 style="color:var(--gray-600);"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/></svg> Vaqt</h4></div>
+            <div class="form-card-body" style="padding:14px 18px;">
+                {% if stage.started_at %}
+                <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">
+                    <div style="width:28px;height:28px;background:#EFF6FF;border-radius:7px;display:flex;align-items:center;justify-content:center;">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width:13px;height:13px;color:#3B82F6"><path stroke-linecap="round" stroke-linejoin="round" d="M5.25 5.653c0-.856.917-1.398 1.667-.986l11.54 6.347a1.125 1.125 0 0 1 0 1.972l-11.54 6.347a1.125 1.125 0 0 1-1.667-.986V5.653Z"/></svg>
+                    </div>
+                    <div><div style="font-size:10.5px;color:var(--gray-400);font-weight:600;">Boshlangan</div><div style="font-size:13px;font-weight:600;">{{ stage.started_at|date:"d.m.Y H:i" }}</div></div>
                 </div>
-                <div>
-                    <div style="font-size:10.5px;color:var(--gray-400);font-weight:600;">Boshlangan</div>
-                    <div style="font-size:13px;font-weight:600;color:var(--black);">{{ stage.started_at|date:"d.m.Y H:i" }}</div>
+                {% endif %}
+                {% if stage.finished_at %}
+                <div style="display:flex;align-items:center;gap:8px;">
+                    <div style="width:28px;height:28px;background:#F0FDF4;border-radius:7px;display:flex;align-items:center;justify-content:center;">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width:13px;height:13px;color:#22C55E"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5"/></svg>
+                    </div>
+                    <div><div style="font-size:10.5px;color:var(--gray-400);font-weight:600;">Yakunlangan</div><div style="font-size:13px;font-weight:600;">{{ stage.finished_at|date:"d.m.Y H:i" }}</div></div>
                 </div>
+                {% endif %}
             </div>
-            {% endif %}
-            {% if stage.finished_at %}
-            <div style="display:flex;align-items:center;gap:8px;">
-                <div style="width:28px;height:28px;background:#F0FDF4;border-radius:7px;display:flex;align-items:center;justify-content:center;">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width:14px;height:14px;color:#22C55E"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/></svg>
-                </div>
-                <div>
-                    <div style="font-size:10.5px;color:var(--gray-400);font-weight:600;">Yakunlangan</div>
-                    <div style="font-size:13px;font-weight:600;color:var(--black);">{{ stage.finished_at|date:"d.m.Y H:i" }}</div>
-                </div>
-            </div>
-            {% endif %}
         </div>
         {% endif %}
-    </div>
 
+    </div><!-- /right -->
 </div>
 {% endblock %}

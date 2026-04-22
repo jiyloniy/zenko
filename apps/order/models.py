@@ -3,6 +3,70 @@ from django.conf import settings
 
 
 # ──────────────────────────────────────────────
+#  BO'LIMDAN BO'LIMGA O'TKAZISH (TRANSFER)
+# ──────────────────────────────────────────────
+class StageTransfer(models.Model):
+    """
+    Bir bo'limdan ikkinchisiga mahsulot o'tkazish.
+    Yuboruvchi transfer yaratadi, qabul qiluvchi accept qiladi.
+    """
+
+    class Status(models.TextChoices):
+        PENDING  = 'pending',  'Kutilmoqda'
+        ACCEPTED = 'accepted', 'Qabul qilindi'
+        REJECTED = 'rejected', 'Rad etildi'
+
+    class Stage(models.TextChoices):
+        CASTING       = 'casting',       "Quyish bo'limi"
+        MONTAJ        = 'montaj',        "Montaj bo'limi"
+        HANGING       = 'hanging',       "Ilish bo'limi"
+        STONE_SETTING = 'stone_setting', "Tosh qadash bo'limi"
+        PACKAGING     = 'packaging',     "Upakovka bo'limi"
+        WAREHOUSE     = 'warehouse',     "Ombor"
+
+    order         = models.ForeignKey(
+        'Order', on_delete=models.CASCADE,
+        related_name='transfers', verbose_name='Buyurtma',
+    )
+    from_stage    = models.CharField('Qaysi bo\'limdan', max_length=20, choices=Stage.choices)
+    to_stage      = models.CharField('Qaysi bo\'limga',  max_length=20, choices=Stage.choices)
+    status        = models.CharField('Holati', max_length=20, choices=Status.choices, default=Status.PENDING)
+
+    sent_quantity     = models.PositiveIntegerField('Yuborilgan miqdor')
+    accepted_quantity = models.PositiveIntegerField('Qabul qilingan miqdor', default=0)
+    rejected_quantity = models.PositiveIntegerField('Rad etilgan miqdor', default=0)
+
+    sent_by    = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.SET_NULL,
+        null=True, blank=True, related_name='transfers_sent',
+        verbose_name='Yuboruvchi',
+    )
+    accepted_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.SET_NULL,
+        null=True, blank=True, related_name='transfers_accepted',
+        verbose_name='Qabul qiluvchi',
+    )
+
+    note          = models.TextField('Izoh (yuboruvchi)', blank=True)
+    accept_note   = models.TextField('Izoh (qabul qiluvchi)', blank=True)
+
+    sent_at       = models.DateTimeField('Yuborilgan vaqt', auto_now_add=True)
+    accepted_at   = models.DateTimeField('Qabul qilingan vaqt', null=True, blank=True)
+
+    class Meta:
+        ordering = ['-sent_at']
+        verbose_name = "Bo'limlar arasi transfer"
+        verbose_name_plural = "Bo'limlar arasi transferlar"
+
+    def __str__(self):
+        return (
+            f"{self.order.order_number}: "
+            f"{self.get_from_stage_display()} → {self.get_to_stage_display()} "
+            f"({self.sent_quantity} dona) [{self.get_status_display()}]"
+        )
+
+
+# ──────────────────────────────────────────────
 #  ASOSIY BUYURTMA
 # ──────────────────────────────────────────────
 class Order(models.Model):

@@ -3,7 +3,9 @@
     "allow": [
       "Bash(python manage.py migrate attendance)",
       "Bash(python manage.py check)",
-      "Bash(xargs grep *)"
+      "Bash(xargs grep *)",
+      "Bash(python manage.py makemigrations order)",
+      "Bash(python manage.py migrate)"
     ]
   }
 }
