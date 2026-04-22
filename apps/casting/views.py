@@ -41,9 +41,6 @@ def _casting_stats(order):
     }
 
 
-# ─────────────────────────────────────────────
-#  DASHBOARD
-# ─────────────────────────────────────────────
 class CastingDashboardView(CastingRequiredMixin, View):
     def get(self, request):
         all_orders = Order.objects.filter(
@@ -73,9 +70,6 @@ class CastingDashboardView(CastingRequiredMixin, View):
         })
 
 
-# ─────────────────────────────────────────────
-#  ORDER LIST
-# ─────────────────────────────────────────────
 class CastingOrderListView(CastingRequiredMixin, View):
     def get(self, request):
         qs = Order.objects.filter(
@@ -98,9 +92,6 @@ class CastingOrderListView(CastingRequiredMixin, View):
         })
 
 
-# ─────────────────────────────────────────────
-#  ORDER DETAIL  —  quyish jarayoni to'liq sahifasi
-# ─────────────────────────────────────────────
 class CastingOrderDetailView(CastingRequiredMixin, View):
     template_name = 'casting/order_detail.html'
 
@@ -124,6 +115,8 @@ class CastingOrderDetailView(CastingRequiredMixin, View):
             status=StageTransfer.Status.PENDING,
         ).select_related('sent_by').order_by('-sent_at')
 
+        stats = _casting_stats(order)
+
         return {
             'order': order,
             'stage': stage,
@@ -131,7 +124,7 @@ class CastingOrderDetailView(CastingRequiredMixin, View):
             'transfers': transfers,
             'incoming': incoming,
             'workers': User.objects.filter(is_active=True).order_by('name'),
-            'stats': _casting_stats(order),
+            'stats': stats,
             'active_nav': 'orders',
             'next_stages': [
                 (StageTransfer.Stage.MONTAJ,        "Montaj bo'limi"),
@@ -140,8 +133,6 @@ class CastingOrderDetailView(CastingRequiredMixin, View):
                 (StageTransfer.Stage.PACKAGING,     "Upakovka bo'limi"),
                 (StageTransfer.Stage.WAREHOUSE,     "Ombor"),
             ],
-            'url_back':   'casting:order_list',
-            'url_detail': 'casting:order_detail',
         }
 
     def get(self, request, pk):
@@ -185,6 +176,18 @@ class CastingOrderDetailView(CastingRequiredMixin, View):
             if quantity <= 0:
                 messages.error(request, "Miqdor 0 dan katta bo'lishi kerak.")
                 return redirect('casting:order_detail', pk=pk)
+
+            # Umumiy sondan oshishini tekshirish
+            logs = order.stage_logs.filter(stage=Order.CurrentStage.CASTING)
+            total_so_far = logs.aggregate(s=Sum('quantity'))['s'] or 0
+            if total_so_far + quantity > order.quantity:
+                messages.warning(
+                    request,
+                    f"Ogohlantirish: Jami qurilgan ({total_so_far + quantity}) "
+                    f"buyurtma miqdoridan ({order.quantity}) oshib ketadi! "
+                    f"Log baribir qo'shildi."
+                )
+
             worker_id = request.POST.get('worker_id') or None
             worker = None
             if worker_id:
@@ -206,7 +209,53 @@ class CastingOrderDetailView(CastingRequiredMixin, View):
                 stage.status = CastingStage.Status.IN_PROCESS
                 stage.started_at = stage.started_at or timezone.now()
             stage.save()
-            messages.success(request, f"{quantity} dona log qo'shildi.")
+            if not (total_so_far + quantity > order.quantity):
+                messages.success(request, f"{quantity} dona log qo'shildi.")
+            return redirect('casting:order_detail', pk=pk)
+
+        # LOG O'ZGARTIRISH
+        if action == 'edit_log':
+            if stage.status == CastingStage.Status.COMPLETED:
+                messages.error(request, "Bosqich yakunlangan.")
+                return redirect('casting:order_detail', pk=pk)
+            log = get_object_or_404(
+                OrderStageLog,
+                pk=request.POST.get('log_id'),
+                order=order,
+                stage=Order.CurrentStage.CASTING,
+            )
+            try:
+                quantity = int(request.POST.get('quantity', 0))
+            except (ValueError, TypeError):
+                messages.error(request, "Miqdor noto'g'ri.")
+                return redirect('casting:order_detail', pk=pk)
+            if quantity <= 0:
+                messages.error(request, "Miqdor 0 dan katta bo'lishi kerak.")
+                return redirect('casting:order_detail', pk=pk)
+
+            other_total = (
+                order.stage_logs.filter(stage=Order.CurrentStage.CASTING)
+                .exclude(pk=log.pk)
+                .aggregate(s=Sum('quantity'))['s'] or 0
+            )
+            if other_total + quantity > order.quantity:
+                messages.warning(
+                    request,
+                    f"Ogohlantirish: Jami ({other_total + quantity}) buyurtma miqdoridan ({order.quantity}) oshib ketadi!"
+                )
+
+            log.quantity = quantity
+            log.note = request.POST.get('note', '').strip()
+            worker_id = request.POST.get('worker_id') or None
+            if worker_id:
+                try:
+                    log.worker = User.objects.get(pk=worker_id)
+                except User.DoesNotExist:
+                    pass
+            else:
+                log.worker = None
+            log.save()
+            messages.success(request, "Log yangilandi.")
             return redirect('casting:order_detail', pk=pk)
 
         # LOG O'CHIRISH
@@ -249,6 +298,46 @@ class CastingOrderDetailView(CastingRequiredMixin, View):
             order.current_stage = to_stage
             order.save(update_fields=['current_stage'])
             messages.success(request, f"{qty} dona {transfer.get_to_stage_display()}ga yuborildi.")
+            return redirect('casting:order_detail', pk=pk)
+
+        # TRANSFER O'ZGARTIRISH (faqat PENDING bo'lsa)
+        if action == 'edit_transfer':
+            transfer = get_object_or_404(
+                StageTransfer,
+                pk=request.POST.get('transfer_id'),
+                order=order,
+                from_stage=StageTransfer.Stage.CASTING,
+                status=StageTransfer.Status.PENDING,
+                sent_by=request.user,
+            )
+            try:
+                qty = int(request.POST.get('sent_quantity', 0))
+            except (ValueError, TypeError):
+                qty = 0
+            if qty <= 0:
+                messages.error(request, "Miqdor 0 dan katta bo'lishi kerak.")
+                return redirect('casting:order_detail', pk=pk)
+            transfer.sent_quantity = qty
+            transfer.note = request.POST.get('transfer_note', '').strip()
+            transfer.save()
+            messages.success(request, "Transfer yangilandi.")
+            return redirect('casting:order_detail', pk=pk)
+
+        # TRANSFER O'CHIRISH (faqat PENDING bo'lsa)
+        if action == 'delete_transfer':
+            transfer = get_object_or_404(
+                StageTransfer,
+                pk=request.POST.get('transfer_id'),
+                order=order,
+                from_stage=StageTransfer.Stage.CASTING,
+                status=StageTransfer.Status.PENDING,
+                sent_by=request.user,
+            )
+            # Orderning current_stage-ini qaytarish
+            order.current_stage = StageTransfer.Stage.CASTING
+            order.save(update_fields=['current_stage'])
+            transfer.delete()
+            messages.success(request, "Transfer bekor qilindi.")
             return redirect('casting:order_detail', pk=pk)
 
         # TRANSFER QABUL QILISH
