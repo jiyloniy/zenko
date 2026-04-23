@@ -46,7 +46,7 @@ class BrujkaCreateView(CEORequiredMixin, View):
         if form.is_valid():
             brujka = form.save()
             messages.success(request, f'"{brujka.name}" brujkasi yaratildi.')
-            return redirect('order:brujka_detail', pk=brujka.pk)
+            return redirect('order:broshka_detail', pk=brujka.pk)
         return render(request, self.template_name, {
             'form': form,
             'title': 'Yangi brujka',
@@ -85,7 +85,7 @@ class BrujkaUpdateView(CEORequiredMixin, View):
         if form.is_valid():
             form.save()
             messages.success(request, f'"{brujka.name}" yangilandi.')
-            return redirect('order:brujka_detail', pk=brujka.pk)
+            return redirect('order:broshka_detail', pk=brujka.pk)
         return render(request, self.template_name, {
             'form': form,
             'brujka': brujka,
@@ -97,7 +97,7 @@ class BrujkaUpdateView(CEORequiredMixin, View):
 class BrujkaDeleteView(CEORequiredMixin, DeleteView):
     model = Brujka
     template_name = 'order/brujka_confirm_delete.html'
-    success_url = reverse_lazy('order:brujka_list')
+    success_url = reverse_lazy('order:broshka_list')
 
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
