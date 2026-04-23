@@ -54,7 +54,7 @@ class OrderCreateView(CEORequiredMixin, View):
         if form.is_valid():
             order = form.save(commit=False)
             order.created_by = request.user
-            if not order.name.strip():
+            if not order.name.strip() or '#XXXX' in order.name:
                 brujka = order.brujka
                 bname = brujka.name if brujka else 'Buyurtma'
                 color = brujka.color if brujka else ''
