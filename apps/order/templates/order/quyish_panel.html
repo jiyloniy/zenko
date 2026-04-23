@@ -1,0 +1,234 @@
+{% extends "ceo/base.html" %}
+{% block title %}Quyish paneli — Zenko{% endblock %}
+{% block page_title %}Quyish paneli{% endblock %}
+
+{% block topbar_actions %}
+<a href="{% url 'order:order_create' %}" class="btn btn-primary">
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>
+    Yangi buyurtma
+</a>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.stats-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:14px;margin-bottom:22px;}
+.stat-tile{background:var(--white);border:1px solid var(--gray-200);border-radius:14px;padding:16px 18px;display:flex;align-items:center;gap:12px;box-shadow:0 1px 3px rgba(0,0,0,.04);cursor:pointer;transition:box-shadow .2s,transform .18s,border-color .18s;text-decoration:none;}
+.stat-tile:hover{box-shadow:0 4px 14px rgba(0,0,0,.08);transform:translateY(-2px);}
+.stat-tile.active-tile{border-color:var(--orange);box-shadow:0 0 0 3px rgba(249,115,22,.12);}
+.si{width:40px;height:40px;border-radius:11px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.si svg{width:20px;height:20px;}
+.si-acc{background:#F0FDF4;color:#16A34A;}
+.si-proc{background:#FFF7ED;color:#EA580C;}
+.si-done{background:#EFF6FF;color:#2563EB;}
+.sv{font-size:22px;font-weight:800;color:var(--black);line-height:1;}
+.sl{font-size:11px;color:var(--gray-500);font-weight:500;margin-top:2px;}
+
+.filter-wrap{background:var(--white);border:1px solid var(--gray-200);border-radius:14px;padding:14px 18px;margin-bottom:20px;display:flex;gap:10px;align-items:center;flex-wrap:wrap;}
+.filter-wrap input[type=text]{padding:8px 12px;border:1.5px solid var(--gray-200);border-radius:9px;font-size:13px;background:var(--white);color:var(--black);flex:1;min-width:160px;transition:border-color .18s;}
+.filter-wrap input:focus{outline:none;border-color:var(--orange);}
+
+.tab-pills{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:20px;}
+.tab-pill{padding:7px 16px;border-radius:20px;font-size:12.5px;font-weight:700;text-decoration:none;border:1.5px solid var(--gray-200);color:var(--gray-600);background:var(--white);transition:all .18s;display:inline-flex;align-items:center;gap:6px;}
+.tab-pill:hover{border-color:var(--orange);color:var(--orange);}
+.tab-pill.active{background:var(--orange);color:#fff;border-color:var(--orange);}
+.tab-pill .cnt{background:rgba(255,255,255,.25);border-radius:10px;padding:1px 7px;font-size:11px;}
+.tab-pill:not(.active) .cnt{background:var(--gray-100);color:var(--gray-500);}
+
+.order-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px;}
+.order-card{background:var(--white);border:1px solid var(--gray-200);border-radius:14px;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.05);transition:box-shadow .2s,transform .18s;}
+.order-card:hover{box-shadow:0 6px 20px rgba(0,0,0,.09);transform:translateY(-2px);}
+.card-img{width:100%;height:140px;object-fit:cover;display:block;}
+.card-img-ph{width:100%;height:140px;background:var(--gray-100);display:flex;align-items:center;justify-content:center;}
+.card-img-ph svg{width:40px;height:40px;color:var(--gray-300);}
+.card-body{padding:14px 16px;}
+.card-top{display:flex;justify-content:space-between;align-items:flex-start;gap:8px;margin-bottom:8px;}
+.card-name{font-weight:700;font-size:13.5px;color:var(--black);line-height:1.35;text-decoration:none;}
+.card-name:hover{color:var(--orange);}
+.card-num{font-size:10.5px;color:var(--gray-400);font-family:monospace;margin-top:2px;}
+.spill{display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:20px;font-size:11px;font-weight:700;white-space:nowrap;}
+.spill .dot{width:5px;height:5px;border-radius:50%;flex-shrink:0;}
+.sp-new{background:#EFF6FF;color:#1D4ED8;} .sp-new .dot{background:#3B82F6;}
+.sp-accepted{background:#F0FDF4;color:#15803D;} .sp-accepted .dot{background:#22C55E;}
+.sp-in_process{background:#FFF7ED;color:#C2410C;} .sp-in_process .dot{background:#F97316;animation:blink 2s infinite;}
+.sp-ready{background:#EFF6FF;color:#1D4ED8;} .sp-ready .dot{background:#3B82F6;}
+.sp-delivered{background:var(--gray-100);color:var(--gray-500);} .sp-delivered .dot{background:var(--gray-300);}
+.sp-cancelled{background:#FEF2F2;color:#B91C1C;} .sp-cancelled .dot{background:#EF4444;}
+.card-meta{display:flex;gap:10px;align-items:center;margin-top:10px;flex-wrap:wrap;}
+.meta-item{font-size:11.5px;color:var(--gray-500);display:flex;align-items:center;gap:4px;}
+.meta-item svg{width:13px;height:13px;flex-shrink:0;}
+.deadline-late{color:#DC2626;font-weight:700;}
+.prio-badge{display:inline-block;padding:2px 7px;border-radius:5px;font-size:10.5px;font-weight:600;}
+.prio-low{background:#F1F5F9;color:#475569;}
+.prio-normal{background:#EFF6FF;color:#2563EB;}
+.prio-high{background:#FFF7ED;color:#C2410C;}
+.prio-urgent{background:#FEF2F2;color:#B91C1C;}
+.card-actions{display:flex;gap:6px;margin-top:12px;padding-top:10px;border-top:1px solid var(--gray-100);}
+.card-actions .btn{flex:1;justify-content:center;font-size:12px;padding:6px 10px;}
+.btn-status{display:inline-flex;align-items:center;justify-content:center;gap:5px;padding:6px 12px;border-radius:8px;font-size:12px;font-weight:600;border:none;cursor:pointer;transition:all .18s;}
+.btn-to-proc{background:#FFF7ED;color:#C2410C;}
+.btn-to-proc:hover{background:#FFEDD5;color:#9A3412;}
+.btn-to-ready{background:#F0FDF4;color:#15803D;}
+.btn-to-ready:hover{background:#DCFCE7;color:#166534;}
+.btn-to-deliver{background:#EFF6FF;color:#1D4ED8;}
+.btn-to-deliver:hover{background:#DBEAFE;color:#1E40AF;}
+
+.empty-wrap{padding:60px 20px;text-align:center;color:var(--gray-400);}
+.empty-wrap svg{width:50px;height:50px;margin-bottom:14px;opacity:.25;}
+.empty-wrap p{font-size:14px;}
+
+@keyframes blink{0%,100%{opacity:1;}50%{opacity:.35;}}
+@media(max-width:580px){
+  .order-grid{grid-template-columns:1fr;}
+  .filter-wrap{flex-direction:column;align-items:stretch;}
+}
+</style>
+{% endblock %}
+
+{% block content %}
+
+<!-- Stats -->
+<div class="stats-row">
+    <a href="?status=accepted&q={{ q }}" class="stat-tile {% if status_filter == 'accepted' %}active-tile{% endif %}">
+        <div class="si si-acc">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/></svg>
+        </div>
+        <div><div class="sv">{{ accepted_count }}</div><div class="sl">Qabul qilingan</div></div>
+    </a>
+    <a href="?status=in_process&q={{ q }}" class="stat-tile {% if status_filter == 'in_process' %}active-tile{% endif %}">
+        <div class="si si-proc">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182"/></svg>
+        </div>
+        <div><div class="sv">{{ in_process_count }}</div><div class="sl">Ishlab chiqarilmoqda</div></div>
+    </a>
+    <a href="?status=ready&q={{ q }}" class="stat-tile {% if status_filter == 'ready' %}active-tile{% endif %}">
+        <div class="si si-done">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M11.35 3.836c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 0 0 .75-.75 2.25 2.25 0 0 0-.1-.664m-5.8 0A2.251 2.251 0 0 1 13.5 2.25H15c1.012 0 1.867.668 2.15 1.586m-5.8 0c-.376.023-.75.05-1.124.08C9.095 4.01 8.25 4.973 8.25 6.108V8.25m8.9-4.414c.376.023.75.05 1.124.08 1.131.094 1.976 1.057 1.976 2.192V16.5A2.25 2.25 0 0 1 18 18.75h-2.25m-7.5-10.5H4.875c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V18.75m-7.5-10.5h6.375c.621 0 1.125.504 1.125 1.125v9.375m-8.25-3 1.5 1.5 3-3.75"/></svg>
+        </div>
+        <div><div class="sv">{{ ready_count }}</div><div class="sl">Tayyor</div></div>
+    </a>
+</div>
+
+<!-- Filter -->
+<form class="filter-wrap" method="get">
+    <input type="hidden" name="status" value="{{ status_filter }}">
+    <input type="text" name="q" value="{{ q }}" placeholder="Buyurtma nomi bo'yicha qidirish...">
+    <button type="submit" class="btn btn-secondary btn-sm">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width:14px;height:14px"><path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z"/></svg>
+        Qidirish
+    </button>
+    {% if q %}
+    <a href="?status={{ status_filter }}" class="btn btn-sm" style="background:#FEF2F2;color:#DC2626;border:1px solid #FECACA;">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width:13px;height:13px"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12"/></svg>
+        Tozalash
+    </a>
+    {% endif %}
+</form>
+
+<!-- Tab pills -->
+<div class="tab-pills">
+    <a href="?status=accepted&q={{ q }}" class="tab-pill {% if status_filter == 'accepted' %}active{% endif %}">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width:14px;height:14px"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/></svg>
+        Qabul qilingan <span class="cnt">{{ accepted_count }}</span>
+    </a>
+    <a href="?status=in_process&q={{ q }}" class="tab-pill {% if status_filter == 'in_process' %}active{% endif %}">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width:14px;height:14px"><path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182"/></svg>
+        Ishlab chiqarilmoqda <span class="cnt">{{ in_process_count }}</span>
+    </a>
+    <a href="?status=ready&q={{ q }}" class="tab-pill {% if status_filter == 'ready' %}active{% endif %}">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width:14px;height:14px"><path stroke-linecap="round" stroke-linejoin="round" d="M11.35 3.836c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 0 0 .75-.75 2.25 2.25 0 0 0-.1-.664m-5.8 0A2.251 2.251 0 0 1 13.5 2.25H15c1.012 0 1.867.668 2.15 1.586m-5.8 0c-.376.023-.75.05-1.124.08C9.095 4.01 8.25 4.973 8.25 6.108V8.25m8.9-4.414c.376.023.75.05 1.124.08 1.131.094 1.976 1.057 1.976 2.192V16.5A2.25 2.25 0 0 1 18 18.75h-2.25m-7.5-10.5H4.875c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V18.75m-7.5-10.5h6.375c.621 0 1.125.504 1.125 1.125v9.375m-8.25-3 1.5 1.5 3-3.75"/></svg>
+        Tayyor <span class="cnt">{{ ready_count }}</span>
+    </a>
+</div>
+
+<!-- Cards -->
+{% if orders %}
+<div class="order-grid">
+{% for order in orders %}
+<div class="order-card">
+    {% if order.image %}
+    <img src="{{ order.image.url }}" class="card-img" alt="">
+    {% else %}
+    <div class="card-img-ph">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m2.25 15.75 5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159m-1.5-1.5 1.409-1.409a2.25 2.25 0 0 1 3.182 0l2.909 2.909M3.75 21h16.5A2.25 2.25 0 0 0 22.5 18.75V5.25A2.25 2.25 0 0 0 20.25 3H3.75A2.25 2.25 0 0 0 1.5 5.25v13.5A2.25 2.25 0 0 0 3.75 21Z"/></svg>
+    </div>
+    {% endif %}
+    <div class="card-body">
+        <div class="card-top">
+            <div>
+                <a href="{% url 'order:order_detail' order.pk %}" class="card-name">{{ order.name }}</a>
+                <div class="card-num">{{ order.order_number }}</div>
+            </div>
+            <span class="spill sp-{{ order.status }}"><span class="dot"></span>{{ order.get_status_display }}</span>
+        </div>
+
+        <div class="card-meta">
+            <span class="meta-item">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5"/></svg>
+                <span class="{% if order.is_overdue %}deadline-late{% endif %}">{{ order.deadline|date:"d.m.Y" }}{% if order.is_overdue %} ⚠{% endif %}</span>
+            </span>
+            <span class="meta-item">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5"/></svg>
+                <strong>{{ order.quantity }}</strong>&nbsp;dona
+            </span>
+            <span class="prio-badge prio-{{ order.priority }}">{{ order.get_priority_display }}</span>
+        </div>
+
+        <div class="card-actions">
+            <a href="{% url 'order:order_detail' order.pk %}" class="btn btn-secondary btn-sm">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width:13px;height:13px"><path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"/></svg>
+                Ko'rish
+            </a>
+
+            {% if order.status == 'accepted' %}
+            <form method="post" style="flex:1">
+                {% csrf_token %}
+                <input type="hidden" name="order_id" value="{{ order.pk }}">
+                <input type="hidden" name="new_status" value="in_process">
+                <input type="hidden" name="back_status" value="{{ status_filter }}">
+                <input type="hidden" name="back_q" value="{{ q }}">
+                <button type="submit" class="btn-status btn-to-proc" style="width:100%">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width:13px;height:13px"><path stroke-linecap="round" stroke-linejoin="round" d="M5.25 5.653c0-.856.917-1.398 1.667-.986l11.54 6.347a1.125 1.125 0 0 1 0 1.972l-11.54 6.347a1.125 1.125 0 0 1-1.667-.986V5.653Z"/></svg>
+                    Ishga boshlash
+                </button>
+            </form>
+
+            {% elif order.status == 'in_process' %}
+            <form method="post" style="flex:1">
+                {% csrf_token %}
+                <input type="hidden" name="order_id" value="{{ order.pk }}">
+                <input type="hidden" name="new_status" value="ready">
+                <input type="hidden" name="back_status" value="{{ status_filter }}">
+                <input type="hidden" name="back_q" value="{{ q }}">
+                <button type="submit" class="btn-status btn-to-ready" style="width:100%">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width:13px;height:13px"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5"/></svg>
+                    Tayyor deb belgilash
+                </button>
+            </form>
+
+            {% elif order.status == 'ready' %}
+            <form method="post" style="flex:1">
+                {% csrf_token %}
+                <input type="hidden" name="order_id" value="{{ order.pk }}">
+                <input type="hidden" name="new_status" value="delivered">
+                <input type="hidden" name="back_status" value="{{ status_filter }}">
+                <input type="hidden" name="back_q" value="{{ q }}">
+                <button type="submit" class="btn-status btn-to-deliver" style="width:100%">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width:13px;height:13px"><path stroke-linecap="round" stroke-linejoin="round" d="M8.25 18.75a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m3 0h6m-9 0H3.375a1.125 1.125 0 0 1-1.125-1.125V14.25m17.25 4.5a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m3 0h1.125c.621 0 1.129-.504 1.09-1.124a17.902 17.902 0 0 0-3.213-9.193 2.056 2.056 0 0 0-1.58-.86H14.25M16.5 18.75h-2.25m0-11.177v-.958c0-.568-.422-1.048-.987-1.106a48.554 48.554 0 0 0-10.026 0 1.106 1.106 0 0 0-.987 1.106v7.635m12-6.677v6.677m0 4.5v-4.5m0 0h-12"/></svg>
+                    Topshirildi
+                </button>
+            </form>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endfor %}
+</div>
+
+{% else %}
+<div class="empty-wrap">
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M20.25 7.5l-.625 10.632a2.25 2.25 0 01-2.247 2.118H6.622a2.25 2.25 0 01-2.247-2.118L3.75 7.5M10 11.25h4M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125z"/></svg>
+    <p>{% if q %}Qidiruv bo'yicha buyurtma topilmadi{% else %}Bu holatda buyurtmalar yo'q{% endif %}</p>
+</div>
+{% endif %}
+
+{% endblock %}
