@@ -5,7 +5,9 @@
       "Bash(python manage.py check)",
       "Bash(xargs grep *)",
       "Bash(python manage.py makemigrations order)",
-      "Bash(python manage.py migrate)"
+      "Bash(python manage.py migrate)",
+      "Bash(python manage.py shell -c ' *)",
+      "Bash(python -c ' *)"
     ]
   }
 }

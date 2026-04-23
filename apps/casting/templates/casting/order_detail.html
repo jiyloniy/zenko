@@ -282,16 +282,67 @@
 
     <!-- LEFT -->
     <div>
-        <!-- LOGLAR -->
+        <!-- YARIM TAYYOR LOGLARI (StanokLog) -->
         <div class="sec">
             <div class="sec-head">
-                <h4>Quyish loglari ({{ logs|length }})</h4>
-                {% if logs %}<span style="font-size:11px;color:#64748B;">Jami: <strong>{{ stats.total_entered }}</strong> / {{ order.quantity }} dona</span>{% endif %}
+                <h4 style="display:flex;align-items:center;gap:6px;">
+                    <span style="width:8px;height:8px;border-radius:50%;background:#D97706;display:inline-block;"></span>
+                    Yarim tayyor loglari ({{ stanok_logs|length }})
+                </h4>
+                <span style="font-size:11px;color:#64748B;">Jami: <strong style="color:#D97706;">{{ stats.stanok_total }}</strong> | Yaroqli: <strong style="color:#16A34A;">{{ stats.stanok_good }}</strong> | Yaroqsiz: <strong style="color:#DC2626;">{{ stats.stanok_defect }}</strong></span>
+            </div>
+            {% if stanok_logs %}
+            <table class="log-tbl">
+                <thead>
+                    <tr><th>#</th><th>Stanok</th><th>Ishchi</th><th>Miqdor</th><th>Yaroqsiz</th><th>Tomoni</th><th>Vaqt</th><th>Izoh</th><th></th></tr>
+                </thead>
+                <tbody>
+                {% for sl in stanok_logs %}
+                <tr>
+                    <td style="color:#CBD5E1;font-size:11px;">{{ forloop.counter }}</td>
+                    <td><span style="font-size:12.5px;font-weight:700;color:#0F172A;">{% if sl.stanok %}{{ sl.stanok.name }}{% else %}<span style="color:#CBD5E1;">—</span>{% endif %}</span></td>
+                    <td style="font-weight:600;color:#0F172A;">{% if sl.worker %}{{ sl.worker.name|default:sl.worker.username }}{% else %}<span style="color:#CBD5E1;">—</span>{% endif %}</td>
+                    <td><span class="log-qty" style="color:#D97706;">{{ sl.quantity }}</span> <span style="font-size:11px;color:#94A3B8;">dona</span></td>
+                    <td>{% if sl.defect %}<span style="color:#DC2626;font-weight:700;">{{ sl.defect }}</span>{% else %}<span style="color:#CBD5E1;">0</span>{% endif %}</td>
+                    <td><span style="font-size:12px;color:#64748B;">{{ sl.get_side_display }}</span></td>
+                    <td style="font-size:11.5px;color:#94A3B8;white-space:nowrap;">{{ sl.created_at|date:"d.m H:i" }}</td>
+                    <td style="max-width:100px;font-size:12px;color:#64748B;font-style:italic;">{% if sl.note %}{{ sl.note|truncatechars:24 }}{% else %}<span style="color:#E2E8F0;">—</span>{% endif %}</td>
+                    <td>
+                        {% if stage.status != 'completed' %}
+                        <form method="post" onsubmit="return confirm('O\'chirasizmi?')">
+                            {% csrf_token %}
+                            <input type="hidden" name="action" value="delete_stanok_log">
+                            <input type="hidden" name="stanok_log_id" value="{{ sl.pk }}">
+                            <button type="submit" class="btn-del" title="O'chirish">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width:12px;height:12px"><path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916"/></svg>
+                            </button>
+                        </form>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+            <div class="empty-state" style="padding:24px;">
+                <p style="font-size:12.5px;color:#94A3B8;">Hali yarim tayyor log yo'q.</p>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- TAYYOR MAHSULOT LOGLARI (OrderStageLog) -->
+        <div class="sec">
+            <div class="sec-head">
+                <h4 style="display:flex;align-items:center;gap:6px;">
+                    <span style="width:8px;height:8px;border-radius:50%;background:#1D4ED8;display:inline-block;"></span>
+                    Tayyor mahsulot loglari ({{ logs|length }})
+                </h4>
+                <span style="font-size:11px;color:#64748B;">Jami: <strong style="color:#1D4ED8;">{{ stats.log_total }}</strong> dona</span>
             </div>
             {% if logs %}
             <table class="log-tbl">
                 <thead>
-                    <tr><th>#</th><th>Ishchi</th><th>Qurildi</th><th>Vaqt</th><th>Izoh</th><th></th></tr>
+                    <tr><th>#</th><th>Ishchi</th><th>Miqdor</th><th>Vaqt</th><th>Izoh</th><th></th></tr>
                 </thead>
                 <tbody>
                 {% for log in logs %}
@@ -321,7 +372,7 @@
                 </tr>
                 {% if stage.status != 'completed' %}
                 <tr id="edit-log-{{ log.pk }}" style="display:none;background:#F0F6FF;">
-                    <td colspan="6" style="padding:14px;">
+                    <td colspan="5" style="padding:14px;">
                         <form method="post">
                             {% csrf_token %}
                             <input type="hidden" name="action" value="edit_log">
@@ -330,7 +381,7 @@
                                 <div>
                                     <div class="f-lbl">Ishchi</div>
                                     <select name="worker_id" class="f-inp" style="padding:7px 10px;font-size:13px;">
-                                        <option value="">— Tanlanmagan —</option>
+                                        <option value="">— —</option>
                                         {% for w in workers %}<option value="{{ w.pk }}" {% if log.worker_id == w.pk %}selected{% endif %}>{{ w.name|default:w.username }}</option>{% endfor %}
                                     </select>
                                 </div>
@@ -355,15 +406,12 @@
                 </tbody>
             </table>
             <div class="sum-row">
-                <span><strong style="color:#1D4ED8;">{{ stats.total_entered }}</strong> qurildi</span>
-                <span><strong style="color:#16A34A;">{{ stats.good }}</strong> yaroqli</span>
-                <span><strong style="color:#DC2626;">{{ stats.defect }}</strong> yaroqsiz</span>
-                <span><strong style="color:#64748B;">{{ stats.remaining }}</strong> qoldiq</span>
+                <span>Tayyor: <strong style="color:#1D4ED8;">{{ stats.log_total }}</strong> dona</span>
+                <span>Qoldiq: <strong style="color:#64748B;">{{ stats.remaining }}</strong> dona</span>
             </div>
             {% else %}
-            <div class="empty-state">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15.666 3.888A2.25 2.25 0 0 0 13.5 2.25h-3c-1.03 0-1.9.693-2.166 1.638m7.332 0c.055.194.084.4.084.612v0a.75.75 0 0 1-.75.75H9a.75.75 0 0 1-.75-.75v0c0-.212.03-.418.084-.612m7.332 0c.646.049 1.288.11 1.927.184 1.1.128 1.907 1.077 1.907 2.185V19.5a2.25 2.25 0 0 1-2.25 2.25H6.75A2.25 2.25 0 0 1 4.5 19.5V6.257c0-1.108.806-2.057 1.907-2.185a48.208 48.208 0 0 1 1.927-.184"/></svg>
-                <p>Hali log qo'shilmagan.</p>
+            <div class="empty-state" style="padding:24px;">
+                <p style="font-size:12.5px;color:#94A3B8;">Hali tayyor mahsulot log yo'q.</p>
             </div>
             {% endif %}
         </div>
@@ -458,48 +506,118 @@
 
     <!-- RIGHT: FORMLAR -->
     <div>
-        <!-- LOG QO'SHISH — DOIM OCHIQ -->
+        <!-- YARIM TAYYOR LOG (StanokLog) -->
         <div class="fbox">
-            <div class="fbox-head" style="background:#FFFBEB;border-bottom-color:#FDE68A;">
+            <div class="fbox-head" style="background:#FFF7ED;border-bottom-color:#FDE68A;">
                 <h4 style="color:#D97706;">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>
-                    Log qo'shish
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M11.42 15.17 17.25 21A2.652 2.652 0 0 0 21 17.25l-5.877-5.877M11.42 15.17l2.496-3.03c.317-.384.74-.626 1.208-.766M11.42 15.17l-4.655 5.653a2.548 2.548 0 1 1-3.586-3.586l5.654-4.654"/></svg>
+                    Yarim tayyor log (stanok)
                 </h4>
             </div>
             <div class="fbox-body">
                 {% if stage.status == 'completed' %}
-                <div class="locked-box">🔒 Bosqich yakunlangan. Log qo'shib bo'lmaydi.</div>
+                <div class="locked-box">🔒 Bosqich yakunlangan.</div>
                 {% else %}
-                <form method="post" id="log-form">
+                <form method="post">
                     {% csrf_token %}
-                    <input type="hidden" name="action" value="add_log">
+                    <input type="hidden" name="action" value="add_stanok_log">
+
                     <div class="f-grp">
-                        <div class="f-lbl">Ishchi</div>
-                        <select name="worker_id" class="f-inp">
-                            <option value="">— Tanlanmagan —</option>
-                            {% for w in workers %}<option value="{{ w.pk }}">{{ w.name|default:w.username }}</option>{% endfor %}
+                        <div class="f-lbl">Stanok</div>
+                        <select name="stanok_id" class="f-inp">
+                            <option value="">— Tanlang —</option>
+                            {% for s in stanoklar %}
+                            <option value="{{ s.pk }}">{{ s.name }}{% if s.model %} · {{ s.model }}{% endif %}</option>
+                            {% endfor %}
                         </select>
                     </div>
+
+                    <div class="f-grp">
+                        <div class="f-lbl">Tomoni</div>
+                        <select name="side" class="f-inp">
+                            <option value="single">Bir tomonlama</option>
+                            <option value="top">Yuqori tomon (TOP)</option>
+                            <option value="bottom">Pastki tomon (BOTTOM)</option>
+                        </select>
+                    </div>
+
+                    <div class="f-grp">
+                        <div class="f-lbl">Ishchi</div>
+                        <select name="worker_id" id="stanok-worker" class="f-inp">
+                            <option value="">— Tanlanmagan —</option>
+                            {% for w in workers %}
+                            <option value="{{ w.pk }}" {% if w.pk == request.user.pk %}selected{% endif %}>{{ w.name|default:w.username }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
                     <div class="two-col">
                         <div class="f-grp">
-                            <div class="f-lbl">Qurildi (dona) *</div>
-                            <input type="number" name="quantity" id="qty-input" class="f-inp" min="1" placeholder="0" required oninput="checkOvercount(this.value)">
+                            <div class="f-lbl">Miqdori (dona) *</div>
+                            <input type="number" name="quantity" class="f-inp" min="1" placeholder="0" required>
                         </div>
                         <div class="f-grp">
-                            <div class="f-lbl">Yaroqsiz (jami)</div>
-                            <input type="number" name="defect_quantity" class="f-inp" min="0" value="{{ stats.defect }}" placeholder="0">
+                            <div class="f-lbl">Yaroqsiz</div>
+                            <input type="number" name="defect" class="f-inp" min="0" value="0" placeholder="0">
                         </div>
                     </div>
-                    <div id="overcount-warn" style="display:none;background:#FFF7ED;border:1.5px solid #FDE68A;border-radius:8px;padding:8px 12px;font-size:12.5px;font-weight:600;color:#D97706;margin-bottom:10px;">
-                        ⚠ Diqqat! Umumiy sondan oshib ketadi. Baribir qo'shish mumkin, lekin tekshiring.
+
+                    <div class="f-grp">
+                        <div class="f-lbl">Izoh</div>
+                        <textarea name="note" class="f-inp" rows="2" placeholder="Ixtiyoriy..."></textarea>
                     </div>
+                    <button type="submit" class="btn-full" style="background:#D97706;color:#fff;border:none;border-radius:8px;padding:10px;font-size:14px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:7px;">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width:15px;height:15px;"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>
+                        Yarim tayyor log
+                    </button>
+                </form>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- TAYYOR MAHSULOT LOG (OrderStageLog) -->
+        <div class="fbox">
+            <div class="fbox-head" style="background:#EFF6FF;border-bottom-color:#BFDBFE;">
+                <h4 style="color:#1D4ED8;">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/></svg>
+                    Tayyor mahsulot log
+                </h4>
+            </div>
+            <div class="fbox-body">
+                {% if stage.status == 'completed' %}
+                <div class="locked-box">🔒 Bosqich yakunlangan.</div>
+                {% else %}
+                <form method="post">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="add_casting_log">
+
+                    <div class="f-grp">
+                        <div class="f-lbl">Ishchi</div>
+                        <select name="worker_id" id="casting-worker" class="f-inp">
+                            <option value="">— Tanlanmagan —</option>
+                            {% for w in workers %}
+                            <option value="{{ w.pk }}" {% if w.pk == request.user.pk %}selected{% endif %}>{{ w.name|default:w.username }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="f-grp">
+                        <div class="f-lbl">Tayyor mahsulot (dona) *</div>
+                        <input type="number" name="quantity" class="f-inp" min="1" placeholder="0" required oninput="checkCastingOvercount(this.value)">
+                        <div style="font-size:11px;color:#94A3B8;margin-top:3px;">Qoldiq: {{ stats.remaining }} dona</div>
+                    </div>
+
+                    <div id="casting-overcount-warn" style="display:none;background:#FFF7ED;border:1.5px solid #FDE68A;border-radius:8px;padding:8px 12px;font-size:12.5px;font-weight:600;color:#D97706;margin-bottom:10px;">
+                        ⚠ Buyurtma miqdoridan oshib ketadi!
+                    </div>
+
                     <div class="f-grp">
                         <div class="f-lbl">Izoh</div>
                         <textarea name="note" class="f-inp" rows="2" placeholder="Ixtiyoriy..."></textarea>
                     </div>
                     <button type="submit" class="btn-full btn-blue">
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>
-                        Log qo'shish
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width:15px;height:15px;"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>
+                        Tayyor log
                     </button>
                 </form>
                 {% endif %}
@@ -581,10 +699,46 @@
 <script>
 const ORDER_QTY = {{ order.quantity }};
 const TOTAL_SO_FAR = {{ stats.total_entered }};
+const CURRENT_USER_ID = "{{ request.user.pk }}";
+
+// Sahifa yuklanganda joriy userni worker sifatida avtomatik tanlash
+document.addEventListener('DOMContentLoaded', function () {
+    const ws = document.getElementById('worker-select');
+    if (ws && CURRENT_USER_ID) {
+        for (let opt of ws.options) {
+            if (opt.value === CURRENT_USER_ID) {
+                opt.selected = true;
+                break;
+            }
+        }
+    }
+});
+
+function autoSelectWorker(stanokId) {
+    const ws = document.getElementById('worker-select');
+    const lbl = document.getElementById('auto-lbl');
+    const sideGrp = document.getElementById('side-grp');
+    if (!stanokId) {
+        if (lbl) lbl.style.display = 'none';
+        if (sideGrp) sideGrp.style.display = 'none';
+        return;
+    }
+    if (sideGrp) sideGrp.style.display = 'block';
+    if (ws && CURRENT_USER_ID) {
+        for (let opt of ws.options) {
+            if (opt.value === CURRENT_USER_ID) {
+                opt.selected = true;
+                if (lbl) lbl.style.display = 'inline';
+                break;
+            }
+        }
+    }
+}
 
 function checkOvercount(val) {
     const qty = parseInt(val) || 0;
     const warn = document.getElementById('overcount-warn');
+    if (!warn) return;
     if (TOTAL_SO_FAR + qty > ORDER_QTY) {
         warn.style.display = 'block';
     } else {
@@ -594,16 +748,19 @@ function checkOvercount(val) {
 
 function toggleEditLog(logId) {
     const el = document.getElementById('edit-log-' + logId);
+    if (!el) return;
     el.style.display = el.style.display === 'none' ? 'table-row' : 'none';
 }
 
 function toggleAccept(trId) {
     const el = document.getElementById('af-' + trId);
+    if (!el) return;
     el.style.display = el.style.display === 'none' ? 'block' : 'none';
 }
 
 function toggleEditTransfer(trId) {
     const el = document.getElementById('edit-tr-' + trId);
+    if (!el) return;
     el.style.display = el.style.display === 'none' ? 'block' : 'none';
 }
 </script>

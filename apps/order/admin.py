@@ -1,8 +1,15 @@
 from django.contrib import admin
 from .models import (
-	Order, CastingStage, MontajStage, HangingStage, StoneSettingStage, PackagingStage, WarehouseStage,
-	OutsourceWork, QualityControl, OrderStageLog
+    Order, CastingStage, MontajStage, HangingStage, StoneSettingStage, PackagingStage, WarehouseStage,
+    OutsourceWork, QualityControl, OrderStageLog, Stanok, StanokLog,
+    AttachStage, SprayStage, PaintStage, StoneStage, AssemblyStage, PackStage,
 )
+
+@admin.register(Stanok)
+class StanokAdmin(admin.ModelAdmin):
+	list_display = ('name', 'model', 'is_active', 'created_at')
+	list_filter = ('is_active',)
+	search_fields = ('name', 'model')
 
 # Bosqich loglari faqat o'qish uchun (readonly)
 class OrderStageLogInline(admin.TabularInline):
@@ -78,7 +85,50 @@ class QualityControlAdmin(admin.ModelAdmin):
 
 @admin.register(OrderStageLog)
 class OrderStageLogAdmin(admin.ModelAdmin):
-	list_display = ('order', 'stage', 'from_department', 'to_department', 'quantity', 'worker', 'accepted_by', 'created_at')
-	list_filter = ('stage', 'worker', 'accepted_by')
-	search_fields = ('order__order_number', 'order__name', 'worker__name', 'accepted_by__name')
-	readonly_fields = ('order', 'stage', 'from_department', 'to_department', 'quantity', 'worker', 'accepted_by', 'note', 'created_at')
+    list_display = ('order', 'stage', 'from_department', 'to_department', 'quantity', 'worker', 'accepted_by', 'created_at')
+    list_filter = ('stage', 'worker', 'accepted_by')
+    search_fields = ('order__order_number', 'order__name', 'worker__name', 'accepted_by__name')
+    readonly_fields = ('order', 'stage', 'from_department', 'to_department', 'quantity', 'worker', 'accepted_by', 'note', 'created_at')
+
+
+@admin.register(StanokLog)
+class StanokLogAdmin(admin.ModelAdmin):
+    list_display = ('order', 'stanok', 'worker', 'quantity', 'defect', 'side', 'created_at')
+    list_filter = ('side', 'stanok')
+    search_fields = ('order__order_number', 'order__name', 'worker__name')
+
+
+@admin.register(AttachStage)
+class AttachStageAdmin(admin.ModelAdmin):
+    list_display = ('order', 'status', 'total_quantity', 'defect_quantity', 'created_at')
+    list_filter = ('status',)
+
+
+@admin.register(SprayStage)
+class SprayStageAdmin(admin.ModelAdmin):
+    list_display = ('order', 'status', 'layer_number', 'layer_type', 'total_quantity', 'defect_quantity', 'created_at')
+    list_filter = ('status', 'layer_type')
+
+
+@admin.register(PaintStage)
+class PaintStageAdmin(admin.ModelAdmin):
+    list_display = ('order', 'status', 'layer_number', 'total_quantity', 'defect_quantity', 'created_at')
+    list_filter = ('status',)
+
+
+@admin.register(StoneStage)
+class StoneStageAdmin(admin.ModelAdmin):
+    list_display = ('order', 'status', 'total_quantity', 'defect_quantity', 'created_at')
+    list_filter = ('status',)
+
+
+@admin.register(AssemblyStage)
+class AssemblyStageAdmin(admin.ModelAdmin):
+    list_display = ('order', 'status', 'total_quantity', 'defect_quantity', 'created_at')
+    list_filter = ('status',)
+
+
+@admin.register(PackStage)
+class PackStageAdmin(admin.ModelAdmin):
+    list_display = ('order', 'status', 'total_quantity', 'packed_quantity', 'defect_quantity', 'created_at')
+    list_filter = ('status',)

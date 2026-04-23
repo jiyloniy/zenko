@@ -26,7 +26,11 @@ from apps.order.models import (
 class OrderForm(forms.ModelForm):
     class Meta:
         model = Order
-        fields = ('name', 'quantity', 'image', 'deadline', 'status', 'current_stage', 'note')
+        fields = (
+            'name', 'quantity', 'image', 'deadline',
+            'coating_type', 'has_stone', 'has_assembly', 'priority',
+            'status', 'current_stage', 'note',
+        )
         widgets = {
             'deadline': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
             'note': forms.Textarea(attrs={'rows': 3, 'class': 'form-control'}),

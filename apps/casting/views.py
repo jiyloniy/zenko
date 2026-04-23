@@ -5,7 +5,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 from django.views import View
 
-from apps.order.models import CastingStage, Order, OrderStageLog, StageTransfer
+from apps.order.models import CastingStage, Order, OrderStageLog, Stanok, StanokLog, StageTransfer
 from apps.users.models import User
 
 
@@ -27,17 +27,29 @@ class CastingRequiredMixin(LoginRequiredMixin):
 
 
 def _casting_stats(order):
-    logs = order.stage_logs.filter(stage=Order.CurrentStage.CASTING)
-    total_done = logs.aggregate(s=Sum('quantity'))['s'] or 0
-    try:
-        defect = order.casting.defect_quantity
-    except CastingStage.DoesNotExist:
-        defect = 0
+    # Yarim tayyor (StanokLog) statistikasi
+    stanok_agg    = order.stanok_logs.aggregate(total=Sum('quantity'), defect=Sum('defect'))
+    stanok_total  = stanok_agg['total'] or 0
+    stanok_defect = stanok_agg['defect'] or 0
+    stanok_good   = max(stanok_total - stanok_defect, 0)
+
+    # Tayyor mahsulot (OrderStageLog casting) statistikasi — defect maydoni yo'q
+    log_total = order.stage_logs.filter(stage=Order.CurrentStage.CASTING).aggregate(s=Sum('quantity'))['s'] or 0
+
+    total_done = stanok_total + log_total
+
     return {
         'total_entered': total_done,
-        'defect': defect,
-        'good': max(total_done - defect, 0),
-        'remaining': max(order.quantity - total_done, 0),
+        # yarim tayyor
+        'stanok_total':  stanok_total,
+        'stanok_defect': stanok_defect,
+        'stanok_good':   stanok_good,
+        # tayyor (casting logs — defectsiz hisoblanadi)
+        'log_total': log_total,
+        # umumiy
+        'defect':    stanok_defect,
+        'good':      log_total + stanok_good,
+        'remaining': max(order.quantity - log_total, 0),
     }
 
 
@@ -106,6 +118,8 @@ class CastingOrderDetailView(CastingRequiredMixin, View):
             stage=Order.CurrentStage.CASTING,
         ).select_related('worker').order_by('-created_at')
 
+        stanok_logs = order.stanok_logs.select_related('stanok', 'worker').order_by('-created_at')
+
         transfers = order.transfers.filter(
             from_stage=StageTransfer.Stage.CASTING,
         ).select_related('sent_by', 'accepted_by').order_by('-sent_at')
@@ -121,17 +135,19 @@ class CastingOrderDetailView(CastingRequiredMixin, View):
             'order': order,
             'stage': stage,
             'logs': logs,
+            'stanok_logs': stanok_logs,
             'transfers': transfers,
             'incoming': incoming,
             'workers': User.objects.filter(is_active=True).order_by('name'),
+            'stanoklar': Stanok.objects.filter(is_active=True).order_by('name'),
             'stats': stats,
             'active_nav': 'orders',
             'next_stages': [
-                (StageTransfer.Stage.MONTAJ,        "Montaj bo'limi"),
-                (StageTransfer.Stage.HANGING,       "Ilish bo'limi"),
-                (StageTransfer.Stage.STONE_SETTING, "Tosh qadash bo'limi"),
-                (StageTransfer.Stage.PACKAGING,     "Upakovka bo'limi"),
-                (StageTransfer.Stage.WAREHOUSE,     "Ombor"),
+                (StageTransfer.Stage.ATTACH,   "Ilish bo'limi"),
+                (StageTransfer.Stage.SPRAY,    "Sepish bo'limi"),
+                (StageTransfer.Stage.PACKAGING, "Upakovka bo'limi"),
+                (StageTransfer.Stage.STONE,    "Tosh qadash bo'limi"),
+                (StageTransfer.Stage.MONTAJ,   "Montaj bo'limi"),
             ],
         }
 
@@ -162,14 +178,14 @@ class CastingOrderDetailView(CastingRequiredMixin, View):
                 messages.error(request, "Noto'g'ri status o'tishi.")
             return redirect('casting:order_detail', pk=pk)
 
-        # LOG QO'SHISH
-        if action == 'add_log':
+        # YARIM TAYYOR LOG (StanokLog)
+        if action == 'add_stanok_log':
             if stage.status == CastingStage.Status.COMPLETED:
                 messages.error(request, "Bosqich yakunlangan.")
                 return redirect('casting:order_detail', pk=pk)
             try:
                 quantity = int(request.POST.get('quantity', 0))
-                defect   = int(request.POST.get('defect_quantity', 0))
+                defect   = int(request.POST.get('defect', 0))
             except (ValueError, TypeError):
                 messages.error(request, "Miqdor noto'g'ri.")
                 return redirect('casting:order_detail', pk=pk)
@@ -177,15 +193,62 @@ class CastingOrderDetailView(CastingRequiredMixin, View):
                 messages.error(request, "Miqdor 0 dan katta bo'lishi kerak.")
                 return redirect('casting:order_detail', pk=pk)
 
-            # Umumiy sondan oshishini tekshirish
-            logs = order.stage_logs.filter(stage=Order.CurrentStage.CASTING)
-            total_so_far = logs.aggregate(s=Sum('quantity'))['s'] or 0
-            if total_so_far + quantity > order.quantity:
+            stanok_id = request.POST.get('stanok_id') or None
+            stanok = None
+            if stanok_id:
+                try:
+                    stanok = Stanok.objects.get(pk=stanok_id)
+                except Stanok.DoesNotExist:
+                    pass
+
+            worker_id = request.POST.get('worker_id') or None
+            worker = None
+            if worker_id:
+                try:
+                    worker = User.objects.get(pk=worker_id)
+                except User.DoesNotExist:
+                    pass
+
+            side = request.POST.get('side', 'single')
+            if side not in ('top', 'bottom', 'single'):
+                side = 'single'
+
+            StanokLog.objects.create(
+                order=order,
+                stanok=stanok,
+                worker=worker,
+                quantity=quantity,
+                defect=defect,
+                side=side,
+                note=request.POST.get('note', '').strip(),
+            )
+            if stage.status == CastingStage.Status.PENDING:
+                stage.status = CastingStage.Status.IN_PROCESS
+                stage.started_at = stage.started_at or timezone.now()
+                stage.save()
+            messages.success(request, f"{quantity} dona yarim tayyor log qo'shildi.")
+            return redirect('casting:order_detail', pk=pk)
+
+        # TAYYOR MAHSULOT LOG (OrderStageLog)
+        if action == 'add_casting_log':
+            if stage.status == CastingStage.Status.COMPLETED:
+                messages.error(request, "Bosqich yakunlangan.")
+                return redirect('casting:order_detail', pk=pk)
+            try:
+                quantity = int(request.POST.get('quantity', 0))
+            except (ValueError, TypeError):
+                messages.error(request, "Miqdor noto'g'ri.")
+                return redirect('casting:order_detail', pk=pk)
+            if quantity <= 0:
+                messages.error(request, "Miqdor 0 dan katta bo'lishi kerak.")
+                return redirect('casting:order_detail', pk=pk)
+
+            log_so_far = order.stage_logs.filter(stage=Order.CurrentStage.CASTING).aggregate(s=Sum('quantity'))['s'] or 0
+            if log_so_far + quantity > order.quantity:
                 messages.warning(
                     request,
-                    f"Ogohlantirish: Jami qurilgan ({total_so_far + quantity}) "
-                    f"buyurtma miqdoridan ({order.quantity}) oshib ketadi! "
-                    f"Log baribir qo'shildi."
+                    f"Ogohlantirish: Tayyor mahsulot ({log_so_far + quantity}) "
+                    f"buyurtma miqdoridan ({order.quantity}) oshib ketadi! Log baribir qo'shildi."
                 )
 
             worker_id = request.POST.get('worker_id') or None
@@ -195,6 +258,7 @@ class CastingOrderDetailView(CastingRequiredMixin, View):
                     worker = User.objects.get(pk=worker_id)
                 except User.DoesNotExist:
                     pass
+
             OrderStageLog.objects.create(
                 order=order,
                 stage=Order.CurrentStage.CASTING,
@@ -204,13 +268,11 @@ class CastingOrderDetailView(CastingRequiredMixin, View):
                 worker=worker,
                 note=request.POST.get('note', '').strip(),
             )
-            stage.defect_quantity = defect
             if stage.status == CastingStage.Status.PENDING:
                 stage.status = CastingStage.Status.IN_PROCESS
                 stage.started_at = stage.started_at or timezone.now()
-            stage.save()
-            if not (total_so_far + quantity > order.quantity):
-                messages.success(request, f"{quantity} dona log qo'shildi.")
+                stage.save()
+            messages.success(request, f"{quantity} dona tayyor mahsulot log qo'shildi.")
             return redirect('casting:order_detail', pk=pk)
 
         # LOG O'ZGARTIRISH
@@ -251,9 +313,17 @@ class CastingOrderDetailView(CastingRequiredMixin, View):
                 try:
                     log.worker = User.objects.get(pk=worker_id)
                 except User.DoesNotExist:
-                    pass
+                    log.worker = None
             else:
                 log.worker = None
+            stanok_id = request.POST.get('stanok_id') or None
+            if stanok_id:
+                try:
+                    log.stanok = Stanok.objects.get(pk=stanok_id)
+                except Stanok.DoesNotExist:
+                    log.stanok = None
+            else:
+                log.stanok = None
             log.save()
             messages.success(request, "Log yangilandi.")
             return redirect('casting:order_detail', pk=pk)
@@ -376,3 +446,127 @@ class CastingOrderDetailView(CastingRequiredMixin, View):
             return redirect('casting:order_detail', pk=pk)
 
         return redirect('casting:order_detail', pk=pk)
+
+
+# ──────────────────────────────────────────────
+#  STANOK CRUD
+# ──────────────────────────────────────────────
+
+class StanokListView(CastingRequiredMixin, View):
+    template_name = 'casting/stanok_list.html'
+
+    def get(self, request):
+        stanoklar = Stanok.objects.all()
+        return render(request, self.template_name, {
+            'stanoklar': stanoklar,
+            'active_nav': 'stanoklar',
+        })
+
+
+class StanokCreateView(CastingRequiredMixin, View):
+    template_name = 'casting/stanok_form.html'
+
+    def get(self, request):
+        return render(request, self.template_name, {
+            'title': 'Yangi stanok',
+            'active_nav': 'stanoklar',
+        })
+
+    def post(self, request):
+        name = request.POST.get('name', '').strip()
+        model = request.POST.get('model', '').strip()
+        note = request.POST.get('note', '').strip()
+        is_active = request.POST.get('is_active') == 'on'
+        if not name:
+            messages.error(request, "Stanok nomi kiritilishi shart.")
+            return render(request, self.template_name, {
+                'title': 'Yangi stanok',
+                'active_nav': 'stanoklar',
+                'data': request.POST,
+            })
+        if Stanok.objects.filter(name=name).exists():
+            messages.error(request, "Bu nomli stanok allaqachon mavjud.")
+            return render(request, self.template_name, {
+                'title': 'Yangi stanok',
+                'active_nav': 'stanoklar',
+                'data': request.POST,
+            })
+        Stanok.objects.create(name=name, model=model, note=note, is_active=is_active)
+        messages.success(request, f'"{name}" stanoki qo\'shildi.')
+        return redirect('casting:stanok_list')
+
+
+class StanokUpdateView(CastingRequiredMixin, View):
+    template_name = 'casting/stanok_form.html'
+
+    def get(self, request, pk):
+        stanok = get_object_or_404(Stanok, pk=pk)
+        return render(request, self.template_name, {
+            'title': f'{stanok.name} — tahrirlash',
+            'stanok': stanok,
+            'active_nav': 'stanoklar',
+        })
+
+    def post(self, request, pk):
+        stanok = get_object_or_404(Stanok, pk=pk)
+        name = request.POST.get('name', '').strip()
+        model = request.POST.get('model', '').strip()
+        note = request.POST.get('note', '').strip()
+        is_active = request.POST.get('is_active') == 'on'
+        if not name:
+            messages.error(request, "Stanok nomi kiritilishi shart.")
+            return render(request, self.template_name, {
+                'title': f'{stanok.name} — tahrirlash',
+                'stanok': stanok,
+                'active_nav': 'stanoklar',
+                'data': request.POST,
+            })
+        if Stanok.objects.filter(name=name).exclude(pk=pk).exists():
+            messages.error(request, "Bu nomli stanok allaqachon mavjud.")
+            return render(request, self.template_name, {
+                'title': f'{stanok.name} — tahrirlash',
+                'stanok': stanok,
+                'active_nav': 'stanoklar',
+                'data': request.POST,
+            })
+        stanok.name = name
+        stanok.model = model
+        stanok.note = note
+        stanok.is_active = is_active
+        stanok.save()
+        messages.success(request, f'"{name}" yangilandi.')
+        return redirect('casting:stanok_list')
+
+
+class StanokDeleteView(CastingRequiredMixin, View):
+    def post(self, request, pk):
+        stanok = get_object_or_404(Stanok, pk=pk)
+        name = stanok.name
+        stanok.delete()
+        messages.success(request, f'"{name}" o\'chirildi.')
+        return redirect('casting:stanok_list')
+
+
+# ──────────────────────────────────────────────
+#  STANOK LOG LIST
+# ──────────────────────────────────────────────
+
+class StanokLogListView(CastingRequiredMixin, View):
+    template_name = 'casting/stanok_log_list.html'
+
+    def get(self, request):
+        logs = StanokLog.objects.select_related('order', 'stanok', 'worker').order_by('-created_at')
+        stanok_id = request.GET.get('stanok')
+        order_q = request.GET.get('q', '').strip()
+        if stanok_id:
+            logs = logs.filter(stanok_id=stanok_id)
+        if order_q:
+            logs = logs.filter(order__name__icontains=order_q)
+        stanoklar = Stanok.objects.all()
+        return render(request, self.template_name, {
+            'logs': logs[:200],
+            'stanoklar': stanoklar,
+            'active_nav': 'stanok_logs',
+            'selected_stanok': stanok_id or '',
+            'q': order_q,
+        })

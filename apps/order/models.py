@@ -3,6 +3,54 @@ from django.conf import settings
 
 
 # ──────────────────────────────────────────────
+#  STANOK
+# ──────────────────────────────────────────────
+class Stanok(models.Model):
+    name   = models.CharField('Stanok nomi', max_length=100, unique=True)
+    model  = models.CharField('Model', max_length=100, blank=True)
+    is_active = models.BooleanField('Faol', default=True)
+    note   = models.TextField('Izoh', blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['name']
+        verbose_name = 'Stanok'
+        verbose_name_plural = 'Stanoklar'
+
+    def __str__(self):
+        return self.name
+
+
+# ──────────────────────────────────────────────
+#  STANOK LOGI (yarim tayyor mahsulot hisobi)
+# ──────────────────────────────────────────────
+class StanokLog(models.Model):
+    """Stanokdan chiqqan yarim tayyor mahsulot logi. OrderStageLog dan alohida."""
+
+    class Side(models.TextChoices):
+        TOP    = 'top',    'Yuqori tomon'
+        BOTTOM = 'bottom', 'Pastki tomon'
+        SINGLE = 'single', 'Bir tomonlama'
+
+    order    = models.ForeignKey('Order', on_delete=models.CASCADE, related_name='stanok_logs', verbose_name='Buyurtma')
+    stanok   = models.ForeignKey(Stanok, on_delete=models.SET_NULL, null=True, blank=True, related_name='logs', verbose_name='Stanok')
+    worker   = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True, related_name='stanok_logs', verbose_name='Ishchi')
+    quantity = models.PositiveIntegerField('Miqdori')
+    defect   = models.PositiveIntegerField('Yaroqsiz', default=0)
+    side     = models.CharField('Tomoni', max_length=10, choices=Side.choices, default=Side.SINGLE)
+    note     = models.TextField('Izoh', blank=True)
+    created_at = models.DateTimeField('Vaqt', auto_now_add=True)
+
+    class Meta:
+        ordering = ['-created_at']
+        verbose_name = 'Stanok logi'
+        verbose_name_plural = 'Stanok loglari'
+
+    def __str__(self):
+        return f"{self.order.order_number} | {self.stanok} | {self.quantity} dona ({self.get_side_display()})"
+
+
+# ──────────────────────────────────────────────
 #  BO'LIMDAN BO'LIMGA O'TKAZISH (TRANSFER)
 # ──────────────────────────────────────────────
 class StageTransfer(models.Model):
@@ -18,10 +66,14 @@ class StageTransfer(models.Model):
 
     class Stage(models.TextChoices):
         CASTING       = 'casting',       "Quyish bo'limi"
-        MONTAJ        = 'montaj',        "Montaj bo'limi"
-        HANGING       = 'hanging',       "Ilish bo'limi"
-        STONE_SETTING = 'stone_setting', "Tosh qadash bo'limi"
+        ATTACH        = 'attach',        "Ilish bo'limi"
+        SPRAY         = 'spray',         "Sepish bo'limi"
+        PAINT         = 'paint',         "Bo'yash bo'limi"
         PACKAGING     = 'packaging',     "Upakovka bo'limi"
+        STONE         = 'stone',         "Tosh qadash bo'limi"
+        MONTAJ        = 'montaj',        "Montaj bo'limi"
+        HANGING       = 'hanging',       "Ilish bo'limi (eski)"
+        STONE_SETTING = 'stone_setting', "Tosh qadash bo'limi (eski)"
         WAREHOUSE     = 'warehouse',     "Ombor"
 
     order         = models.ForeignKey(
@@ -81,12 +133,27 @@ class Order(models.Model):
 
     class CurrentStage(models.TextChoices):
         CASTING       = 'casting',       'Quyish bo\'limi'
-        MONTAJ        = 'montaj',        'Montaj bo\'limi'
-        HANGING       = 'hanging',       'Ilish bo\'limi'
-        STONE_SETTING = 'stone_setting', 'Tosh qadash bo\'limi'
+        ATTACH        = 'attach',        'Ilish bo\'limi'
+        SPRAY         = 'spray',         'Sepish bo\'limi'
+        PAINT         = 'paint',         'Bo\'yash bo\'limi'
         PACKAGING     = 'packaging',     'Upakovka bo\'limi'
+        STONE         = 'stone',         'Tosh qadash bo\'limi'
+        MONTAJ        = 'montaj',        'Montaj bo\'limi'
+        HANGING       = 'hanging',       'Ilish bo\'limi (eski)'
+        STONE_SETTING = 'stone_setting', 'Tosh qadash bo\'limi (eski)'
         WAREHOUSE     = 'warehouse',     'Ombor'
         OUTSOURCE     = 'outsource',     'Tashqi ishlov'
+
+    class CoatingType(models.TextChoices):
+        SPRAY_ONLY      = 'spray_only',      'Faqat sepish'
+        PAINT_ONLY      = 'paint_only',      'Faqat bo\'yash'
+        SPRAY_AND_PAINT = 'spray_and_paint', 'Sepish va bo\'yash'
+
+    class Priority(models.TextChoices):
+        LOW    = 'low',    'Past'
+        NORMAL = 'normal', 'Oddiy'
+        HIGH   = 'high',   'Yuqori'
+        URGENT = 'urgent', 'Shoshilinch'
 
     order_number = models.CharField('Buyurtma raqami', max_length=20, unique=True, blank=True)
     name     = models.CharField('Buyurtma nomi', max_length=255)
@@ -105,6 +172,16 @@ class Order(models.Model):
     deadline      = models.DateField('Tayyor bo\'lish sanasi')
     status        = models.CharField('Holati', max_length=20, choices=Status.choices, default=Status.NEW)
     current_stage = models.CharField('Joriy bo\'lim', max_length=20, choices=CurrentStage.choices, blank=True)
+    coating_type  = models.CharField(
+        'Qoplama turi', max_length=20, choices=CoatingType.choices,
+        default=CoatingType.SPRAY_ONLY,
+    )
+    has_stone     = models.BooleanField('Tosh qadash bormi', default=False)
+    has_assembly  = models.BooleanField('Montaj bormi', default=False)
+    priority      = models.CharField(
+        'Muhimlik darajasi', max_length=10, choices=Priority.choices,
+        default=Priority.NORMAL,
+    )
     note          = models.TextField('Izoh', blank=True)
     created_by    = models.ForeignKey(
         settings.AUTH_USER_MODEL,
@@ -188,26 +265,206 @@ class CastingStage(models.Model):
         return f'{self.order.name} — Quyish ({self.get_status_display()})'
     
 class OrderStageLog(models.Model):
-        order = models.ForeignKey(Order, on_delete=models.CASCADE, related_name='stage_logs')
-        stage = models.CharField('Bosqich', max_length=20, choices=Order.CurrentStage.choices)
-        from_department = models.CharField('Qaysi bo\'limdan', max_length=50, blank=True)
-        to_department = models.CharField('Qaysi bo\'limga', max_length=50)
-        quantity = models.PositiveIntegerField('Miqdori')
-        worker = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True, related_name='stage_logs')
-        accepted_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True, related_name='stage_accepted_logs')
-        note = models.TextField('Izoh', blank=True)
-        created_at = models.DateTimeField('Vaqt', auto_now_add=True)
+    order = models.ForeignKey(Order, on_delete=models.CASCADE, related_name='stage_logs')
+    stage = models.CharField('Bosqich', max_length=20, choices=Order.CurrentStage.choices)
+    from_department = models.CharField('Qaysi bo\'limdan', max_length=50, blank=True)
+    to_department = models.CharField('Qaysi bo\'limga', max_length=50)
+    quantity = models.PositiveIntegerField('Miqdori')
+    worker = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True, related_name='order_stage_logs')
+    stanok = models.ForeignKey('Stanok', on_delete=models.SET_NULL, null=True, blank=True, related_name='order_stage_logs', verbose_name='Stanok')
+    accepted_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True, related_name='stage_accepted_logs')
+    note = models.TextField('Izoh', blank=True)
+    created_at = models.DateTimeField('Vaqt', auto_now_add=True)
 
-        class Meta:
-            ordering = ['-created_at']
-            verbose_name = 'Bosqich harakati'
-            verbose_name_plural = 'Bosqich harakatlari'
+    class Meta:
+        ordering = ['-created_at']
+        verbose_name = 'Bosqich harakati'
+        verbose_name_plural = 'Bosqich harakatlari'
 
-        def __str__(self):
+    def __str__(self):
+        return f"{self.order.order_number} - {self.get_stage_display()} ({self.quantity} dona) - {self.created_at.strftime('%Y-%m-%d %H:%M')}"
 
-            return f"{self.order.order_number} - {self.get_stage_display()} ({self.quantity} dona) - {self.created_at.strftime('%Y-%m-%d %H:%M')}"
-    
-    
+
+# ──────────────────────────────────────────────
+#  ILISH BO'LIMI (yangi: attach)
+# ──────────────────────────────────────────────
+class AttachStage(models.Model):
+
+    class Status(models.TextChoices):
+        PENDING    = 'pending',    'Kutilmoqda'
+        IN_PROCESS = 'in_process', 'Ilinmoqda'
+        COMPLETED  = 'completed',  'Yakunlandi'
+        REJECTED   = 'rejected',   'Rad etildi'
+
+    order = models.OneToOneField(Order, on_delete=models.CASCADE, related_name='attach', verbose_name='Buyurtma')
+    status = models.CharField('Holati', max_length=20, choices=Status.choices, default=Status.PENDING)
+    total_quantity  = models.PositiveIntegerField('Umumiy miqdor', default=0)
+    defect_quantity = models.PositiveIntegerField('Yaroqsiz', default=0)
+    note       = models.TextField('Izoh', blank=True)
+    started_at  = models.DateTimeField('Boshlangan vaqt', blank=True, null=True)
+    finished_at = models.DateTimeField('Tugallangan vaqt', blank=True, null=True)
+    created_at  = models.DateTimeField('Yaratilgan', auto_now_add=True)
+    updated_at  = models.DateTimeField('Yangilangan', auto_now=True)
+
+    class Meta:
+        verbose_name = 'Ilish bosqichi'
+        verbose_name_plural = 'Ilish bosqichlari'
+
+    def __str__(self):
+        return f'{self.order.name} — Ilish ({self.get_status_display()})'
+
+
+# ──────────────────────────────────────────────
+#  SEPISH BO'LIMI (spray)
+# ──────────────────────────────────────────────
+class SprayStage(models.Model):
+
+    class Status(models.TextChoices):
+        PENDING    = 'pending',    'Kutilmoqda'
+        IN_PROCESS = 'in_process', 'Sepilyapti'
+        COMPLETED  = 'completed',  'Yakunlandi'
+        REJECTED   = 'rejected',   'Rad etildi'
+
+    class LayerType(models.TextChoices):
+        SPRAY = 'spray', 'Sepish'
+        PAINT = 'paint', "Bo'yash"
+
+    order        = models.OneToOneField(Order, on_delete=models.CASCADE, related_name='spray', verbose_name='Buyurtma')
+    status       = models.CharField('Holati', max_length=20, choices=Status.choices, default=Status.PENDING)
+    layer_number = models.PositiveSmallIntegerField('Qavat raqami', default=1)
+    layer_type   = models.CharField('Qavat turi', max_length=10, choices=LayerType.choices, default=LayerType.SPRAY)
+    total_quantity  = models.PositiveIntegerField('Umumiy miqdor', default=0)
+    defect_quantity = models.PositiveIntegerField('Yaroqsiz', default=0)
+    note       = models.TextField('Izoh', blank=True)
+    started_at  = models.DateTimeField('Boshlangan vaqt', blank=True, null=True)
+    finished_at = models.DateTimeField('Tugallangan vaqt', blank=True, null=True)
+    created_at  = models.DateTimeField('Yaratilgan', auto_now_add=True)
+    updated_at  = models.DateTimeField('Yangilangan', auto_now=True)
+
+    class Meta:
+        verbose_name = 'Sepish bosqichi'
+        verbose_name_plural = 'Sepish bosqichlari'
+
+    def __str__(self):
+        return f'{self.order.name} — Sepish ({self.get_status_display()})'
+
+
+# ──────────────────────────────────────────────
+#  BO'YASH BO'LIMI (paint)
+# ──────────────────────────────────────────────
+class PaintStage(models.Model):
+
+    class Status(models.TextChoices):
+        PENDING    = 'pending',    'Kutilmoqda'
+        IN_PROCESS = 'in_process', "Bo'yalmoqda"
+        COMPLETED  = 'completed',  'Yakunlandi'
+        REJECTED   = 'rejected',   'Rad etildi'
+
+    order        = models.OneToOneField(Order, on_delete=models.CASCADE, related_name='paint', verbose_name='Buyurtma')
+    status       = models.CharField('Holati', max_length=20, choices=Status.choices, default=Status.PENDING)
+    layer_number = models.PositiveSmallIntegerField('Qavat raqami', default=2)
+    total_quantity  = models.PositiveIntegerField('Umumiy miqdor', default=0)
+    defect_quantity = models.PositiveIntegerField('Yaroqsiz', default=0)
+    note       = models.TextField('Izoh', blank=True)
+    started_at  = models.DateTimeField('Boshlangan vaqt', blank=True, null=True)
+    finished_at = models.DateTimeField('Tugallangan vaqt', blank=True, null=True)
+    created_at  = models.DateTimeField('Yaratilgan', auto_now_add=True)
+    updated_at  = models.DateTimeField('Yangilangan', auto_now=True)
+
+    class Meta:
+        verbose_name = "Bo'yash bosqichi"
+        verbose_name_plural = "Bo'yash bosqichlari"
+
+    def __str__(self):
+        return f"{self.order.name} — Bo'yash ({self.get_status_display()})"
+
+
+# ──────────────────────────────────────────────
+#  TOSH QADASH BO'LIMI (yangi: stone)
+# ──────────────────────────────────────────────
+class StoneStage(models.Model):
+
+    class Status(models.TextChoices):
+        PENDING    = 'pending',    'Kutilmoqda'
+        IN_PROCESS = 'in_process', 'Tosh qadashda'
+        COMPLETED  = 'completed',  'Yakunlandi'
+        REJECTED   = 'rejected',   'Rad etildi'
+
+    order = models.OneToOneField(Order, on_delete=models.CASCADE, related_name='stone', verbose_name='Buyurtma')
+    status = models.CharField('Holati', max_length=20, choices=Status.choices, default=Status.PENDING)
+    total_quantity  = models.PositiveIntegerField('Umumiy miqdor', default=0)
+    defect_quantity = models.PositiveIntegerField('Yaroqsiz', default=0)
+    note       = models.TextField('Izoh', blank=True)
+    started_at  = models.DateTimeField('Boshlangan vaqt', blank=True, null=True)
+    finished_at = models.DateTimeField('Tugallangan vaqt', blank=True, null=True)
+    created_at  = models.DateTimeField('Yaratilgan', auto_now_add=True)
+    updated_at  = models.DateTimeField('Yangilangan', auto_now=True)
+
+    class Meta:
+        verbose_name = 'Tosh qadash bosqichi'
+        verbose_name_plural = 'Tosh qadash bosqichlari'
+
+    def __str__(self):
+        return f'{self.order.name} — Tosh qadash ({self.get_status_display()})'
+
+
+# ──────────────────────────────────────────────
+#  MONTAJ BO'LIMI (yangi)
+# ──────────────────────────────────────────────
+class AssemblyStage(models.Model):
+
+    class Status(models.TextChoices):
+        PENDING    = 'pending',    'Kutilmoqda'
+        IN_PROCESS = 'in_process', 'Montajda'
+        COMPLETED  = 'completed',  'Yakunlandi'
+        REJECTED   = 'rejected',   'Rad etildi'
+
+    order = models.OneToOneField(Order, on_delete=models.CASCADE, related_name='assembly', verbose_name='Buyurtma')
+    status = models.CharField('Holati', max_length=20, choices=Status.choices, default=Status.PENDING)
+    total_quantity  = models.PositiveIntegerField('Umumiy miqdor', default=0)
+    defect_quantity = models.PositiveIntegerField('Yaroqsiz', default=0)
+    note       = models.TextField('Izoh', blank=True)
+    started_at  = models.DateTimeField('Boshlangan vaqt', blank=True, null=True)
+    finished_at = models.DateTimeField('Tugallangan vaqt', blank=True, null=True)
+    created_at  = models.DateTimeField('Yaratilgan', auto_now_add=True)
+    updated_at  = models.DateTimeField('Yangilangan', auto_now=True)
+
+    class Meta:
+        verbose_name = 'Montaj bosqichi'
+        verbose_name_plural = 'Montaj bosqichlari'
+
+    def __str__(self):
+        return f'{self.order.name} — Montaj ({self.get_status_display()})'
+
+
+# ──────────────────────────────────────────────
+#  UPAKOVKA BO'LIMI (yangi)
+# ──────────────────────────────────────────────
+class PackStage(models.Model):
+
+    class Status(models.TextChoices):
+        PENDING    = 'pending',    'Kutilmoqda'
+        IN_PROCESS = 'in_process', 'Qadoqlanmoqda'
+        COMPLETED  = 'completed',  'Yakunlandi'
+        REJECTED   = 'rejected',   'Rad etildi'
+
+    order = models.OneToOneField(Order, on_delete=models.CASCADE, related_name='pack', verbose_name='Buyurtma')
+    status = models.CharField('Holati', max_length=20, choices=Status.choices, default=Status.PENDING)
+    total_quantity  = models.PositiveIntegerField('Umumiy miqdor', default=0)
+    packed_quantity = models.PositiveIntegerField('Qadoqlangan', default=0)
+    defect_quantity = models.PositiveIntegerField('Yaroqsiz', default=0)
+    note       = models.TextField('Izoh', blank=True)
+    started_at  = models.DateTimeField('Boshlangan vaqt', blank=True, null=True)
+    finished_at = models.DateTimeField('Tugallangan vaqt', blank=True, null=True)
+    created_at  = models.DateTimeField('Yaratilgan', auto_now_add=True)
+    updated_at  = models.DateTimeField('Yangilangan', auto_now=True)
+
+    class Meta:
+        verbose_name = 'Upakovka bosqichi'
+        verbose_name_plural = 'Upakovka bosqichlari'
+
+    def __str__(self):
+        return f'{self.order.name} — Upakovka ({self.get_status_display()})'
 
 
 # ──────────────────────────────────────────────

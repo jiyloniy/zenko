@@ -64,10 +64,18 @@ class LoginView(View):
 
     def _redirect_by_role(self, user):
         role_name = user.role.name if user.role else None
-        if role_name == 'BOSS':
-            return redirect('boss:dashboard')
-        if role_name == 'CASTINGMANAGER':
-            return redirect('casting:dashboard')
+        redirects = {
+            'BOSS':            'boss:dashboard',
+            'CASTINGMANAGER':  'casting:dashboard',
+            'ATTACHMANAGER':   'attach:dashboard',
+            'SPRAYMANAGER':    'spray:dashboard',
+            'PAINTMANAGER':    'paint:dashboard',
+            'STONEMANAGER':    'stone:dashboard',
+            'ASSEMBLYMANAGER': 'assembly:dashboard',
+            'PACKMANAGER':     'pack:dashboard',
+        }
+        if role_name in redirects:
+            return redirect(redirects[role_name])
         if role_name == 'CEO' or user.is_superuser:
             return redirect('ceo:dashboard')
         return redirect('ceo:dashboard')

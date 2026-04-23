@@ -9,7 +9,8 @@ from django.urls import reverse
 from apps.order.models import (
     Order, CastingStage, MontajStage, HangingStage,
     StoneSettingStage, PackagingStage, WarehouseStage,
-    OrderStageLog,
+    OrderStageLog, AttachStage, SprayStage, PaintStage,
+    StoneStage, AssemblyStage, PackStage,
 )
 from apps.order.forms import OrderForm, OrderStageLogForm
 from apps.order.views.mixins import CEORequiredMixin
@@ -67,12 +68,22 @@ class OrderCreateView(CEORequiredMixin, View):
             order = form.save(commit=False)
             order.created_by = request.user
             order.save()
-            # auto-create all stage records
+            # auto-create stage records based on order settings
             CastingStage.objects.create(order=order, total_quantity=order.quantity)
-            MontajStage.objects.create(order=order, total_quantity=order.quantity)
-            HangingStage.objects.create(order=order, total_quantity=order.quantity)
-            StoneSettingStage.objects.create(order=order, total_quantity=order.quantity)
-            PackagingStage.objects.create(order=order, total_quantity=order.quantity)
+            AttachStage.objects.create(order=order, total_quantity=order.quantity)
+            coating = order.coating_type
+            if coating == Order.CoatingType.SPRAY_ONLY:
+                SprayStage.objects.create(order=order, total_quantity=order.quantity, layer_number=1)
+            elif coating == Order.CoatingType.PAINT_ONLY:
+                PaintStage.objects.create(order=order, total_quantity=order.quantity, layer_number=1)
+            elif coating == Order.CoatingType.SPRAY_AND_PAINT:
+                SprayStage.objects.create(order=order, total_quantity=order.quantity, layer_number=1)
+                PaintStage.objects.create(order=order, total_quantity=order.quantity, layer_number=2)
+            if order.has_stone:
+                StoneStage.objects.create(order=order, total_quantity=order.quantity)
+            if order.has_assembly:
+                AssemblyStage.objects.create(order=order, total_quantity=order.quantity)
+            PackStage.objects.create(order=order, total_quantity=order.quantity)
             WarehouseStage.objects.create(order=order)
             messages.success(request, f'"{order.name}" buyurtmasi yaratildi.')
             return redirect('order:order_list')
