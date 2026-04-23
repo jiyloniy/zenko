@@ -29,13 +29,6 @@ urlpatterns = [
     path('ceo/', include('apps.ceo.urls')),
     path('boss/', include('apps.boss.urls')),
     path('order/', include('apps.order.urls')),
-    path('casting/', include('apps.casting.urls')),
-    path('attach/', include('apps.attach.urls')),
-    path('spray/', include('apps.spray.urls')),
-    path('paint/', include('apps.paint.urls')),
-    path('stone/', include('apps.stone.urls')),
-    path('assembly/', include('apps.assembly.urls')),
-    path('pack/', include('apps.pack.urls')),
     path('users/', include('apps.users.urls')),
     path('', include('apps.manage.urls')),
 ]

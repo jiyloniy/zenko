@@ -45,7 +45,10 @@
 .sp-ready{background:#F0FDF4;color:#166534;}      .sp-ready .dot{background:#16A34A;}
 .sp-delivered{background:var(--gray-100);color:var(--gray-500);} .sp-delivered .dot{background:var(--gray-300);}
 .sp-cancelled{background:#FEF2F2;color:#B91C1C;}  .sp-cancelled .dot{background:#EF4444;}
-.stage-tag{display:inline-block;padding:3px 9px;border-radius:6px;font-size:11px;font-weight:600;background:var(--orange-light);color:var(--orange);}
+.prio-low{display:inline-block;padding:2px 8px;border-radius:5px;font-size:11px;font-weight:600;background:#F1F5F9;color:#475569;}
+.prio-normal{display:inline-block;padding:2px 8px;border-radius:5px;font-size:11px;font-weight:600;background:#EFF6FF;color:#2563EB;}
+.prio-high{display:inline-block;padding:2px 8px;border-radius:5px;font-size:11px;font-weight:600;background:#FFF7ED;color:#C2410C;}
+.prio-urgent{display:inline-block;padding:2px 8px;border-radius:5px;font-size:11px;font-weight:600;background:#FEF2F2;color:#B91C1C;}
 .deadline-late{color:#DC2626;font-weight:700;}
 .overdue-tag{font-size:10px;color:#DC2626;font-weight:600;margin-top:2px;}
 .actions-cell{display:flex;gap:5px;align-items:center;justify-content:flex-end;}
@@ -58,7 +61,7 @@
 .page-btn:hover{background:var(--gray-100);}
 .page-btn.active{background:var(--orange);color:#fff;border-color:var(--orange);}
 @media(max-width:768px){.order-table th:nth-child(5),.order-table td:nth-child(5){display:none;}}
-@media(max-width:580px){.order-table th:nth-child(4),.order-table td:nth-child(4),.order-table th:nth-child(6),.order-table td:nth-child(6){display:none;}.filter-wrap{flex-direction:column;align-items:stretch;}.filter-wrap input,.filter-wrap select{min-width:0;}}
+@media(max-width:580px){.order-table th:nth-child(4),.order-table td:nth-child(4){display:none;}.filter-wrap{flex-direction:column;align-items:stretch;}.filter-wrap input,.filter-wrap select{min-width:0;}}
 </style>
 {% endblock %}
 
@@ -88,15 +91,11 @@
         <option value="">Barcha statuslar</option>
         {% for val,label in statuses %}<option value="{{ val }}" {% if val == current_status %}selected{% endif %}>{{ label }}</option>{% endfor %}
     </select>
-    <select name="stage" onchange="this.form.submit()">
-        <option value="">Barcha bosqichlar</option>
-        {% for val,label in stages %}<option value="{{ val }}" {% if val == current_stage %}selected{% endif %}>{{ label }}</option>{% endfor %}
-    </select>
     <button type="submit" class="btn btn-secondary btn-sm">
         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width:14px;height:14px"><path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z"/></svg>
         Qidirish
     </button>
-    {% if q or current_status or current_stage %}
+    {% if q or current_status %}
     <a href="{% url 'order:order_list' %}" class="btn btn-sm" style="background:#FEF2F2;color:#DC2626;border:1px solid #FECACA;">
         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width:13px;height:13px"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12"/></svg>
         Tozalash
@@ -113,7 +112,7 @@
                 <th>Buyurtma</th>
                 <th>Miqdor</th>
                 <th>Muddat</th>
-                <th>Bosqich</th>
+                <th>Muhimlik</th>
                 <th>Status</th>
                 <th style="text-align:right;padding-right:20px;">Amallar</th>
             </tr>
@@ -139,10 +138,7 @@
                 <span class="{% if order.is_overdue %}deadline-late{% endif %}">{{ order.deadline|date:"d.m.Y" }}</span>
                 {% if order.is_overdue %}<div class="overdue-tag">Muddati o'tdi</div>{% endif %}
             </td>
-            <td>
-                {% if order.current_stage %}<span class="stage-tag">{{ order.get_current_stage_display }}</span>
-                {% else %}<span style="color:var(--gray-300);">—</span>{% endif %}
-            </td>
+            <td><span class="prio-{{ order.priority }}">{{ order.get_priority_display }}</span></td>
             <td>
                 <span class="spill sp-{{ order.status }}"><span class="dot"></span>{{ order.get_status_display }}</span>
             </td>
@@ -168,11 +164,11 @@
 {% if is_paginated %}
 <div class="pagination">
     {% if page_obj.has_previous %}
-    <a href="?page={{ page_obj.previous_page_number }}&status={{ current_status }}&stage={{ current_stage }}&q={{ q }}" class="page-btn">&laquo; Oldingi</a>
+    <a href="?page={{ page_obj.previous_page_number }}&status={{ current_status }}&q={{ q }}" class="page-btn">&laquo; Oldingi</a>
     {% endif %}
     <span class="page-btn active">{{ page_obj.number }} / {{ page_obj.paginator.num_pages }}</span>
     {% if page_obj.has_next %}
-    <a href="?page={{ page_obj.next_page_number }}&status={{ current_status }}&stage={{ current_stage }}&q={{ q }}" class="page-btn">Keyingi &raquo;</a>
+    <a href="?page={{ page_obj.next_page_number }}&status={{ current_status }}&q={{ q }}" class="page-btn">Keyingi &raquo;</a>
     {% endif %}
 </div>
 {% endif %}
@@ -180,8 +176,8 @@
 {% else %}
 <div class="empty-wrap">
     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M20.25 7.5l-.625 10.632a2.25 2.25 0 01-2.247 2.118H6.622a2.25 2.25 0 01-2.247-2.118L3.75 7.5M10 11.25h4M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125z"/></svg>
-    <p>{% if q or current_status or current_stage %}Filtr bo'yicha buyurtma topilmadi{% else %}Hali buyurtmalar yo'q{% endif %}</p>
-    {% if not q and not current_status and not current_stage %}
+    <p>{% if q or current_status %}Filtr bo'yicha buyurtma topilmadi{% else %}Hali buyurtmalar yo'q{% endif %}</p>
+    {% if not q and not current_status %}
     <a href="{% url 'order:order_create' %}" class="btn btn-primary">Birinchi buyurtmani yarating</a>
     {% else %}
     <a href="{% url 'order:order_list' %}" class="btn btn-secondary">Filterni tozalash</a>

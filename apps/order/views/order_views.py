@@ -3,16 +3,10 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse_lazy
 from django.views import View
 from django.views.generic import ListView, DeleteView
-from django.views.generic.edit import CreateView, UpdateView, DeleteView
-from django.urls import reverse
+from django.views.generic.edit import CreateView, UpdateView
 
-from apps.order.models import (
-    Order, CastingStage, MontajStage, HangingStage,
-    StoneSettingStage, PackagingStage, WarehouseStage,
-    OrderStageLog, AttachStage, SprayStage, PaintStage,
-    StoneStage, AssemblyStage, PackStage,
-)
-from apps.order.forms import OrderForm, OrderStageLogForm
+from apps.order.models import Order
+from apps.order.forms import OrderForm
 from apps.order.views.mixins import CEORequiredMixin
 
 
@@ -25,12 +19,9 @@ class OrderListView(CEORequiredMixin, ListView):
     def get_queryset(self):
         qs = Order.objects.select_related('created_by')
         status = self.request.GET.get('status')
-        stage = self.request.GET.get('stage')
         q = self.request.GET.get('q', '').strip()
         if status:
             qs = qs.filter(status=status)
-        if stage:
-            qs = qs.filter(current_stage=stage)
         if q:
             qs = qs.filter(name__icontains=q)
         return qs
@@ -39,11 +30,8 @@ class OrderListView(CEORequiredMixin, ListView):
         ctx = super().get_context_data(**kwargs)
         ctx['active_nav'] = 'orders'
         ctx['statuses'] = Order.Status.choices
-        ctx['stages'] = Order.CurrentStage.choices
         ctx['current_status'] = self.request.GET.get('status', '')
-        ctx['current_stage'] = self.request.GET.get('stage', '')
         ctx['q'] = self.request.GET.get('q', '')
-        # stats
         ctx['total'] = Order.objects.count()
         ctx['new_count'] = Order.objects.filter(status=Order.Status.NEW).count()
         ctx['in_process_count'] = Order.objects.filter(status=Order.Status.IN_PROCESS).count()
@@ -55,9 +43,8 @@ class OrderCreateView(CEORequiredMixin, View):
     template_name = 'order/order_form.html'
 
     def get(self, request):
-        form = OrderForm()
         return render(request, self.template_name, {
-            'form': form,
+            'form': OrderForm(),
             'title': 'Yangi buyurtma',
             'active_nav': 'orders',
         })
@@ -67,26 +54,24 @@ class OrderCreateView(CEORequiredMixin, View):
         if form.is_valid():
             order = form.save(commit=False)
             order.created_by = request.user
+            if not order.name.strip():
+                brujka = order.brujka
+                bname = brujka.name if brujka else 'Buyurtma'
+                color = brujka.color if brujka else ''
+                date_str = order.deadline.strftime('%d.%m.%Y') if order.deadline else ''
+                order.save()  # order_number generate bo'lishi uchun
+                parts = [bname]
+                if color:
+                    parts.append(color)
+                if date_str:
+                    parts.append(date_str)
+                order.name = f'#BRUJ — {order.order_number} — ' + ' — '.join(parts)
+                order.save(update_fields=['name'])
+                messages.success(request, f'"{order.name}" buyurtmasi yaratildi.')
+                return redirect('order:order_detail', pk=order.pk)
             order.save()
-            # auto-create stage records based on order settings
-            CastingStage.objects.create(order=order, total_quantity=order.quantity)
-            AttachStage.objects.create(order=order, total_quantity=order.quantity)
-            coating = order.coating_type
-            if coating == Order.CoatingType.SPRAY_ONLY:
-                SprayStage.objects.create(order=order, total_quantity=order.quantity, layer_number=1)
-            elif coating == Order.CoatingType.PAINT_ONLY:
-                PaintStage.objects.create(order=order, total_quantity=order.quantity, layer_number=1)
-            elif coating == Order.CoatingType.SPRAY_AND_PAINT:
-                SprayStage.objects.create(order=order, total_quantity=order.quantity, layer_number=1)
-                PaintStage.objects.create(order=order, total_quantity=order.quantity, layer_number=2)
-            if order.has_stone:
-                StoneStage.objects.create(order=order, total_quantity=order.quantity)
-            if order.has_assembly:
-                AssemblyStage.objects.create(order=order, total_quantity=order.quantity)
-            PackStage.objects.create(order=order, total_quantity=order.quantity)
-            WarehouseStage.objects.create(order=order)
             messages.success(request, f'"{order.name}" buyurtmasi yaratildi.')
-            return redirect('order:order_list')
+            return redirect('order:order_detail', pk=order.pk)
         return render(request, self.template_name, {
             'form': form,
             'title': 'Yangi buyurtma',
@@ -99,9 +84,8 @@ class OrderUpdateView(CEORequiredMixin, View):
 
     def get(self, request, pk):
         order = get_object_or_404(Order, pk=pk)
-        form = OrderForm(instance=order)
         return render(request, self.template_name, {
-            'form': form,
+            'form': OrderForm(instance=order),
             'order': order,
             'title': f'{order.name} — tahrirlash',
             'active_nav': 'orders',
@@ -138,90 +122,17 @@ class OrderDeleteView(CEORequiredMixin, DeleteView):
         return super().form_valid(form)
 
 
-class OrderStageLogCreateView(CEORequiredMixin, CreateView):
-    model = OrderStageLog
-    form_class = OrderStageLogForm
-    template_name = 'order/stage_log_form.html'
-
-    def dispatch(self, request, *args, **kwargs):
-        self.order = get_object_or_404(Order, pk=kwargs['order_pk'])
-        return super().dispatch(request, *args, **kwargs)
-
-    def form_valid(self, form):
-        form.instance.order = self.order
-        return super().form_valid(form)
-
-    def get_success_url(self):
-        return reverse('order:order_detail', args=[self.order.pk])
-
-    def get_context_data(self, **kwargs):
-        ctx = super().get_context_data(**kwargs)
-        ctx['order'] = self.order
-        ctx['is_create'] = True
-        return ctx
-
-
-class OrderStageLogUpdateView(CEORequiredMixin, UpdateView):
-    model = OrderStageLog
-    form_class = OrderStageLogForm
-    template_name = 'order/stage_log_form.html'
-
-    def get_success_url(self):
-        return reverse('order:order_detail', args=[self.object.order.pk])
-
-    def get_context_data(self, **kwargs):
-        ctx = super().get_context_data(**kwargs)
-        ctx['order'] = self.object.order
-        ctx['is_create'] = False
-        return ctx
-
-
-class OrderStageLogDeleteView(CEORequiredMixin, DeleteView):
-    model = OrderStageLog
-    template_name = 'order/stage_log_confirm_delete.html'
-
-    def get_success_url(self):
-        return reverse('order:order_detail', args=[self.object.order.pk])
-
-    def get_context_data(self, **kwargs):
-        ctx = super().get_context_data(**kwargs)
-        ctx['order'] = self.object.order
-        return ctx
-
-
 class OrderDetailView(CEORequiredMixin, View):
     template_name = 'order/order_detail.html'
 
     def get(self, request, pk):
         order = get_object_or_404(
-            Order.objects.select_related(
-                'created_by', 'casting', 'montaj', 'hanging',
-                'stone_setting', 'packaging', 'warehouse',
-            ).prefetch_related('outsource_works', 'quality_checks', 'stage_logs'),
+            Order.objects.select_related('created_by'),
             pk=pk,
         )
-        stage_filter = request.GET.get('stage', 'all')
-        stage_logs = order.stage_logs.select_related('worker', 'accepted_by').order_by('-created_at')
-        if stage_filter != 'all':
-            stage_logs = stage_logs.filter(stage=stage_filter)
-        # Bosqichlar uchun alohida loglar
-        casting_logs = order.stage_logs.filter(stage='casting').select_related('worker', 'accepted_by').order_by('-created_at')
-        montaj_logs = order.stage_logs.filter(stage='montaj').select_related('worker', 'accepted_by').order_by('-created_at')
-        hanging_logs = order.stage_logs.filter(stage='hanging').select_related('worker', 'accepted_by').order_by('-created_at')
-        stone_logs = order.stage_logs.filter(stage='stone_setting').select_related('worker', 'accepted_by').order_by('-created_at')
-        packaging_logs = order.stage_logs.filter(stage='packaging').select_related('worker', 'accepted_by').order_by('-created_at')
-        warehouse_logs = order.stage_logs.filter(stage='warehouse').select_related('worker', 'accepted_by').order_by('-created_at')
         return render(request, self.template_name, {
             'order': order,
-            'stage_logs': stage_logs,
             'active_nav': 'orders',
-            'stage_filter': stage_filter,
-            'casting_logs': casting_logs,
-            'montaj_logs': montaj_logs,
-            'hanging_logs': hanging_logs,
-            'stone_logs': stone_logs,
-            'packaging_logs': packaging_logs,
-            'warehouse_logs': warehouse_logs,
         })
 
     def post(self, request, pk):

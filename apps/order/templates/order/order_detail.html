@@ -20,14 +20,17 @@
         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width:15px;height:15px"><path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0"/></svg>
         O'chirish
     </a>
+    <a href="{% url 'order:order_list' %}" class="btn btn-secondary btn-sm">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width:15px;height:15px"><path stroke-linecap="round" stroke-linejoin="round" d="M9 15 3 9m0 0 6-6M3 9h12a6 6 0 0 1 0 12h-3"/></svg>
+        Ro'yxat
+    </a>
 </div>
 {% endblock %}
 
 {% block extra_css %}
 <style>
-.detail-grid{display:grid;grid-template-columns:320px 1fr;gap:22px;align-items:start;}
-.left-panel,.right-panel{display:flex;flex-direction:column;gap:18px;}
-.info-card{background:var(--white);border:1px solid var(--gray-200);border-radius:16px;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.05);}
+.detail-grid{display:grid;grid-template-columns:300px 1fr;gap:22px;align-items:start;}
+.info-card{background:var(--white);border:1px solid var(--gray-200);border-radius:16px;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.05);margin-bottom:18px;}
 .ic-header{padding:13px 18px;border-bottom:1px solid var(--gray-100);display:flex;align-items:center;justify-content:space-between;}
 .ic-header h4{font-size:11.5px;font-weight:700;color:var(--gray-500);text-transform:uppercase;letter-spacing:.6px;margin:0;}
 .ic-body{padding:18px;}
@@ -49,93 +52,33 @@
 .sp-ready{background:#ECFDF5;color:#065F46;} .sp-ready .dot{background:#10B981;}
 .sp-delivered{background:var(--gray-100);color:var(--gray-500);} .sp-delivered .dot{background:var(--gray-300);}
 .sp-cancelled{background:#FEF2F2;color:#B91C1C;} .sp-cancelled .dot{background:#EF4444;}
+.prio-low{background:#F1F5F9;color:#475569;}
+.prio-normal{background:#EFF6FF;color:#2563EB;}
+.prio-high{background:#FFF7ED;color:#C2410C;}
+.prio-urgent{background:#FEF2F2;color:#B91C1C;}
+.prio-badge{display:inline-block;padding:3px 10px;border-radius:6px;font-size:12px;font-weight:700;}
 @keyframes blink{0%,100%{opacity:1;}50%{opacity:.35;}}
-.qty-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;}
-.qty-tile{text-align:center;padding:12px 8px;background:var(--gray-50);border-radius:10px;border:1px solid var(--gray-100);}
-.qty-tile .qn{font-size:22px;font-weight:800;color:var(--black);}
-.qty-tile .ql{font-size:10.5px;color:var(--gray-400);font-weight:600;text-transform:uppercase;margin-top:2px;}
-.qty-tile.defect .qn{color:#DC2626;}
-.qty-tile.good .qn{color:#16A34A;}
-/* pipeline */
-.pipeline-wrap{background:var(--white);border:1px solid var(--gray-200);border-radius:16px;padding:20px 24px;box-shadow:0 1px 4px rgba(0,0,0,.05);}
-.pipeline-wrap h4{font-size:11.5px;font-weight:700;color:var(--gray-500);text-transform:uppercase;letter-spacing:.6px;margin:0 0 16px;}
-.pipeline{display:flex;align-items:center;overflow-x:auto;padding-bottom:4px;}
-.pipe-node{display:flex;flex-direction:column;align-items:center;gap:6px;text-decoration:none;flex:1;min-width:64px;position:relative;}
-.pipe-node:not(:last-child)::after{content:'';position:absolute;top:18px;left:calc(50% + 18px);right:calc(-50% + 18px);height:2px;background:var(--gray-200);z-index:0;}
-.pipe-dot{width:36px;height:36px;border-radius:50%;background:var(--gray-100);border:2px solid var(--gray-300);display:flex;align-items:center;justify-content:center;color:var(--gray-400);position:relative;z-index:1;}
-.pipe-dot svg{width:16px;height:16px;}
-.pipe-label{font-size:10px;font-weight:600;color:var(--gray-400);text-align:center;}
-.pipe-node.active .pipe-dot{background:var(--orange);border-color:var(--orange);color:#fff;box-shadow:0 0 0 4px rgba(249,115,22,.2);}
-.pipe-node.active .pipe-label{color:var(--orange);}
-.pipe-node.done .pipe-dot{background:#22C55E;border-color:#22C55E;color:#fff;}
-.pipe-node.done .pipe-label{color:#16A34A;}
-.pipe-node.done:not(:last-child)::after{background:#22C55E;}
-.pipe-node.rejected .pipe-dot{background:#FEE2E2;border-color:#EF4444;color:#EF4444;}
-.pipe-node.rejected .pipe-label{color:#DC2626;}
-/* stage cards */
-.stage-card{background:var(--white);border:1px solid var(--gray-200);border-radius:16px;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.05);}
-.stage-card.active-stage{border-color:var(--orange);box-shadow:0 0 0 2px rgba(249,115,22,.12);}
-.sc-head{padding:14px 20px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;user-select:none;}
-.sc-head-left{display:flex;align-items:center;gap:12px;}
-.sc-icon{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
-.sc-icon svg{width:18px;height:18px;}
-.sc-title{font-size:14px;font-weight:700;color:var(--black);}
-.sc-sub{font-size:11.5px;color:var(--gray-400);margin-top:1px;}
-.sc-badge{display:inline-flex;align-items:center;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;}
-.sb-pending{background:#F1F5F9;color:#64748B;}.sb-in_process{background:#FFF7ED;color:#C2410C;}.sb-completed{background:#F0FDF4;color:#15803D;}.sb-rejected{background:#FEF2F2;color:#B91C1C;}
-.sc-chevron{width:18px;height:18px;color:var(--gray-400);transition:transform .25s;}
-.sc-body{padding:0 20px 20px;display:none;}
-.sc-body.open{display:block;}
-.stage-meta-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:14px;}
-.smt{padding:10px 12px;background:var(--gray-50);border-radius:10px;}
-.smt .sml{font-size:10.5px;color:var(--gray-400);font-weight:600;text-transform:uppercase;}
-.smt .smv{font-size:15px;font-weight:700;color:var(--black);margin-top:2px;}
-.smt .smv.red{color:#DC2626;}.smt .smv.green{color:#16A34A;}
-.stage-note{background:#FFFBEB;border:1px solid #FDE68A;border-radius:10px;padding:10px 14px;font-size:13px;color:#92400E;margin-bottom:14px;}
-.log-table-wrap{border:1px solid var(--gray-100);border-radius:10px;overflow:hidden;}
-.log-table{width:100%;border-collapse:collapse;font-size:12.5px;}
-.log-table th{text-align:left;padding:8px 12px;font-size:10.5px;font-weight:700;color:var(--gray-500);text-transform:uppercase;letter-spacing:.5px;background:var(--gray-50);border-bottom:1px solid var(--gray-100);}
-.log-table td{padding:9px 12px;border-bottom:1px solid var(--gray-50);color:var(--gray-700);vertical-align:middle;}
-.log-table tbody tr:last-child td{border-bottom:none;}
-.log-table tbody tr:hover td{background:#FAFAFA;}
-.btn-edit-sm{display:inline-flex;align-items:center;gap:4px;padding:4px 9px;background:var(--gray-100);border-radius:6px;font-size:11px;font-weight:600;color:var(--gray-600);text-decoration:none;}
-.btn-edit-sm:hover{background:var(--gray-200);}
-.btn-del-sm{display:inline-flex;align-items:center;padding:4px 9px;background:#FEF2F2;border-radius:6px;font-size:11px;font-weight:600;color:#DC2626;text-decoration:none;}
-.btn-del-sm:hover{background:#FEE2E2;}
-/* timeline */
-.timeline-card{background:var(--white);border:1px solid var(--gray-200);border-radius:16px;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.05);}
-.tc-head{padding:16px 20px;border-bottom:1px solid var(--gray-100);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;}
-.tc-head h4{font-size:11.5px;font-weight:700;color:var(--gray-500);text-transform:uppercase;letter-spacing:.6px;margin:0;}
-.tc-filter{display:flex;gap:5px;flex-wrap:wrap;}
-.tf-btn{padding:4px 11px;border-radius:20px;font-size:11.5px;font-weight:600;text-decoration:none;background:var(--gray-100);color:var(--gray-600);}
-.tf-btn:hover{background:var(--gray-200);}
-.tf-btn.active{background:var(--orange-light);color:var(--orange);}
-.timeline{padding:16px 20px;display:flex;flex-direction:column;gap:12px;}
-.tl-item{display:flex;gap:12px;}
-.tl-dot{width:32px;height:32px;border-radius:50%;background:var(--orange-light);display:flex;align-items:center;justify-content:center;flex-shrink:0;color:var(--orange);margin-top:2px;}
-.tl-dot svg{width:14px;height:14px;}
-.tl-body{flex:1;}
-.tl-head-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
-.tl-stage-tag{display:inline-block;padding:2px 8px;border-radius:5px;font-size:10.5px;font-weight:700;background:var(--orange-light);color:var(--orange);}
-.tl-from{font-size:11px;color:var(--gray-400);}
-.tl-qty{font-size:13px;font-weight:700;color:var(--black);}
-.tl-meta{font-size:11.5px;color:var(--gray-500);margin-top:3px;}
-.tl-note{font-size:12px;color:var(--gray-600);background:var(--gray-50);border-radius:7px;padding:5px 10px;margin-top:5px;font-style:italic;}
-.tl-actions{display:flex;gap:5px;margin-top:6px;}
-.empty-stage{padding:18px;text-align:center;color:var(--gray-400);font-size:13px;}
 .deadline-late{color:#DC2626;font-weight:700;}
+.stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.stat-tile{padding:14px;background:var(--gray-50);border-radius:10px;border:1px solid var(--gray-100);text-align:center;}
+.stat-tile .sv{font-size:22px;font-weight:800;color:var(--black);}
+.stat-tile .sl{font-size:10.5px;color:var(--gray-400);font-weight:600;text-transform:uppercase;margin-top:2px;}
+.status-flow{display:flex;flex-direction:column;gap:6px;}
+.sf-item{display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:10px;border:1.5px solid var(--gray-200);cursor:pointer;transition:all .15s;text-decoration:none;}
+.sf-item:hover{border-color:var(--orange);background:var(--orange-light);}
+.sf-item.sf-current{border-color:var(--orange);background:var(--orange-light);}
+.sf-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;}
+.sf-label{font-size:13px;font-weight:600;color:var(--black);}
+.sf-check{margin-left:auto;width:16px;height:16px;color:var(--orange);}
 @media(max-width:900px){.detail-grid{grid-template-columns:1fr;}}
-@media(max-width:540px){.qty-row{grid-template-columns:1fr 1fr;}.stage-meta-grid{grid-template-columns:1fr 1fr;}}
 </style>
 {% endblock %}
 
 {% block content %}
-{% with casting=order.casting montaj=order.montaj hanging=order.hanging stone=order.stone_setting packaging=order.packaging warehouse=order.warehouse %}
 <div class="detail-grid">
 
-  <!-- LEFT -->
-  <div class="left-panel">
-
+  <!-- LEFT PANEL -->
+  <div>
     {% if order.image %}
     <div class="info-card">
       <div class="ic-body" style="padding:14px;">
@@ -150,6 +93,23 @@
         <span class="spill sp-{{ order.status }}"><span class="dot"></span>{{ order.get_status_display }}</span>
       </div>
       <div class="ic-body">
+        {% if order.brujka %}
+        <div style="margin-bottom:14px;border-radius:12px;overflow:hidden;border:1px solid var(--gray-200);">
+          {% if order.brujka.image %}
+          <img src="{{ order.brujka.image.url }}" style="width:100%;max-height:200px;object-fit:cover;display:block;" alt="{{ order.brujka.name }}">
+          {% else %}
+          <div style="width:100%;height:100px;background:{{ order.brujka.color }}22;display:flex;align-items:center;justify-content:center;">
+            <span style="width:40px;height:40px;border-radius:10px;background:{{ order.brujka.color }};display:inline-block;"></span>
+          </div>
+          {% endif %}
+          <div style="padding:10px 14px;background:var(--gray-50);border-top:1px solid var(--gray-100);display:flex;align-items:center;gap:8px;">
+            <span style="width:12px;height:12px;border-radius:3px;background:{{ order.brujka.color }};flex-shrink:0;border:1px solid rgba(0,0,0,.1);"></span>
+            <span style="font-size:13px;font-weight:700;color:var(--black);">{{ order.brujka.name }}</span>
+            <span style="font-size:11px;padding:2px 7px;border-radius:4px;background:#FFF7ED;color:#C2410C;font-weight:600;">{{ order.brujka.get_coating_type_display }}</span>
+            <a href="{% url 'order:brujka_detail' order.brujka.pk %}" style="margin-left:auto;font-size:11.5px;color:var(--orange);text-decoration:none;font-weight:600;">Ko'rish →</a>
+          </div>
+        </div>
+        {% endif %}
         <div class="meta-row">
           <div class="meta-icon"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M5.25 8.25h15m-16.5 7.5h15m-1.8-13.5-3.9 19.5m-2.1-19.5-3.9 19.5"/></svg></div>
           <div><div class="meta-label">Raqam</div><div class="meta-val" style="font-family:monospace;">{{ order.order_number }}</div></div>
@@ -166,12 +126,13 @@
             {% if order.is_overdue %}<div style="font-size:11px;color:#DC2626;font-weight:600;">Kechikmoqda!</div>{% endif %}
           </div>
         </div>
-        {% if order.current_stage %}
         <div class="meta-row">
-          <div class="meta-icon" style="background:#EFF6FF;color:#3B82F6;"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M8.25 6.75h12M8.25 12h12m-12 5.25h12M3.75 6.75h.007v.008H3.75V6.75Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0ZM3.75 12h.007v.008H3.75V12Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm-.375 5.25h.007v.008H3.75v-.008Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Z"/></svg></div>
-          <div><div class="meta-label">Joriy bosqich</div><div class="meta-val">{{ order.get_current_stage_display }}</div></div>
+          <div class="meta-icon" style="background:#F1F5F9;color:#475569;"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 0 1 3 19.875v-6.75ZM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V8.625ZM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V4.125Z"/></svg></div>
+          <div>
+            <div class="meta-label">Muhimlik</div>
+            <div class="meta-val"><span class="prio-badge prio-{{ order.priority }}">{{ order.get_priority_display }}</span></div>
+          </div>
         </div>
-        {% endif %}
         {% if order.created_by %}
         <div class="meta-row">
           <div class="meta-icon" style="background:#F5F3FF;color:#7C3AED;"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z"/></svg></div>
@@ -192,342 +153,60 @@
     </div>
 
     <div class="info-card">
-      <div class="ic-header"><h4>Miqdor xulosasi</h4></div>
+      <div class="ic-header"><h4>Miqdor</h4></div>
       <div class="ic-body">
-        <div class="qty-row">
-          <div class="qty-tile"><div class="qn">{{ order.quantity }}</div><div class="ql">Jami</div></div>
-          <div class="qty-tile defect"><div class="qn">{{ order.total_defect }}</div><div class="ql">Yaroqsiz</div></div>
-          <div class="qty-tile good"><div class="qn">{{ order.good_quantity }}</div><div class="ql">Yaroqli</div></div>
+        <div class="stat-grid">
+          <div class="stat-tile"><div class="sv">{{ order.quantity }}</div><div class="sl">Jami dona</div></div>
+          <div class="stat-tile"><div class="sv" style="color:var(--orange);">{{ order.status|upper }}</div><div class="sl" style="font-size:9px;">{{ order.get_status_display }}</div></div>
         </div>
       </div>
     </div>
-
   </div>
 
-  <!-- RIGHT -->
-  <div class="right-panel">
-
-    <!-- Pipeline -->
-    <div class="pipeline-wrap">
-      <h4>Ishlab chiqarish yo'li</h4>
-      <div class="pipeline">
-        <a href="{% url 'order:casting_edit' order.pk %}" class="pipe-node {% if order.current_stage == 'casting' %}active{% elif casting and casting.status == 'completed' %}done{% elif casting and casting.status == 'rejected' %}rejected{% endif %}">
-          <div class="pipe-dot"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15.362 5.214A8.252 8.252 0 0 1 12 21 8.25 8.25 0 0 1 6.038 7.047 8.287 8.287 0 0 0 9 9.601a8.983 8.983 0 0 1 3.361-6.867 8.21 8.21 0 0 0 3 2.48Z"/></svg></div>
-          <div class="pipe-label">Quyish</div>
-        </a>
-        <a href="{% url 'order:montaj_edit' order.pk %}" class="pipe-node {% if order.current_stage == 'montaj' %}active{% elif montaj and montaj.status == 'completed' %}done{% elif montaj and montaj.status == 'rejected' %}rejected{% endif %}">
-          <div class="pipe-dot"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M11.42 15.17 17.25 21A2.652 2.652 0 0 0 21 17.25l-5.877-5.877M11.42 15.17l2.496-3.03c.317-.384.74-.626 1.208-.766M11.42 15.17l-4.655 5.653a2.548 2.548 0 1 1-3.586-3.586l5.653-4.655m5.833-4.322a4.015 4.015 0 0 0-1.208.766"/></svg></div>
-          <div class="pipe-label">Montaj</div>
-        </a>
-        <a href="{% url 'order:hanging_edit' order.pk %}" class="pipe-node {% if order.current_stage == 'hanging' %}active{% elif hanging and hanging.status == 'completed' %}done{% elif hanging and hanging.status == 'rejected' %}rejected{% endif %}">
-          <div class="pipe-dot"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M13.19 8.688a4.5 4.5 0 0 1 1.242 7.244l-4.5 4.5a4.5 4.5 0 0 1-6.364-6.364l1.757-1.757m13.35-.622 1.757-1.757a4.5 4.5 0 0 0-6.364-6.364l-4.5 4.5a4.5 4.5 0 0 0 1.242 7.244"/></svg></div>
-          <div class="pipe-label">Ilish</div>
-        </a>
-        <a href="{% url 'order:stone_edit' order.pk %}" class="pipe-node {% if order.current_stage == 'stone_setting' %}active{% elif stone and stone.status == 'completed' %}done{% elif stone and stone.status == 'rejected' %}rejected{% endif %}">
-          <div class="pipe-dot"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M21 11.25v8.25a1.5 1.5 0 0 1-1.5 1.5H5.25a1.5 1.5 0 0 1-1.5-1.5v-8.25M12 4.875A2.625 2.625 0 1 0 9.375 7.5H12m0-2.625V7.5m0-2.625A2.625 2.625 0 1 1 14.625 7.5H12m0 0V21m-8.625-9.75h18c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125h-18c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125Z"/></svg></div>
-          <div class="pipe-label">Tosh qadash</div>
-        </a>
-        <a href="{% url 'order:packaging_edit' order.pk %}" class="pipe-node {% if order.current_stage == 'packaging' %}active{% elif packaging and packaging.status == 'completed' %}done{% elif packaging and packaging.status == 'rejected' %}rejected{% endif %}">
-          <div class="pipe-dot"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M20.25 7.5l-.625 10.632a2.25 2.25 0 0 1-2.247 2.118H6.622a2.25 2.25 0 0 1-2.247-2.118L3.75 7.5M10 11.25h4M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125Z"/></svg></div>
-          <div class="pipe-label">Upakovka</div>
-        </a>
-        <a href="{% url 'order:warehouse_edit' order.pk %}" class="pipe-node {% if order.current_stage == 'warehouse' %}active{% elif warehouse and warehouse.status == 'delivered' %}done{% endif %}">
-          <div class="pipe-dot"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M8.25 21v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21m0 0h4.5V3.545M12.75 21h7.5V10.75M2.25 21h1.5m18 0h-18M2.25 9l4.5-1.636M18.75 3l-1.5.545m0 6.205 3 1m1.5.5-1.5-.5M6.75 7.364V3h-3v18m3-13.636 10.5-3.819"/></svg></div>
-          <div class="pipe-label">Ombor</div>
-        </a>
-      </div>
-    </div>
-
-    <!-- Stage Cards -->
-    {% if casting %}
-    <div class="stage-card {% if order.current_stage == 'casting' %}active-stage{% endif %}">
-      <div class="sc-head" onclick="toggleStage('casting')">
-        <div class="sc-head-left">
-          <div class="sc-icon" style="background:#FFF7ED;color:#EA580C;"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15.362 5.214A8.252 8.252 0 0 1 12 21 8.25 8.25 0 0 1 6.038 7.047 8.287 8.287 0 0 0 9 9.601a8.983 8.983 0 0 1 3.361-6.867 8.21 8.21 0 0 0 3 2.48Z"/></svg></div>
-          <div><div class="sc-title">Quyish bo'limi</div><div class="sc-sub">{% if casting.started_at %}{{ casting.started_at|date:"d.m.Y" }}{% else %}Boshlanmagan{% endif %}</div></div>
-        </div>
-        <div style="display:flex;align-items:center;gap:10px;">
-          <span class="sc-badge sb-{{ casting.status }}">{{ casting.get_status_display }}</span>
-          <svg class="sc-chevron" id="chev-casting" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5"/></svg>
-        </div>
-      </div>
-      <div class="sc-body {% if order.current_stage == 'casting' %}open{% endif %}" id="body-casting">
-        <div class="stage-meta-grid">
-          <div class="smt"><div class="sml">Umumiy</div><div class="smv">{{ casting.total_quantity }} dona</div></div>
-          <div class="smt"><div class="sml">Yaroqsiz</div><div class="smv red">{{ casting.defect_quantity }} dona</div></div>
-          <div class="smt"><div class="sml">Holati</div><div class="smv">{{ casting.get_status_display }}</div></div>
-        </div>
-        {% if casting.note %}<div class="stage-note">{{ casting.note }}</div>{% endif %}
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
-          <div style="font-size:11.5px;font-weight:700;color:var(--gray-500);text-transform:uppercase;letter-spacing:.5px;">Harakatlar ({{ casting_logs.count }})</div>
-          <div style="display:flex;gap:6px;">
-            <a href="{% url 'order:stage_log_create' order.pk %}?stage=casting" class="btn btn-primary btn-sm" style="font-size:12px;padding:5px 12px;">+ Yangi</a>
-            <a href="{% url 'order:casting_edit' order.pk %}" class="btn-edit-sm"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width:13px;height:13px"><path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Z"/></svg> Tahrirlash</a>
+  <!-- RIGHT PANEL -->
+  <div>
+    <div class="info-card">
+      <div class="ic-header"><h4>Status o'zgartirish</h4></div>
+      <div class="ic-body">
+        <form method="post">
+          {% csrf_token %}
+          <div class="status-flow">
+            {% for val,label in order.Status.choices %}
+            <button type="submit" name="set_status" value="{{ val }}"
+              class="sf-item {% if order.status == val %}sf-current{% endif %}"
+              style="border:none;width:100%;text-align:left;background:{% if order.status == val %}var(--orange-light){% else %}var(--white){% endif %};">
+              <span class="sf-dot" style="background:{% if val == 'new' %}#3B82F6{% elif val == 'accepted' %}#22C55E{% elif val == 'in_process' %}#F97316{% elif val == 'ready' %}#10B981{% elif val == 'delivered' %}#94A3B8{% else %}#EF4444{% endif %};"></span>
+              <span class="sf-label">{{ label }}</span>
+              {% if order.status == val %}
+              <svg class="sf-check" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5"/></svg>
+              {% endif %}
+            </button>
+            {% endfor %}
           </div>
-        </div>
-        {% if casting_logs %}
-        <div class="log-table-wrap"><table class="log-table">
-          <thead><tr><th>Xodim</th><th>Miqdor</th><th>Vaqt</th><th>Izoh</th><th></th></tr></thead>
-          <tbody>{% for log in casting_logs %}<tr>
-            <td>{% if log.worker %}{{ log.worker.name|default:log.worker.username }}{% else %}—{% endif %}</td>
-            <td><strong>{{ log.quantity }}</strong></td>
-            <td style="white-space:nowrap;color:var(--gray-400);font-size:11.5px;">{{ log.created_at|date:"d.m H:i" }}</td>
-            <td style="color:var(--gray-500);font-size:12px;">{{ log.note|truncatechars:30 }}</td>
-            <td><div style="display:flex;gap:4px;justify-content:flex-end;">
-              <a href="{% url 'order:stage_log_edit' log.pk %}" class="btn-edit-sm" title="Tahrirlash"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width:12px;height:12px"><path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Z"/></svg></a>
-              <a href="{% url 'order:stage_log_delete' log.pk %}" class="btn-del-sm" title="O'chirish"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width:12px;height:12px"><path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79"/></svg></a>
-            </div></td>
-          </tr>{% endfor %}</tbody>
-        </table></div>
-        {% else %}<div class="empty-stage">Hali harakat yo'q</div>{% endif %}
+        </form>
       </div>
     </div>
-    {% endif %}
 
-    {% if montaj %}
-    <div class="stage-card {% if order.current_stage == 'montaj' %}active-stage{% endif %}">
-      <div class="sc-head" onclick="toggleStage('montaj')">
-        <div class="sc-head-left">
-          <div class="sc-icon" style="background:#F0F9FF;color:#0284C7;"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M11.42 15.17 17.25 21A2.652 2.652 0 0 0 21 17.25l-5.877-5.877M11.42 15.17l2.496-3.03c.317-.384.74-.626 1.208-.766M11.42 15.17l-4.655 5.653a2.548 2.548 0 1 1-3.586-3.586l5.653-4.655m5.833-4.322a4.015 4.015 0 0 0-1.208.766"/></svg></div>
-          <div><div class="sc-title">Montaj bo'limi</div><div class="sc-sub">{% if montaj.started_at %}{{ montaj.started_at|date:"d.m.Y" }}{% else %}Boshlanmagan{% endif %}</div></div>
-        </div>
-        <div style="display:flex;align-items:center;gap:10px;">
-          <span class="sc-badge sb-{{ montaj.status }}">{{ montaj.get_status_display }}</span>
-          <svg class="sc-chevron" id="chev-montaj" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5"/></svg>
-        </div>
+    <div class="info-card">
+      <div class="ic-header">
+        <h4>Tezkor amallar</h4>
       </div>
-      <div class="sc-body {% if order.current_stage == 'montaj' %}open{% endif %}" id="body-montaj">
-        <div class="stage-meta-grid">
-          <div class="smt"><div class="sml">Umumiy</div><div class="smv">{{ montaj.total_quantity }} dona</div></div>
-          <div class="smt"><div class="sml">Yaroqsiz</div><div class="smv red">{{ montaj.defect_quantity }} dona</div></div>
-          <div class="smt"><div class="sml">Holati</div><div class="smv">{{ montaj.get_status_display }}</div></div>
-        </div>
-        {% if montaj.note %}<div class="stage-note">{{ montaj.note }}</div>{% endif %}
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
-          <div style="font-size:11.5px;font-weight:700;color:var(--gray-500);text-transform:uppercase;letter-spacing:.5px;">Harakatlar ({{ montaj_logs.count }})</div>
-          <div style="display:flex;gap:6px;">
-            <a href="{% url 'order:stage_log_create' order.pk %}?stage=montaj" class="btn btn-primary btn-sm" style="font-size:12px;padding:5px 12px;">+ Yangi</a>
-            <a href="{% url 'order:montaj_edit' order.pk %}" class="btn-edit-sm"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width:13px;height:13px"><path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Z"/></svg> Tahrirlash</a>
-          </div>
-        </div>
-        {% if montaj_logs %}
-        <div class="log-table-wrap"><table class="log-table">
-          <thead><tr><th>Xodim</th><th>Miqdor</th><th>Vaqt</th><th>Izoh</th><th></th></tr></thead>
-          <tbody>{% for log in montaj_logs %}<tr>
-            <td>{% if log.worker %}{{ log.worker.name|default:log.worker.username }}{% else %}—{% endif %}</td>
-            <td><strong>{{ log.quantity }}</strong></td>
-            <td style="white-space:nowrap;color:var(--gray-400);font-size:11.5px;">{{ log.created_at|date:"d.m H:i" }}</td>
-            <td style="color:var(--gray-500);font-size:12px;">{{ log.note|truncatechars:30 }}</td>
-            <td><div style="display:flex;gap:4px;justify-content:flex-end;">
-              <a href="{% url 'order:stage_log_edit' log.pk %}" class="btn-edit-sm" title="Tahrirlash"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width:12px;height:12px"><path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Z"/></svg></a>
-              <a href="{% url 'order:stage_log_delete' log.pk %}" class="btn-del-sm" title="O'chirish"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width:12px;height:12px"><path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79"/></svg></a>
-            </div></td>
-          </tr>{% endfor %}</tbody>
-        </table></div>
-        {% else %}<div class="empty-stage">Hali harakat yo'q</div>{% endif %}
+      <div class="ic-body" style="display:flex;flex-direction:column;gap:8px;">
+        <a href="{% url 'order:order_edit' order.pk %}" class="btn btn-secondary" style="justify-content:center;">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width:15px;height:15px"><path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Z"/></svg>
+          Buyurtmani tahrirlash
+        </a>
+        <a href="{% url 'order:order_list' %}" class="btn btn-secondary" style="justify-content:center;">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width:15px;height:15px"><path stroke-linecap="round" stroke-linejoin="round" d="M8.25 6.75h12M8.25 12h12m-12 5.25h12M3.75 6.75h.007v.008H3.75V6.75Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0ZM3.75 12h.007v.008H3.75V12Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm-.375 5.25h.007v.008H3.75v-.008Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Z"/></svg>
+          Barcha buyurtmalar
+        </a>
+        <a href="{% url 'order:order_delete' order.pk %}" class="btn" style="justify-content:center;background:#FEF2F2;color:#DC2626;border:1px solid #FECACA;">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width:15px;height:15px"><path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0"/></svg>
+          Buyurtmani o'chirish
+        </a>
       </div>
     </div>
-    {% endif %}
-
-    {% if hanging %}
-    <div class="stage-card {% if order.current_stage == 'hanging' %}active-stage{% endif %}">
-      <div class="sc-head" onclick="toggleStage('hanging')">
-        <div class="sc-head-left">
-          <div class="sc-icon" style="background:#F5F3FF;color:#7C3AED;"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M13.19 8.688a4.5 4.5 0 0 1 1.242 7.244l-4.5 4.5a4.5 4.5 0 0 1-6.364-6.364l1.757-1.757m13.35-.622 1.757-1.757a4.5 4.5 0 0 0-6.364-6.364l-4.5 4.5a4.5 4.5 0 0 0 1.242 7.244"/></svg></div>
-          <div><div class="sc-title">Ilish bo'limi</div><div class="sc-sub">{% if hanging.started_at %}{{ hanging.started_at|date:"d.m.Y" }}{% else %}Boshlanmagan{% endif %}</div></div>
-        </div>
-        <div style="display:flex;align-items:center;gap:10px;">
-          <span class="sc-badge sb-{{ hanging.status }}">{{ hanging.get_status_display }}</span>
-          <svg class="sc-chevron" id="chev-hanging" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5"/></svg>
-        </div>
-      </div>
-      <div class="sc-body {% if order.current_stage == 'hanging' %}open{% endif %}" id="body-hanging">
-        <div class="stage-meta-grid">
-          <div class="smt"><div class="sml">Umumiy</div><div class="smv">{{ hanging.total_quantity }} dona</div></div>
-          <div class="smt"><div class="sml">Yaroqsiz</div><div class="smv red">{{ hanging.defect_quantity }} dona</div></div>
-          <div class="smt"><div class="sml">Holati</div><div class="smv">{{ hanging.get_status_display }}</div></div>
-        </div>
-        {% if hanging.note %}<div class="stage-note">{{ hanging.note }}</div>{% endif %}
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
-          <div style="font-size:11.5px;font-weight:700;color:var(--gray-500);text-transform:uppercase;letter-spacing:.5px;">Harakatlar ({{ hanging_logs.count }})</div>
-          <div style="display:flex;gap:6px;">
-            <a href="{% url 'order:stage_log_create' order.pk %}?stage=hanging" class="btn btn-primary btn-sm" style="font-size:12px;padding:5px 12px;">+ Yangi</a>
-            <a href="{% url 'order:hanging_edit' order.pk %}" class="btn-edit-sm"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width:13px;height:13px"><path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Z"/></svg> Tahrirlash</a>
-          </div>
-        </div>
-        {% if hanging_logs %}
-        <div class="log-table-wrap"><table class="log-table">
-          <thead><tr><th>Xodim</th><th>Miqdor</th><th>Vaqt</th><th>Izoh</th><th></th></tr></thead>
-          <tbody>{% for log in hanging_logs %}<tr>
-            <td>{% if log.worker %}{{ log.worker.name|default:log.worker.username }}{% else %}—{% endif %}</td>
-            <td><strong>{{ log.quantity }}</strong></td>
-            <td style="white-space:nowrap;color:var(--gray-400);font-size:11.5px;">{{ log.created_at|date:"d.m H:i" }}</td>
-            <td style="color:var(--gray-500);font-size:12px;">{{ log.note|truncatechars:30 }}</td>
-            <td><div style="display:flex;gap:4px;justify-content:flex-end;">
-              <a href="{% url 'order:stage_log_edit' log.pk %}" class="btn-edit-sm" title="Tahrirlash"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width:12px;height:12px"><path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Z"/></svg></a>
-              <a href="{% url 'order:stage_log_delete' log.pk %}" class="btn-del-sm" title="O'chirish"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width:12px;height:12px"><path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79"/></svg></a>
-            </div></td>
-          </tr>{% endfor %}</tbody>
-        </table></div>
-        {% else %}<div class="empty-stage">Hali harakat yo'q</div>{% endif %}
-      </div>
-    </div>
-    {% endif %}
-
-    {% if stone %}
-    <div class="stage-card {% if order.current_stage == 'stone_setting' %}active-stage{% endif %}">
-      <div class="sc-head" onclick="toggleStage('stone')">
-        <div class="sc-head-left">
-          <div class="sc-icon" style="background:#FFF1F2;color:#E11D48;"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M21 11.25v8.25a1.5 1.5 0 0 1-1.5 1.5H5.25a1.5 1.5 0 0 1-1.5-1.5v-8.25M12 4.875A2.625 2.625 0 1 0 9.375 7.5H12m0-2.625V7.5m0-2.625A2.625 2.625 0 1 1 14.625 7.5H12m0 0V21m-8.625-9.75h18c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125h-18c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125Z"/></svg></div>
-          <div><div class="sc-title">Tosh qadash bo'limi</div><div class="sc-sub">{% if stone.started_at %}{{ stone.started_at|date:"d.m.Y" }}{% else %}Boshlanmagan{% endif %}</div></div>
-        </div>
-        <div style="display:flex;align-items:center;gap:10px;">
-          <span class="sc-badge sb-{{ stone.status }}">{{ stone.get_status_display }}</span>
-          <svg class="sc-chevron" id="chev-stone" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5"/></svg>
-        </div>
-      </div>
-      <div class="sc-body {% if order.current_stage == 'stone_setting' %}open{% endif %}" id="body-stone">
-        <div class="stage-meta-grid">
-          <div class="smt"><div class="sml">Umumiy</div><div class="smv">{{ stone.total_quantity }} dona</div></div>
-          <div class="smt"><div class="sml">Yaroqsiz</div><div class="smv red">{{ stone.defect_quantity }} dona</div></div>
-          <div class="smt"><div class="sml">Holati</div><div class="smv">{{ stone.get_status_display }}</div></div>
-        </div>
-        {% if stone.note %}<div class="stage-note">{{ stone.note }}</div>{% endif %}
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
-          <div style="font-size:11.5px;font-weight:700;color:var(--gray-500);text-transform:uppercase;letter-spacing:.5px;">Harakatlar ({{ stone_logs.count }})</div>
-          <div style="display:flex;gap:6px;">
-            <a href="{% url 'order:stage_log_create' order.pk %}?stage=stone_setting" class="btn btn-primary btn-sm" style="font-size:12px;padding:5px 12px;">+ Yangi</a>
-            <a href="{% url 'order:stone_edit' order.pk %}" class="btn-edit-sm"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width:13px;height:13px"><path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Z"/></svg> Tahrirlash</a>
-          </div>
-        </div>
-        {% if stone_logs %}
-        <div class="log-table-wrap"><table class="log-table">
-          <thead><tr><th>Xodim</th><th>Miqdor</th><th>Vaqt</th><th>Izoh</th><th></th></tr></thead>
-          <tbody>{% for log in stone_logs %}<tr>
-            <td>{% if log.worker %}{{ log.worker.name|default:log.worker.username }}{% else %}—{% endif %}</td>
-            <td><strong>{{ log.quantity }}</strong></td>
-            <td style="white-space:nowrap;color:var(--gray-400);font-size:11.5px;">{{ log.created_at|date:"d.m H:i" }}</td>
-            <td style="color:var(--gray-500);font-size:12px;">{{ log.note|truncatechars:30 }}</td>
-            <td><div style="display:flex;gap:4px;justify-content:flex-end;">
-              <a href="{% url 'order:stage_log_edit' log.pk %}" class="btn-edit-sm" title="Tahrirlash"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width:12px;height:12px"><path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Z"/></svg></a>
-              <a href="{% url 'order:stage_log_delete' log.pk %}" class="btn-del-sm" title="O'chirish"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width:12px;height:12px"><path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79"/></svg></a>
-            </div></td>
-          </tr>{% endfor %}</tbody>
-        </table></div>
-        {% else %}<div class="empty-stage">Hali harakat yo'q</div>{% endif %}
-      </div>
-    </div>
-    {% endif %}
-
-    {% if packaging %}
-    <div class="stage-card {% if order.current_stage == 'packaging' %}active-stage{% endif %}">
-      <div class="sc-head" onclick="toggleStage('packaging')">
-        <div class="sc-head-left">
-          <div class="sc-icon" style="background:#F0FDF4;color:#15803D;"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M20.25 7.5l-.625 10.632a2.25 2.25 0 0 1-2.247 2.118H6.622a2.25 2.25 0 0 1-2.247-2.118L3.75 7.5M10 11.25h4M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125Z"/></svg></div>
-          <div><div class="sc-title">Upakovka bo'limi</div><div class="sc-sub">{% if packaging.started_at %}{{ packaging.started_at|date:"d.m.Y" }}{% else %}Boshlanmagan{% endif %}</div></div>
-        </div>
-        <div style="display:flex;align-items:center;gap:10px;">
-          <span class="sc-badge sb-{{ packaging.status }}">{{ packaging.get_status_display }}</span>
-          <svg class="sc-chevron" id="chev-packaging" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5"/></svg>
-        </div>
-      </div>
-      <div class="sc-body {% if order.current_stage == 'packaging' %}open{% endif %}" id="body-packaging">
-        <div class="stage-meta-grid">
-          <div class="smt"><div class="sml">Umumiy</div><div class="smv">{{ packaging.total_quantity }} dona</div></div>
-          <div class="smt"><div class="sml">Yaroqsiz</div><div class="smv red">{{ packaging.defect_quantity }} dona</div></div>
-          <div class="smt"><div class="sml">Holati</div><div class="smv">{{ packaging.get_status_display }}</div></div>
-        </div>
-        {% if packaging.note %}<div class="stage-note">{{ packaging.note }}</div>{% endif %}
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
-          <div style="font-size:11.5px;font-weight:700;color:var(--gray-500);text-transform:uppercase;letter-spacing:.5px;">Harakatlar ({{ packaging_logs.count }})</div>
-          <div style="display:flex;gap:6px;">
-            <a href="{% url 'order:stage_log_create' order.pk %}?stage=packaging" class="btn btn-primary btn-sm" style="font-size:12px;padding:5px 12px;">+ Yangi</a>
-            <a href="{% url 'order:packaging_edit' order.pk %}" class="btn-edit-sm"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width:13px;height:13px"><path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Z"/></svg> Tahrirlash</a>
-          </div>
-        </div>
-        {% if packaging_logs %}
-        <div class="log-table-wrap"><table class="log-table">
-          <thead><tr><th>Xodim</th><th>Miqdor</th><th>Vaqt</th><th>Izoh</th><th></th></tr></thead>
-          <tbody>{% for log in packaging_logs %}<tr>
-            <td>{% if log.worker %}{{ log.worker.name|default:log.worker.username }}{% else %}—{% endif %}</td>
-            <td><strong>{{ log.quantity }}</strong></td>
-            <td style="white-space:nowrap;color:var(--gray-400);font-size:11.5px;">{{ log.created_at|date:"d.m H:i" }}</td>
-            <td style="color:var(--gray-500);font-size:12px;">{{ log.note|truncatechars:30 }}</td>
-            <td><div style="display:flex;gap:4px;justify-content:flex-end;">
-              <a href="{% url 'order:stage_log_edit' log.pk %}" class="btn-edit-sm" title="Tahrirlash"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width:12px;height:12px"><path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Z"/></svg></a>
-              <a href="{% url 'order:stage_log_delete' log.pk %}" class="btn-del-sm" title="O'chirish"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width:12px;height:12px"><path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79"/></svg></a>
-            </div></td>
-          </tr>{% endfor %}</tbody>
-        </table></div>
-        {% else %}<div class="empty-stage">Hali harakat yo'q</div>{% endif %}
-      </div>
-    </div>
-    {% endif %}
-
-    <!-- All Logs Timeline -->
-    <div class="timeline-card">
-      <div class="tc-head">
-        <h4>Barcha harakatlar</h4>
-        <div class="tc-filter">
-          <a href="?stage=all" class="tf-btn {% if stage_filter == 'all' %}active{% endif %}">Barchasi</a>
-          <a href="?stage=casting" class="tf-btn {% if stage_filter == 'casting' %}active{% endif %}">Quyish</a>
-          <a href="?stage=montaj" class="tf-btn {% if stage_filter == 'montaj' %}active{% endif %}">Montaj</a>
-          <a href="?stage=hanging" class="tf-btn {% if stage_filter == 'hanging' %}active{% endif %}">Ilish</a>
-          <a href="?stage=stone_setting" class="tf-btn {% if stage_filter == 'stone_setting' %}active{% endif %}">Tosh</a>
-          <a href="?stage=packaging" class="tf-btn {% if stage_filter == 'packaging' %}active{% endif %}">Upakovka</a>
-        </div>
-      </div>
-      {% if stage_logs %}
-      <div class="timeline">
-        {% for log in stage_logs %}
-        <div class="tl-item">
-          <div class="tl-dot"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 12c0-1.232-.046-2.453-.138-3.662a4.006 4.006 0 0 0-3.7-3.7 48.678 48.678 0 0 0-7.324 0 4.006 4.006 0 0 0-3.7 3.7c-.017.22-.032.441-.046.662M19.5 12l3-3m-3 3-3-3m-12 3c0 1.232.046 2.453.138 3.662a4.006 4.006 0 0 0 3.7 3.7 48.656 48.656 0 0 0 7.324 0 4.006 4.006 0 0 0 3.7-3.7c.017-.22.032-.441.046-.662M4.5 12l3 3m-3-3-3 3"/></svg></div>
-          <div class="tl-body">
-            <div class="tl-head-row">
-              <span class="tl-stage-tag">{{ log.get_stage_display }}</span>
-              {% if log.from_department %}<span class="tl-from">{{ log.from_department }} &rarr;</span>{% endif %}
-              <span class="tl-qty">{{ log.quantity }} dona</span>
-            </div>
-            <div class="tl-meta">
-              {% if log.worker %}{{ log.worker.name|default:log.worker.username }}{% endif %}
-              {% if log.accepted_by %} &rarr; {{ log.accepted_by.name|default:log.accepted_by.username }}{% endif %}
-              &middot; {{ log.created_at|date:"d.m.Y H:i" }}
-            </div>
-            {% if log.note %}<div class="tl-note">{{ log.note }}</div>{% endif %}
-            <div class="tl-actions">
-              <a href="{% url 'order:stage_log_edit' log.pk %}" class="btn-edit-sm">Tahrirlash</a>
-              <a href="{% url 'order:stage_log_delete' log.pk %}" class="btn-del-sm">O'chirish</a>
-            </div>
-          </div>
-        </div>
-        {% endfor %}
-      </div>
-      {% else %}
-      <div style="padding:40px 20px;text-align:center;color:var(--gray-400);">
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width:40px;height:40px;margin-bottom:10px;opacity:.28;"><path stroke-linecap="round" stroke-linejoin="round" d="M8.25 6.75h12M8.25 12h12m-12 5.25h12M3.75 6.75h.007v.008H3.75V6.75Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0ZM3.75 12h.007v.008H3.75V12Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm-.375 5.25h.007v.008H3.75v-.008Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Z"/></svg>
-        <p style="font-size:14px;margin:0;">Hali hech qanday harakat yo'q</p>
-      </div>
-      {% endif %}
-    </div>
-
   </div>
+
 </div>
-{% endwith %}
-{% endblock %}
-
-{% block extra_js %}
-<script>
-function toggleStage(name) {
-  var body = document.getElementById('body-' + name);
-  var chev = document.getElementById('chev-' + name);
-  if (!body) return;
-  var open = body.classList.toggle('open');
-  if (chev) chev.style.transform = open ? 'rotate(180deg)' : '';
-}
-document.querySelectorAll('.sc-body.open').forEach(function(el) {
-  var id = el.id.replace('body-', '');
-  var chev = document.getElementById('chev-' + id);
-  if (chev) chev.style.transform = 'rotate(180deg)';
-});
-</script>
 {% endblock %}

@@ -1,0 +1,122 @@
+{% extends "ceo/base.html" %}
+{% block title %}Brujkalar — Zenko{% endblock %}
+{% block page_title %}Brujkalar{% endblock %}
+
+{% block topbar_actions %}
+<a href="{% url 'order:brujka_create' %}" class="btn btn-primary">
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>
+    Yangi brujka
+</a>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.stats-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:14px;margin-bottom:24px;}
+.stat-tile{background:var(--white);border:1px solid var(--gray-200);border-radius:14px;padding:18px 20px;display:flex;align-items:center;gap:14px;box-shadow:0 1px 3px rgba(0,0,0,.04);}
+.stat-tile .si{width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.stat-tile .si svg{width:22px;height:22px;}
+.stat-tile .sv{font-size:24px;font-weight:800;color:var(--black);line-height:1;}
+.stat-tile .sl{font-size:12px;color:var(--gray-500);margin-top:2px;}
+.search-bar{background:var(--white);border:1px solid var(--gray-200);border-radius:14px;padding:14px 18px;margin-bottom:20px;display:flex;gap:10px;align-items:center;box-shadow:0 1px 3px rgba(0,0,0,.04);}
+.search-bar input{flex:1;padding:8px 13px;border:1.5px solid var(--gray-200);border-radius:9px;font-size:13px;background:var(--white);}
+.search-bar input:focus{outline:none;border-color:var(--orange);}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:18px;}
+.brujka-card{background:var(--white);border:1px solid var(--gray-200);border-radius:16px;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.05);transition:box-shadow .2s,transform .18s;display:flex;flex-direction:column;}
+.brujka-card:hover{box-shadow:0 6px 24px rgba(0,0,0,.1);transform:translateY(-3px);}
+.brujka-img{width:100%;aspect-ratio:4/3;object-fit:cover;display:block;}
+.brujka-img-ph{width:100%;aspect-ratio:4/3;display:flex;align-items:center;justify-content:center;}
+.brujka-img-ph svg{width:48px;height:48px;opacity:.3;}
+.brujka-body{padding:14px 16px;flex:1;display:flex;flex-direction:column;gap:8px;}
+.brujka-name{font-size:15px;font-weight:700;color:var(--black);text-decoration:none;}
+.brujka-name:hover{color:var(--orange);}
+.brujka-meta{display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+.color-dot{width:14px;height:14px;border-radius:50%;border:1.5px solid rgba(0,0,0,.12);flex-shrink:0;}
+.coating-tag{font-size:11px;font-weight:600;padding:2px 8px;border-radius:5px;background:#FFF7ED;color:#C2410C;}
+.badge-active{font-size:10.5px;font-weight:700;padding:2px 8px;border-radius:20px;background:#F0FDF4;color:#15803D;}
+.badge-inactive{font-size:10.5px;font-weight:700;padding:2px 8px;border-radius:20px;background:#F1F5F9;color:#64748B;}
+.brujka-actions{display:flex;gap:6px;border-top:1px solid var(--gray-100);padding:10px 16px;}
+.btn-act{flex:1;display:flex;align-items:center;justify-content:center;gap:4px;padding:6px;border-radius:8px;font-size:12px;font-weight:600;text-decoration:none;transition:background .15s;}
+.btn-view{background:var(--gray-50);color:var(--gray-700);}
+.btn-view:hover{background:var(--gray-100);}
+.btn-edit{background:var(--orange-light);color:var(--orange);}
+.btn-edit:hover{background:#FED7AA;}
+.btn-del{background:#FEF2F2;color:#DC2626;}
+.btn-del:hover{background:#FEE2E2;}
+.empty-wrap{padding:70px 20px;text-align:center;color:var(--gray-400);}
+.empty-wrap svg{width:64px;height:64px;margin-bottom:16px;opacity:.2;}
+.empty-wrap p{font-size:15px;margin-bottom:20px;}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="stats-row">
+    <div class="stat-tile">
+        <div class="si" style="background:#FFF7ED;color:#EA580C;">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6A2.25 2.25 0 0 1 6 3.75h2.25A2.25 2.25 0 0 1 10.5 6v2.25a2.25 2.25 0 0 1-2.25 2.25H6a2.25 2.25 0 0 1-2.25-2.25V6ZM3.75 15.75A2.25 2.25 0 0 1 6 13.5h2.25a2.25 2.25 0 0 1 2.25 2.25V18a2.25 2.25 0 0 1-2.25 2.25H6A2.25 2.25 0 0 1 3.75 18v-2.25ZM13.5 6a2.25 2.25 0 0 1 2.25-2.25H18A2.25 2.25 0 0 1 20.25 6v2.25A2.25 2.25 0 0 1 18 10.5h-2.25a2.25 2.25 0 0 1-2.25-2.25V6ZM13.5 15.75a2.25 2.25 0 0 1 2.25-2.25H18a2.25 2.25 0 0 1 2.25 2.25V18A2.25 2.25 0 0 1 18 20.25h-2.25A2.25 2.25 0 0 1 13.5 18v-2.25Z"/></svg>
+        </div>
+        <div><div class="sv">{{ total }}</div><div class="sl">Jami brujkalar</div></div>
+    </div>
+    <div class="stat-tile">
+        <div class="si" style="background:#F0FDF4;color:#16A34A;">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/></svg>
+        </div>
+        <div><div class="sv">{{ active_count }}</div><div class="sl">Faol</div></div>
+    </div>
+</div>
+
+<form class="search-bar" method="get">
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width:18px;height:18px;color:var(--gray-400);flex-shrink:0"><path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z"/></svg>
+    <input type="text" name="q" value="{{ q }}" placeholder="Brujka nomini qidirish...">
+    {% if q %}
+    <a href="{% url 'order:brujka_list' %}" class="btn btn-sm" style="background:#FEF2F2;color:#DC2626;border:1px solid #FECACA;">Tozalash</a>
+    {% endif %}
+</form>
+
+{% if brujkalar %}
+<div class="grid">
+    {% for b in brujkalar %}
+    <div class="brujka-card">
+        <a href="{% url 'order:brujka_detail' b.pk %}">
+            {% if b.image %}
+            <img src="{{ b.image.url }}" class="brujka-img" alt="{{ b.name }}">
+            {% else %}
+            <div class="brujka-img-ph" style="background:{{ b.color }}22;">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1" stroke="{{ b.color }}"><path stroke-linecap="round" stroke-linejoin="round" d="m2.25 15.75 5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159m-1.5-1.5 1.409-1.409a2.25 2.25 0 0 1 3.182 0l2.909 2.909M3.75 21h16.5A2.25 2.25 0 0 0 22.5 18.75V5.25A2.25 2.25 0 0 0 20.25 3H3.75A2.25 2.25 0 0 0 1.5 5.25v13.5A2.25 2.25 0 0 0 3.75 21Z"/></svg>
+            </div>
+            {% endif %}
+        </a>
+        <div class="brujka-body">
+            <a href="{% url 'order:brujka_detail' b.pk %}" class="brujka-name">{{ b.name }}</a>
+            <div class="brujka-meta">
+                <span class="color-dot" style="background:{{ b.color }};" title="{{ b.color }}"></span>
+                <span style="font-size:11px;color:var(--gray-500);font-family:monospace;">{{ b.color }}</span>
+                <span class="coating-tag">{{ b.get_coating_type_display }}</span>
+                {% if b.is_active %}<span class="badge-active">Faol</span>{% else %}<span class="badge-inactive">Nofaol</span>{% endif %}
+            </div>
+            <div style="font-size:12px;color:var(--gray-400);">{{ b.orders.count }} ta buyurtma</div>
+        </div>
+        <div class="brujka-actions">
+            <a href="{% url 'order:brujka_detail' b.pk %}" class="btn-act btn-view">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width:13px;height:13px"><path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                Ko'rish
+            </a>
+            <a href="{% url 'order:brujka_edit' b.pk %}" class="btn-act btn-edit">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width:13px;height:13px"><path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Z"/></svg>
+                Tahrir
+            </a>
+            <a href="{% url 'order:brujka_delete' b.pk %}" class="btn-act btn-del">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width:13px;height:13px"><path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79"/></svg>
+                O'chir
+            </a>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% else %}
+<div class="empty-wrap">
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6A2.25 2.25 0 0 1 6 3.75h2.25A2.25 2.25 0 0 1 10.5 6v2.25a2.25 2.25 0 0 1-2.25 2.25H6a2.25 2.25 0 0 1-2.25-2.25V6ZM3.75 15.75A2.25 2.25 0 0 1 6 13.5h2.25a2.25 2.25 0 0 1 2.25 2.25V18a2.25 2.25 0 0 1-2.25 2.25H6A2.25 2.25 0 0 1 3.75 18v-2.25ZM13.5 6a2.25 2.25 0 0 1 2.25-2.25H18A2.25 2.25 0 0 1 20.25 6v2.25A2.25 2.25 0 0 1 18 10.5h-2.25a2.25 2.25 0 0 1-2.25-2.25V6ZM13.5 15.75a2.25 2.25 0 0 1 2.25-2.25H18a2.25 2.25 0 0 1 2.25 2.25V18A2.25 2.25 0 0 1 18 20.25h-2.25A2.25 2.25 0 0 1 13.5 18v-2.25Z"/></svg>
+    <p>{% if q %}Qidiruv bo'yicha brujka topilmadi{% else %}Hali brujkalar yo'q{% endif %}</p>
+    <a href="{% url 'order:brujka_create' %}" class="btn btn-primary">Birinchi brujkani yarating</a>
+</div>
+{% endif %}
+{% endblock %}

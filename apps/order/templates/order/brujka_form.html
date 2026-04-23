@@ -1,0 +1,297 @@
+{% extends "ceo/base.html" %}
+{% block title %}{{ title }} — Zenko{% endblock %}
+{% block page_title %}{{ title }}{% endblock %}
+
+{% block topbar_actions %}
+<a href="{% url 'order:brujka_list' %}" class="btn btn-secondary btn-sm">
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width:15px;height:15px"><path stroke-linecap="round" stroke-linejoin="round" d="M9 15 3 9m0 0 6-6M3 9h12a6 6 0 0 1 0 12h-3"/></svg>
+    Ro'yxatga qaytish
+</a>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.form-layout{display:grid;grid-template-columns:1fr 360px;gap:24px;align-items:start;}
+.form-card{background:var(--white);border:1px solid var(--gray-200);border-radius:16px;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.05);}
+.form-card-head{background:var(--black);padding:20px 24px;display:flex;align-items:center;gap:12px;}
+.hico{width:40px;height:40px;background:var(--orange);border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.hico svg{width:20px;height:20px;color:#fff;}
+.form-card-head h2{font-size:16px;font-weight:700;color:#fff;margin:0;}
+.form-card-head p{font-size:12px;color:rgba(255,255,255,.5);margin:2px 0 0;}
+.form-card-body{padding:24px;}
+.section-sep{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--orange);margin:0 0 12px;display:flex;align-items:center;gap:8px;}
+.section-sep::after{content:'';flex:1;height:1px;background:var(--gray-200);}
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+.f-group{margin-bottom:16px;}
+.f-label{display:block;font-size:12.5px;font-weight:600;color:var(--gray-700);margin-bottom:5px;}
+.f-required{color:#EF4444;margin-left:2px;}
+.f-input{width:100%;padding:9px 13px;border:1.5px solid var(--gray-200);border-radius:9px;font-size:13.5px;color:var(--black);background:var(--white);transition:border-color .18s;box-sizing:border-box;}
+.f-input:focus{outline:none;border-color:var(--orange);box-shadow:0 0 0 3px rgba(245,130,32,.1);}
+.form-actions{display:flex;gap:10px;padding-top:16px;border-top:1px solid var(--gray-200);}
+/* image upload */
+.img-upload-zone{border:2px dashed var(--gray-200);border-radius:12px;padding:24px;text-align:center;cursor:pointer;position:relative;transition:border-color .18s,background .18s;}
+.img-upload-zone:hover{border-color:var(--orange);background:var(--orange-light);}
+.img-upload-zone input{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%;}
+.img-upload-zone svg{width:36px;height:36px;color:var(--gray-300);margin-bottom:8px;}
+.img-upload-zone p{font-size:13px;color:var(--gray-500);font-weight:500;margin:0 0 4px;}
+.img-upload-zone small{font-size:11px;color:var(--gray-400);}
+.img-preview-wrap{position:relative;}
+.img-preview-wrap img{width:100%;border-radius:10px;border:1px solid var(--gray-200);display:block;max-height:280px;object-fit:cover;}
+.img-clear-btn{position:absolute;top:8px;right:8px;width:28px;height:28px;background:#EF4444;border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;border:none;}
+.img-clear-btn svg{width:13px;height:13px;color:#fff;}
+/* coating cards */
+.coating-opts{display:flex;flex-direction:column;gap:8px;}
+.coating-opt input[type=radio]{display:none;}
+.coating-box{display:flex;align-items:center;gap:12px;padding:11px 14px;border:2px solid var(--gray-200);border-radius:10px;cursor:pointer;transition:border-color .18s,background .18s;}
+.coating-opt input:checked + .coating-box{border-color:var(--orange);background:#FFF7ED;}
+.coating-icon{width:34px;height:34px;border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.coating-name{font-size:13px;font-weight:700;color:var(--black);}
+.coating-desc{font-size:11px;color:var(--gray-400);margin-top:1px;}
+/* preview card */
+.preview-card{background:var(--white);border:1px solid var(--gray-200);border-radius:16px;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.05);position:sticky;top:20px;}
+.preview-card-head{padding:14px 18px;border-bottom:1px solid var(--gray-200);background:var(--gray-50);}
+.preview-card-head h4{font-size:13px;font-weight:700;color:var(--black);margin:0;}
+.preview-body{padding:18px;}
+.preview-img{width:100%;aspect-ratio:4/3;border-radius:10px;object-fit:cover;border:1px solid var(--gray-200);display:block;margin-bottom:14px;}
+.preview-img-ph{width:100%;aspect-ratio:4/3;border-radius:10px;border:1px solid var(--gray-200);display:flex;align-items:center;justify-content:center;margin-bottom:14px;}
+.preview-name{font-size:16px;font-weight:800;color:var(--black);margin-bottom:8px;}
+.preview-meta{display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+.color-swatch{width:20px;height:20px;border-radius:5px;border:1.5px solid rgba(0,0,0,.1);}
+@media(max-width:900px){.form-layout{grid-template-columns:1fr;}.two-col{grid-template-columns:1fr;}}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="form-layout">
+    <div>
+        <div class="form-card">
+            <div class="form-card-head">
+                <div class="hico">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6A2.25 2.25 0 0 1 6 3.75h2.25A2.25 2.25 0 0 1 10.5 6v2.25a2.25 2.25 0 0 1-2.25 2.25H6a2.25 2.25 0 0 1-2.25-2.25V6ZM13.5 6a2.25 2.25 0 0 1 2.25-2.25H18A2.25 2.25 0 0 1 20.25 6v2.25A2.25 2.25 0 0 1 18 10.5h-2.25a2.25 2.25 0 0 1-2.25-2.25V6ZM3.75 15.75A2.25 2.25 0 0 1 6 13.5h2.25a2.25 2.25 0 0 1 2.25 2.25V18a2.25 2.25 0 0 1-2.25 2.25H6A2.25 2.25 0 0 1 3.75 18v-2.25ZM13.5 15.75a2.25 2.25 0 0 1 2.25-2.25H18a2.25 2.25 0 0 1 2.25 2.25V18A2.25 2.25 0 0 1 18 20.25h-2.25A2.25 2.25 0 0 1 13.5 18v-2.25Z"/></svg>
+                </div>
+                <div>
+                    <h2>{{ title }}</h2>
+                    <p>Brujka ma'lumotlarini to'ldiring</p>
+                </div>
+            </div>
+            <div class="form-card-body">
+                {% if form.errors %}
+                <div style="background:#FEF2F2;border:1px solid #FECACA;border-radius:10px;padding:12px 16px;margin-bottom:18px;">
+                    <strong style="color:#B91C1C;font-size:13px;">Xatoliklar:</strong>
+                    <ul style="margin:6px 0 0 16px;color:#DC2626;font-size:12.5px;">
+                    {% for field in form %}{% for error in field.errors %}<li>{{ field.label }}: {{ error }}</li>{% endfor %}{% endfor %}
+                    </ul>
+                </div>
+                {% endif %}
+
+                <form method="post" enctype="multipart/form-data" id="brujkaForm">
+                    {% csrf_token %}
+
+                    <div class="section-sep">Asosiy</div>
+
+                    <div class="f-group">
+                        <label class="f-label">Nomi <span class="f-required">*</span></label>
+                        <input type="text" name="name" id="fname" class="f-input" value="{{ form.name.value|default:'' }}" required placeholder="Masalan: Oltin uzuk BO-1001..." oninput="updatePreview()">
+                    </div>
+
+                    <div class="f-group">
+                        <label class="f-label">Rang <span class="f-required">*</span></label>
+                        <div style="display:flex;align-items:center;gap:12px;">
+                            <div id="colorPreview" style="width:64px;height:64px;border-radius:12px;border:1.5px solid var(--gray-200);flex-shrink:0;background:{{ form.color.value|default:'#C0A060' }};box-shadow:0 2px 8px rgba(0,0,0,.1);"></div>
+                            <div style="flex:1;">
+                                <input type="text" id="colorHex" name="color" class="f-input" value="{{ form.color.value|default:'' }}" maxlength="30" placeholder="Masalan: Oltin sariq, Kumush, #FF5500 ..." required oninput="syncColor(this.value)">
+                                <div style="font-size:11.5px;color:var(--gray-400);margin-top:5px;">Rang nomini yoki hex kodni yozing</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="f-group">
+                        <label class="f-label">Rasm <span class="f-required">*</span></label>
+                        {% if brujka and brujka.image %}
+                        <div class="img-preview-wrap" id="previewWrap">
+                            <img src="{{ brujka.image.url }}" alt="{{ brujka.name }}" id="previewImg">
+                            <button type="button" class="img-clear-btn" onclick="clearImage()">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12"/></svg>
+                            </button>
+                        </div>
+                        <input type="file" name="image" id="imageInput" accept="image/*" style="display:none;" onchange="previewImage(event)">
+                        <button type="button" onclick="document.getElementById('imageInput').click()" class="btn btn-secondary btn-sm" style="margin-top:8px;">Rasmni almashtirish</button>
+                        {% else %}
+                        <div class="img-upload-zone" id="uploadZone">
+                            <input type="file" name="image" id="imageInput" accept="image/*" required onchange="previewImage(event)">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m2.25 15.75 5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159m-1.5-1.5 1.409-1.409a2.25 2.25 0 0 1 3.182 0l2.909 2.909M3.75 21h16.5A2.25 2.25 0 0 0 22.5 18.75V5.25A2.25 2.25 0 0 0 20.25 3H3.75A2.25 2.25 0 0 0 1.5 5.25v13.5A2.25 2.25 0 0 0 3.75 21Z"/></svg>
+                            <p>Rasm yuklash uchun bosing</p>
+                            <small>PNG, JPG, WEBP — max 5MB</small>
+                        </div>
+                        <div id="previewWrap" style="display:none;margin-top:10px;">
+                            <div class="img-preview-wrap">
+                                <img id="previewImg" src="" alt="">
+                                <button type="button" class="img-clear-btn" onclick="clearImage()">
+                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12"/></svg>
+                                </button>
+                            </div>
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="section-sep" style="margin-top:8px;">Qoplama turi</div>
+
+                    <div class="f-group">
+                        <div class="coating-opts">
+                            <label class="coating-opt">
+                                <input type="radio" name="coating_type" value="spray_only" {% if form.coating_type.value == 'spray_only' or not form.coating_type.value %}checked{% endif %}>
+                                <div class="coating-box">
+                                    <div class="coating-icon" style="background:#DBEAFE;">
+                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="#2563EB" style="width:18px;height:18px"><path stroke-linecap="round" stroke-linejoin="round" d="M9.75 3.104v5.714a2.25 2.25 0 0 1-.659 1.591L5 14.5M9.75 3.104c-.251.023-.501.05-.75.082m.75-.082a24.301 24.301 0 0 1 4.5 0m0 0v5.714c0 .597.237 1.17.659 1.591L19.8 15.3M14.25 3.104c.251.023.501.05.75.082M19.8 15.3l-1.57.393A9.065 9.065 0 0 1 12 15a9.065 9.065 0 0 1-6.23-.693L5 14.5m14.8.8 1.402 1.402c1.232 1.232.65 3.318-1.067 3.611A48.309 48.309 0 0 1 12 21c-2.773 0-5.491-.235-8.135-.687-1.718-.293-2.3-2.379-1.067-3.61L5 14.5"/></svg>
+                                    </div>
+                                    <div>
+                                        <div class="coating-name">Faqat sepish</div>
+                                        <div class="coating-desc">Spray qoplama — 1 qavat</div>
+                                    </div>
+                                </div>
+                            </label>
+                            <label class="coating-opt">
+                                <input type="radio" name="coating_type" value="paint_only" {% if form.coating_type.value == 'paint_only' %}checked{% endif %}>
+                                <div class="coating-box">
+                                    <div class="coating-icon" style="background:#FEF3C7;">
+                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="#D97706" style="width:18px;height:18px"><path stroke-linecap="round" stroke-linejoin="round" d="M9.53 16.122a3 3 0 0 0-5.78 1.128 2.25 2.25 0 0 1-2.4 2.245 4.5 4.5 0 0 0 8.4-2.245c0-.399-.078-.78-.22-1.128Zm0 0a15.998 15.998 0 0 0 3.388-1.62m-5.043-.025a15.994 15.994 0 0 1 1.622-3.395m3.42 3.42a15.995 15.995 0 0 0 4.764-4.648l3.876-5.814a1.151 1.151 0 0 0-1.597-1.597L14.146 6.32a15.996 15.996 0 0 0-4.649 4.763m3.42 3.42a6.776 6.776 0 0 0-3.42-3.42"/></svg>
+                                    </div>
+                                    <div>
+                                        <div class="coating-name">Faqat bo'yash</div>
+                                        <div class="coating-desc">Paint qoplama — 1 qavat</div>
+                                    </div>
+                                </div>
+                            </label>
+                            <label class="coating-opt">
+                                <input type="radio" name="coating_type" value="spray_and_paint" {% if form.coating_type.value == 'spray_and_paint' %}checked{% endif %}>
+                                <div class="coating-box">
+                                    <div class="coating-icon" style="background:#F0FDF4;">
+                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="#16A34A" style="width:18px;height:18px"><path stroke-linecap="round" stroke-linejoin="round" d="M6.429 9.75 2.25 12l4.179 2.25m0-4.5 5.571 3 5.571-3m-11.142 0L2.25 7.5 12 2.25l9.75 5.25-4.179 2.25m0 0L21.75 12l-4.179 2.25m0 0 4.179 2.25L12 21.75 2.25 16.5l4.179-2.25m11.142 0-5.571 3-5.571-3"/></svg>
+                                    </div>
+                                    <div>
+                                        <div class="coating-name">Sepish + Bo'yash</div>
+                                        <div class="coating-desc">Ikki qavat qoplama</div>
+                                    </div>
+                                </div>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="section-sep">Qo'shimcha</div>
+
+                    <div class="f-group">
+                        <label class="f-label">Tavsif</label>
+                        <textarea name="description" class="f-input" rows="3" placeholder="Brujka haqida qo'shimcha ma'lumot...">{{ form.description.value|default:'' }}</textarea>
+                    </div>
+
+                    <div class="f-group">
+                        <label style="display:flex;align-items:center;gap:8px;cursor:pointer;padding:10px 14px;border:1.5px solid var(--gray-200);border-radius:9px;">
+                            <input type="checkbox" name="is_active" {% if form.is_active.value != False %}checked{% endif %} style="width:16px;height:16px;accent-color:var(--orange);">
+                            <span style="font-size:13.5px;font-weight:600;color:var(--black);">Faol (buyurtmada tanlansin)</span>
+                        </label>
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="submit" class="btn btn-primary">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5"/></svg>
+                            Saqlash
+                        </button>
+                        {% if brujka %}
+                        <a href="{% url 'order:brujka_detail' brujka.pk %}" class="btn btn-secondary">Bekor qilish</a>
+                        {% else %}
+                        <a href="{% url 'order:brujka_list' %}" class="btn btn-secondary">Bekor qilish</a>
+                        {% endif %}
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Preview panel -->
+    <div>
+        <div class="preview-card">
+            <div class="preview-card-head"><h4>Ko'rinish oldindan</h4></div>
+            <div class="preview-body">
+                <div id="previewCardImg">
+                    {% if brujka and brujka.image %}
+                    <img src="{{ brujka.image.url }}" class="preview-img" id="prevCardImg" alt="">
+                    {% else %}
+                    <div class="preview-img-ph" id="prevCardPh" style="background:{{ form.color.value|default:'#C0A060' }}22;">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1" style="width:48px;height:48px;opacity:.3;" id="prevPhIcon"><path stroke-linecap="round" stroke-linejoin="round" d="m2.25 15.75 5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159m-1.5-1.5 1.409-1.409a2.25 2.25 0 0 1 3.182 0l2.909 2.909M3.75 21h16.5A2.25 2.25 0 0 0 22.5 18.75V5.25A2.25 2.25 0 0 0 20.25 3H3.75A2.25 2.25 0 0 0 1.5 5.25v13.5A2.25 2.25 0 0 0 3.75 21Z"/></svg>
+                    </div>
+                    {% endif %}
+                </div>
+                <div class="preview-name" id="prevName">{{ brujka.name|default:'Brujka nomi' }}</div>
+                <div class="preview-meta">
+                    <span class="color-swatch" id="prevSwatch" style="background:{{ form.color.value|default:'#C0A060' }};"></span>
+                    <span id="prevHex" style="font-size:11px;color:var(--gray-500);font-family:monospace;">{{ form.color.value|default:'#C0A060' }}</span>
+                    <span style="font-size:11px;padding:2px 8px;border-radius:5px;background:#FFF7ED;color:#C2410C;" id="prevCoating">Faqat sepish</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function syncColor(val) {
+    document.getElementById('colorPreview').style.background = val;
+    document.getElementById('prevSwatch').style.background = val;
+    document.getElementById('prevHex').textContent = val;
+    const ph = document.getElementById('prevCardPh');
+    if (ph) ph.style.background = val + '22';
+}
+function updatePreview() {
+    const name = document.getElementById('fname').value || 'Brujka nomi';
+    document.getElementById('prevName').textContent = name;
+}
+function previewImage(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        const wrap = document.getElementById('previewWrap');
+        const img = document.getElementById('previewImg');
+        const zone = document.getElementById('uploadZone');
+        if (img) img.src = e.target.result;
+        if (wrap) wrap.style.display = 'block';
+        if (zone) zone.style.display = 'none';
+        // update preview card
+        const ph = document.getElementById('prevCardPh');
+        let cardImg = document.getElementById('prevCardImg');
+        if (!cardImg) {
+            cardImg = document.createElement('img');
+            cardImg.id = 'prevCardImg';
+            cardImg.className = 'preview-img';
+            document.getElementById('previewCardImg').innerHTML = '';
+            document.getElementById('previewCardImg').appendChild(cardImg);
+        }
+        cardImg.src = e.target.result;
+        if (ph) ph.style.display = 'none';
+    };
+    reader.readAsDataURL(file);
+}
+function clearImage() {
+    const input = document.getElementById('imageInput');
+    const wrap = document.getElementById('previewWrap');
+    const zone = document.getElementById('uploadZone');
+    if (input) input.value = '';
+    if (wrap) wrap.style.display = 'none';
+    if (zone) zone.style.display = 'block';
+}
+// coating preview update
+document.querySelectorAll('input[name=coating_type]').forEach(function(r) {
+    r.addEventListener('change', function() {
+        const labels = {'spray_only':'Faqat sepish','paint_only':"Faqat bo'yash",'spray_and_paint':'Sepish + Bo\'yash'};
+        document.getElementById('prevCoating').textContent = labels[this.value] || '';
+    });
+});
+// init coating label
+(function(){
+    const checked = document.querySelector('input[name=coating_type]:checked');
+    if (checked) {
+        const labels = {'spray_only':'Faqat sepish','paint_only':"Faqat bo'yash",'spray_and_paint':"Sepish + Bo'yash"};
+        document.getElementById('prevCoating').textContent = labels[checked.value] || '';
+    }
+})();
+</script>
+{% endblock %}

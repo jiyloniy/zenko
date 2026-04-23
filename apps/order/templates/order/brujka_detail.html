@@ -1,0 +1,194 @@
+{% extends "ceo/base.html" %}
+{% block title %}{{ brujka.name }} — Zenko{% endblock %}
+{% block page_title %}{{ brujka.name }}{% endblock %}
+
+{% block topbar_actions %}
+<div style="display:flex;gap:8px;">
+    <a href="{% url 'order:brujka_edit' brujka.pk %}" class="btn btn-secondary btn-sm">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width:15px;height:15px"><path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Z"/></svg>
+        Tahrirlash
+    </a>
+    <a href="{% url 'order:brujka_delete' brujka.pk %}" class="btn btn-danger btn-sm">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width:15px;height:15px"><path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79"/></svg>
+        O'chirish
+    </a>
+    <a href="{% url 'order:brujka_list' %}" class="btn btn-secondary btn-sm">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width:15px;height:15px"><path stroke-linecap="round" stroke-linejoin="round" d="M9 15 3 9m0 0 6-6M3 9h12a6 6 0 0 1 0 12h-3"/></svg>
+        Ro'yxat
+    </a>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.detail-grid{display:grid;grid-template-columns:400px 1fr;gap:24px;align-items:start;}
+.info-card{background:var(--white);border:1px solid var(--gray-200);border-radius:16px;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.05);margin-bottom:18px;}
+.ic-header{padding:13px 18px;border-bottom:1px solid var(--gray-100);display:flex;align-items:center;justify-content:space-between;}
+.ic-header h4{font-size:11.5px;font-weight:700;color:var(--gray-500);text-transform:uppercase;letter-spacing:.6px;margin:0;}
+.ic-body{padding:18px;}
+.big-img{width:100%;aspect-ratio:1/1;object-fit:cover;display:block;}
+.big-img-ph{width:100%;aspect-ratio:1/1;display:flex;align-items:center;justify-content:center;}
+.big-img-ph svg{width:80px;height:80px;opacity:.3;}
+.meta-row{display:flex;align-items:flex-start;gap:10px;padding:9px 0;border-bottom:1px solid var(--gray-100);}
+.meta-row:last-child{border-bottom:none;padding-bottom:0;}
+.meta-row:first-child{padding-top:0;}
+.meta-icon{width:32px;height:32px;border-radius:8px;background:var(--orange-light);display:flex;align-items:center;justify-content:center;flex-shrink:0;color:var(--orange);}
+.meta-icon svg{width:15px;height:15px;}
+.meta-label{font-size:10.5px;color:var(--gray-400);font-weight:600;text-transform:uppercase;letter-spacing:.4px;}
+.meta-val{font-size:13.5px;font-weight:600;color:var(--black);margin-top:1px;}
+.coating-badge{display:inline-flex;align-items:center;gap:6px;padding:5px 12px;border-radius:8px;font-size:12.5px;font-weight:700;}
+.cb-spray{background:#DBEAFE;color:#1D4ED8;}
+.cb-paint{background:#FEF3C7;color:#92400E;}
+.cb-both{background:#F0FDF4;color:#166534;}
+.status-badge{display:inline-block;padding:3px 10px;border-radius:20px;font-size:11.5px;font-weight:700;}
+.sb-active{background:#F0FDF4;color:#15803D;}
+.sb-inactive{background:#F1F5F9;color:#64748B;}
+/* orders table */
+.ord-table-wrap{border:1px solid var(--gray-100);border-radius:12px;overflow:hidden;}
+.ord-table{width:100%;border-collapse:collapse;font-size:13px;}
+.ord-table th{text-align:left;padding:10px 14px;font-size:10.5px;font-weight:700;color:var(--gray-500);text-transform:uppercase;letter-spacing:.5px;background:var(--gray-50);border-bottom:1px solid var(--gray-100);}
+.ord-table td{padding:12px 14px;border-bottom:1px solid var(--gray-50);vertical-align:middle;}
+.ord-table tbody tr:last-child td{border-bottom:none;}
+.ord-table tbody tr:hover td{background:#FAFAFA;}
+.spill{display:inline-flex;align-items:center;gap:5px;padding:3px 9px;border-radius:20px;font-size:11px;font-weight:700;}
+.spill .dot{width:5px;height:5px;border-radius:50%;}
+.sp-new{background:#EFF6FF;color:#1D4ED8;} .sp-new .dot{background:#3B82F6;}
+.sp-accepted{background:#F0FDF4;color:#15803D;} .sp-accepted .dot{background:#22C55E;}
+.sp-in_process{background:#FFF7ED;color:#C2410C;} .sp-in_process .dot{background:#F97316;}
+.sp-ready{background:#ECFDF5;color:#065F46;} .sp-ready .dot{background:#10B981;}
+.sp-delivered{background:var(--gray-100);color:var(--gray-500);} .sp-delivered .dot{background:var(--gray-300);}
+.sp-cancelled{background:#FEF2F2;color:#B91C1C;} .sp-cancelled .dot{background:#EF4444;}
+@media(max-width:900px){.detail-grid{grid-template-columns:1fr;}}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="detail-grid">
+
+  <!-- LEFT: rasm va ma'lumotlar -->
+  <div>
+    <div class="info-card">
+      {% if brujka.image %}
+      <img src="{{ brujka.image.url }}" class="big-img" alt="{{ brujka.name }}">
+      {% else %}
+      <div class="big-img-ph" style="background:{{ brujka.color }}22;">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1" stroke="{{ brujka.color }}"><path stroke-linecap="round" stroke-linejoin="round" d="m2.25 15.75 5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159m-1.5-1.5 1.409-1.409a2.25 2.25 0 0 1 3.182 0l2.909 2.909M3.75 21h16.5A2.25 2.25 0 0 0 22.5 18.75V5.25A2.25 2.25 0 0 0 20.25 3H3.75A2.25 2.25 0 0 0 1.5 5.25v13.5A2.25 2.25 0 0 0 3.75 21Z"/></svg>
+      </div>
+      {% endif %}
+      <div class="ic-body">
+        <div class="meta-row">
+          <div class="meta-icon"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9.568 3H5.25A2.25 2.25 0 0 0 3 5.25v4.318c0 .597.237 1.17.659 1.591l9.581 9.581c.699.699 1.78.872 2.607.33a18.095 18.095 0 0 0 5.223-5.223c.542-.827.369-1.908-.33-2.607L11.16 3.66A2.25 2.25 0 0 0 9.568 3Z"/></svg></div>
+          <div><div class="meta-label">Nomi</div><div class="meta-val">{{ brujka.name }}</div></div>
+        </div>
+        <div class="meta-row">
+          <div class="meta-icon" style="background:{{ brujka.color }}22;color:{{ brujka.color }};"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M4.098 19.902a3.75 3.75 0 0 0 5.304 0l6.401-6.402M6.343 17.657l1.06-1.06a3.75 3.75 0 0 1 5.304 0l.94.939M14.5 9.5l-5.657-5.657a3.75 3.75 0 0 0-5.304 5.304l1.06 1.06M18.5 14.5l.94.94a3.75 3.75 0 0 1-5.304 5.304l-6.401-6.402"/></svg></div>
+          <div>
+            <div class="meta-label">Rang</div>
+            <div class="meta-val" style="display:flex;align-items:center;gap:8px;">
+              <span style="display:inline-block;width:20px;height:20px;border-radius:5px;background:{{ brujka.color }};border:1.5px solid rgba(0,0,0,.1);"></span>
+              <span style="font-family:monospace;">{{ brujka.color }}</span>
+            </div>
+          </div>
+        </div>
+        <div class="meta-row">
+          <div class="meta-icon" style="background:#FFF7ED;color:#C2410C;"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9.75 3.104v5.714a2.25 2.25 0 0 1-.659 1.591L5 14.5M9.75 3.104c-.251.023-.501.05-.75.082m.75-.082a24.301 24.301 0 0 1 4.5 0m0 0v5.714c0 .597.237 1.17.659 1.591L19.8 15.3"/></svg></div>
+          <div>
+            <div class="meta-label">Qoplama turi</div>
+            <div class="meta-val">
+              <span class="coating-badge {% if brujka.coating_type == 'spray_only' %}cb-spray{% elif brujka.coating_type == 'paint_only' %}cb-paint{% else %}cb-both{% endif %}">
+                {{ brujka.get_coating_type_display }}
+              </span>
+            </div>
+          </div>
+        </div>
+        <div class="meta-row">
+          <div class="meta-icon" style="background:#F0FDF4;color:#16A34A;"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/></svg></div>
+          <div>
+            <div class="meta-label">Holat</div>
+            <div class="meta-val">
+              {% if brujka.is_active %}<span class="status-badge sb-active">Faol</span>{% else %}<span class="status-badge sb-inactive">Nofaol</span>{% endif %}
+            </div>
+          </div>
+        </div>
+        <div class="meta-row">
+          <div class="meta-icon" style="background:#F0FDF4;color:#16A34A;"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/></svg></div>
+          <div><div class="meta-label">Yaratilgan</div><div class="meta-val">{{ brujka.created_at|date:"d.m.Y H:i" }}</div></div>
+        </div>
+        {% if brujka.description %}
+        <div style="margin-top:10px;padding:10px 14px;background:#FFFBEB;border:1px solid #FDE68A;border-radius:10px;font-size:13px;color:#92400E;">
+          <div style="font-size:10.5px;font-weight:700;color:#B45309;text-transform:uppercase;margin-bottom:4px;">Tavsif</div>
+          {{ brujka.description }}
+        </div>
+        {% endif %}
+      </div>
+    </div>
+
+    <div class="info-card">
+      <div class="ic-body" style="display:flex;flex-direction:column;gap:8px;">
+        <a href="{% url 'order:brujka_edit' brujka.pk %}" class="btn btn-secondary" style="justify-content:center;">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width:15px;height:15px"><path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Z"/></svg>
+          Brujkani tahrirlash
+        </a>
+        <a href="{% url 'order:order_create' %}?brujka={{ brujka.pk }}" class="btn btn-primary" style="justify-content:center;">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width:15px;height:15px"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>
+          Bu brujka bo'yicha buyurtma
+        </a>
+        <a href="{% url 'order:brujka_delete' brujka.pk %}" class="btn" style="justify-content:center;background:#FEF2F2;color:#DC2626;border:1px solid #FECACA;">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width:15px;height:15px"><path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79"/></svg>
+          Brujkani o'chirish
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- RIGHT: buyurtmalar -->
+  <div>
+    <div class="info-card">
+      <div class="ic-header">
+        <h4>So'nggi buyurtmalar ({{ orders|length }})</h4>
+        <a href="{% url 'order:order_list' %}" style="font-size:12px;color:var(--orange);text-decoration:none;font-weight:600;">Barchasi →</a>
+      </div>
+      <div>
+        {% if orders %}
+        <div class="ord-table-wrap" style="border:none;border-radius:0;">
+          <table class="ord-table">
+            <thead><tr>
+              <th></th>
+              <th>Buyurtma</th>
+              <th>Miqdor</th>
+              <th>Muddat</th>
+              <th>Status</th>
+              <th></th>
+            </tr></thead>
+            <tbody>
+            {% for ord in orders %}
+            <tr>
+              <td style="width:44px;padding:10px 10px 10px 14px;">
+                {% if ord.image %}<img src="{{ ord.image.url }}" style="width:38px;height:38px;border-radius:8px;object-fit:cover;">
+                {% else %}<div style="width:38px;height:38px;border-radius:8px;background:var(--gray-100);display:flex;align-items:center;justify-content:center;"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1" stroke="currentColor" style="width:18px;height:18px;color:var(--gray-300)"><path stroke-linecap="round" stroke-linejoin="round" d="m2.25 15.75 5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159m-1.5-1.5 1.409-1.409a2.25 2.25 0 0 1 3.182 0l2.909 2.909"/></svg></div>{% endif %}
+              </td>
+              <td>
+                <div style="font-weight:700;color:var(--black);font-size:13.5px;">{{ ord.name }}</div>
+                <div style="font-size:11px;color:var(--gray-400);font-family:monospace;">{{ ord.order_number }}</div>
+              </td>
+              <td><strong>{{ ord.quantity }}</strong> <span style="color:var(--gray-400);font-size:12px;">dona</span></td>
+              <td style="font-size:12.5px;{% if ord.is_overdue %}color:#DC2626;font-weight:700;{% else %}color:var(--gray-600);{% endif %}">{{ ord.deadline|date:"d.m.Y" }}</td>
+              <td><span class="spill sp-{{ ord.status }}"><span class="dot"></span>{{ ord.get_status_display }}</span></td>
+              <td><a href="{% url 'order:order_detail' ord.pk %}" style="font-size:12px;color:var(--orange);text-decoration:none;font-weight:600;">Ko'rish →</a></td>
+            </tr>
+            {% endfor %}
+            </tbody>
+          </table>
+        </div>
+        {% else %}
+        <div style="padding:40px 20px;text-align:center;color:var(--gray-400);">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1" stroke="currentColor" style="width:48px;height:48px;margin-bottom:12px;opacity:.2;"><path stroke-linecap="round" stroke-linejoin="round" d="M20.25 7.5l-.625 10.632a2.25 2.25 0 01-2.247 2.118H6.622a2.25 2.25 0 01-2.247-2.118L3.75 7.5M10 11.25h4M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125z"/></svg>
+          <p style="font-size:14px;margin:0 0 14px;">Bu brujka bo'yicha hali buyurtma yo'q</p>
+          <a href="{% url 'order:order_create' %}?brujka={{ brujka.pk }}" class="btn btn-primary btn-sm">Buyurtma yaratish</a>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

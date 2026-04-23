@@ -53,14 +53,6 @@ LOCAL_APPS = [
     'apps.boss',
     'apps.attendance',
     'apps.order',
-    'apps.casting',
-    'apps.montaj',
-    'apps.attach',
-    'apps.spray',
-    'apps.paint',
-    'apps.stone',
-    'apps.assembly',
-    'apps.pack',
 ]
 
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS

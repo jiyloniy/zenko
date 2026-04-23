@@ -7,7 +7,8 @@
       "Bash(python manage.py makemigrations order)",
       "Bash(python manage.py migrate)",
       "Bash(python manage.py shell -c ' *)",
-      "Bash(python -c ' *)"
+      "Bash(python -c ' *)",
+      "Bash(python manage.py migrate order)"
     ]
   }
 }
