@@ -489,12 +489,12 @@ body::before{
 /* ────────── STATUS CHIP ────────── */
 .status-chip{
   position:absolute;
-  bottom:32px;left:50%;
-  transform:translateX(-50%);
+  top:50%;left:50%;
+  transform:translate(-50%, 160px);
   z-index:5;
-  display:flex;align-items:center;gap:14px;
-  padding:14px 28px 14px 22px;
-  background:rgba(12,17,25,.88);
+  display:flex;align-items:center;gap:16px;
+  padding:18px 36px 18px 28px;
+  background:rgba(12,17,25,.92);
   border:1px solid rgba(255,255,255,.1);
   border-radius:100px;
   box-shadow:
@@ -502,7 +502,7 @@ body::before{
     0 0 0 1px rgba(0,255,163,.1),
     inset 0 1px 0 rgba(255,255,255,.08);
   white-space:nowrap;
-  max-width:90%;
+  max-width:92%;
   transition:border-color .3s ease, box-shadow .3s ease;
 }
 .status-chip.ok{
@@ -527,10 +527,10 @@ body::before{
 
 /* Waveform */
 .s-wave{
-  display:flex;align-items:center;gap:2.5px;height:22px;
+  display:flex;align-items:center;gap:3.5px;height:32px;
 }
 .s-wave span{
-  width:2.5px;height:5px;border-radius:2px;
+  width:3.5px;height:7px;border-radius:3px;
   background:var(--g);
   will-change:height;
   animation:wave 1.2s ease-in-out infinite;
@@ -552,8 +552,8 @@ body::before{
 }
 
 .s-msg{
-  font-size:18px;
-  font-weight:600;
+  font-size:26px;
+  font-weight:700;
   color:#fff;
   letter-spacing:.2px;
   font-family:var(--font);
@@ -980,8 +980,8 @@ body::before{
 @media (max-height:620px){
   .face-wrap{width:180px;height:210px;transform:translate(-50%,-55%);}
   .clock-time{font-size:24px;}
-  .s-msg{font-size:15px;}
-  .status-chip{bottom:20px;padding:11px 22px;}
+  .s-msg{font-size:18px;}
+  .status-chip{transform:translate(-50%, 110px);padding:12px 24px;}
 }
 @media (max-width:420px){
   .topbar{padding:14px 16px;}
@@ -990,8 +990,8 @@ body::before{
   .brand-logo{width:48px;height:48px;}
   .brand-logo-letter{font-size:22px;}
   .bottom-panel{padding:14px 18px;}
-  .s-msg{font-size:15px;}
-  .status-chip{padding:11px 22px;}
+  .s-msg{font-size:20px;}
+  .status-chip{padding:14px 26px;}
 }
 </style>
 </head>
@@ -1512,11 +1512,17 @@ function showResult(data){
           ${data.early_leave?'<div class="note" style="color:var(--amber)">erta chiqdi</div>':''}
         </div>`;
     } else if(data.status){
-      const sm = {present:'Vaqtida',late:'Kechikdi',absent:'Kelmadi',early:'Erta keldi'};
+      const statusMap = {
+        present: {label:'Vaqtida', cls:'', color:'var(--g)'},
+        late:    {label:'Kechikdi', cls:' amber', color:'var(--amber)'},
+        absent:  {label:'Kelmadi', cls:' amber', color:'var(--red)'},
+        early:   {label:'Erta keldi', cls:'', color:'var(--blue)'},
+      };
+      const st_cfg = statusMap[data.status] || {label:data.status, cls:'', color:'var(--t2)'};
       html += `
-        <div class="r-stat">
+        <div class="r-stat${st_cfg.cls}">
           <div class="lb">Holat</div>
-          <div class="vl sm">${sm[data.status]||data.status}</div>
+          <div class="vl sm" style="color:${st_cfg.color}">${st_cfg.label}</div>
         </div>`;
     }
     st.innerHTML = html;

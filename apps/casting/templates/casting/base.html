@@ -107,13 +107,13 @@ html,body{height:100%;font-family:'Inter',system-ui,sans-serif;background:var(--
 
   <!-- Sidebar -->
   <aside class="sidebar" id="sidebar">
-    <div class="sb-brand">
+    <a href="{% url 'casting:order_list' %}" class="sb-brand" style="text-decoration:none;">
       <div class="sb-logo">Z</div>
       <div>
         <div class="sb-title">ZENKO</div>
         <div class="sb-sub">Quyish</div>
       </div>
-    </div>
+    </a>
 
     <nav class="sb-nav">
       <div class="nav-label">Buyurtmalar</div>

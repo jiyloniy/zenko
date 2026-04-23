@@ -447,7 +447,7 @@
                             <input type="time" id="in_time" class="time-part" step="60" placeholder="00:00">
                         </div>
                         <!-- hidden Django field -->
-                        <input type="hidden" id="id_check_in" name="check_in">
+                        <input type="hidden" id="id_check_in" name="check_in" value="{{ form.data.check_in|default:form.initial.check_in|default:'' }}">
                     </div>
 
                     <!-- Chiqish vaqti -->
@@ -462,7 +462,7 @@
                             <input type="time" id="out_time" class="time-part" step="60" placeholder="00:00">
                         </div>
                         <!-- hidden Django field -->
-                        <input type="hidden" id="id_check_out" name="check_out">
+                        <input type="hidden" id="id_check_out" name="check_out" value="{{ form.data.check_out|default:form.initial.check_out|default:'' }}">
                     </div>
                 </div>
 
