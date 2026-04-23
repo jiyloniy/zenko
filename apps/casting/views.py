@@ -2,6 +2,7 @@ from django.contrib import messages
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views import View
 
+from apps.casting.forms import StanokForm
 from apps.casting.models import Stanok
 from apps.order.models import Order
 from apps.order.views.mixins import CastingManagerRequiredMixin
@@ -70,60 +71,50 @@ class StanokListView(CastingManagerRequiredMixin, View):
 
 class StanokCreateView(CastingManagerRequiredMixin, View):
     def get(self, request):
+        form = StanokForm()
         return render(request, 'casting/stanok_form.html', {
             'title': 'Yangi stanok',
-            'statuses': Stanok.Status.choices,
+            'form': form,
             'active_nav': 'stanoklar',
         })
 
     def post(self, request):
-        name   = request.POST.get('name', '').strip()
-        status = request.POST.get('status', Stanok.Status.ACTIVE)
-        errors = {}
-        if not name:
-            errors['name'] = 'Nomi majburiy.'
-        if status not in dict(Stanok.Status.choices):
-            errors['status'] = "Noto'g'ri holat."
-        if errors:
-            return render(request, 'casting/stanok_form.html', {
-                'title': 'Yangi stanok', 'statuses': Stanok.Status.choices,
-                'errors': errors, 'data': request.POST, 'active_nav': 'stanoklar',
-            })
-        stanok = Stanok.objects.create(name=name, status=status)
-        messages.success(request, f'"{stanok.name}" stanogi qo\'shildi.')
-        return redirect('casting:stanok_list')
+        form = StanokForm(request.POST)
+        if form.is_valid():
+            stanok = form.save()
+            messages.success(request, f'"{stanok.name}" stanogi qo\'shildi.')
+            return redirect('casting:stanok_list')
+        
+        return render(request, 'casting/stanok_form.html', {
+            'title': 'Yangi stanok',
+            'form': form,
+            'active_nav': 'stanoklar',
+        })
 
 
 class StanokUpdateView(CastingManagerRequiredMixin, View):
     def get(self, request, pk):
         stanok = get_object_or_404(Stanok, pk=pk)
+        form = StanokForm(instance=stanok)
         return render(request, 'casting/stanok_form.html', {
             'title': f'{stanok.name} — tahrirlash',
-            'stanok': stanok,
-            'statuses': Stanok.Status.choices,
+            'form': form,
             'active_nav': 'stanoklar',
         })
 
     def post(self, request, pk):
         stanok = get_object_or_404(Stanok, pk=pk)
-        name   = request.POST.get('name', '').strip()
-        status = request.POST.get('status', stanok.status)
-        errors = {}
-        if not name:
-            errors['name'] = 'Nomi majburiy.'
-        if status not in dict(Stanok.Status.choices):
-            errors['status'] = "Noto'g'ri holat."
-        if errors:
-            return render(request, 'casting/stanok_form.html', {
-                'title': f'{stanok.name} — tahrirlash', 'stanok': stanok,
-                'statuses': Stanok.Status.choices, 'errors': errors,
-                'data': request.POST, 'active_nav': 'stanoklar',
-            })
-        stanok.name = name
-        stanok.status = status
-        stanok.save()
-        messages.success(request, f'"{stanok.name}" yangilandi.')
-        return redirect('casting:stanok_list')
+        form = StanokForm(request.POST, instance=stanok)
+        if form.is_valid():
+            stanok = form.save()
+            messages.success(request, f'"{stanok.name}" yangilandi.')
+            return redirect('casting:stanok_list')
+        
+        return render(request, 'casting/stanok_form.html', {
+            'title': f'{stanok.name} — tahrirlash',
+            'form': form,
+            'active_nav': 'stanoklar',
+        })
 
 
 class StanokDeleteView(CastingManagerRequiredMixin, View):

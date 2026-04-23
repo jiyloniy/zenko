@@ -25,11 +25,14 @@
 .f-group{display:flex;flex-direction:column;gap:6px;}
 .f-group label{font-size:12px;font-weight:600;color:var(--gray-700);}
 .f-group label .req{color:var(--orange);}
-.f-input{width:100%;padding:10px 14px;border:1.5px solid var(--gray-200);border-radius:10px;font-size:14px;font-family:inherit;color:var(--black);background:var(--white);transition:border-color .18s,box-shadow .18s;outline:none;}
+
+/* Form input styling */
+.f-input{width:100%;padding:10px 14px;border:1.5px solid var(--gray-200);border-radius:10px;font-size:14px;font-family:inherit;color:var(--black);background:var(--white);transition:border-color .18s,box-shadow .18s;outline:none;box-sizing:border-box;}
 .f-input:focus{border-color:var(--orange);box-shadow:0 0 0 3px rgba(245,130,32,.1);}
-.f-input.err{border-color:#EF4444;}
+.f-input.err,.f-input:invalid{border-color:#EF4444;}
 .f-err{font-size:11.5px;color:#DC2626;margin-top:3px;}
 
+/* Status radio buttons */
 .status-opts{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;}
 .status-opt input[type=radio]{position:absolute;opacity:0;width:0;height:0;}
 .status-opt{position:relative;}
@@ -46,11 +49,9 @@
 .btn-cancel{padding:10px 20px;border-radius:10px;font-size:14px;font-weight:500;border:1.5px solid var(--gray-200);background:var(--white);color:var(--gray-700);text-decoration:none;transition:all .18s;}
 .btn-cancel:hover{background:var(--gray-100);}
 
-{% if stanok %}
 .delete-zone{padding:16px 28px;border-top:1px solid #FEE2E2;background:#FFF5F5;}
 .btn-delete{padding:8px 18px;border-radius:10px;font-size:13px;font-weight:600;border:1.5px solid #FECACA;background:var(--white);color:#DC2626;cursor:pointer;font-family:inherit;transition:all .18s;display:flex;align-items:center;gap:6px;}
 .btn-delete:hover{background:#FEE2E2;}
-{% endif %}
 </style>
 {% endblock %}
 
@@ -65,36 +66,40 @@
   </div>
 
   <div class="form-body">
-    {% if errors %}
-    <div class="errors-block"><ul>{% for k,v in errors.items %}<li><b>{{ k }}:</b> {{ v }}</li>{% endfor %}</ul></div>
+    {% if form.non_field_errors %}
+    <div class="errors-block"><ul>{% for error in form.non_field_errors %}<li>{{ error }}</li>{% endfor %}</ul></div>
     {% endif %}
 
-    <form method="post" id="stanok-form">
+    <form method="post" id="stanok-form" novalidate>
       {% csrf_token %}
 
+      <!-- Nomi Field -->
       <div class="f-group" style="margin-bottom:20px;">
-        <label>Nomi <span class="req">*</span></label>
-        <input class="f-input {% if errors.name %}err{% endif %}" type="text" name="name"
-          value="{{ data.name|default:stanok.name|default:'' }}" placeholder="masalan: Stanok №1" autofocus>
-        {% if errors.name %}<span class="f-err">{{ errors.name }}</span>{% endif %}
+        <label for="id_name">Nomi <span class="req">*</span></label>
+        {{ form.name }}
+        {% if form.name.errors %}<span class="f-err">{{ form.name.errors.0 }}</span>{% endif %}
       </div>
 
+      <!-- Holat Field -->
       <div class="f-group">
         <label>Holat</label>
         <div class="status-opts">
-          {% for val,label in statuses %}
+          {% for value, label in form.fields.status.choices %}
           <div class="status-opt">
-            <input type="radio" name="status" id="st_{{ val }}" value="{{ val }}"
-              {% if data.status == val %}checked
-              {% elif not data and stanok.status == val %}checked
-              {% elif not data and not stanok and val == 'active' %}checked{% endif %}>
-            <label for="st_{{ val }}">
-              <span class="dot dot-{{ val }}"></span>{{ label }}
+            <input 
+              type="radio" 
+              name="status" 
+              id="st_{{ value }}" 
+              value="{{ value }}"
+              {% if form.status.value == value %}checked{% endif %}
+              class="status-radio">
+            <label for="st_{{ value }}">
+              <span class="dot dot-{{ value }}"></span>{{ label }}
             </label>
           </div>
           {% endfor %}
         </div>
-        {% if errors.status %}<span class="f-err">{{ errors.status }}</span>{% endif %}
+        {% if form.status.errors %}<span class="f-err">{{ form.status.errors.0 }}</span>{% endif %}
       </div>
 
     </form>
@@ -103,16 +108,15 @@
   <div class="form-actions">
     <button type="submit" form="stanok-form" class="btn-save">
       <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width:14px;height:14px"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5"/></svg>
-      {% if stanok %}Saqlash{% else %}Qo'shish{% endif %}
+      {% if form.instance.pk %}Saqlash{% else %}Qo'shish{% endif %}
     </button>
     <a href="{% url 'casting:stanok_list' %}" class="btn-cancel">Bekor qilish</a>
   </div>
 
-  {% if stanok %}
+  {% if form.instance.pk %}
   <div class="delete-zone">
-    <form method="post" action="{% url 'casting:stanok_delete' stanok.pk %}">
-      {% csrf_token %}
-      <button type="submit" class="btn-delete" onclick="return confirm('O\'chirishni tasdiqlaysizmi?')">
+    <form method="get" action="{% url 'casting:stanok_delete' form.instance.pk %}">
+      <button type="submit" class="btn-delete" onclick="event.preventDefault(); window.location.href='{% url 'casting:stanok_delete' form.instance.pk %}';">
         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width:14px;height:14px"><path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0"/></svg>
         O'chirish
       </button>
