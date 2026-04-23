@@ -13,7 +13,7 @@ from apps.order.views.mixins import CEORequiredMixin
 class BrujkaListView(CEORequiredMixin, ListView):
     model = Brujka
     template_name = 'order/brujka_list.html'
-    context_object_name = 'brujkalar'
+    context_object_name = 'broshkalar'
 
     def get_queryset(self):
         qs = Brujka.objects.all()
@@ -24,7 +24,7 @@ class BrujkaListView(CEORequiredMixin, ListView):
 
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
-        ctx['active_nav'] = 'brujka'
+        ctx['active_nav'] = 'broshka'
         ctx['q'] = self.request.GET.get('q', '')
         ctx['total'] = Brujka.objects.count()
         ctx['active_count'] = Brujka.objects.filter(is_active=True).count()
@@ -37,20 +37,20 @@ class BrujkaCreateView(CEORequiredMixin, View):
     def get(self, request):
         return render(request, self.template_name, {
             'form': BrujkaForm(),
-            'title': 'Yangi brujka',
-            'active_nav': 'brujka',
+            'title': 'Yangi broshka',
+            'active_nav': 'broshka',
         })
 
     def post(self, request):
         form = BrujkaForm(request.POST, request.FILES)
         if form.is_valid():
-            brujka = form.save()
-            messages.success(request, f'"{brujka.name}" brujkasi yaratildi.')
-            return redirect('order:broshka_detail', pk=brujka.pk)
+            broshka = form.save()
+            messages.success(request, f'"{broshka.name}" broshkasi yaratildi.')
+            return redirect('order:broshka_detail', pk=broshka.pk)
         return render(request, self.template_name, {
             'form': form,
-            'title': 'Yangi brujka',
-            'active_nav': 'brujka',
+            'title': 'Yangi broshka',
+            'active_nav': 'broshka',
         })
 
 
@@ -58,12 +58,12 @@ class BrujkaDetailView(CEORequiredMixin, View):
     template_name = 'order/brujka_detail.html'
 
     def get(self, request, pk):
-        brujka = get_object_or_404(Brujka, pk=pk)
-        orders = brujka.orders.select_related('created_by').order_by('-created_at')[:10]
+        broshka = get_object_or_404(Brujka, pk=pk)
+        orders = broshka.orders.select_related('created_by').order_by('-created_at')[:10]
         return render(request, self.template_name, {
-            'brujka': brujka,
+            'broshka': broshka,
             'orders': orders,
-            'active_nav': 'brujka',
+            'active_nav': 'broshka',
         })
 
 
@@ -71,26 +71,26 @@ class BrujkaUpdateView(CEORequiredMixin, View):
     template_name = 'order/brujka_form.html'
 
     def get(self, request, pk):
-        brujka = get_object_or_404(Brujka, pk=pk)
+        broshka = get_object_or_404(Brujka, pk=pk)
         return render(request, self.template_name, {
-            'form': BrujkaForm(instance=brujka),
-            'brujka': brujka,
-            'title': f'{brujka.name} — tahrirlash',
-            'active_nav': 'brujka',
+            'form': BrujkaForm(instance=broshka),
+            'broshka': broshka,
+            'title': f'{broshka.name} — tahrirlash',
+            'active_nav': 'broshka',
         })
 
     def post(self, request, pk):
-        brujka = get_object_or_404(Brujka, pk=pk)
-        form = BrujkaForm(request.POST, request.FILES, instance=brujka)
+        broshka = get_object_or_404(Brujka, pk=pk)
+        form = BrujkaForm(request.POST, request.FILES, instance=broshka)
         if form.is_valid():
             form.save()
-            messages.success(request, f'"{brujka.name}" yangilandi.')
-            return redirect('order:broshka_detail', pk=brujka.pk)
+            messages.success(request, f'"{broshka.name}" yangilandi.')
+            return redirect('order:broshka_detail', pk=broshka.pk)
         return render(request, self.template_name, {
             'form': form,
-            'brujka': brujka,
-            'title': f'{brujka.name} — tahrirlash',
-            'active_nav': 'brujka',
+            'broshka': broshka,
+            'title': f'{broshka.name} — tahrirlash',
+            'active_nav': 'broshka',
         })
 
 
@@ -101,7 +101,7 @@ class BrujkaDeleteView(CEORequiredMixin, DeleteView):
 
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
-        ctx['active_nav'] = 'brujka'
+        ctx['active_nav'] = 'broshka'
         return ctx
 
     def form_valid(self, form):
@@ -110,7 +110,7 @@ class BrujkaDeleteView(CEORequiredMixin, DeleteView):
 
 
 class BrujkaSearchAPIView(CEORequiredMixin, View):
-    """AJAX qidiruv — order formidagi brujka select uchun."""
+    """AJAX qidiruv — order formidagi broshka select uchun."""
 
     def get(self, request):
         q = request.GET.get('q', '').strip()
