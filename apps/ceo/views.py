@@ -67,7 +67,7 @@ class LoginView(View):
         if role_name == 'BOSS':
             return redirect('boss:dashboard')
         if role_name == 'CASTINGMANAGER':
-            return redirect('order:quyish_panel')
+            return redirect('casting:order_list')
         return redirect('ceo:dashboard')
 
 

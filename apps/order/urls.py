@@ -12,9 +12,6 @@ urlpatterns = [
     path('broshka/<int:pk>/delete/', views.BrujkaDeleteView.as_view(), name='broshka_delete'),
     path('broshka/search/', views.BrujkaSearchAPIView.as_view(), name='broshka_search'),
 
-    # Quyish paneli
-    path('quyish/', views.QuyishPanelView.as_view(), name='quyish_panel'),
-
     # Buyurtmalar
     path('', views.OrderListView.as_view(), name='order_list'),
     path('create/', views.OrderCreateView.as_view(), name='order_create'),
