@@ -1,0 +1,181 @@
+{% extends "casting/base.html" %}
+{% block title %}{{ order.name }} — Quyish{% endblock %}
+{% block page_title %}Buyurtma{% endblock %}
+
+{% block topbar_actions %}
+<a href="{% url 'casting:order_list' %}?status={{ order.status }}" class="btn btn-ghost btn-sm">
+  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18"/></svg>
+  Orqaga
+</a>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.detail-wrap{display:grid;grid-template-columns:1fr 340px;gap:20px;align-items:start;}
+.detail-main,.detail-side{background:var(--surface);border:1px solid var(--border);border-radius:16px;overflow:hidden;}
+
+/* Image */
+.detail-img{width:100%;max-height:360px;object-fit:cover;display:block;}
+.detail-img-ph{width:100%;height:260px;background:var(--surface2);display:flex;align-items:center;justify-content:center;}
+.detail-img-ph svg{width:60px;height:60px;color:var(--muted2);}
+
+/* Main body */
+.detail-body{padding:24px;}
+.detail-header{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:20px;}
+.detail-name{font-size:18px;font-weight:800;color:var(--text);line-height:1.35;}
+.detail-num{font-size:11px;color:var(--muted2);font-family:monospace;margin-top:4px;}
+
+.badge{display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border-radius:20px;font-size:11.5px;font-weight:700;white-space:nowrap;}
+.badge .dot{width:6px;height:6px;border-radius:50%;flex-shrink:0;}
+.b-accepted{background:rgba(34,197,94,.1);color:#4ADE80;} .b-accepted .dot{background:#4ADE80;}
+.b-in_process{background:rgba(234,179,8,.1);color:#FCD34D;} .b-in_process .dot{background:#FCD34D;animation:pulse 2s infinite;}
+.b-ready{background:rgba(59,130,246,.1);color:#60A5FA;} .b-ready .dot{background:#60A5FA;}
+.b-new{background:rgba(139,92,246,.1);color:#A78BFA;} .b-new .dot{background:#A78BFA;}
+.b-delivered{background:rgba(113,113,122,.1);color:#A1A1AA;} .b-delivered .dot{background:#A1A1AA;}
+.b-cancelled{background:rgba(239,68,68,.1);color:#F87171;} .b-cancelled .dot{background:#F87171;}
+
+/* Info grid */
+.info-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px;}
+.info-item{background:var(--surface2);border:1px solid var(--border2);border-radius:10px;padding:12px 14px;}
+.info-label{font-size:10.5px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px;}
+.info-val{font-size:14px;font-weight:700;color:var(--text);}
+.info-val.overdue{color:var(--red);}
+.prio-badge{display:inline-block;padding:2px 8px;border-radius:5px;font-size:12px;font-weight:600;}
+.pd-low{background:rgba(113,113,122,.1);color:#A1A1AA;}
+.pd-normal{background:rgba(59,130,246,.1);color:#60A5FA;}
+.pd-high{background:rgba(249,115,22,.1);color:#FB923C;}
+.pd-urgent{background:rgba(239,68,68,.1);color:#F87171;}
+
+/* Note */
+.note-block{background:var(--surface2);border:1px solid var(--border2);border-radius:10px;padding:14px;margin-bottom:20px;}
+.note-label{font-size:10.5px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px;}
+.note-text{font-size:13.5px;color:var(--text);line-height:1.6;white-space:pre-wrap;}
+
+/* Side */
+.side-section{padding:18px 20px;border-bottom:1px solid var(--border2);}
+.side-section:last-child{border-bottom:none;}
+.side-title{font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.6px;margin-bottom:14px;}
+.broshka-card{display:flex;align-items:center;gap:12px;}
+.broshka-img{width:48px;height:48px;border-radius:10px;object-fit:cover;border:1px solid var(--border);flex-shrink:0;}
+.broshka-img-ph{width:48px;height:48px;border-radius:10px;background:var(--surface2);display:grid;place-items:center;flex-shrink:0;}
+.broshka-img-ph svg{width:20px;height:20px;color:var(--muted2);}
+.broshka-name{font-weight:700;font-size:13px;color:var(--text);}
+.broshka-coating{font-size:11px;color:var(--muted);margin-top:2px;}
+.broshka-color-row{display:flex;align-items:center;gap:8px;margin-top:8px;}
+.color-swatch{width:20px;height:20px;border-radius:5px;border:1px solid var(--border);flex-shrink:0;}
+.color-code{font-size:11.5px;color:var(--muted);font-family:monospace;}
+
+.meta-row{display:flex;align-items:center;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border2);}
+.meta-row:last-child{border-bottom:none;}
+.meta-key{font-size:12px;color:var(--muted);}
+.meta-val{font-size:12px;font-weight:600;color:var(--text);}
+
+@keyframes pulse{0%,100%{opacity:1;}50%{opacity:.4;}}
+@media(max-width:900px){.detail-wrap{grid-template-columns:1fr;}}
+@media(max-width:500px){.info-grid{grid-template-columns:1fr;}}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="detail-wrap">
+
+  <!-- Main card -->
+  <div class="detail-main">
+    {% if order.image %}
+      <img src="{{ order.image.url }}" class="detail-img" alt="">
+    {% else %}
+      <div class="detail-img-ph">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m2.25 15.75 5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159m-1.5-1.5 1.409-1.409a2.25 2.25 0 0 1 3.182 0l2.909 2.909M3.75 21h16.5A2.25 2.25 0 0 0 22.5 18.75V5.25A2.25 2.25 0 0 0 20.25 3H3.75A2.25 2.25 0 0 0 1.5 5.25v13.5A2.25 2.25 0 0 0 3.75 21Z"/></svg>
+      </div>
+    {% endif %}
+
+    <div class="detail-body">
+      <div class="detail-header">
+        <div>
+          <div class="detail-name">{{ order.name }}</div>
+          <div class="detail-num">{{ order.order_number }}</div>
+        </div>
+        <span class="badge b-{{ order.status }}"><span class="dot"></span>{{ order.get_status_display }}</span>
+      </div>
+
+      <div class="info-grid">
+        <div class="info-item">
+          <div class="info-label">Miqdor</div>
+          <div class="info-val">{{ order.quantity }} <span style="font-size:12px;font-weight:500;color:var(--muted)">dona</span></div>
+        </div>
+        <div class="info-item">
+          <div class="info-label">Muddat</div>
+          <div class="info-val {% if order.is_overdue %}overdue{% endif %}">
+            {{ order.deadline|date:"d.m.Y" }}{% if order.is_overdue %} ⚠{% endif %}
+          </div>
+        </div>
+        <div class="info-item">
+          <div class="info-label">Muhimlik</div>
+          <div class="info-val"><span class="prio-badge pd-{{ order.priority }}">{{ order.get_priority_display }}</span></div>
+        </div>
+        <div class="info-item">
+          <div class="info-label">Yaratilgan</div>
+          <div class="info-val" style="font-size:12px;">{{ order.created_at|date:"d.m.Y H:i" }}</div>
+        </div>
+      </div>
+
+      {% if order.note %}
+      <div class="note-block">
+        <div class="note-label">Izoh</div>
+        <div class="note-text">{{ order.note }}</div>
+      </div>
+      {% endif %}
+
+      {% if order.created_by %}
+      <div class="meta-row" style="border-top:1px solid var(--border2);padding-top:12px;">
+        <span class="meta-key">Buyurtma bergan</span>
+        <span class="meta-val">{{ order.created_by.name }}</span>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Side card -->
+  <div class="detail-side">
+    {% if order.brujka %}
+    <div class="side-section">
+      <div class="side-title">Broshka</div>
+      <div class="broshka-card">
+        {% if order.brujka.image %}
+          <img src="{{ order.brujka.image.url }}" class="broshka-img" alt="">
+        {% else %}
+          <div class="broshka-img-ph">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m2.25 15.75 5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159m-1.5-1.5 1.409-1.409a2.25 2.25 0 0 1 3.182 0l2.909 2.909M3.75 21h16.5A2.25 2.25 0 0 0 22.5 18.75V5.25A2.25 2.25 0 0 0 20.25 3H3.75A2.25 2.25 0 0 0 1.5 5.25v13.5A2.25 2.25 0 0 0 3.75 21Z"/></svg>
+          </div>
+        {% endif %}
+        <div>
+          <div class="broshka-name">{{ order.brujka.name }}</div>
+          <div class="broshka-coating">{{ order.brujka.get_coating_type_display }}</div>
+        </div>
+      </div>
+      <div class="broshka-color-row">
+        <div class="color-swatch" style="background:{{ order.brujka.color }};"></div>
+        <span class="color-code">{{ order.brujka.color }}</span>
+      </div>
+    </div>
+    {% endif %}
+
+    <div class="side-section">
+      <div class="side-title">Holat tarixi</div>
+      <div class="meta-row">
+        <span class="meta-key">Joriy holat</span>
+        <span class="badge b-{{ order.status }}"><span class="dot"></span>{{ order.get_status_display }}</span>
+      </div>
+      <div class="meta-row">
+        <span class="meta-key">So'nggi yangilanish</span>
+        <span class="meta-val">{{ order.updated_at|date:"d.m.Y H:i" }}</span>
+      </div>
+      <div class="meta-row">
+        <span class="meta-key">Muddati o'tganmi</span>
+        <span class="meta-val {% if order.is_overdue %}overdue{% endif %}">{% if order.is_overdue %}Ha ⚠{% else %}Yo'q{% endif %}</span>
+      </div>
+    </div>
+  </div>
+
+</div>
+{% endblock %}

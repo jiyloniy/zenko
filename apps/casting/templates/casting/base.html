@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{% block title %}Quyish — Zenko{% endblock %}</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+:root{
+  --bg:#0F0F11;
+  --surface:#18181B;
+  --surface2:#1E1E22;
+  --border:rgba(255,255,255,.07);
+  --border2:rgba(255,255,255,.04);
+  --text:#F4F4F5;
+  --muted:#71717A;
+  --muted2:#52525B;
+  --orange:#F58220;
+  --orange-dim:rgba(245,130,32,.12);
+  --orange-glow:rgba(245,130,32,.2);
+  --green:#22C55E;
+  --green-dim:rgba(34,197,94,.1);
+  --blue:#3B82F6;
+  --blue-dim:rgba(59,130,246,.1);
+  --yellow:#EAB308;
+  --yellow-dim:rgba(234,179,8,.1);
+  --red:#EF4444;
+  --red-dim:rgba(239,68,68,.1);
+  --sidebar-w:240px;
+  --topbar-h:56px;
+  --radius:12px;
+}
+html,body{height:100%;font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--text);font-size:14px;line-height:1.5;}
+
+/* ── Layout ── */
+.layout{display:flex;min-height:100vh;}
+.sidebar{width:var(--sidebar-w);background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;position:fixed;top:0;left:0;height:100vh;z-index:100;transition:transform .25s;}
+.main{margin-left:var(--sidebar-w);flex:1;display:flex;flex-direction:column;min-height:100vh;}
+.topbar{height:var(--topbar-h);background:var(--surface);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 24px;position:sticky;top:0;z-index:50;}
+.content{flex:1;padding:24px;}
+
+/* ── Sidebar brand ── */
+.sb-brand{display:flex;align-items:center;gap:12px;padding:20px 18px 16px;border-bottom:1px solid var(--border);}
+.sb-logo{width:36px;height:36px;background:linear-gradient(135deg,#F58220,#E06A10);border-radius:10px;display:grid;place-items:center;font-weight:900;font-size:15px;color:#fff;flex-shrink:0;box-shadow:0 4px 14px var(--orange-glow);}
+.sb-title{font-weight:800;font-size:13px;letter-spacing:2px;color:var(--text);}
+.sb-sub{font-size:10px;font-weight:600;color:var(--orange);letter-spacing:3px;text-transform:uppercase;margin-top:1px;}
+
+/* ── Sidebar nav ── */
+.sb-nav{flex:1;padding:12px 10px;overflow-y:auto;}
+.nav-label{font-size:9.5px;font-weight:700;color:var(--muted2);text-transform:uppercase;letter-spacing:1px;padding:12px 8px 4px;}
+.nav-link{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:9px;color:var(--muted);text-decoration:none;font-size:13px;font-weight:500;transition:all .18s;margin-bottom:2px;}
+.nav-link svg{width:17px;height:17px;flex-shrink:0;}
+.nav-link:hover{background:var(--surface2);color:var(--text);}
+.nav-link.active{background:var(--orange-dim);color:var(--orange);font-weight:600;}
+.nav-link.active svg{filter:drop-shadow(0 0 4px var(--orange-glow));}
+
+/* ── Sidebar footer ── */
+.sb-footer{padding:14px 14px 18px;border-top:1px solid var(--border);}
+.sb-user{display:flex;align-items:center;gap:10px;}
+.sb-avatar{width:34px;height:34px;border-radius:50%;background:var(--orange-dim);border:1.5px solid var(--orange-glow);display:grid;place-items:center;font-weight:700;font-size:12px;color:var(--orange);flex-shrink:0;}
+.sb-user-name{font-size:12px;font-weight:600;color:var(--text);}
+.sb-user-role{font-size:10px;color:var(--muted);margin-top:1px;}
+.sb-logout{margin-left:auto;width:28px;height:28px;border-radius:7px;background:transparent;border:1px solid var(--border);display:grid;place-items:center;color:var(--muted);text-decoration:none;transition:all .18s;flex-shrink:0;}
+.sb-logout:hover{background:var(--red-dim);border-color:var(--red);color:var(--red);}
+.sb-logout svg{width:14px;height:14px;}
+
+/* ── Topbar ── */
+.topbar-left{display:flex;align-items:center;gap:12px;}
+.page-title{font-size:15px;font-weight:700;color:var(--text);}
+.topbar-right{display:flex;align-items:center;gap:10px;}
+.btn{display:inline-flex;align-items:center;gap:6px;padding:7px 14px;border-radius:9px;font-size:12.5px;font-weight:600;text-decoration:none;border:none;cursor:pointer;font-family:inherit;transition:all .18s;white-space:nowrap;}
+.btn svg{width:14px;height:14px;flex-shrink:0;}
+.btn-primary{background:var(--orange);color:#fff;}
+.btn-primary:hover{background:#E06A10;box-shadow:0 4px 12px var(--orange-glow);}
+.btn-ghost{background:transparent;color:var(--muted);border:1px solid var(--border);}
+.btn-ghost:hover{background:var(--surface2);color:var(--text);}
+.btn-sm{padding:5px 10px;font-size:11.5px;}
+
+/* ── Messages ── */
+.messages{padding:0 0 16px;}
+.msg{padding:10px 16px;border-radius:10px;font-size:13px;font-weight:500;margin-bottom:6px;display:flex;align-items:center;gap:8px;}
+.msg svg{width:15px;height:15px;flex-shrink:0;}
+.msg-success{background:var(--green-dim);color:var(--green);border:1px solid rgba(34,197,94,.2);}
+.msg-error{background:var(--red-dim);color:var(--red);border:1px solid rgba(239,68,68,.2);}
+.msg-info{background:var(--blue-dim);color:var(--blue);border:1px solid rgba(59,130,246,.2);}
+
+/* ── Mobile toggle ── */
+.mob-toggle{display:none;width:36px;height:36px;border-radius:9px;background:var(--surface2);border:1px solid var(--border);align-items:center;justify-content:center;cursor:pointer;color:var(--text);}
+.mob-toggle svg{width:18px;height:18px;}
+.mob-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:90;backdrop-filter:blur(2px);}
+
+@media(max-width:768px){
+  .sidebar{transform:translateX(-100%);}
+  .sidebar.open{transform:translateX(0);}
+  .main{margin-left:0;}
+  .mob-toggle{display:flex;}
+  .mob-overlay.show{display:block;}
+  .content{padding:16px;}
+}
+</style>
+{% block extra_css %}{% endblock %}
+</head>
+<body>
+<div class="layout">
+
+  <!-- Sidebar -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sb-brand">
+      <div class="sb-logo">Z</div>
+      <div>
+        <div class="sb-title">ZENKO</div>
+        <div class="sb-sub">Quyish</div>
+      </div>
+    </div>
+
+    <nav class="sb-nav">
+      <div class="nav-label">Buyurtmalar</div>
+      <a href="{% url 'casting:order_list' %}?status=accepted" class="nav-link {% if active_nav == 'orders' and status_filter == 'accepted' %}active{% endif %}">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/></svg>
+        Qabul qilingan
+      </a>
+      <a href="{% url 'casting:order_list' %}?status=in_process" class="nav-link {% if active_nav == 'orders' and status_filter == 'in_process' %}active{% endif %}">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182"/></svg>
+        Ishlab chiqarilmoqda
+      </a>
+      <a href="{% url 'casting:order_list' %}?status=ready" class="nav-link {% if active_nav == 'orders' and status_filter == 'ready' %}active{% endif %}">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M11.35 3.836c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 0 0 .75-.75 2.25 2.25 0 0 0-.1-.664m-5.8 0A2.251 2.251 0 0 1 13.5 2.25H15c1.012 0 1.867.668 2.15 1.586m-5.8 0c-.376.023-.75.05-1.124.08C9.095 4.01 8.25 4.973 8.25 6.108V8.25m8.9-4.414c.376.023.75.05 1.124.08 1.131.094 1.976 1.057 1.976 2.192V16.5A2.25 2.25 0 0 1 18 18.75h-2.25m-7.5-10.5H4.875c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V18.75m-7.5-10.5h6.375c.621 0 1.125.504 1.125 1.125v9.375m-8.25-3 1.5 1.5 3-3.75"/></svg>
+        Tayyor
+      </a>
+    </nav>
+
+    <div class="sb-footer">
+      <div class="sb-user">
+        <div class="sb-avatar">{{ request.user.name|slice:":1"|upper }}</div>
+        <div>
+          <div class="sb-user-name">{{ request.user.name }}</div>
+          <div class="sb-user-role">{% if request.user.role %}{{ request.user.role.name }}{% endif %}</div>
+        </div>
+        <a href="{% url 'logout' %}" class="sb-logout" title="Chiqish">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0 0 13.5 3h-6a2.25 2.25 0 0 0-2.25 2.25v13.5A2.25 2.25 0 0 0 7.5 21h6a2.25 2.25 0 0 0 2.25-2.25V15m3 0 3-3m0 0-3-3m3 3H9"/></svg>
+        </a>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Mobile overlay -->
+  <div class="mob-overlay" id="overlay" onclick="closeSidebar()"></div>
+
+  <!-- Main -->
+  <div class="main">
+    <header class="topbar">
+      <div class="topbar-left">
+        <button class="mob-toggle" onclick="openSidebar()">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5"/></svg>
+        </button>
+        <span class="page-title">{% block page_title %}{% endblock %}</span>
+      </div>
+      <div class="topbar-right">{% block topbar_actions %}{% endblock %}</div>
+    </header>
+
+    <main class="content">
+      {% if messages %}
+      <div class="messages">
+        {% for msg in messages %}
+        <div class="msg {% if msg.tags == 'success' %}msg-success{% elif msg.tags == 'error' %}msg-error{% else %}msg-info{% endif %}">
+          {% if msg.tags == 'success' %}
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5"/></svg>
+          {% else %}
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 3.75h.008v.008H12v-.008Z"/></svg>
+          {% endif %}
+          {{ msg }}
+        </div>
+        {% endfor %}
+      </div>
+      {% endif %}
+
+      {% block content %}{% endblock %}
+    </main>
+  </div>
+</div>
+
+<script>
+function openSidebar(){
+  document.getElementById('sidebar').classList.add('open');
+  document.getElementById('overlay').classList.add('show');
+}
+function closeSidebar(){
+  document.getElementById('sidebar').classList.remove('open');
+  document.getElementById('overlay').classList.remove('show');
+}
+</script>
+</body>
+</html>

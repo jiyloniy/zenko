@@ -30,6 +30,7 @@ urlpatterns = [
     path('boss/', include('apps.boss.urls')),
     path('order/', include('apps.order.urls')),
     path('users/', include('apps.users.urls')),
+    path('casting/', include('apps.casting.urls')),
     path('', include('apps.manage.urls')),
 ]
 
