@@ -79,7 +79,7 @@ class Order(models.Model):
     def save(self, *args, **kwargs):
         if not self.order_number:
             from django.utils.crypto import get_random_string
-            self.order_number = f"ORD{get_random_string(6, '0123456789')}"
+            self.order_number = f"#ORD{get_random_string(6, '0123456789')}"
         super().save(*args, **kwargs)
 
     @property

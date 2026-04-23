@@ -3,7 +3,7 @@
 {% block page_title %}{{ title }}{% endblock %}
 
 {% block topbar_actions %}
-<a href="{% url 'order:brujka_list' %}" class="btn btn-secondary btn-sm">
+<a href="{% url 'order:broshka_list' %}" class="btn btn-secondary btn-sm">
     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width:15px;height:15px"><path stroke-linecap="round" stroke-linejoin="round" d="M9 15 3 9m0 0 6-6M3 9h12a6 6 0 0 1 0 12h-3"/></svg>
     Ro'yxatga qaytish
 </a>
@@ -71,7 +71,7 @@
                 </div>
                 <div>
                     <h2>{{ title }}</h2>
-                    <p>Brujka ma'lumotlarini to'ldiring</p>
+                    <p>Broshka ma'lumotlarini to'ldiring</p>
                 </div>
             </div>
             <div class="form-card-body">
@@ -84,7 +84,7 @@
                 </div>
                 {% endif %}
 
-                <form method="post" enctype="multipart/form-data" id="brujkaForm">
+                <form method="post" enctype="multipart/form-data" id="broshkaForm">
                     {% csrf_token %}
 
                     <div class="section-sep">Asosiy</div>
@@ -107,9 +107,9 @@
 
                     <div class="f-group">
                         <label class="f-label">Rasm <span class="f-required">*</span></label>
-                        {% if brujka and brujka.image %}
+                        {% if broshka and broshka.image %}
                         <div class="img-preview-wrap" id="previewWrap">
-                            <img src="{{ brujka.image.url }}" alt="{{ brujka.name }}" id="previewImg">
+                            <img src="{{ broshka.image.url }}" alt="{{ broshka.name }}" id="previewImg">
                             <button type="button" class="img-clear-btn" onclick="clearImage()">
                                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12"/></svg>
                             </button>
@@ -181,7 +181,7 @@
 
                     <div class="f-group">
                         <label class="f-label">Tavsif</label>
-                        <textarea name="description" class="f-input" rows="3" placeholder="Brujka haqida qo'shimcha ma'lumot...">{{ form.description.value|default:'' }}</textarea>
+                        <textarea name="description" class="f-input" rows="3" placeholder="Broshka haqida qo'shimcha ma'lumot...">{{ form.description.value|default:'' }}</textarea>
                     </div>
 
                     <div class="f-group">
@@ -196,10 +196,10 @@
                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5"/></svg>
                             Saqlash
                         </button>
-                        {% if brujka %}
-                        <a href="{% url 'order:brujka_detail' brujka.pk %}" class="btn btn-secondary">Bekor qilish</a>
+                        {% if broshka %}
+                        <a href="{% url 'order:broshka_detail' broshka.pk %}" class="btn btn-secondary">Bekor qilish</a>
                         {% else %}
-                        <a href="{% url 'order:brujka_list' %}" class="btn btn-secondary">Bekor qilish</a>
+                        <a href="{% url 'order:broshka_list' %}" class="btn btn-secondary">Bekor qilish</a>
                         {% endif %}
                     </div>
                 </form>
@@ -213,15 +213,15 @@
             <div class="preview-card-head"><h4>Ko'rinish oldindan</h4></div>
             <div class="preview-body">
                 <div id="previewCardImg">
-                    {% if brujka and brujka.image %}
-                    <img src="{{ brujka.image.url }}" class="preview-img" id="prevCardImg" alt="">
+                    {% if broshka and broshka.image %}
+                    <img src="{{ broshka.image.url }}" class="preview-img" id="prevCardImg" alt="">
                     {% else %}
                     <div class="preview-img-ph" id="prevCardPh" style="background:{{ form.color.value|default:'#C0A060' }}22;">
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1" style="width:48px;height:48px;opacity:.3;" id="prevPhIcon"><path stroke-linecap="round" stroke-linejoin="round" d="m2.25 15.75 5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159m-1.5-1.5 1.409-1.409a2.25 2.25 0 0 1 3.182 0l2.909 2.909M3.75 21h16.5A2.25 2.25 0 0 0 22.5 18.75V5.25A2.25 2.25 0 0 0 20.25 3H3.75A2.25 2.25 0 0 0 1.5 5.25v13.5A2.25 2.25 0 0 0 3.75 21Z"/></svg>
                     </div>
                     {% endif %}
                 </div>
-                <div class="preview-name" id="prevName">{{ brujka.name|default:'Brujka nomi' }}</div>
+                <div class="preview-name" id="prevName">{{ broshka.name|default:'Broshka nomi' }}</div>
                 <div class="preview-meta">
                     <span class="color-swatch" id="prevSwatch" style="background:{{ form.color.value|default:'#C0A060' }};"></span>
                     <span id="prevHex" style="font-size:11px;color:var(--gray-500);font-family:monospace;">{{ form.color.value|default:'#C0A060' }}</span>
@@ -241,7 +241,7 @@ function syncColor(val) {
     if (ph) ph.style.background = val + '22';
 }
 function updatePreview() {
-    const name = document.getElementById('fname').value || 'Brujka nomi';
+    const name = document.getElementById('fname').value || 'Broshka nomi';
     document.getElementById('prevName').textContent = name;
 }
 function previewImage(event) {
