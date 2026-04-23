@@ -1,0 +1,124 @@
+{% extends "casting/base.html" %}
+{% block title %}Stanoklar — Zenko{% endblock %}
+{% block page_title %}Stanoklar{% endblock %}
+
+{% block topbar_actions %}
+<a href="{% url 'casting:stanok_create' %}" class="btn btn-primary">
+  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>
+  Yangi stanok
+</a>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.stats-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:12px;margin-bottom:22px;}
+.stat-card{background:var(--white);border:1px solid var(--gray-200);border-radius:14px;padding:16px 18px;display:flex;align-items:center;gap:12px;box-shadow:0 1px 3px rgba(0,0,0,.04);}
+.stat-icon{width:38px;height:38px;border-radius:10px;display:grid;place-items:center;flex-shrink:0;}
+.stat-icon svg{width:18px;height:18px;}
+.si-all{background:var(--gray-100);color:var(--gray-600);}
+.si-active{background:#F0FDF4;color:#16A34A;}
+.si-repair{background:#FFF7ED;color:#EA580C;}
+.si-inactive{background:#F1F5F9;color:#64748B;}
+.stat-num{font-size:22px;font-weight:800;color:var(--black);line-height:1;}
+.stat-lbl{font-size:11px;color:var(--gray-500);font-weight:500;margin-top:2px;}
+
+.filter-bar{background:var(--white);border:1px solid var(--gray-200);border-radius:12px;padding:12px 16px;margin-bottom:18px;display:flex;gap:10px;align-items:center;flex-wrap:wrap;}
+.filter-bar input,.filter-bar select{padding:8px 12px;border:1.5px solid var(--gray-200);border-radius:9px;font-size:13px;background:var(--white);color:var(--black);outline:none;font-family:inherit;transition:border-color .18s;}
+.filter-bar input{flex:1;min-width:160px;}
+.filter-bar input:focus,.filter-bar select:focus{border-color:var(--orange);}
+
+.table-wrap{background:var(--white);border:1px solid var(--gray-200);border-radius:14px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,.04);}
+.stanok-table{width:100%;border-collapse:collapse;font-size:13.5px;}
+.stanok-table th{text-align:left;padding:11px 16px;font-weight:700;color:var(--gray-500);font-size:11px;text-transform:uppercase;letter-spacing:.5px;border-bottom:2px solid var(--gray-200);background:var(--gray-50);}
+.stanok-table td{padding:13px 16px;border-bottom:1px solid var(--gray-100);vertical-align:middle;}
+.stanok-table tbody tr:hover td{background:#FAFAFA;}
+.stanok-table tbody tr:last-child td{border-bottom:none;}
+.stanok-name{font-weight:700;color:var(--black);font-size:14px;}
+
+.sp{display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border-radius:20px;font-size:11.5px;font-weight:700;}
+.sp .dot{width:6px;height:6px;border-radius:50%;flex-shrink:0;}
+.sp-active{background:#F0FDF4;color:#16A34A;} .sp-active .dot{background:#22C55E;}
+.sp-repair{background:#FFF7ED;color:#C2410C;} .sp-repair .dot{background:#F97316;animation:blink 2s infinite;}
+.sp-inactive{background:var(--gray-100);color:var(--gray-500);} .sp-inactive .dot{background:var(--gray-300);}
+
+.actions-cell{display:flex;gap:6px;justify-content:flex-end;}
+.empty-wrap{padding:60px 20px;text-align:center;color:var(--gray-400);}
+.empty-wrap svg{width:48px;height:48px;margin-bottom:14px;opacity:.2;}
+.empty-wrap p{font-size:14px;margin-bottom:16px;}
+@keyframes blink{0%,100%{opacity:1;}50%{opacity:.3;}}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="stats-row">
+  <div class="stat-card">
+    <div class="stat-icon si-all"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M11.42 15.17 17.25 21A2.652 2.652 0 0 0 21 17.25l-5.877-5.877M11.42 15.17l2.496-3.03c.317-.384.74-.626 1.208-.766M11.42 15.17l-4.655 5.653a2.548 2.548 0 1 1-3.586-3.586l5.653-4.655"/></svg></div>
+    <div><div class="stat-num">{{ counts.total }}</div><div class="stat-lbl">Jami</div></div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon si-active"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/></svg></div>
+    <div><div class="stat-num">{{ counts.active }}</div><div class="stat-lbl">Faol</div></div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon si-repair"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M11.42 15.17 17.25 21A2.652 2.652 0 0 0 21 17.25l-5.877-5.877"/></svg></div>
+    <div><div class="stat-num">{{ counts.repair }}</div><div class="stat-lbl">Ta'mirda</div></div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon si-inactive"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M18.364 18.364A9 9 0 0 0 5.636 5.636m12.728 12.728A9 9 0 0 1 5.636 5.636m12.728 12.728L5.636 5.636"/></svg></div>
+    <div><div class="stat-num">{{ counts.inactive }}</div><div class="stat-lbl">Faol emas</div></div>
+  </div>
+</div>
+
+<form class="filter-bar" method="get">
+  <input type="text" name="q" value="{{ q }}" placeholder="Nomi bo'yicha qidirish...">
+  <select name="status" onchange="this.form.submit()">
+    <option value="">Barcha holatlar</option>
+    {% for val,label in statuses %}<option value="{{ val }}" {% if val == status_f %}selected{% endif %}>{{ label }}</option>{% endfor %}
+  </select>
+  <button type="submit" class="btn btn-secondary btn-sm">Qidirish</button>
+  {% if q or status_f %}<a href="{% url 'casting:stanok_list' %}" class="btn btn-sm" style="background:#FEF2F2;color:#DC2626;border:1px solid #FECACA;">Tozalash</a>{% endif %}
+</form>
+
+{% if stanoklar %}
+<div class="table-wrap">
+  <table class="stanok-table">
+    <thead>
+      <tr>
+        <th>#</th>
+        <th>Nomi</th>
+        <th>Holat</th>
+        <th style="text-align:right;padding-right:20px;">Amallar</th>
+      </tr>
+    </thead>
+    <tbody>
+    {% for st in stanoklar %}
+    <tr>
+      <td style="color:var(--gray-400);font-size:12px;width:40px;">{{ forloop.counter }}</td>
+      <td><div class="stanok-name">{{ st.name }}</div></td>
+      <td><span class="sp sp-{{ st.status }}"><span class="dot"></span>{{ st.get_status_display }}</span></td>
+      <td>
+        <div class="actions-cell">
+          <a href="{% url 'casting:stanok_edit' st.pk %}" class="btn btn-sm" style="background:var(--orange-light);color:var(--orange);" title="Tahrirlash">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width:13px;height:13px"><path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Z"/></svg>
+          </a>
+          <form method="post" action="{% url 'casting:stanok_delete' st.pk %}" style="margin:0">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-sm btn-danger" title="O'chirish" onclick="return confirm('O\'chirishni tasdiqlaysizmi?')">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width:13px;height:13px"><path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0"/></svg>
+            </button>
+          </form>
+        </div>
+      </td>
+    </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% else %}
+<div class="empty-wrap">
+  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M11.42 15.17 17.25 21A2.652 2.652 0 0 0 21 17.25l-5.877-5.877M11.42 15.17l2.496-3.03c.317-.384.74-.626 1.208-.766M11.42 15.17l-4.655 5.653a2.548 2.548 0 1 1-3.586-3.586l5.653-4.655"/></svg>
+  <p>{% if q or status_f %}Filtr bo'yicha stanok topilmadi{% else %}Hali stanoklar yo'q{% endif %}</p>
+  {% if not q and not status_f %}<a href="{% url 'casting:stanok_create' %}" class="btn btn-primary">Stanok qo'shish</a>{% else %}<a href="{% url 'casting:stanok_list' %}" class="btn btn-secondary">Tozalash</a>{% endif %}
+</div>
+{% endif %}
+{% endblock %}

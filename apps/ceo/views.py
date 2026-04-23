@@ -1963,3 +1963,107 @@ class SalaryDetailView(CEORequiredMixin, View):
                 pass
 
         return redirect(f'{request.path}?year={year}&month={month}')
+
+
+# ── Stanoklar ────────────────────────────────────────────────────────────────
+
+from apps.casting.models import Stanok  # noqa: E402
+
+
+class StanokListView(CEORequiredMixin, View):
+    def get(self, request):
+        q = request.GET.get('q', '').strip()
+        status_f = request.GET.get('status', '')
+        qs = Stanok.objects.all()
+        if q:
+            qs = qs.filter(name__icontains=q)
+        if status_f:
+            qs = qs.filter(status=status_f)
+        counts = {
+            'total':    Stanok.objects.count(),
+            'active':   Stanok.objects.filter(status=Stanok.Status.ACTIVE).count(),
+            'repair':   Stanok.objects.filter(status=Stanok.Status.REPAIR).count(),
+            'inactive': Stanok.objects.filter(status=Stanok.Status.INACTIVE).count(),
+        }
+        return render(request, 'ceo/stanok_list.html', {
+            'stanoklar': qs,
+            'q': q,
+            'status_f': status_f,
+            'counts': counts,
+            'statuses': Stanok.Status.choices,
+            'active_nav': 'stanoklar',
+        })
+
+
+class StanokCreateView(CEORequiredMixin, View):
+    def get(self, request):
+        return render(request, 'ceo/stanok_form.html', {
+            'title': 'Yangi stanok',
+            'statuses': Stanok.Status.choices,
+            'active_nav': 'stanoklar',
+        })
+
+    def post(self, request):
+        name   = request.POST.get('name', '').strip()
+        status = request.POST.get('status', Stanok.Status.ACTIVE)
+        errors = {}
+        if not name:
+            errors['name'] = 'Nomi majburiy.'
+        if status not in dict(Stanok.Status.choices):
+            errors['status'] = "Noto'g'ri holat."
+        if errors:
+            return render(request, 'ceo/stanok_form.html', {
+                'title': 'Yangi stanok', 'statuses': Stanok.Status.choices,
+                'errors': errors, 'data': request.POST, 'active_nav': 'stanoklar',
+            })
+        s = Stanok.objects.create(name=name, status=status)
+        messages.success(request, f'"{s.name}" stanogi qo\'shildi.')
+        return redirect('ceo:stanok_list')
+
+
+class StanokUpdateView(CEORequiredMixin, View):
+    def get(self, request, pk):
+        stanok = get_object_or_404(Stanok, pk=pk)
+        return render(request, 'ceo/stanok_form.html', {
+            'title': f'{stanok.name} — tahrirlash',
+            'stanok': stanok,
+            'statuses': Stanok.Status.choices,
+            'active_nav': 'stanoklar',
+        })
+
+    def post(self, request, pk):
+        stanok = get_object_or_404(Stanok, pk=pk)
+        name   = request.POST.get('name', '').strip()
+        status = request.POST.get('status', stanok.status)
+        errors = {}
+        if not name:
+            errors['name'] = 'Nomi majburiy.'
+        if status not in dict(Stanok.Status.choices):
+            errors['status'] = "Noto'g'ri holat."
+        if errors:
+            return render(request, 'ceo/stanok_form.html', {
+                'title': f'{stanok.name} — tahrirlash', 'stanok': stanok,
+                'statuses': Stanok.Status.choices, 'errors': errors,
+                'data': request.POST, 'active_nav': 'stanoklar',
+            })
+        stanok.name = name
+        stanok.status = status
+        stanok.save()
+        messages.success(request, f'"{stanok.name}" yangilandi.')
+        return redirect('ceo:stanok_list')
+
+
+class StanokDeleteView(CEORequiredMixin, View):
+    def get(self, request, pk):
+        stanok = get_object_or_404(Stanok, pk=pk)
+        return render(request, 'ceo/stanok_confirm_delete.html', {
+            'object': stanok, 'active_nav': 'stanoklar',
+        })
+
+    def post(self, request, pk):
+        stanok = get_object_or_404(Stanok, pk=pk)
+        name = stanok.name
+        stanok.delete()
+        messages.success(request, f'"{name}" o\'chirildi.')
+        return redirect('ceo:stanok_list')
+

@@ -450,6 +450,10 @@
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6A2.25 2.25 0 0 1 6 3.75h2.25A2.25 2.25 0 0 1 10.5 6v2.25a2.25 2.25 0 0 1-2.25 2.25H6a2.25 2.25 0 0 1-2.25-2.25V6ZM3.75 15.75A2.25 2.25 0 0 1 6 13.5h2.25a2.25 2.25 0 0 1 2.25 2.25V18a2.25 2.25 0 0 1-2.25 2.25H6A2.25 2.25 0 0 1 3.75 18v-2.25ZM13.5 6a2.25 2.25 0 0 1 2.25-2.25H18A2.25 2.25 0 0 1 20.25 6v2.25A2.25 2.25 0 0 1 18 10.5h-2.25a2.25 2.25 0 0 1-2.25-2.25V6ZM13.5 15.75a2.25 2.25 0 0 1 2.25-2.25H18a2.25 2.25 0 0 1 2.25 2.25V18A2.25 2.25 0 0 1 18 20.25h-2.25A2.25 2.25 0 0 1 13.5 18v-2.25Z"/></svg>
                 Broshkalar
             </a>
+            <a href="{% url 'ceo:stanok_list' %}" class="nav-link {% if active_nav == 'stanoklar' %}active{% endif %}">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M11.42 15.17 17.25 21A2.652 2.652 0 0 0 21 17.25l-5.877-5.877M11.42 15.17l2.496-3.03c.317-.384.74-.626 1.208-.766M11.42 15.17l-4.655 5.653a2.548 2.548 0 1 1-3.586-3.586l5.653-4.655m5.896-3.42c.02-.1.04-.198.065-.296m-5.96 3.716a5.29 5.29 0 0 0 .243-2.194 5.29 5.29 0 0 0-5.396-5.028.75.75 0 0 0-.493 1.286l2.054 2.054-.44 1.947-1.947.44-2.054-2.054a.75.75 0 0 0-1.286.493 5.29 5.29 0 0 0 5.028 5.396m5.96-3.716.065-.296m0 0a5.29 5.29 0 0 0-1.36-4.87l-1.6-1.6a5.29 5.29 0 0 0-6.894-.343"/></svg>
+                Stanoklar
+            </a>
 
             <div class="nav-label">Oylik</div>
             <a href="{% url 'ceo:salary_list' %}" class="nav-link {% if active_nav == 'salary' %}active{% endif %}">

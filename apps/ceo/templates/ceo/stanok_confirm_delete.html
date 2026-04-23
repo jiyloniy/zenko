@@ -1,0 +1,73 @@
+{% extends "ceo/base.html" %}
+{% block title %}O'chirish — {{ object.name }}{% endblock %}
+{% block page_title %}Stanokni o'chirish{% endblock %}
+
+{% block topbar_actions %}
+<a href="{% url 'ceo:stanok_list' %}" class="btn btn-secondary btn-sm">
+  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18"/></svg>
+  Orqaga
+</a>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.del-wrap{max-width:480px;}
+.del-card{background:var(--white);border:1px solid #FECACA;border-radius:18px;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.05);}
+.del-head{padding:28px;text-align:center;border-bottom:1px solid #FEE2E2;background:#FFF5F5;}
+.del-icon{width:56px;height:56px;background:#FEE2E2;border-radius:50%;display:grid;place-items:center;margin:0 auto 16px;color:#DC2626;}
+.del-icon svg{width:26px;height:26px;}
+.del-head h2{font-size:18px;font-weight:800;color:var(--black);margin-bottom:6px;}
+.del-head p{font-size:13px;color:var(--gray-600);line-height:1.5;}
+.del-body{padding:20px 28px;}
+.del-info{background:var(--gray-50);border:1px solid var(--gray-200);border-radius:12px;padding:16px;}
+.di-row{display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid var(--gray-100);}
+.di-row:last-child{border-bottom:none;}
+.di-key{font-size:12px;color:var(--gray-500);}
+.di-val{font-size:13px;font-weight:600;color:var(--black);}
+.status-pill{display:inline-flex;align-items:center;gap:5px;padding:3px 9px;border-radius:20px;font-size:11px;font-weight:700;}
+.status-pill .dot{width:5px;height:5px;border-radius:50%;}
+.sp-active{background:#F0FDF4;color:#16A34A;} .sp-active .dot{background:#22C55E;}
+.sp-repair{background:#FFF7ED;color:#C2410C;} .sp-repair .dot{background:#F97316;}
+.sp-inactive{background:var(--gray-100);color:var(--gray-500);} .sp-inactive .dot{background:var(--gray-300);}
+.del-actions{display:flex;gap:10px;padding:20px 28px;border-top:1px solid #FEE2E2;background:#FFF5F5;}
+.btn-confirm-del{flex:1;padding:11px;border-radius:10px;font-size:14px;font-weight:700;border:none;background:#DC2626;color:#fff;cursor:pointer;font-family:inherit;transition:background .18s;}
+.btn-confirm-del:hover{background:#B91C1C;}
+.btn-cancel-del{flex:1;padding:11px;border-radius:10px;font-size:14px;font-weight:600;border:1.5px solid var(--gray-200);background:var(--white);color:var(--gray-700);text-decoration:none;display:flex;align-items:center;justify-content:center;transition:all .18s;}
+.btn-cancel-del:hover{background:var(--gray-100);}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="del-wrap">
+<div class="del-card">
+  <div class="del-head">
+    <div class="del-icon">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z"/></svg>
+    </div>
+    <h2>Stanokni o'chirish</h2>
+    <p>Bu amalni bekor qilib bo'lmaydi. Stanok ma'lumotlari butunlay o'chiriladi.</p>
+  </div>
+
+  <div class="del-body">
+    <div class="del-info">
+      <div class="di-row"><span class="di-key">Nomi</span><span class="di-val">{{ object.name }}</span></div>
+      {% if object.model_name %}<div class="di-row"><span class="di-key">Model</span><span class="di-val">{{ object.model_name }}</span></div>{% endif %}
+      {% if object.serial_no %}<div class="di-row"><span class="di-key">Seriya</span><span class="di-val">{{ object.serial_no }}</span></div>{% endif %}
+      {% if object.location %}<div class="di-row"><span class="di-key">Joylashuv</span><span class="di-val">{{ object.location }}</span></div>{% endif %}
+      <div class="di-row">
+        <span class="di-key">Holat</span>
+        <span class="status-pill sp-{{ object.status }}"><span class="dot"></span>{{ object.get_status_display }}</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="del-actions">
+    <form method="post" style="flex:1;display:flex;">
+      {% csrf_token %}
+      <button type="submit" class="btn-confirm-del">O'chirish</button>
+    </form>
+    <a href="{% url 'ceo:stanok_list' %}" class="btn-cancel-del">Bekor qilish</a>
+  </div>
+</div>
+</div>
+{% endblock %}

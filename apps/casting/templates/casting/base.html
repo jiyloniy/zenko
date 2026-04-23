@@ -9,87 +9,134 @@
 <style>
 *{margin:0;padding:0;box-sizing:border-box;}
 :root{
-  --bg:#0F0F11;
-  --surface:#18181B;
-  --surface2:#1E1E22;
-  --border:rgba(255,255,255,.07);
-  --border2:rgba(255,255,255,.04);
-  --text:#F4F4F5;
-  --muted:#71717A;
-  --muted2:#52525B;
   --orange:#F58220;
-  --orange-dim:rgba(245,130,32,.12);
-  --orange-glow:rgba(245,130,32,.2);
-  --green:#22C55E;
-  --green-dim:rgba(34,197,94,.1);
-  --blue:#3B82F6;
-  --blue-dim:rgba(59,130,246,.1);
-  --yellow:#EAB308;
-  --yellow-dim:rgba(234,179,8,.1);
+  --orange-hover:#E06A10;
+  --orange-light:rgba(245,130,32,.1);
+  --black:#1A1A1A;
+  --dark:#2D2D2D;
+  --white:#FFFFFF;
+  --gray-50:#F9FAFB;
+  --gray-100:#F3F4F6;
+  --gray-200:#E5E7EB;
+  --gray-300:#D1D5DB;
+  --gray-400:#9CA3AF;
+  --gray-500:#6B7280;
+  --gray-600:#4B5563;
+  --gray-700:#374151;
   --red:#EF4444;
-  --red-dim:rgba(239,68,68,.1);
-  --sidebar-w:240px;
-  --topbar-h:56px;
-  --radius:12px;
+  --green:#22C55E;
+  --sidebar-w:260px;
+  --topbar-h:60px;
 }
-html,body{height:100%;font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--text);font-size:14px;line-height:1.5;}
+html,body{height:100%;font-family:'Inter',system-ui,sans-serif;background:var(--gray-50);color:var(--black);font-size:14px;line-height:1.5;}
 
 /* ── Layout ── */
 .layout{display:flex;min-height:100vh;}
-.sidebar{width:var(--sidebar-w);background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;position:fixed;top:0;left:0;height:100vh;z-index:100;transition:transform .25s;}
+.sidebar{
+  width:var(--sidebar-w);background:var(--black);
+  display:flex;flex-direction:column;
+  position:fixed;top:0;left:0;height:100vh;
+  z-index:100;transition:transform .25s;
+  overflow-y:auto;
+}
 .main{margin-left:var(--sidebar-w);flex:1;display:flex;flex-direction:column;min-height:100vh;}
-.topbar{height:var(--topbar-h);background:var(--surface);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 24px;position:sticky;top:0;z-index:50;}
-.content{flex:1;padding:24px;}
+.topbar{
+  height:var(--topbar-h);background:var(--white);
+  border-bottom:1px solid var(--gray-200);
+  display:flex;align-items:center;justify-content:space-between;
+  padding:0 28px;position:sticky;top:0;z-index:50;
+  box-shadow:0 1px 3px rgba(0,0,0,.06);
+}
+.content{flex:1;padding:28px;}
 
 /* ── Sidebar brand ── */
-.sb-brand{display:flex;align-items:center;gap:12px;padding:20px 18px 16px;border-bottom:1px solid var(--border);}
-.sb-logo{width:36px;height:36px;background:linear-gradient(135deg,#F58220,#E06A10);border-radius:10px;display:grid;place-items:center;font-weight:900;font-size:15px;color:#fff;flex-shrink:0;box-shadow:0 4px 14px var(--orange-glow);}
-.sb-title{font-weight:800;font-size:13px;letter-spacing:2px;color:var(--text);}
-.sb-sub{font-size:10px;font-weight:600;color:var(--orange);letter-spacing:3px;text-transform:uppercase;margin-top:1px;}
+.sidebar-brand{
+  display:flex;align-items:center;gap:12px;
+  padding:22px 20px 18px;
+  border-bottom:1px solid rgba(255,255,255,.07);
+  text-decoration:none;
+  flex-shrink:0;
+}
+.logo{
+  width:36px;height:36px;
+  background:linear-gradient(135deg,#F58220,#E06A10);
+  border-radius:10px;display:grid;place-items:center;
+  font-weight:900;font-size:16px;color:#fff;flex-shrink:0;
+  box-shadow:0 4px 12px rgba(245,130,32,.3);
+}
+.sidebar-brand span{font-weight:800;font-size:14px;letter-spacing:2px;color:#fff;}
+.sidebar-brand small{font-size:10px;font-weight:600;color:var(--orange);letter-spacing:3px;text-transform:uppercase;}
 
 /* ── Sidebar nav ── */
-.sb-nav{flex:1;padding:12px 10px;overflow-y:auto;}
-.nav-label{font-size:9.5px;font-weight:700;color:var(--muted2);text-transform:uppercase;letter-spacing:1px;padding:12px 8px 4px;}
-.nav-link{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:9px;color:var(--muted);text-decoration:none;font-size:13px;font-weight:500;transition:all .18s;margin-bottom:2px;}
+.sidebar-nav{flex:1;padding:14px 12px;overflow-y:auto;}
+.nav-label{
+  font-size:9.5px;font-weight:700;color:rgba(255,255,255,.3);
+  text-transform:uppercase;letter-spacing:1.2px;
+  padding:14px 8px 5px;
+}
+.nav-link{
+  display:flex;align-items:center;gap:10px;
+  padding:9px 12px;border-radius:9px;
+  color:rgba(255,255,255,.55);text-decoration:none;
+  font-size:13px;font-weight:500;transition:all .18s;margin-bottom:2px;
+}
 .nav-link svg{width:17px;height:17px;flex-shrink:0;}
-.nav-link:hover{background:var(--surface2);color:var(--text);}
-.nav-link.active{background:var(--orange-dim);color:var(--orange);font-weight:600;}
-.nav-link.active svg{filter:drop-shadow(0 0 4px var(--orange-glow));}
+.nav-link:hover{background:rgba(255,255,255,.07);color:rgba(255,255,255,.9);}
+.nav-link.active{background:var(--orange);color:#fff;font-weight:600;}
+.nav-link.active svg{filter:drop-shadow(0 0 4px rgba(245,130,32,.5));}
 
 /* ── Sidebar footer ── */
-.sb-footer{padding:14px 14px 18px;border-top:1px solid var(--border);}
-.sb-user{display:flex;align-items:center;gap:10px;}
-.sb-avatar{width:34px;height:34px;border-radius:50%;background:var(--orange-dim);border:1.5px solid var(--orange-glow);display:grid;place-items:center;font-weight:700;font-size:12px;color:var(--orange);flex-shrink:0;}
-.sb-user-name{font-size:12px;font-weight:600;color:var(--text);}
-.sb-user-role{font-size:10px;color:var(--muted);margin-top:1px;}
-.sb-logout{margin-left:auto;width:28px;height:28px;border-radius:7px;background:transparent;border:1px solid var(--border);display:grid;place-items:center;color:var(--muted);text-decoration:none;transition:all .18s;flex-shrink:0;}
-.sb-logout:hover{background:var(--red-dim);border-color:var(--red);color:var(--red);}
-.sb-logout svg{width:14px;height:14px;}
+.sidebar-footer{
+  padding:14px 16px 18px;
+  border-top:1px solid rgba(255,255,255,.07);
+  flex-shrink:0;
+}
+.sf-user{display:flex;align-items:center;gap:10px;}
+.sf-avatar{
+  width:34px;height:34px;border-radius:50%;
+  background:rgba(245,130,32,.15);border:1.5px solid rgba(245,130,32,.3);
+  display:grid;place-items:center;font-weight:700;font-size:13px;color:var(--orange);
+  flex-shrink:0;
+}
+.sf-name{font-size:12px;font-weight:600;color:#fff;}
+.sf-role{font-size:10px;color:rgba(255,255,255,.4);margin-top:1px;}
+.sf-logout{
+  margin-left:auto;width:30px;height:30px;border-radius:8px;
+  background:transparent;border:1px solid rgba(255,255,255,.1);
+  display:grid;place-items:center;color:rgba(255,255,255,.4);
+  text-decoration:none;transition:all .18s;flex-shrink:0;
+}
+.sf-logout:hover{background:rgba(239,68,68,.15);border-color:rgba(239,68,68,.3);color:#F87171;}
+.sf-logout svg{width:14px;height:14px;}
 
 /* ── Topbar ── */
 .topbar-left{display:flex;align-items:center;gap:12px;}
-.page-title{font-size:15px;font-weight:700;color:var(--text);}
+.page-title{font-size:16px;font-weight:700;color:var(--black);}
 .topbar-right{display:flex;align-items:center;gap:10px;}
-.btn{display:inline-flex;align-items:center;gap:6px;padding:7px 14px;border-radius:9px;font-size:12.5px;font-weight:600;text-decoration:none;border:none;cursor:pointer;font-family:inherit;transition:all .18s;white-space:nowrap;}
+
+/* ── Buttons ── */
+.btn{display:inline-flex;align-items:center;gap:6px;padding:8px 16px;border-radius:9px;font-size:13px;font-weight:600;text-decoration:none;border:none;cursor:pointer;font-family:inherit;transition:all .18s;white-space:nowrap;}
 .btn svg{width:14px;height:14px;flex-shrink:0;}
 .btn-primary{background:var(--orange);color:#fff;}
-.btn-primary:hover{background:#E06A10;box-shadow:0 4px 12px var(--orange-glow);}
-.btn-ghost{background:transparent;color:var(--muted);border:1px solid var(--border);}
-.btn-ghost:hover{background:var(--surface2);color:var(--text);}
-.btn-sm{padding:5px 10px;font-size:11.5px;}
+.btn-primary:hover{background:var(--orange-hover);box-shadow:0 4px 12px rgba(245,130,32,.3);}
+.btn-secondary{background:var(--gray-100);color:var(--gray-700);border:1px solid var(--gray-200);}
+.btn-secondary:hover{background:var(--gray-200);}
+.btn-danger{background:#FEF2F2;color:#DC2626;border:1px solid #FECACA;}
+.btn-danger:hover{background:#FEE2E2;}
+.btn-sm{padding:5px 11px;font-size:12px;}
 
 /* ── Messages ── */
-.messages{padding:0 0 16px;}
+.messages-wrap{margin-bottom:20px;}
 .msg{padding:10px 16px;border-radius:10px;font-size:13px;font-weight:500;margin-bottom:6px;display:flex;align-items:center;gap:8px;}
 .msg svg{width:15px;height:15px;flex-shrink:0;}
-.msg-success{background:var(--green-dim);color:var(--green);border:1px solid rgba(34,197,94,.2);}
-.msg-error{background:var(--red-dim);color:var(--red);border:1px solid rgba(239,68,68,.2);}
-.msg-info{background:var(--blue-dim);color:var(--blue);border:1px solid rgba(59,130,246,.2);}
+.msg-success{background:#F0FDF4;color:#16A34A;border:1px solid #BBF7D0;}
+.msg-error{background:#FEF2F2;color:#DC2626;border:1px solid #FECACA;}
+.msg-info{background:#EFF6FF;color:#2563EB;border:1px solid #BFDBFE;}
 
-/* ── Mobile toggle ── */
-.mob-toggle{display:none;width:36px;height:36px;border-radius:9px;background:var(--surface2);border:1px solid var(--border);align-items:center;justify-content:center;cursor:pointer;color:var(--text);}
+/* ── Mobile ── */
+.mob-toggle{display:none;width:36px;height:36px;border-radius:9px;background:var(--gray-100);border:1px solid var(--gray-200);align-items:center;justify-content:center;cursor:pointer;}
 .mob-toggle svg{width:18px;height:18px;}
-.mob-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:90;backdrop-filter:blur(2px);}
+.mob-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:90;backdrop-filter:blur(2px);}
 
 @media(max-width:768px){
   .sidebar{transform:translateX(-100%);}
@@ -107,48 +154,52 @@ html,body{height:100%;font-family:'Inter',system-ui,sans-serif;background:var(--
 
   <!-- Sidebar -->
   <aside class="sidebar" id="sidebar">
-    <a href="{% url 'casting:order_list' %}" class="sb-brand" style="text-decoration:none;">
-      <div class="sb-logo">Z</div>
+    <a href="{% url 'casting:order_list' %}" class="sidebar-brand">
+      <div class="logo">Z</div>
       <div>
-        <div class="sb-title">ZENKO</div>
-        <div class="sb-sub">Quyish</div>
+        <span>ZENKO</span><br>
+        <small>Quyish</small>
       </div>
     </a>
 
-    <nav class="sb-nav">
+    <nav class="sidebar-nav">
       <div class="nav-label">Buyurtmalar</div>
-      <a href="{% url 'casting:order_list' %}?status=accepted" class="nav-link {% if active_nav == 'orders' and status_filter == 'accepted' %}active{% endif %}">
+      <a href="{% url 'casting:order_list' %}?status=accepted" class="nav-link {% if active_nav == 'orders' and status_filter|default:'' == 'accepted' %}active{% endif %}">
         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/></svg>
         Qabul qilingan
       </a>
-      <a href="{% url 'casting:order_list' %}?status=in_process" class="nav-link {% if active_nav == 'orders' and status_filter == 'in_process' %}active{% endif %}">
+      <a href="{% url 'casting:order_list' %}?status=in_process" class="nav-link {% if active_nav == 'orders' and status_filter|default:'' == 'in_process' %}active{% endif %}">
         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182"/></svg>
         Ishlab chiqarilmoqda
       </a>
-      <a href="{% url 'casting:order_list' %}?status=ready" class="nav-link {% if active_nav == 'orders' and status_filter == 'ready' %}active{% endif %}">
+      <a href="{% url 'casting:order_list' %}?status=ready" class="nav-link {% if active_nav == 'orders' and status_filter|default:'' == 'ready' %}active{% endif %}">
         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M11.35 3.836c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 0 0 .75-.75 2.25 2.25 0 0 0-.1-.664m-5.8 0A2.251 2.251 0 0 1 13.5 2.25H15c1.012 0 1.867.668 2.15 1.586m-5.8 0c-.376.023-.75.05-1.124.08C9.095 4.01 8.25 4.973 8.25 6.108V8.25m8.9-4.414c.376.023.75.05 1.124.08 1.131.094 1.976 1.057 1.976 2.192V16.5A2.25 2.25 0 0 1 18 18.75h-2.25m-7.5-10.5H4.875c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V18.75m-7.5-10.5h6.375c.621 0 1.125.504 1.125 1.125v9.375m-8.25-3 1.5 1.5 3-3.75"/></svg>
         Tayyor
       </a>
+
+      <div class="nav-label">Uskunalar</div>
+      <a href="{% url 'casting:stanok_list' %}" class="nav-link {% if active_nav == 'stanoklar' %}active{% endif %}">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M11.42 15.17 17.25 21A2.652 2.652 0 0 0 21 17.25l-5.877-5.877M11.42 15.17l2.496-3.03c.317-.384.74-.626 1.208-.766M11.42 15.17l-4.655 5.653a2.548 2.548 0 1 1-3.586-3.586l5.653-4.655m5.896-3.42c.02-.1.04-.198.065-.296m-5.96 3.716a5.29 5.29 0 0 0 .243-2.194 5.29 5.29 0 0 0-5.396-5.028.75.75 0 0 0-.493 1.286l2.054 2.054-.44 1.947-1.947.44-2.054-2.054a.75.75 0 0 0-1.286.493 5.29 5.29 0 0 0 5.028 5.396m5.96-3.716.065-.296m0 0a5.29 5.29 0 0 0-1.36-4.87l-1.6-1.6a5.29 5.29 0 0 0-6.894-.343"/></svg>
+        Stanoklar
+      </a>
     </nav>
 
-    <div class="sb-footer">
-      <div class="sb-user">
-        <div class="sb-avatar">{{ request.user.name|slice:":1"|upper }}</div>
+    <div class="sidebar-footer">
+      <div class="sf-user">
+        <div class="sf-avatar">{{ request.user.name|slice:":1"|upper }}</div>
         <div>
-          <div class="sb-user-name">{{ request.user.name }}</div>
-          <div class="sb-user-role">{% if request.user.role %}{{ request.user.role.name }}{% endif %}</div>
+          <div class="sf-name">{{ request.user.name }}</div>
+          <div class="sf-role">{% if request.user.role %}{{ request.user.role.name }}{% endif %}</div>
         </div>
-        <a href="{% url 'logout' %}" class="sb-logout" title="Chiqish">
+        <a href="{% url 'logout' %}" class="sf-logout" title="Chiqish">
           <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0 0 13.5 3h-6a2.25 2.25 0 0 0-2.25 2.25v13.5A2.25 2.25 0 0 0 7.5 21h6a2.25 2.25 0 0 0 2.25-2.25V15m3 0 3-3m0 0-3-3m3 3H9"/></svg>
         </a>
       </div>
     </div>
   </aside>
 
-  <!-- Mobile overlay -->
   <div class="mob-overlay" id="overlay" onclick="closeSidebar()"></div>
 
-  <!-- Main -->
   <div class="main">
     <header class="topbar">
       <div class="topbar-left">
@@ -162,7 +213,7 @@ html,body{height:100%;font-family:'Inter',system-ui,sans-serif;background:var(--
 
     <main class="content">
       {% if messages %}
-      <div class="messages">
+      <div class="messages-wrap">
         {% for msg in messages %}
         <div class="msg {% if msg.tags == 'success' %}msg-success{% elif msg.tags == 'error' %}msg-error{% else %}msg-info{% endif %}">
           {% if msg.tags == 'success' %}
@@ -175,21 +226,15 @@ html,body{height:100%;font-family:'Inter',system-ui,sans-serif;background:var(--
         {% endfor %}
       </div>
       {% endif %}
-
       {% block content %}{% endblock %}
     </main>
   </div>
 </div>
 
 <script>
-function openSidebar(){
-  document.getElementById('sidebar').classList.add('open');
-  document.getElementById('overlay').classList.add('show');
-}
-function closeSidebar(){
-  document.getElementById('sidebar').classList.remove('open');
-  document.getElementById('overlay').classList.remove('show');
-}
+function openSidebar(){document.getElementById('sidebar').classList.add('open');document.getElementById('overlay').classList.add('show');}
+function closeSidebar(){document.getElementById('sidebar').classList.remove('open');document.getElementById('overlay').classList.remove('show');}
 </script>
+{% block extra_js %}{% endblock %}
 </body>
 </html>

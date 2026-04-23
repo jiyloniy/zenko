@@ -9,7 +9,12 @@
       "Bash(python manage.py shell -c ' *)",
       "Bash(python -c ' *)",
       "Bash(python manage.py migrate order)",
-      "Bash(grep -v \"^$\")"
+      "Bash(grep -v \"^$\")",
+      "Bash(python manage.py makemigrations casting)",
+      "Bash(sed 's/casting\\\\/base\\\\.html/ceo\\\\/base.html/g; s/casting:stanok/ceo:stanok/g' d:/dasturllash/zenko/apps/casting/templates/casting/stanok_list.html)",
+      "Bash(sed 's/casting\\\\/base\\\\.html/ceo\\\\/base.html/g; s/casting:stanok/ceo:stanok/g' d:/dasturllash/zenko/apps/casting/templates/casting/stanok_form.html)",
+      "Bash(sed 's/casting\\\\/base\\\\.html/ceo\\\\/base.html/g; s/casting:stanok/ceo:stanok/g' d:/dasturllash/zenko/apps/casting/templates/casting/stanok_confirm_delete.html)",
+      "Bash(python manage.py migrate casting)"
     ]
   }
 }

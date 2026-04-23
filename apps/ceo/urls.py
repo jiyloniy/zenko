@@ -53,4 +53,10 @@ urlpatterns = [
     # Salary
     path('salary/', views.SalaryListView.as_view(), name='salary_list'),
     path('salary/<int:pk>/', views.SalaryDetailView.as_view(), name='salary_detail'),
+
+    # Stanoklar
+    path('stanoklar/', views.StanokListView.as_view(), name='stanok_list'),
+    path('stanoklar/create/', views.StanokCreateView.as_view(), name='stanok_create'),
+    path('stanoklar/<int:pk>/edit/', views.StanokUpdateView.as_view(), name='stanok_edit'),
+    path('stanoklar/<int:pk>/delete/', views.StanokDeleteView.as_view(), name='stanok_delete'),
 ]
