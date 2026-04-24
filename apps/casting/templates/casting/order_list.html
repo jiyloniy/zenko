@@ -155,7 +155,7 @@
   <!-- Image: order.image → brujka.image → placeholder -->
   {% if order.image %}
   <div class="oc-img-wrap" onclick="openLb('{{ order.image.url }}','{{ order.name|escapejs }}')">
-    <img src="{{ order.image.url }}" class="oc-img" alt="">
+    <img src="{{ order.image.url }} " class="oc-img" alt="">
     <div class="zoom-hint"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 3.75v4.5m0-4.5h4.5m-4.5 0L9 9M3.75 20.25v-4.5m0 4.5h4.5m-4.5 0L9 15M20.25 3.75h-4.5m4.5 0v4.5m0-4.5L15 9m5.25 11.25h-4.5m4.5 0v-4.5m0 4.5L15 15"/></svg></div>
     {% if order.brujka %}<div class="brujka-badge"><span class="bswatch" style="background:{{ order.brujka.color }};"></span>{{ order.brujka.name }}</div>{% endif %}
   </div>
@@ -167,9 +167,10 @@
   </div>
  
   {% else %}
-  <div class="oc-img-ph" style="background:linear-gradient(135deg,#F3F4F6,#E5E7EB);">
-    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1" stroke="#D1D5DB" style="width:40px;height:40px;"><path stroke-linecap="round" stroke-linejoin="round" d="m2.25 15.75 5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159m-1.5-1.5 1.409-1.409a2.25 2.25 0 0 1 3.182 0l2.909 2.909M3.75 21h16.5A2.25 2.25 0 0 0 22.5 18.75V5.25A2.25 2.25 0 0 0 20.25 3H3.75A2.25 2.25 0 0 0 1.5 5.25v13.5A2.25 2.25 0 0 0 3.75 21Z"/></svg>
-    <span style="font-size:11px;color:#9CA3AF;font-weight:600;">Rasm yo'q</span>
+  <div class="oc-img-wrap" onclick="openLb('{{ order.brujka.image.url }}','{{ order.name|escapejs }}')">
+    <img src="{{ order.brujka.image.url }}" class="oc-img" alt="">
+    <div class="zoom-hint"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 3.75v4.5m0-4.5h4.5m-4.5 0L9 9M3.75 20.25v-4.5m0 4.5h4.5m-4.5 0L9 15M20.25 3.75h-4.5m4.5 0v4.5m0-4.5L15 9m5.25 11.25h-4.5m4.5 0v-4.5m0 4.5L15 15"/></svg></div>
+    <div class="brujka-badge"><span class="bswatch" style="background:{{ order.brujka.color }};"></span>{{ order.brujka.name }}</div>
   </div>
   {% endif %}
 
