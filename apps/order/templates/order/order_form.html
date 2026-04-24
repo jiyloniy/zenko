@@ -399,34 +399,43 @@ function clearBroshka() {
 function updateAutoName() {
     const parts = document.getElementById('autoNameParts');
     const hidden = document.getElementById('orderNameHidden');
+    const prefix = document.getElementById('autoNamePrefix');
     const b = selectedBroshka;
     const dateVal = document.getElementById('deadlineInput').value;
 
-    const chips = [];
-    let nameParts = [];
-
-    if (b) {
-        nameParts.push(b.name);
-    }
-    if (dateVal) {
-        const d = new Date(dateVal);
-        const formatted = d.toLocaleDateString('uz-UZ', {day:'2-digit', month:'2-digit', year:'numeric'}).replace(/\//g,'.');
-        chips.push(`<span class="anp-sep">·</span>`);
-        chips.push(`<span class="anp-chip anp-chip-date">${formatted}</span>`);
-        nameParts.push(formatted);
-    }
-
-    const prefix = document.getElementById('autoNamePrefix');
-    if (chips.length) {
-        if (prefix) prefix.textContent = b ? b.name : '#XXXX';
-        parts.innerHTML = chips.join('');
-        const autoName = '#XXXX — ' + nameParts.join(' — ');
-        hidden.value = autoName;
-    } else {
+    if (!b && !dateVal) {
         if (prefix) prefix.textContent = '#XXXX';
         parts.innerHTML = '<span class="anp-placeholder">Broshka va sana tanlanganida avtomatik yaratiladi</span>';
         hidden.value = '';
+        return;
     }
+
+    let dateFormatted = '';
+    if (dateVal) {
+        const d = new Date(dateVal);
+        const dd = String(d.getDate()).padStart(2,'0');
+        const mm = String(d.getMonth()+1).padStart(2,'0');
+        const yy = d.getFullYear();
+        dateFormatted = `${dd}.${mm}.${yy}`;
+    }
+
+    // Preview chips
+    const chips = [];
+    if (b) chips.push(`<span class="anp-chip anp-chip-broshka">${b.name}</span>`);
+    if (dateFormatted) {
+        if (chips.length) chips.push(`<span class="anp-sep">-</span>`);
+        chips.push(`<span class="anp-chip anp-chip-date">${dateFormatted}</span>`);
+    }
+
+    if (prefix) prefix.textContent = '#XXXX';
+    parts.innerHTML = chips.join('');
+
+    // Name format: #XXXX BrujkaName - dd.mm.yyyy
+    let autoName = '#XXXX';
+    if (b && dateFormatted) autoName = `#XXXX ${b.name} - ${dateFormatted}`;
+    else if (b) autoName = `#XXXX ${b.name}`;
+    else if (dateFormatted) autoName = `#XXXX - ${dateFormatted}`;
+    hidden.value = autoName;
 }
 </script>
 {% endblock %}

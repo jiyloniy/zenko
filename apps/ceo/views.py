@@ -1965,9 +1965,143 @@ class SalaryDetailView(CEORequiredMixin, View):
         return redirect(f'{request.path}?year={year}&month={month}')
 
 
-# ── Stanoklar ────────────────────────────────────────────────────────────────
+# ── Quyish loglar (CEO) ──────────────────────────────────────────────────────
 
-from apps.casting.models import Stanok  # noqa: E402
+from apps.casting.models import HomMahsulotLog, Stanok, TayorMahsulotLog  # noqa: E402
+from apps.order.models import Order as _Order  # noqa: E402
+from django.db.models import Sum as _Sum  # noqa: E402
+
+
+def _log_ctx(order):
+    hom_loglar   = order.hom_loglar.select_related('stanok', 'created_by').order_by('-sana', '-created_at')
+    tayor_loglar = order.tayor_loglar.select_related('created_by').order_by('-sana', '-created_at')
+    return {
+        'hom_loglar':   hom_loglar,
+        'tayor_loglar': tayor_loglar,
+        'hom_jami':     hom_loglar.aggregate(j=_Sum('miqdor'))['j'] or 0,
+        'tayor_jami':   tayor_loglar.aggregate(j=_Sum('miqdor'))['j'] or 0,
+        'stanoklar':    Stanok.objects.filter(status=Stanok.Status.ACTIVE),
+        'today':        timezone.localdate(),
+    }
+
+
+class OrderLogView(CEORequiredMixin, View):
+    def get(self, request, pk):
+        order = get_object_or_404(_Order.objects.select_related('brujka', 'created_by'), pk=pk)
+        return render(request, 'ceo/order_log.html', {
+            'order': order, 'active_nav': 'orders', **_log_ctx(order),
+        })
+
+
+class HomLogCreateView(CEORequiredMixin, View):
+    def post(self, request, pk):
+        order = get_object_or_404(_Order, pk=pk)
+        try:
+            miqdor = int(request.POST.get('miqdor', 0))
+            assert miqdor > 0
+        except (ValueError, AssertionError):
+            messages.error(request, 'Miqdor musbat son bo\'lishi kerak.')
+            return redirect('ceo:order_log', pk=pk)
+        import datetime as _dt
+        try:
+            sana = _dt.date.fromisoformat(request.POST.get('sana', ''))
+        except ValueError:
+            sana = timezone.localdate()
+        stanok_id = request.POST.get('stanok', '').strip()
+        stanok = Stanok.objects.filter(pk=stanok_id).first() if stanok_id else None
+        HomMahsulotLog.objects.create(
+            order=order, stanok=stanok, miqdor=miqdor, sana=sana,
+            izoh=request.POST.get('izoh', '').strip(), created_by=request.user,
+        )
+        messages.success(request, f'{miqdor} dona hom mahsulot qo\'shildi.')
+        return redirect('ceo:order_log', pk=pk)
+
+
+class HomLogEditView(CEORequiredMixin, View):
+    def post(self, request, pk, log_pk):
+        log = get_object_or_404(HomMahsulotLog, pk=log_pk, order_id=pk)
+        import datetime as _dt
+        try:
+            miqdor = int(request.POST.get('miqdor', 0))
+            assert miqdor > 0
+        except (ValueError, AssertionError):
+            messages.error(request, 'Miqdor musbat son bo\'lishi kerak.')
+            return redirect('ceo:order_log', pk=pk)
+        try:
+            sana = _dt.date.fromisoformat(request.POST.get('sana', ''))
+        except ValueError:
+            sana = log.sana
+        stanok_id = request.POST.get('stanok', '').strip()
+        log.stanok = Stanok.objects.filter(pk=stanok_id).first() if stanok_id else None
+        log.miqdor = miqdor
+        log.sana = sana
+        log.izoh = request.POST.get('izoh', '').strip()
+        log.save()
+        messages.success(request, 'Log yangilandi.')
+        return redirect('ceo:order_log', pk=pk)
+
+
+class HomLogDeleteView(CEORequiredMixin, View):
+    def post(self, request, pk, log_pk):
+        log = get_object_or_404(HomMahsulotLog, pk=log_pk, order_id=pk)
+        log.delete()
+        messages.success(request, 'Log o\'chirildi.')
+        return redirect('ceo:order_log', pk=pk)
+
+
+class TayorLogCreateView(CEORequiredMixin, View):
+    def post(self, request, pk):
+        order = get_object_or_404(_Order, pk=pk)
+        import datetime as _dt
+        try:
+            miqdor = int(request.POST.get('miqdor', 0))
+            assert miqdor > 0
+        except (ValueError, AssertionError):
+            messages.error(request, 'Miqdor musbat son bo\'lishi kerak.')
+            return redirect('ceo:order_log', pk=pk)
+        try:
+            sana = _dt.date.fromisoformat(request.POST.get('sana', ''))
+        except ValueError:
+            sana = timezone.localdate()
+        TayorMahsulotLog.objects.create(
+            order=order, miqdor=miqdor, sana=sana,
+            izoh=request.POST.get('izoh', '').strip(), created_by=request.user,
+        )
+        messages.success(request, f'{miqdor} dona tayor mahsulot qo\'shildi.')
+        return redirect('ceo:order_log', pk=pk)
+
+
+class TayorLogEditView(CEORequiredMixin, View):
+    def post(self, request, pk, log_pk):
+        log = get_object_or_404(TayorMahsulotLog, pk=log_pk, order_id=pk)
+        import datetime as _dt
+        try:
+            miqdor = int(request.POST.get('miqdor', 0))
+            assert miqdor > 0
+        except (ValueError, AssertionError):
+            messages.error(request, 'Miqdor musbat son bo\'lishi kerak.')
+            return redirect('ceo:order_log', pk=pk)
+        try:
+            sana = _dt.date.fromisoformat(request.POST.get('sana', ''))
+        except ValueError:
+            sana = log.sana
+        log.miqdor = miqdor
+        log.sana = sana
+        log.izoh = request.POST.get('izoh', '').strip()
+        log.save()
+        messages.success(request, 'Log yangilandi.')
+        return redirect('ceo:order_log', pk=pk)
+
+
+class TayorLogDeleteView(CEORequiredMixin, View):
+    def post(self, request, pk, log_pk):
+        log = get_object_or_404(TayorMahsulotLog, pk=log_pk, order_id=pk)
+        log.delete()
+        messages.success(request, 'Log o\'chirildi.')
+        return redirect('ceo:order_log', pk=pk)
+
+
+# ── Stanoklar ────────────────────────────────────────────────────────────────
 
 
 class StanokListView(CEORequiredMixin, View):

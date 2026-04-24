@@ -56,13 +56,17 @@ class OrderCreateView(CEORequiredMixin, View):
             order.created_by = request.user
             if not order.name.strip() or '#XXXX' in order.name:
                 brujka = order.brujka
-                bname = brujka.name if brujka else 'Buyurtma'
+                bname = brujka.name if brujka else None
                 date_str = order.deadline.strftime('%d.%m.%Y') if order.deadline else ''
                 order.save()  # order_number generate bo'lishi uchun
-                parts = [bname]
-                if date_str:
-                    parts.append(date_str)
-                order.name = order.order_number + ' — ' + ' — '.join(parts)
+                if bname and date_str:
+                    order.name = f'{order.order_number} {bname} - {date_str}'
+                elif bname:
+                    order.name = f'{order.order_number} {bname}'
+                elif date_str:
+                    order.name = f'{order.order_number} - {date_str}'
+                else:
+                    order.name = order.order_number
                 order.save(update_fields=['name'])
                 messages.success(request, f'"{order.name}" buyurtmasi yaratildi.')
                 return redirect('order:order_detail', pk=order.pk)

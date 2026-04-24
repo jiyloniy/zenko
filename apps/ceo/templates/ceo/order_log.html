@@ -1,0 +1,337 @@
+{% extends "ceo/base.html" %}
+{% block title %}{{ order.name }} — Loglar{% endblock %}
+{% block page_title %}Mahsulot loglari{% endblock %}
+
+{% block topbar_actions %}
+<a href="{% url 'order:order_detail' order.pk %}" class="btn btn-secondary btn-sm">
+  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18"/></svg>
+  Orqaga
+</a>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+/* Order info */
+.order-info{background:var(--white);border:1px solid var(--gray-200);border-radius:14px;padding:16px 20px;margin-bottom:22px;display:flex;align-items:center;gap:16px;box-shadow:0 1px 3px rgba(0,0,0,.04);}
+.oi-img{width:64px;height:64px;border-radius:12px;object-fit:cover;border:1px solid var(--gray-200);flex-shrink:0;}
+.oi-img-ph{width:64px;height:64px;border-radius:12px;flex-shrink:0;display:flex;align-items:center;justify-content:center;}
+.oi-img-ph svg{width:26px;height:26px;color:var(--gray-300);}
+.oi-name{font-size:16px;font-weight:800;color:var(--black);}
+.oi-num{font-size:11px;color:var(--gray-400);font-family:monospace;margin-top:2px;}
+.oi-chips{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px;}
+.oic{display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:7px;font-size:11.5px;font-weight:600;}
+.oic-qty{background:#EFF6FF;color:#1D4ED8;}
+.oic-dl{background:#FEF9EC;color:#92400E;}
+.oic-dl.late{background:#FEF2F2;color:#DC2626;}
+.oic-status{padding:4px 10px;border-radius:20px;font-size:11px;font-weight:700;display:inline-flex;align-items:center;gap:4px;}
+.oic-status .dot{width:6px;height:6px;border-radius:50%;}
+.sp-accepted{background:#F0FDF4;color:#16A34A;} .sp-accepted .dot{background:#22C55E;}
+.sp-in_process{background:#FFF7ED;color:#C2410C;} .sp-in_process .dot{background:#F97316;}
+.sp-ready{background:#EFF6FF;color:#1D4ED8;} .sp-ready .dot{background:#3B82F6;}
+.sp-new{background:#F1F5F9;color:#475569;} .sp-new .dot{background:#94A3B8;}
+
+/* Progress */
+.progress-wrap{background:var(--white);border:1px solid var(--gray-200);border-radius:14px;padding:16px 20px;margin-bottom:22px;box-shadow:0 1px 3px rgba(0,0,0,.04);}
+.pw-title{font-size:13px;font-weight:700;color:var(--black);margin-bottom:14px;display:flex;justify-content:space-between;align-items:center;}
+.pw-pct{font-size:18px;font-weight:900;color:var(--orange);}
+.pb-item{margin-bottom:12px;}
+.pb-item:last-child{margin-bottom:0;}
+.pb-head{display:flex;justify-content:space-between;margin-bottom:5px;}
+.pb-lbl{font-size:12px;font-weight:700;color:var(--gray-600);}
+.pb-val{font-size:12px;font-weight:800;}
+.pb-bar{height:8px;background:var(--gray-200);border-radius:4px;overflow:hidden;}
+.pb-fill{height:100%;border-radius:4px;}
+.pb-hom{background:linear-gradient(90deg,#F97316,#FBBF24);}
+.pb-tayor{background:linear-gradient(90deg,#22C55E,#4ADE80);}
+
+/* Log grid */
+.log-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px;}
+
+/* Section */
+.log-section{background:var(--white);border:1px solid var(--gray-200);border-radius:14px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,.04);}
+.ls-head{padding:14px 18px;border-bottom:1px solid var(--gray-200);background:var(--gray-50);display:flex;align-items:center;justify-content:space-between;}
+.ls-title{font-size:14px;font-weight:700;color:var(--black);display:flex;align-items:center;gap:7px;}
+.ls-title svg{width:16px;height:16px;}
+.ls-badge{font-size:12px;font-weight:700;padding:3px 10px;border-radius:20px;}
+.ls-badge-hom{background:#FFF7ED;color:#C2410C;}
+.ls-badge-tayor{background:#F0FDF4;color:#16A34A;}
+
+/* Add form */
+.add-form{padding:14px 18px;border-bottom:1px solid var(--gray-100);background:var(--gray-50);}
+.af-row{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px;}
+.af-row-3{grid-template-columns:1fr 1fr 1fr;}
+.af-group{display:flex;flex-direction:column;gap:4px;}
+.af-label{font-size:10.5px;font-weight:700;color:var(--gray-500);text-transform:uppercase;letter-spacing:.5px;}
+.af-inp{padding:7px 10px;border:1.5px solid var(--gray-200);border-radius:9px;font-size:13px;font-family:inherit;color:var(--black);background:var(--white);outline:none;width:100%;transition:border-color .18s;}
+.af-inp:focus{border-color:var(--orange);}
+.btn-add-hom{padding:7px 14px;border-radius:9px;font-size:12.5px;font-weight:700;border:none;background:#F97316;color:#fff;cursor:pointer;font-family:inherit;display:flex;align-items:center;gap:5px;transition:background .18s;}
+.btn-add-hom:hover{background:#EA580C;}
+.btn-add-tayor{padding:7px 14px;border-radius:9px;font-size:12.5px;font-weight:700;border:none;background:#16A34A;color:#fff;cursor:pointer;font-family:inherit;display:flex;align-items:center;gap:5px;transition:background .18s;}
+.btn-add-tayor:hover{background:#15803D;}
+
+/* Log table */
+.log-table{width:100%;border-collapse:collapse;}
+.log-table th{text-align:left;padding:9px 14px;font-size:10.5px;font-weight:700;color:var(--gray-500);text-transform:uppercase;letter-spacing:.5px;border-bottom:2px solid var(--gray-200);background:var(--gray-50);white-space:nowrap;}
+.log-table td{padding:10px 14px;border-bottom:1px solid var(--gray-100);font-size:13px;vertical-align:middle;}
+.log-table tbody tr:hover td{background:#FAFAFA;}
+.log-table tbody tr:last-child td{border-bottom:none;}
+.log-qty{font-size:14px;font-weight:800;color:var(--black);}
+.log-note{font-size:11.5px;color:var(--gray-400);margin-top:2px;font-style:italic;}
+.log-stanok{display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:600;color:var(--orange);background:var(--orange-light);padding:2px 8px;border-radius:20px;}
+.log-actions{display:flex;gap:5px;justify-content:flex-end;}
+
+/* Edit inline */
+.edit-row{display:none;background:var(--gray-50);}
+.edit-row.open{display:table-row;}
+.edit-form{display:flex;gap:8px;align-items:flex-end;padding:10px 14px;flex-wrap:wrap;}
+.ef-g{display:flex;flex-direction:column;gap:3px;}
+.ef-lbl{font-size:10px;font-weight:700;color:var(--gray-500);text-transform:uppercase;}
+.ef-inp{padding:6px 9px;border:1.5px solid var(--gray-200);border-radius:8px;font-size:12.5px;font-family:inherit;color:var(--black);background:var(--white);outline:none;transition:border-color .18s;}
+.ef-inp:focus{border-color:var(--orange);}
+.btn-save-edit{padding:6px 14px;border-radius:8px;font-size:12.5px;font-weight:700;border:none;background:var(--orange);color:#fff;cursor:pointer;font-family:inherit;}
+.btn-cancel-edit{padding:6px 12px;border-radius:8px;font-size:12.5px;font-weight:600;border:1.5px solid var(--gray-200);background:var(--white);color:var(--gray-600);cursor:pointer;font-family:inherit;}
+
+.log-empty{padding:28px;text-align:center;color:var(--gray-400);font-size:13px;}
+
+@media(max-width:900px){.log-grid{grid-template-columns:1fr;}.af-row-3{grid-template-columns:1fr 1fr;}}
+@media(max-width:560px){.af-row,.af-row-3{grid-template-columns:1fr;}.order-info{flex-direction:column;align-items:flex-start;}}
+</style>
+{% endblock %}
+
+{% block content %}
+
+<!-- Order info -->
+<div class="order-info">
+  {% if order.image %}
+  <img src="{{ order.image.url }}" class="oi-img" alt="">
+  {% elif order.brujka and order.brujka.image %}
+  <img src="{{ order.brujka.image.url }}" class="oi-img" alt="">
+  {% elif order.brujka %}
+  <div class="oi-img-ph" style="background:linear-gradient(135deg,{{ order.brujka.color }}22,{{ order.brujka.color }}44);">
+    <div style="width:32px;height:32px;border-radius:50%;background:{{ order.brujka.color }};display:flex;align-items:center;justify-content:center;">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="#fff" style="width:16px;height:16px;"><path stroke-linecap="round" stroke-linejoin="round" d="M9.53 16.122a3 3 0 0 0-5.78 1.128"/></svg>
+    </div>
+  </div>
+  {% else %}
+  <div class="oi-img-ph" style="background:var(--gray-100);">
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m2.25 15.75 5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159m-1.5-1.5 1.409-1.409a2.25 2.25 0 0 1 3.182 0l2.909 2.909M3.75 21h16.5A2.25 2.25 0 0 0 22.5 18.75V5.25A2.25 2.25 0 0 0 20.25 3H3.75A2.25 2.25 0 0 0 1.5 5.25v13.5A2.25 2.25 0 0 0 3.75 21Z"/></svg>
+  </div>
+  {% endif %}
+  <div style="flex:1;min-width:0;">
+    <div class="oi-name">{{ order.name }}</div>
+    <div class="oi-num">{{ order.order_number }}</div>
+    {% if order.brujka %}
+    <div style="font-size:12px;color:var(--gray-500);margin-top:3px;display:flex;align-items:center;gap:6px;">
+      <span style="width:10px;height:10px;border-radius:3px;background:{{ order.brujka.color }};flex-shrink:0;"></span>
+      <strong>{{ order.brujka.name }}</strong>
+      <span style="color:var(--gray-400);">· {{ order.brujka.get_coating_type_display }}</span>
+    </div>
+    {% endif %}
+    <div class="oi-chips">
+      <span class="oic oic-qty">{{ order.quantity }} dona</span>
+      <span class="oic oic-dl {% if order.is_overdue %}late{% endif %}">{{ order.deadline|date:"d.m.Y" }}{% if order.is_overdue %} ⚠{% endif %}</span>
+      <span class="oic-status sp-{{ order.status }}"><span class="dot"></span>{{ order.get_status_display }}</span>
+    </div>
+  </div>
+</div>
+
+<!-- Progress -->
+<div class="progress-wrap">
+  <div class="pw-title">
+    <span>Bajarilish holati</span>
+    <span class="pw-pct">{% if order.quantity %}{% widthratio tayor_jami order.quantity 100 %}{% else %}0{% endif %}%</span>
+  </div>
+  <div class="pb-item">
+    <div class="pb-head">
+      <span class="pb-lbl">🔶 Hom mahsulot kiritilgan</span>
+      <span class="pb-val" style="color:#F97316;">{{ hom_jami }} / {{ order.quantity }}</span>
+    </div>
+    <div class="pb-bar"><div class="pb-fill pb-hom" style="width:{% if order.quantity %}{% if hom_jami >= order.quantity %}100{% else %}{% widthratio hom_jami order.quantity 100 %}{% endif %}{% else %}0{% endif %}%"></div></div>
+  </div>
+  <div class="pb-item">
+    <div class="pb-head">
+      <span class="pb-lbl">🟢 Tayor mahsulot</span>
+      <span class="pb-val" style="color:#16A34A;">{{ tayor_jami }} / {{ order.quantity }}</span>
+    </div>
+    <div class="pb-bar"><div class="pb-fill pb-tayor" style="width:{% if order.quantity %}{% if tayor_jami >= order.quantity %}100{% else %}{% widthratio tayor_jami order.quantity 100 %}{% endif %}{% else %}0{% endif %}%"></div></div>
+  </div>
+</div>
+
+<!-- Log grid -->
+<div class="log-grid">
+
+  <!-- HOM -->
+  <div class="log-section">
+    <div class="ls-head">
+      <div class="ls-title" style="color:#F97316;">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m21 7.5-9-5.25L3 7.5m18 0-9 5.25m9-5.25v9l-9 5.25M3 7.5l9 5.25M3 7.5v9l9 5.25m0-9v9"/></svg>
+        Hom mahsulot
+      </div>
+      <span class="ls-badge ls-badge-hom">{{ hom_jami }} dona</span>
+    </div>
+
+    <!-- Add form -->
+    <div class="add-form">
+      <form method="post" action="{% url 'ceo:hom_log_add' order.pk %}">
+        {% csrf_token %}
+        <div class="af-row af-row-3" style="margin-bottom:8px;">
+          <div class="af-group"><label class="af-label">Miqdor *</label><input class="af-inp" type="number" name="miqdor" min="1" placeholder="dona" required></div>
+          <div class="af-group"><label class="af-label">Sana *</label><input class="af-inp" type="date" name="sana" value="{{ today|date:'Y-m-d' }}" required></div>
+          <div class="af-group"><label class="af-label">Stanok</label>
+            <select class="af-inp" name="stanok">
+              <option value="">— tanlang —</option>
+              {% for st in stanoklar %}<option value="{{ st.pk }}">{{ st.name }}</option>{% endfor %}
+            </select>
+          </div>
+        </div>
+        <div style="display:flex;gap:8px;align-items:flex-end;">
+          <div class="af-group" style="flex:1;"><label class="af-label">Izoh</label><input class="af-inp" type="text" name="izoh" placeholder="ixtiyoriy..."></div>
+          <button type="submit" class="btn-add-hom">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width:13px;height:13px;"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>
+            Qo'sh
+          </button>
+        </div>
+      </form>
+    </div>
+
+    <!-- Table -->
+    {% if hom_loglar %}
+    <div style="overflow-x:auto;">
+      <table class="log-table">
+        <thead><tr>
+          <th>Miqdor</th><th>Sana</th><th>Stanok</th><th>Izoh</th><th style="text-align:right;">Amal</th>
+        </tr></thead>
+        <tbody>
+        {% for log in hom_loglar %}
+        <tr id="hom-row-{{ log.pk }}">
+          <td><span class="log-qty">{{ log.miqdor }}</span> <span style="font-size:11px;color:var(--gray-400);">dona</span></td>
+          <td style="font-size:12.5px;font-weight:600;">{{ log.sana|date:"d.m.Y" }}</td>
+          <td>{% if log.stanok %}<span class="log-stanok">{{ log.stanok.name }}</span>{% else %}—{% endif %}</td>
+          <td style="font-size:12px;color:var(--gray-500);">{{ log.izoh|default:"—" }}</td>
+          <td>
+            <div class="log-actions">
+              <button onclick="toggleEdit('hom-edit-{{ log.pk }}')" class="btn btn-sm" style="background:var(--orange-light);color:var(--orange);padding:4px 9px;" title="Tahrirlash">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width:12px;height:12px;"><path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Z"/></svg>
+              </button>
+              <form method="post" action="{% url 'ceo:hom_log_delete' order.pk log.pk %}" style="display:inline;" onsubmit="return confirm('O\'chirishni tasdiqlaysizmi?')">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-sm" style="background:#FEF2F2;color:#DC2626;padding:4px 9px;" title="O'chirish">
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width:12px;height:12px;"><path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0"/></svg>
+                </button>
+              </form>
+            </div>
+          </td>
+        </tr>
+        <tr class="edit-row" id="hom-edit-{{ log.pk }}">
+          <td colspan="5">
+            <form method="post" action="{% url 'ceo:hom_log_edit' order.pk log.pk %}" class="edit-form">
+              {% csrf_token %}
+              <div class="ef-g"><span class="ef-lbl">Miqdor</span><input class="ef-inp" type="number" name="miqdor" value="{{ log.miqdor }}" min="1" style="width:80px;"></div>
+              <div class="ef-g"><span class="ef-lbl">Sana</span><input class="ef-inp" type="date" name="sana" value="{{ log.sana|date:'Y-m-d' }}" style="width:130px;"></div>
+              <div class="ef-g"><span class="ef-lbl">Stanok</span>
+                <select class="ef-inp" name="stanok" style="width:120px;">
+                  <option value="">—</option>
+                  {% for st in stanoklar %}<option value="{{ st.pk }}" {% if log.stanok and log.stanok.pk == st.pk %}selected{% endif %}>{{ st.name }}</option>{% endfor %}
+                </select>
+              </div>
+              <div class="ef-g" style="flex:1;min-width:100px;"><span class="ef-lbl">Izoh</span><input class="ef-inp" type="text" name="izoh" value="{{ log.izoh }}" placeholder="izoh..."></div>
+              <button type="submit" class="btn-save-edit">Saqlash</button>
+              <button type="button" class="btn-cancel-edit" onclick="toggleEdit('hom-edit-{{ log.pk }}')">Bekor</button>
+            </form>
+          </td>
+        </tr>
+        {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <div class="log-empty">Hom mahsulot yozuvi yo'q</div>
+    {% endif %}
+  </div>
+
+  <!-- TAYOR -->
+  <div class="log-section">
+    <div class="ls-head">
+      <div class="ls-title" style="color:#16A34A;">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/></svg>
+        Tayor mahsulot
+      </div>
+      <span class="ls-badge ls-badge-tayor">{{ tayor_jami }} dona</span>
+    </div>
+
+    <div class="add-form">
+      <form method="post" action="{% url 'ceo:tayor_log_add' order.pk %}">
+        {% csrf_token %}
+        <div class="af-row" style="margin-bottom:8px;">
+          <div class="af-group"><label class="af-label">Miqdor *</label><input class="af-inp" type="number" name="miqdor" min="1" placeholder="dona" required></div>
+          <div class="af-group"><label class="af-label">Sana *</label><input class="af-inp" type="date" name="sana" value="{{ today|date:'Y-m-d' }}" required></div>
+        </div>
+        <div style="display:flex;gap:8px;align-items:flex-end;">
+          <div class="af-group" style="flex:1;"><label class="af-label">Izoh</label><input class="af-inp" type="text" name="izoh" placeholder="ixtiyoriy..."></div>
+          <button type="submit" class="btn-add-tayor">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width:13px;height:13px;"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>
+            Qo'sh
+          </button>
+        </div>
+      </form>
+    </div>
+
+    {% if tayor_loglar %}
+    <div style="overflow-x:auto;">
+      <table class="log-table">
+        <thead><tr>
+          <th>Miqdor</th><th>Sana</th><th>Izoh</th><th style="text-align:right;">Amal</th>
+        </tr></thead>
+        <tbody>
+        {% for log in tayor_loglar %}
+        <tr id="tayor-row-{{ log.pk }}">
+          <td><span class="log-qty">{{ log.miqdor }}</span> <span style="font-size:11px;color:var(--gray-400);">dona</span></td>
+          <td style="font-size:12.5px;font-weight:600;">{{ log.sana|date:"d.m.Y" }}</td>
+          <td style="font-size:12px;color:var(--gray-500);">{{ log.izoh|default:"—" }}</td>
+          <td>
+            <div class="log-actions">
+              <button onclick="toggleEdit('tayor-edit-{{ log.pk }}')" class="btn btn-sm" style="background:var(--orange-light);color:var(--orange);padding:4px 9px;">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width:12px;height:12px;"><path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Z"/></svg>
+              </button>
+              <form method="post" action="{% url 'ceo:tayor_log_delete' order.pk log.pk %}" style="display:inline;" onsubmit="return confirm('O\'chirishni tasdiqlaysizmi?')">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-sm" style="background:#FEF2F2;color:#DC2626;padding:4px 9px;">
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width:12px;height:12px;"><path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0"/></svg>
+                </button>
+              </form>
+            </div>
+          </td>
+        </tr>
+        <tr class="edit-row" id="tayor-edit-{{ log.pk }}">
+          <td colspan="4">
+            <form method="post" action="{% url 'ceo:tayor_log_edit' order.pk log.pk %}" class="edit-form">
+              {% csrf_token %}
+              <div class="ef-g"><span class="ef-lbl">Miqdor</span><input class="ef-inp" type="number" name="miqdor" value="{{ log.miqdor }}" min="1" style="width:80px;"></div>
+              <div class="ef-g"><span class="ef-lbl">Sana</span><input class="ef-inp" type="date" name="sana" value="{{ log.sana|date:'Y-m-d' }}" style="width:130px;"></div>
+              <div class="ef-g" style="flex:1;min-width:100px;"><span class="ef-lbl">Izoh</span><input class="ef-inp" type="text" name="izoh" value="{{ log.izoh }}" placeholder="izoh..."></div>
+              <button type="submit" class="btn-save-edit">Saqlash</button>
+              <button type="button" class="btn-cancel-edit" onclick="toggleEdit('tayor-edit-{{ log.pk }}')">Bekor</button>
+            </form>
+          </td>
+        </tr>
+        {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <div class="log-empty">Tayor mahsulot yozuvi yo'q</div>
+    {% endif %}
+  </div>
+
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function toggleEdit(id){
+  var row = document.getElementById(id);
+  if(!row) return;
+  row.classList.toggle('open');
+}
+</script>
+{% endblock %}

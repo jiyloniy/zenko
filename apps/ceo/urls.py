@@ -54,6 +54,15 @@ urlpatterns = [
     path('salary/', views.SalaryListView.as_view(), name='salary_list'),
     path('salary/<int:pk>/', views.SalaryDetailView.as_view(), name='salary_detail'),
 
+    # Quyish loglar (CEO)
+    path('orders/<int:pk>/log/', views.OrderLogView.as_view(), name='order_log'),
+    path('orders/<int:pk>/hom/add/', views.HomLogCreateView.as_view(), name='hom_log_add'),
+    path('orders/<int:pk>/hom/<int:log_pk>/edit/', views.HomLogEditView.as_view(), name='hom_log_edit'),
+    path('orders/<int:pk>/hom/<int:log_pk>/delete/', views.HomLogDeleteView.as_view(), name='hom_log_delete'),
+    path('orders/<int:pk>/tayor/add/', views.TayorLogCreateView.as_view(), name='tayor_log_add'),
+    path('orders/<int:pk>/tayor/<int:log_pk>/edit/', views.TayorLogEditView.as_view(), name='tayor_log_edit'),
+    path('orders/<int:pk>/tayor/<int:log_pk>/delete/', views.TayorLogDeleteView.as_view(), name='tayor_log_delete'),
+
     # Stanoklar
     path('stanoklar/', views.StanokListView.as_view(), name='stanok_list'),
     path('stanoklar/create/', views.StanokCreateView.as_view(), name='stanok_create'),
