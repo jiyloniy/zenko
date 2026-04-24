@@ -63,6 +63,15 @@
 .oc-date{font-size:13px;font-weight:700;color:var(--gray-600);}
 .oc-date.late{color:#DC2626;}
 
+/* Priority badge */
+.oc-priority{display:inline-flex;align-items:center;gap:6px;padding:6px 10px;border-radius:7px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.3px;margin-bottom:8px;}
+.oc-priority svg{width:16px;height:16px;stroke-width:2;}
+.oc-prio-low{background:#DCFCE7;color:#15803D;border:1px solid #BBF7D0;}
+.oc-prio-normal{background:#EFF6FF;color:#1D4ED8;border:1px solid #BFDBFE;}
+.oc-prio-high{background:#FEF3C7;color:#B45309;border:1px solid #FCD34D;}
+.oc-prio-urgent{background:#FEE2E2;color:#DC2626;border:1px solid #FECACA;}
+.oc-prio-text{flex:1;}
+
 /* Order nomi (pastda, kichik) */
 .oc-name{font-weight:600;font-size:12px;color:var(--gray-500);text-decoration:none;display:block;line-height:1.35;margin-bottom:1px;}
 .oc-name:hover{color:var(--orange);}
@@ -187,6 +196,14 @@
     <div class="oc-brujka">
       <span class="oc-brujka-swatch" style="background:{{ order.brujka.color }};"></span>
       <span class="oc-brujka-name">{{ order.brujka.name }}</span>
+    </div>
+    {% endif %}
+
+    <!-- Priority badge -->
+    {% if order.priority %}
+    <div class="oc-priority oc-prio-{{ order.priority }}">
+      {% if order.priority == 'low' %}<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 13.5L12 21m0 0l-7.5-7.5M12 21V3"/></svg>{% elif order.priority == 'normal' %}<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 3c4.97 0 9 4.03 9 9s-4.03 9-9 9-9-4.03-9-9 4.03-9 9-9z"/></svg>{% elif order.priority == 'high' %}<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c.865.865 2.291 1.375 3.803 1.375H19.5a4.5 4.5 0 001.327-8.727m0 0c-.694.784-1.48 1.454-2.359 1.954m0 0a4.5 4.5 0 01-7.753-3.176m7.753 3.176l.001-.001m0 0a4.5 4.5 0 00-7.752-3.176m0 0l-.001.001"/></svg>{% elif order.priority == 'urgent' %}<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c.865.865 2.291 1.375 3.803 1.375H19.5a4.5 4.5 0 001.327-8.727m0 0c-.694.784-1.48 1.454-2.359 1.954m0 0a4.5 4.5 0 01-7.753-3.176m7.753 3.176l.001-.001m0 0a4.5 4.5 0 00-7.752-3.176m0 0l-.001.001"/></svg>{% endif %}
+      <span class="oc-prio-text">{% if order.priority == 'low' %}Past{% elif order.priority == 'normal' %}Oddiy{% elif order.priority == 'high' %}Yuqori{% elif order.priority == 'urgent' %}Shoshilinch{% endif %}</span>
     </div>
     {% endif %}
 
