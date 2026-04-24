@@ -866,7 +866,11 @@
                         {% endif %}
                     </td>
                     <td class="time-cell out">
-                        {{ att.actual_check_out|date:"H:i"|default:att.check_out|date:"H:i"|default:"—" }}
+                        {% if att.actual_check_out %}
+                            {{ att.actual_check_out|date:"H:i" }}
+                        {% elif att.check_out %}
+                            {{ att.check_out|date:"H:i" }}
+                        {% else %}—{% endif %}
                         {% if att.shift_info.grace_applied %}
                         <span class="time-annotation grace">Hisob: {{ att.shift_info.billing_out|date:"H:i" }}</span>
                         {% elif att.shift_info.early_leave_minutes %}
