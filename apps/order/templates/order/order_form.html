@@ -141,7 +141,7 @@
                     <div class="f-group">
                         <label class="f-label">Buyurtma nomi</label>
                         <div class="auto-name-box" id="autoNameBox">
-                            <div class="auto-name-prefix">#BRUJ</div>
+                            <div class="auto-name-prefix" id="autoNamePrefix">#XXXX</div>
                             <div class="auto-name-parts" id="autoNameParts">
                                 <span class="anp-placeholder">Broshka va sana tanlanganida avtomatik yaratiladi</span>
                             </div>
@@ -406,13 +406,7 @@ function updateAutoName() {
     let nameParts = [];
 
     if (b) {
-        chips.push(`<span class="anp-chip anp-chip-broshka">${b.name}</span>`);
         nameParts.push(b.name);
-        if (b.color) {
-            chips.push(`<span class="anp-sep">·</span>`);
-            chips.push(`<span class="anp-chip anp-chip-color">${b.color}</span>`);
-            nameParts.push(b.color);
-        }
     }
     if (dateVal) {
         const d = new Date(dateVal);
@@ -422,12 +416,14 @@ function updateAutoName() {
         nameParts.push(formatted);
     }
 
+    const prefix = document.getElementById('autoNamePrefix');
     if (chips.length) {
-        const raqamChip = `<span class="anp-chip" style="background:#F1F5F9;color:#475569;border:1px solid #CBD5E1;font-family:monospace;">#XXXX</span>`;
-        parts.innerHTML = raqamChip + '<span class="anp-sep">·</span>' + chips.join('');
-        const autoName = '#BRUJ — #XXXX — ' + nameParts.join(' — ');
+        if (prefix) prefix.textContent = b ? b.name : '#XXXX';
+        parts.innerHTML = chips.join('');
+        const autoName = '#XXXX — ' + nameParts.join(' — ');
         hidden.value = autoName;
     } else {
+        if (prefix) prefix.textContent = '#XXXX';
         parts.innerHTML = '<span class="anp-placeholder">Broshka va sana tanlanganida avtomatik yaratiladi</span>';
         hidden.value = '';
     }

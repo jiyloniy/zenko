@@ -16,24 +16,96 @@ from apps.order.views.mixins import CastingManagerRequiredMixin
 
 class CastingOrderListView(CastingManagerRequiredMixin, View):
     def get(self, request):
-        status_filter = request.GET.get('status', 'accepted')
         q = request.GET.get('q', '').strip()
-        if status_filter not in {'accepted', 'in_process', 'ready'}:
-            status_filter = 'accepted'
-        qs = Order.objects.select_related('brujka', 'created_by').filter(status=status_filter)
+        qs = Order.objects.select_related('brujka', 'created_by').filter(
+            status=Order.Status.IN_PROCESS
+        )
         if q:
             qs = qs.filter(name__icontains=q)
-        counts = {
-            'accepted':   Order.objects.filter(status='accepted').count(),
-            'in_process': Order.objects.filter(status='in_process').count(),
-            'ready':      Order.objects.filter(status='ready').count(),
-        }
+
+        today = timezone.localdate()
+        # Bugungi loglar
+        hom_bugun  = HomMahsulotLog.objects.filter(sana=today).aggregate(j=Sum('miqdor'))['j'] or 0
+        tayor_bugun = TayorMahsulotLog.objects.filter(sana=today).aggregate(j=Sum('miqdor'))['j'] or 0
+        # Jami loglar
+        hom_jami   = HomMahsulotLog.objects.aggregate(j=Sum('miqdor'))['j'] or 0
+        tayor_jami  = TayorMahsulotLog.objects.aggregate(j=Sum('miqdor'))['j'] or 0
+        # Umumiy buyurtma miqdori (ishlab chiqarilmoqda)
+        buyurtma_jami = qs.aggregate(j=Sum('quantity'))['j'] or 0
+
         return render(request, 'casting/order_list.html', {
             'orders': qs.order_by('deadline', '-priority'),
-            'status_filter': status_filter,
             'q': q,
-            'counts': counts,
             'active_nav': 'orders',
+            'status_filter': 'in_process',
+            'stats': {
+                'hom_bugun':    hom_bugun,
+                'tayor_bugun':  tayor_bugun,
+                'hom_jami':     hom_jami,
+                'tayor_jami':   tayor_jami,
+                'buyurtma_jami': buyurtma_jami,
+                'order_count':  qs.count(),
+            },
+        })
+
+
+class CastingStatsView(CastingManagerRequiredMixin, View):
+    def get(self, request):
+        from django.db.models import Count
+        today = timezone.localdate()
+        # So'nggi 14 kun
+        days = [(today - datetime.timedelta(days=i)) for i in range(13, -1, -1)]
+
+        hom_by_day  = {
+            r['sana']: r['j']
+            for r in HomMahsulotLog.objects.filter(sana__in=days)
+                .values('sana').annotate(j=Sum('miqdor'))
+        }
+        tayor_by_day = {
+            r['sana']: r['j']
+            for r in TayorMahsulotLog.objects.filter(sana__in=days)
+                .values('sana').annotate(j=Sum('miqdor'))
+        }
+
+        chart_labels = [d.strftime('%d.%m') for d in days]
+        chart_hom    = [hom_by_day.get(d, 0)  for d in days]
+        chart_tayor  = [tayor_by_day.get(d, 0) for d in days]
+
+        # Stanok bo'yicha hom
+        stanok_stats = list(
+            HomMahsulotLog.objects.values('stanok__name')
+            .annotate(j=Sum('miqdor'))
+            .order_by('-j')[:8]
+        )
+        # Umumiy
+        hom_jami    = HomMahsulotLog.objects.aggregate(j=Sum('miqdor'))['j'] or 0
+        tayor_jami  = TayorMahsulotLog.objects.aggregate(j=Sum('miqdor'))['j'] or 0
+        hom_bugun   = hom_by_day.get(today, 0)
+        tayor_bugun = tayor_by_day.get(today, 0)
+        # O'rtacha kunlik (14 kun)
+        avg_hom   = round(hom_jami  / 14, 1)
+        avg_tayor = round(tayor_jami / 14, 1)
+
+        # Buyurtmalar
+        in_process = Order.objects.filter(status=Order.Status.IN_PROCESS)
+        order_count = in_process.count()
+        buyurtma_jami = in_process.aggregate(j=Sum('quantity'))['j'] or 0
+
+        return render(request, 'casting/stats.html', {
+            'active_nav': 'stats',
+            'today': today,
+            'hom_bugun': hom_bugun,
+            'tayor_bugun': tayor_bugun,
+            'hom_jami': hom_jami,
+            'tayor_jami': tayor_jami,
+            'avg_hom': avg_hom,
+            'avg_tayor': avg_tayor,
+            'order_count': order_count,
+            'buyurtma_jami': buyurtma_jami,
+            'stanok_stats': stanok_stats,
+            'chart_labels': chart_labels,
+            'chart_hom': chart_hom,
+            'chart_tayor': chart_tayor,
         })
 
 

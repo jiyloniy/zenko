@@ -1,183 +1,256 @@
 {% extends "casting/base.html" %}
-{% block title %}Buyurtmalar — Quyish{% endblock %}
-{% block page_title %}Buyurtmalar{% endblock %}
+{% block title %}Ishlab chiqarilmoqda — Zenko{% endblock %}
+{% block page_title %}Ishlab chiqarilmoqda{% endblock %}
 
 {% block extra_css %}
 <style>
-/* Stats */
-.stats-row{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:22px;}
-.stat-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px 18px;display:flex;align-items:center;gap:14px;text-decoration:none;transition:all .2s;cursor:pointer;}
-.stat-card:hover{border-color:rgba(255,255,255,.12);transform:translateY(-1px);box-shadow:0 6px 20px rgba(0,0,0,.25);}
-.stat-card.active{border-color:var(--orange);background:var(--orange-dim);box-shadow:0 0 0 1px var(--orange-dim);}
-.stat-icon{width:40px;height:40px;border-radius:10px;display:grid;place-items:center;flex-shrink:0;}
-.stat-icon svg{width:19px;height:19px;}
-.si-acc{background:var(--green-dim);color:var(--green);}
-.si-proc{background:var(--yellow-dim);color:var(--yellow);}
-.si-ready{background:var(--blue-dim);color:var(--blue);}
-.stat-card.active .stat-icon{filter:brightness(1.2);}
-.stat-num{font-size:22px;font-weight:800;color:var(--text);line-height:1;}
-.stat-label{font-size:11px;color:var(--muted);font-weight:500;margin-top:2px;}
-.stat-card.active .stat-num,.stat-card.active .stat-label{color:var(--orange);}
+/* ── Stats bar ── */
+.stats-bar{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:12px;margin-bottom:22px;}
+.sb-card{background:var(--white);border:1px solid var(--gray-200);border-radius:13px;padding:14px 16px;box-shadow:0 1px 3px rgba(0,0,0,.04);}
+.sb-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--gray-500);margin-bottom:6px;}
+.sb-val{font-size:24px;font-weight:900;color:var(--black);line-height:1;}
+.sb-sub{font-size:11px;color:var(--gray-400);margin-top:3px;}
+.sb-today{border-left:3px solid var(--orange);}
+.sb-hom{border-left:3px solid #F97316;}
+.sb-tayor{border-left:3px solid #22C55E;}
 
-/* Filter */
-.filter-bar{display:flex;gap:8px;align-items:center;margin-bottom:20px;flex-wrap:wrap;}
-.filter-bar input{flex:1;min-width:180px;padding:9px 14px;background:var(--surface);border:1px solid var(--border);border-radius:10px;color:var(--text);font-family:inherit;font-size:13px;outline:none;transition:border-color .18s;}
+/* ── Filter ── */
+.filter-bar{display:flex;gap:10px;align-items:center;margin-bottom:20px;flex-wrap:wrap;}
+.filter-bar input{flex:1;min-width:180px;padding:9px 14px;background:var(--white);border:1.5px solid var(--gray-200);border-radius:10px;color:var(--black);font-family:inherit;font-size:13px;outline:none;transition:border-color .18s;}
 .filter-bar input:focus{border-color:var(--orange);}
-.filter-bar input::placeholder{color:var(--muted2);}
+.filter-bar input::placeholder{color:var(--gray-400);}
 
-/* Grid */
-.order-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px;}
-.order-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;overflow:hidden;transition:all .2s;}
-.order-card:hover{border-color:rgba(255,255,255,.12);transform:translateY(-2px);box-shadow:0 8px 28px rgba(0,0,0,.3);}
-.oc-img{width:100%;height:150px;object-fit:cover;display:block;}
-.oc-img-ph{width:100%;height:150px;background:var(--surface2);display:flex;align-items:center;justify-content:center;}
-.oc-img-ph svg{width:40px;height:40px;color:var(--muted2);}
+/* ── Grid ── */
+.order-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:16px;}
+.order-card{background:var(--white);border:1px solid var(--gray-200);border-radius:16px;overflow:hidden;transition:box-shadow .2s,transform .18s;box-shadow:0 1px 3px rgba(0,0,0,.05);}
+.order-card:hover{box-shadow:0 6px 20px rgba(0,0,0,.1);transform:translateY(-2px);}
+
+/* Image */
+.oc-img-wrap{position:relative;width:100%;height:160px;cursor:pointer;overflow:hidden;background:var(--gray-100);}
+.oc-img{width:100%;height:100%;object-fit:cover;display:block;transition:transform .3s;}
+.oc-img-wrap:hover .oc-img{transform:scale(1.04);}
+.oc-img-ph{width:100%;height:160px;background:var(--gray-100);display:flex;align-items:center;justify-content:center;}
+.oc-img-ph svg{width:44px;height:44px;color:var(--gray-300);}
+.img-zoom-hint{position:absolute;bottom:8px;right:8px;background:rgba(0,0,0,.55);color:#fff;border-radius:7px;padding:4px 8px;font-size:10.5px;font-weight:600;display:flex;align-items:center;gap:4px;backdrop-filter:blur(4px);opacity:0;transition:opacity .2s;}
+.img-zoom-hint svg{width:11px;height:11px;}
+.oc-img-wrap:hover .img-zoom-hint{opacity:1;}
+.brujka-badge{position:absolute;top:8px;left:8px;background:rgba(0,0,0,.6);color:#fff;border-radius:8px;padding:4px 9px;font-size:10.5px;font-weight:700;backdrop-filter:blur(4px);display:flex;align-items:center;gap:5px;}
+.brujka-badge .bswatch{width:9px;height:9px;border-radius:50%;flex-shrink:0;}
+
+/* Body */
 .oc-body{padding:14px 16px 16px;}
-.oc-top{display:flex;justify-content:space-between;align-items:flex-start;gap:8px;margin-bottom:10px;}
-.oc-name{font-weight:700;font-size:13.5px;color:var(--text);text-decoration:none;line-height:1.3;display:block;}
+.oc-name{font-weight:700;font-size:13.5px;color:var(--black);text-decoration:none;display:block;line-height:1.35;margin-bottom:2px;}
 .oc-name:hover{color:var(--orange);}
-.oc-num{font-size:10px;color:var(--muted2);font-family:monospace;margin-top:3px;}
-.badge{display:inline-flex;align-items:center;gap:4px;padding:3px 8px;border-radius:20px;font-size:10.5px;font-weight:700;white-space:nowrap;}
-.badge .dot{width:5px;height:5px;border-radius:50%;flex-shrink:0;}
-.b-accepted{background:rgba(34,197,94,.1);color:#4ADE80;} .b-accepted .dot{background:#4ADE80;}
-.b-in_process{background:rgba(234,179,8,.1);color:#FCD34D;} .b-in_process .dot{background:#FCD34D;animation:pulse 2s infinite;}
-.b-ready{background:rgba(59,130,246,.1);color:#60A5FA;} .b-ready .dot{background:#60A5FA;}
-.oc-meta{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px;}
-.meta-chip{display:flex;align-items:center;gap:5px;font-size:11.5px;color:var(--muted);background:var(--surface2);padding:4px 9px;border-radius:7px;}
-.meta-chip svg{width:12px;height:12px;flex-shrink:0;}
-.meta-chip.overdue{color:var(--red);background:var(--red-dim);}
-.oc-footer{display:flex;align-items:center;justify-content:space-between;margin-top:12px;padding-top:10px;border-top:1px solid var(--border2);}
-.prio-dot{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:600;}
-.prio-dot::before{content:'';width:7px;height:7px;border-radius:50%;flex-shrink:0;}
-.pd-low::before{background:#71717A;} .pd-low{color:#71717A;}
-.pd-normal::before{background:#3B82F6;} .pd-normal{color:#3B82F6;}
-.pd-high::before{background:#F97316;} .pd-high{color:#F97316;}
-.pd-urgent::before{background:#EF4444;} .pd-urgent{color:#EF4444;}
+.oc-num{font-size:10.5px;color:var(--gray-400);font-family:monospace;}
 
-.view-btn{display:inline-flex;align-items:center;gap:5px;padding:5px 12px;border-radius:8px;font-size:11.5px;font-weight:600;color:var(--orange);background:var(--orange-dim);border:1px solid rgba(245,130,32,.2);text-decoration:none;transition:all .18s;}
-.view-btn:hover{background:rgba(245,130,32,.2);box-shadow:0 0 0 1px rgba(245,130,32,.3);}
-.view-btn svg{width:12px;height:12px;}
+/* Meta chips */
+.oc-meta{display:flex;flex-wrap:wrap;gap:7px;margin-top:10px;}
+.mc{display:inline-flex;align-items:center;gap:4px;padding:4px 9px;border-radius:8px;font-size:11.5px;font-weight:600;background:var(--gray-100);color:var(--gray-600);}
+.mc svg{width:12px;height:12px;flex-shrink:0;}
+.mc-deadline{background:#FEF9EC;color:#92400E;}
+.mc-deadline.overdue{background:#FEF2F2;color:#DC2626;}
+.mc-qty{background:#EFF6FF;color:#1D4ED8;}
+
+/* Progress */
+.oc-progress{margin-top:12px;}
+.op-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;}
+.op-label{font-size:10.5px;font-weight:600;color:var(--gray-500);}
+.op-val{font-size:11px;font-weight:700;}
+.op-bar{height:6px;background:var(--gray-200);border-radius:3px;overflow:hidden;margin-bottom:8px;}
+.op-fill{height:100%;border-radius:3px;transition:width .4s;}
+.op-hom{background:linear-gradient(90deg,#F97316,#FB923C);}
+.op-tayor{background:linear-gradient(90deg,#22C55E,#4ADE80);}
+
+/* Actions */
+.oc-actions{display:flex;gap:7px;margin-top:12px;padding-top:11px;border-top:1px solid var(--gray-100);}
+.oc-actions .btn{flex:1;justify-content:center;font-size:12px;padding:7px 10px;}
+.btn-log{background:#F0FDF4;color:#16A34A;border:1px solid #BBF7D0;}
+.btn-log:hover{background:#DCFCE7;}
+
+/* Lightbox */
+.lightbox{display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.92);align-items:center;justify-content:center;backdrop-filter:blur(8px);}
+.lightbox.show{display:flex;}
+.lightbox img{max-width:90vw;max-height:88vh;object-fit:contain;border-radius:12px;box-shadow:0 24px 80px rgba(0,0,0,.6);}
+.lb-close{position:absolute;top:20px;right:20px;width:40px;height:40px;border-radius:50%;background:rgba(255,255,255,.15);border:none;color:#fff;cursor:pointer;display:grid;place-items:center;transition:background .18s;}
+.lb-close:hover{background:rgba(255,255,255,.25);}
+.lb-close svg{width:20px;height:20px;}
+.lb-caption{position:absolute;bottom:24px;left:50%;transform:translateX(-50%);color:rgba(255,255,255,.7);font-size:13px;font-weight:600;background:rgba(0,0,0,.5);padding:6px 16px;border-radius:20px;white-space:nowrap;}
 
 /* Empty */
-.empty{padding:64px 20px;text-align:center;color:var(--muted);}
-.empty svg{width:52px;height:52px;margin-bottom:16px;opacity:.2;}
-.empty p{font-size:14px;}
+.empty-wrap{padding:60px 20px;text-align:center;color:var(--gray-400);}
+.empty-wrap svg{width:52px;height:52px;margin-bottom:14px;opacity:.2;}
+.empty-wrap p{font-size:14px;}
 
-@keyframes pulse{0%,100%{opacity:1;}50%{opacity:.4;}}
-@media(max-width:640px){.stats-row{grid-template-columns:1fr 1fr}.order-grid{grid-template-columns:1fr}}
-@media(max-width:400px){.stats-row{grid-template-columns:1fr}}
+@media(max-width:640px){.order-grid{grid-template-columns:1fr;}.stats-bar{grid-template-columns:1fr 1fr;}}
 </style>
 {% endblock %}
 
 {% block content %}
 
-<!-- Stats / Tab switcher -->
-<div class="stats-row">
-  <a href="?status=accepted&q={{ q }}" class="stat-card {% if status_filter == 'accepted' %}active{% endif %}">
-    <div class="stat-icon si-acc">
-      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/></svg>
-    </div>
-    <div>
-      <div class="stat-num">{{ counts.accepted }}</div>
-      <div class="stat-label">Qabul qilingan</div>
-    </div>
-  </a>
-  <a href="?status=in_process&q={{ q }}" class="stat-card {% if status_filter == 'in_process' %}active{% endif %}">
-    <div class="stat-icon si-proc">
-      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182"/></svg>
-    </div>
-    <div>
-      <div class="stat-num">{{ counts.in_process }}</div>
-      <div class="stat-label">Ishlab chiqarilmoqda</div>
-    </div>
-  </a>
-  <a href="?status=ready&q={{ q }}" class="stat-card {% if status_filter == 'ready' %}active{% endif %}">
-    <div class="stat-icon si-ready">
-      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M11.35 3.836c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 0 0 .75-.75 2.25 2.25 0 0 0-.1-.664m-5.8 0A2.251 2.251 0 0 1 13.5 2.25H15c1.012 0 1.867.668 2.15 1.586m-5.8 0c-.376.023-.75.05-1.124.08C9.095 4.01 8.25 4.973 8.25 6.108V8.25m8.9-4.414c.376.023.75.05 1.124.08 1.131.094 1.976 1.057 1.976 2.192V16.5A2.25 2.25 0 0 1 18 18.75h-2.25m-7.5-10.5H4.875c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V18.75m-7.5-10.5h6.375c.621 0 1.125.504 1.125 1.125v9.375m-8.25-3 1.5 1.5 3-3.75"/></svg>
-    </div>
-    <div>
-      <div class="stat-num">{{ counts.ready }}</div>
-      <div class="stat-label">Tayyor</div>
-    </div>
-  </a>
+<!-- Stats bar -->
+<div class="stats-bar">
+  <div class="sb-card sb-today">
+    <div class="sb-label">Bugun — hom</div>
+    <div class="sb-val">{{ stats.hom_bugun }}</div>
+    <div class="sb-sub">dona kiritildi</div>
+  </div>
+  <div class="sb-card sb-today" style="border-left-color:#22C55E;">
+    <div class="sb-label">Bugun — tayor</div>
+    <div class="sb-val">{{ stats.tayor_bugun }}</div>
+    <div class="sb-sub">dona tayyor</div>
+  </div>
+  <div class="sb-card sb-hom">
+    <div class="sb-label">Jami hom</div>
+    <div class="sb-val">{{ stats.hom_jami }}</div>
+    <div class="sb-sub">dona kiritilgan</div>
+  </div>
+  <div class="sb-card sb-tayor">
+    <div class="sb-label">Jami tayor</div>
+    <div class="sb-val">{{ stats.tayor_jami }}</div>
+    <div class="sb-sub">dona tayyor</div>
+  </div>
+  <div class="sb-card">
+    <div class="sb-label">Aktiv order</div>
+    <div class="sb-val">{{ stats.order_count }}</div>
+    <div class="sb-sub">{{ stats.buyurtma_jami }} dona jami</div>
+  </div>
 </div>
 
 <!-- Search -->
 <form class="filter-bar" method="get">
-  <input type="hidden" name="status" value="{{ status_filter }}">
   <input type="text" name="q" value="{{ q }}" placeholder="Buyurtma nomi bo'yicha qidirish...">
-  <button type="submit" class="btn btn-ghost btn-sm">
+  <button type="submit" class="btn btn-secondary btn-sm">
     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z"/></svg>
     Qidirish
   </button>
-  {% if q %}
-  <a href="?status={{ status_filter }}" class="btn btn-ghost btn-sm" style="color:var(--red);border-color:rgba(239,68,68,.2);">
-    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12"/></svg>
-    Tozalash
-  </a>
-  {% endif %}
+  {% if q %}<a href="{% url 'casting:order_list' %}" class="btn btn-sm" style="background:#FEF2F2;color:#DC2626;border:1px solid #FECACA;">Tozalash</a>{% endif %}
 </form>
 
-<!-- Cards -->
 {% if orders %}
 <div class="order-grid">
 {% for order in orders %}
+{% with hom=order.hom_loglar.all tayor=order.tayor_loglar.all %}
+{% with hom_sum=order.hom_loglar.all|length tayor_sum=order.tayor_loglar.all|length %}
 <div class="order-card">
-  {% if order.image %}
-    <img src="{{ order.image.url }}" class="oc-img" alt="">
-  {% else %}
-    <div class="oc-img-ph">
-      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m2.25 15.75 5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159m-1.5-1.5 1.409-1.409a2.25 2.25 0 0 1 3.182 0l2.909 2.909M3.75 21h16.5A2.25 2.25 0 0 0 22.5 18.75V5.25A2.25 2.25 0 0 0 20.25 3H3.75A2.25 2.25 0 0 0 1.5 5.25v13.5A2.25 2.25 0 0 0 3.75 21Z"/></svg>
+
+  <!-- Image -->
+  {% with img=order.image|default:order.brujka.image %}
+  {% if img %}
+  <div class="oc-img-wrap" onclick="openLightbox('{{ img.url }}','{{ order.name|escapejs }}')">
+    <img src="{{ img.url }}" class="oc-img" alt="">
+    {% if order.brujka %}
+    <div class="brujka-badge">
+      <span class="bswatch" style="background:{{ order.brujka.color }};"></span>
+      {{ order.brujka.name }}
     </div>
+    {% endif %}
+    <div class="img-zoom-hint">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 3.75v4.5m0-4.5h4.5m-4.5 0L9 9M3.75 20.25v-4.5m0 4.5h4.5m-4.5 0L9 15M20.25 3.75h-4.5m4.5 0v4.5m0-4.5L15 9m5.25 11.25h-4.5m4.5 0v-4.5m0 4.5L15 15"/></svg>
+      Kattalashtirish
+    </div>
+  </div>
+  {% else %}
+  <div class="oc-img-ph">
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m2.25 15.75 5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159m-1.5-1.5 1.409-1.409a2.25 2.25 0 0 1 3.182 0l2.909 2.909M3.75 21h16.5A2.25 2.25 0 0 0 22.5 18.75V5.25A2.25 2.25 0 0 0 20.25 3H3.75A2.25 2.25 0 0 0 1.5 5.25v13.5A2.25 2.25 0 0 0 3.75 21Z"/></svg>
+  </div>
   {% endif %}
+  {% endwith %}
 
   <div class="oc-body">
-    <div class="oc-top">
-      <div>
-        <a href="{% url 'casting:order_detail' order.pk %}" class="oc-name">{{ order.name }}</a>
-        <div class="oc-num">{{ order.order_number }}</div>
-      </div>
-      <span class="badge b-{{ order.status }}"><span class="dot"></span>{{ order.get_status_display }}</span>
-    </div>
+    <a href="{% url 'casting:order_detail' order.pk %}" class="oc-name">{{ order.name }}</a>
+    <div class="oc-num">{{ order.order_number }}</div>
 
     <div class="oc-meta">
-      <span class="meta-chip {% if order.is_overdue %}overdue{% endif %}">
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5"/></svg>
-        {{ order.deadline|date:"d.m.Y" }}{% if order.is_overdue %} ⚠{% endif %}
-      </span>
-      <span class="meta-chip">
+      <span class="mc mc-qty">
         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5"/></svg>
         {{ order.quantity }} dona
       </span>
-      {% if order.brujka %}
-      <span class="meta-chip">
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9.568 3H5.25A2.25 2.25 0 0 0 3 5.25v4.318c0 .597.237 1.17.659 1.591l9.581 9.581c.699.699 1.78.872 2.607.33a18.095 18.095 0 0 0 5.223-5.223c.542-.827.369-1.908-.33-2.607L11.16 3.66A2.25 2.25 0 0 0 9.568 3Z"/><path stroke-linecap="round" stroke-linejoin="round" d="M6 6h.008v.008H6V6Z"/></svg>
-        {{ order.brujka.name }}
+      <span class="mc mc-deadline {% if order.is_overdue %}overdue{% endif %}">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5"/></svg>
+        {{ order.deadline|date:"d.m.Y" }}{% if order.is_overdue %} ⚠{% endif %}
       </span>
-      {% endif %}
     </div>
 
-    <div class="oc-footer">
-      <span class="prio-dot pd-{{ order.priority }}">{{ order.get_priority_display }}</span>
-      <a href="{% url 'casting:order_detail' order.pk %}" class="view-btn">
+    <!-- Progress -->
+    <div class="oc-progress">
+      {% with h=order.hom_loglar.all t=order.tayor_loglar.all %}
+      {% comment %}Annotated via view would be better but using template here{% endcomment %}
+      <div class="op-row">
+        <span class="op-label">🔶 Hom kiritilgan</span>
+        <span class="op-val" style="color:#F97316;" id="hv-{{ order.pk }}">—</span>
+      </div>
+      <div class="op-bar"><div class="op-fill op-hom" id="hb-{{ order.pk }}" style="width:0%"></div></div>
+      <div class="op-row">
+        <span class="op-label">🟢 Tayor</span>
+        <span class="op-val" style="color:#16A34A;" id="tv-{{ order.pk }}">—</span>
+      </div>
+      <div class="op-bar"><div class="op-fill op-tayor" id="tb-{{ order.pk }}" style="width:0%"></div></div>
+      {% endwith %}
+    </div>
+
+    <div class="oc-actions">
+      <a href="{% url 'casting:order_detail' order.pk %}" class="btn btn-secondary btn-sm">
         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"/></svg>
         Ko'rish
       </a>
-      <a href="{% url 'casting:order_log' order.pk %}" class="view-btn" style="background:#F0FDF4;color:#16A34A;border-color:rgba(34,197,94,.2);">
+      <a href="{% url 'casting:order_log' order.pk %}" class="btn btn-log btn-sm">
         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 12h16.5m-16.5 3.75h16.5M3.75 19.5h16.5M5.625 4.5h12.75a1.875 1.875 0 0 1 0 3.75H5.625a1.875 1.875 0 0 1 0-3.75Z"/></svg>
         Log
       </a>
     </div>
+
+    <!-- Hidden data for JS -->
+    <script>
+    (function(){
+      var qty = {{ order.quantity }};
+      var hSum = 0, tSum = 0;
+      {% for log in order.hom_loglar.all %}hSum += {{ log.miqdor }};{% endfor %}
+      {% for log in order.tayor_loglar.all %}tSum += {{ log.miqdor }};{% endfor %}
+      var hPct = qty > 0 ? Math.min(100, Math.round(hSum/qty*100)) : 0;
+      var tPct = qty > 0 ? Math.min(100, Math.round(tSum/qty*100)) : 0;
+      document.getElementById('hv-{{ order.pk }}').textContent = hSum + '/' + qty;
+      document.getElementById('tv-{{ order.pk }}').textContent = tSum + '/' + qty;
+      document.getElementById('hb-{{ order.pk }}').style.width = hPct + '%';
+      document.getElementById('tb-{{ order.pk }}').style.width = tPct + '%';
+    })();
+    </script>
   </div>
 </div>
+{% endwith %}
+{% endwith %}
 {% endfor %}
 </div>
-
 {% else %}
-<div class="empty">
-  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M20.25 7.5l-.625 10.632a2.25 2.25 0 01-2.247 2.118H6.622a2.25 2.25 0 01-2.247-2.118L3.75 7.5M10 11.25h4M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125z"/></svg>
-  <p>{% if q %}Qidiruv bo'yicha buyurtma topilmadi{% else %}Bu holatda buyurtmalar yo'q{% endif %}</p>
+<div class="empty-wrap">
+  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182"/></svg>
+  <p>{% if q %}Qidiruv bo'yicha topilmadi{% else %}Hozirda ishlab chiqarilayotgan buyurtmalar yo'q{% endif %}</p>
 </div>
 {% endif %}
 
+<!-- Lightbox -->
+<div class="lightbox" id="lightbox" onclick="closeLightbox(event)">
+  <button class="lb-close" onclick="closeLightbox()">
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12"/></svg>
+  </button>
+  <img id="lbImg" src="" alt="">
+  <div class="lb-caption" id="lbCaption"></div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function openLightbox(url, caption){
+  document.getElementById('lbImg').src = url;
+  document.getElementById('lbCaption').textContent = caption;
+  document.getElementById('lightbox').classList.add('show');
+  document.body.style.overflow = 'hidden';
+}
+function closeLightbox(e){
+  if(e && e.target !== document.getElementById('lightbox') && !e.target.closest('.lb-close')) return;
+  document.getElementById('lightbox').classList.remove('show');
+  document.body.style.overflow = '';
+}
+document.addEventListener('keydown', e => { if(e.key==='Escape') closeLightbox({target:document.getElementById('lightbox')}); });
+</script>
 {% endblock %}

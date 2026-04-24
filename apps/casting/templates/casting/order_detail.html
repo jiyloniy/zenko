@@ -81,13 +81,21 @@
 
   <!-- Main card -->
   <div class="detail-main">
-    {% if order.image %}
-      <img src="{{ order.image.url }}" class="detail-img" alt="">
+    {% with img=order.image|default:order.brujka.image %}
+    {% if img %}
+      <div style="position:relative;cursor:pointer;" onclick="openLb('{{ img.url }}','{{ order.name|escapejs }}')">
+        <img src="{{ img.url }}" class="detail-img" alt="" style="transition:opacity .2s;">
+        <div style="position:absolute;bottom:10px;right:10px;background:rgba(0,0,0,.55);color:#fff;border-radius:8px;padding:5px 10px;font-size:11px;font-weight:600;display:flex;align-items:center;gap:5px;backdrop-filter:blur(4px);">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width:12px;height:12px"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 3.75v4.5m0-4.5h4.5m-4.5 0L9 9M3.75 20.25v-4.5m0 4.5h4.5m-4.5 0L9 15M20.25 3.75h-4.5m4.5 0v4.5m0-4.5L15 9m5.25 11.25h-4.5m4.5 0v-4.5m0 4.5L15 15"/></svg>
+          Kattalashtirish
+        </div>
+      </div>
     {% else %}
       <div class="detail-img-ph">
         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m2.25 15.75 5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159m-1.5-1.5 1.409-1.409a2.25 2.25 0 0 1 3.182 0l2.909 2.909M3.75 21h16.5A2.25 2.25 0 0 0 22.5 18.75V5.25A2.25 2.25 0 0 0 20.25 3H3.75A2.25 2.25 0 0 0 1.5 5.25v13.5A2.25 2.25 0 0 0 3.75 21Z"/></svg>
       </div>
     {% endif %}
+    {% endwith %}
 
     <div class="detail-body">
       <div class="detail-header">
@@ -178,4 +186,17 @@
   </div>
 
 </div>
+
+<!-- Lightbox -->
+<div id="lb" onclick="closeLb(event)" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.92);align-items:center;justify-content:center;backdrop-filter:blur(8px);">
+  <button onclick="closeLb()" style="position:absolute;top:20px;right:20px;width:40px;height:40px;border-radius:50%;background:rgba(255,255,255,.15);border:none;color:#fff;cursor:pointer;display:grid;place-items:center;">
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width:20px;height:20px"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12"/></svg>
+  </button>
+  <img id="lbI" src="" alt="" style="max-width:90vw;max-height:88vh;object-fit:contain;border-radius:12px;">
+</div>
+<script>
+function openLb(url,cap){var l=document.getElementById('lb');document.getElementById('lbI').src=url;l.style.display='flex';document.body.style.overflow='hidden';}
+function closeLb(e){if(e&&e.target!==document.getElementById('lb')&&!e.target.closest('button[onclick="closeLb()"]'))return;var l=document.getElementById('lb');l.style.display='none';document.body.style.overflow='';}
+document.addEventListener('keydown',function(e){if(e.key==='Escape')closeLb({target:document.getElementById('lb')});});
+</script>
 {% endblock %}

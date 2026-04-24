@@ -57,15 +57,12 @@ class OrderCreateView(CEORequiredMixin, View):
             if not order.name.strip() or '#XXXX' in order.name:
                 brujka = order.brujka
                 bname = brujka.name if brujka else 'Buyurtma'
-                color = brujka.color if brujka else ''
                 date_str = order.deadline.strftime('%d.%m.%Y') if order.deadline else ''
                 order.save()  # order_number generate bo'lishi uchun
                 parts = [bname]
-                if color:
-                    parts.append(color)
                 if date_str:
                     parts.append(date_str)
-                order.name = f'#BRUJ — {order.order_number} — ' + ' — '.join(parts)
+                order.name = order.order_number + ' — ' + ' — '.join(parts)
                 order.save(update_fields=['name'])
                 messages.success(request, f'"{order.name}" buyurtmasi yaratildi.')
                 return redirect('order:order_detail', pk=order.pk)
