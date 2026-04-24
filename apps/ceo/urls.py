@@ -77,6 +77,7 @@ urlpatterns = [
     path('rasxod/add/', views.CeoRasxodCreateView.as_view(), name='rasxod_add'),
     path('rasxod/<int:pk>/delete/', views.CeoRasxodDeleteView.as_view(), name='rasxod_delete'),
     path('zamaklar/', views.CeoZamakListView.as_view(), name='zamak_list'),
+    path('zamaklar/add/', views.CeoZamakListView.as_view(), name='zamak_add'),
     path('zamaklar/<int:pk>/delete/', views.CeoZamakDeleteView.as_view(), name='zamak_delete'),
 
     # Stanoklar
