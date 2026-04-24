@@ -55,9 +55,9 @@
   <a href="?status=" class="st-tab {% if not request.GET.status %}active{% endif %}">
     Barchasi <span class="st-cnt">{{ counts.new|add:counts.in_process|add:counts.done|add:counts.cancelled }}</span>
   </a>
-  {% for val,label in statuses %}
+  {% for val,label,cnt in statuses_with_counts %}
   <a href="?status={{ val }}" class="st-tab {% if request.GET.status == val %}active{% endif %}">
-    {{ label }} <span class="st-cnt">{{ counts|dict_get:val|default:0 }}</span>
+    {{ label }} <span class="st-cnt">{{ cnt }}</span>
   </a>
   {% endfor %}
 </div>

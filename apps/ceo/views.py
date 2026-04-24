@@ -2216,9 +2216,12 @@ class CeoAdditionalOrderListView(CEORequiredMixin, View):
         if status_f:
             qs = qs.filter(status=status_f)
         counts = {s: AdditionalOrder.objects.filter(status=s).count() for s, _ in AdditionalOrder.Status.choices}
+        statuses_with_counts = [(v, l, counts.get(v, 0)) for v, l in AdditionalOrder.Status.choices]
         return render(request, 'ceo/additional_order_list.html', {
             'orders': qs.order_by('-created_at'), 'counts': counts, 'status_f': status_f,
-            'statuses': AdditionalOrder.Status.choices, 'active_nav': 'additional',
+            'statuses': AdditionalOrder.Status.choices,
+            'statuses_with_counts': statuses_with_counts,
+            'active_nav': 'additional',
         })
 
 
