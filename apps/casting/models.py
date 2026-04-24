@@ -155,6 +155,34 @@ class AdditionalHomLog(models.Model):
         return f'{self.add_order} | {self.miqdor} dona ({self.sana})'
 
 
+class AdditionalTayorLog(models.Model):
+    """Qo'shimcha buyurtma uchun tayor mahsulot logi."""
+    add_order  = models.ForeignKey(
+        AdditionalOrder,
+        on_delete=models.CASCADE,
+        related_name='tayor_loglar',
+        verbose_name='Qo\'shimcha buyurtma',
+    )
+    miqdor     = models.PositiveIntegerField('Miqdor (dona)')
+    sana       = models.DateField('Sana')
+    izoh       = models.TextField('Izoh', blank=True)
+    created_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True, blank=True,
+        verbose_name="Qo'shgan",
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering            = ['-sana', '-created_at']
+        verbose_name        = 'Qo\'shimcha tayor log'
+        verbose_name_plural = 'Qo\'shimcha tayor loglar'
+
+    def __str__(self):
+        return f'{self.add_order} | {self.miqdor} dona tayyor ({self.sana})'
+
+
 class HomMahsulotLog(models.Model):
     """Stankka kiritilgan hom mahsulot yozuvi."""
     order      = models.ForeignKey(

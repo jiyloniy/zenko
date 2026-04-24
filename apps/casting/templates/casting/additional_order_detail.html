@@ -189,7 +189,7 @@
       {% if hom_loglar %}
       <div style="overflow-x:auto;">
         <table class="log-table">
-          <thead><tr><th>Miqdor</th><th>Sana</th><th>Stanok</th><th>Izoh</th><th style="text-align:right;">Amal</th></tr></thead>
+          <thead><tr><th>Miqdor</th><th>Sana</th><th>Stanok</th><th>Izoh</th><th>Kim</th><th style="text-align:right;">Amal</th></tr></thead>
           <tbody>
           {% for log in hom_loglar %}
           <tr>
@@ -197,6 +197,7 @@
             <td style="font-size:12.5px;font-weight:600;">{{ log.sana|date:"d.m.Y" }}</td>
             <td>{% if log.stanok %}<span class="log-stanok">{{ log.stanok.name }}</span>{% else %}—{% endif %}</td>
             <td style="font-size:12px;color:var(--gray-500);">{{ log.izoh|default:"—" }}</td>
+            <td style="font-size:12px;font-weight:600;color:var(--gray-600);">{{ log.created_by.name|default:"—" }}</td>
             <td style="text-align:right;">
               <form method="post" action="{% url 'casting:additional_hom_delete' order.pk log.pk %}" onsubmit="return confirm('O\'chirishni tasdiqlaysizmi?')" style="display:inline;">
                 {% csrf_token %}
@@ -212,6 +213,64 @@
       </div>
       {% else %}
       <div class="log-empty">{% if order.status == 'new' %}Avval ishlab chiqarishga o'tkazing{% else %}Log yozuvlari yo'q{% endif %}</div>
+      {% endif %}
+    </div>
+
+    <!-- Tayor log section -->
+    <div class="log-section" style="margin-top:16px;">
+      <div class="ls-head">
+        <div class="ls-title" style="color:#16A34A;">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/></svg>
+          Tayor mahsulot loglari
+        </div>
+        <span class="ls-badge" style="background:#F0FDF4;color:#16A34A;">{{ tayor_jami }} dona</span>
+      </div>
+
+      {% if order.status != 'new' %}
+      <div class="add-form">
+        <form method="post" action="{% url 'casting:additional_tayor_add' order.pk %}">
+          {% csrf_token %}
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px;">
+            <div class="af-g"><label class="af-lbl">Miqdor *</label><input class="af-inp" type="number" name="miqdor" min="1" placeholder="dona" required></div>
+            <div class="af-g"><label class="af-lbl">Sana *</label><input class="af-inp" type="date" name="sana" value="{{ today|date:'Y-m-d' }}" required></div>
+          </div>
+          <div style="display:flex;gap:8px;align-items:flex-end;">
+            <div class="af-g" style="flex:1;"><label class="af-lbl">Izoh</label><input class="af-inp" type="text" name="izoh" placeholder="ixtiyoriy..."></div>
+            <button type="submit" class="btn-add-hom" style="background:#16A34A;">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width:13px;height:13px;"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>
+              Qo'sh
+            </button>
+          </div>
+        </form>
+      </div>
+      {% endif %}
+
+      {% if tayor_loglar %}
+      <div style="overflow-x:auto;">
+        <table class="log-table">
+          <thead><tr><th>Miqdor</th><th>Sana</th><th>Izoh</th><th>Kim</th><th style="text-align:right;">Amal</th></tr></thead>
+          <tbody>
+          {% for log in tayor_loglar %}
+          <tr>
+            <td><span class="log-qty">{{ log.miqdor }}</span> <span style="font-size:11px;color:var(--gray-400);">dona</span></td>
+            <td style="font-size:12.5px;font-weight:600;">{{ log.sana|date:"d.m.Y" }}</td>
+            <td style="font-size:12px;color:var(--gray-500);">{{ log.izoh|default:"—" }}</td>
+            <td style="font-size:12px;font-weight:600;color:var(--gray-600);">{{ log.created_by.name|default:"—" }}</td>
+            <td style="text-align:right;">
+              <form method="post" action="{% url 'casting:additional_tayor_delete' order.pk log.pk %}" onsubmit="return confirm('O\'chirishni tasdiqlaysizmi?')" style="display:inline;">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-sm btn-danger" style="padding:4px 9px;">
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width:12px;height:12px;"><path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0"/></svg>
+                </button>
+              </form>
+            </td>
+          </tr>
+          {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% else %}
+      <div class="log-empty">{% if order.status == 'new' %}Avval ishlab chiqarishga o'tkazing{% else %}Tayor log yo'q{% endif %}</div>
       {% endif %}
     </div>
   </div>

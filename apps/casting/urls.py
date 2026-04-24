@@ -40,4 +40,6 @@ urlpatterns = [
     path('additional/<int:pk>/set-status/', views.AdditionalOrderSetStatusView.as_view(), name='additional_set_status'),
     path('additional/<int:pk>/hom/add/', views.AdditionalHomLogCreateView.as_view(), name='additional_hom_add'),
     path('additional/<int:pk>/hom/<int:log_pk>/delete/', views.AdditionalHomLogDeleteView.as_view(), name='additional_hom_delete'),
+    path('additional/<int:pk>/tayor/add/', views.AdditionalTayorLogCreateView.as_view(), name='additional_tayor_add'),
+    path('additional/<int:pk>/tayor/<int:log_pk>/delete/', views.AdditionalTayorLogDeleteView.as_view(), name='additional_tayor_delete'),
 ]

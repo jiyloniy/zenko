@@ -1968,7 +1968,7 @@ class SalaryDetailView(CEORequiredMixin, View):
 # ── Quyish loglar (CEO) ──────────────────────────────────────────────────────
 
 from apps.casting.models import (  # noqa: E402
-    AdditionalHomLog, AdditionalOrder,
+    AdditionalHomLog, AdditionalOrder, AdditionalTayorLog,
     HomMahsulotLog, RasxodLog, Stanok, TayorMahsulotLog, Zamak,
 )
 from apps.order.models import Order as _Order  # noqa: E402
@@ -2264,10 +2264,14 @@ class CeoAdditionalOrderCreateView(CEORequiredMixin, View):
 class CeoAdditionalOrderDetailView(CEORequiredMixin, View):
     def get(self, request, pk):
         order = get_object_or_404(AdditionalOrder, pk=pk)
-        hom_loglar = order.hom_loglar.select_related('stanok', 'created_by').order_by('-sana', '-created_at')
-        hom_jami = hom_loglar.aggregate(j=_Sum('miqdor'))['j'] or 0
+        hom_loglar   = order.hom_loglar.select_related('stanok', 'created_by').order_by('-sana', '-created_at')
+        tayor_loglar = order.tayor_loglar.select_related('created_by').order_by('-sana', '-created_at')
+        hom_jami     = hom_loglar.aggregate(j=_Sum('miqdor'))['j'] or 0
+        tayor_jami   = tayor_loglar.aggregate(j=_Sum('miqdor'))['j'] or 0
         return render(request, 'ceo/additional_order_detail.html', {
-            'order': order, 'hom_loglar': hom_loglar, 'hom_jami': hom_jami,
+            'order': order,
+            'hom_loglar': hom_loglar, 'tayor_loglar': tayor_loglar,
+            'hom_jami': hom_jami, 'tayor_jami': tayor_jami,
             'stanoklar': Stanok.objects.filter(status=Stanok.Status.ACTIVE),
             'today': timezone.localdate(), 'active_nav': 'additional',
         })
@@ -2320,6 +2324,38 @@ class CeoAdditionalHomLogCreateView(CEORequiredMixin, View):
 class CeoAdditionalHomLogDeleteView(CEORequiredMixin, View):
     def post(self, request, pk, log_pk):
         get_object_or_404(AdditionalHomLog, pk=log_pk, add_order_id=pk).delete()
+        messages.success(request, "Log o'chirildi.")
+        return redirect('ceo:additional_order_detail', pk=pk)
+
+
+class CeoAdditionalTayorLogCreateView(CEORequiredMixin, View):
+    def post(self, request, pk):
+        order = get_object_or_404(AdditionalOrder, pk=pk)
+        if order.status == AdditionalOrder.Status.NEW:
+            messages.error(request, "Avval ishlab chiqarishga o'tkazing.")
+            return redirect('ceo:additional_order_detail', pk=pk)
+        try:
+            miqdor = int(request.POST.get('miqdor', 0))
+            assert miqdor > 0
+        except (ValueError, AssertionError):
+            messages.error(request, 'Miqdor musbat son bo\'lishi kerak.')
+            return redirect('ceo:additional_order_detail', pk=pk)
+        try:
+            sana = _ceo_dt.date.fromisoformat(request.POST.get('sana', ''))
+        except ValueError:
+            sana = timezone.localdate()
+        AdditionalTayorLog.objects.create(
+            add_order=order, miqdor=miqdor, sana=sana,
+            izoh=request.POST.get('izoh', '').strip(),
+            created_by=request.user,
+        )
+        messages.success(request, f'{miqdor} dona tayor qo\'shildi.')
+        return redirect('ceo:additional_order_detail', pk=pk)
+
+
+class CeoAdditionalTayorLogDeleteView(CEORequiredMixin, View):
+    def post(self, request, pk, log_pk):
+        get_object_or_404(AdditionalTayorLog, pk=log_pk, add_order_id=pk).delete()
         messages.success(request, "Log o'chirildi.")
         return redirect('ceo:additional_order_detail', pk=pk)
 

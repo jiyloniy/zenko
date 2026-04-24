@@ -149,7 +149,7 @@
     {% if rasxodlar %}
     <div class="table-wrap">
       <table class="r-table">
-        <thead><tr><th>Stanok</th><th>Zamak</th><th>Miqdor</th><th>Sana</th><th>Izoh</th><th style="text-align:right;">Amal</th></tr></thead>
+        <thead><tr><th>Stanok</th><th>Zamak</th><th>Miqdor</th><th>Sana</th><th>Izoh</th><th>Kim</th><th style="text-align:right;">Amal</th></tr></thead>
         <tbody>
         {% for r in rasxodlar %}
         <tr>
@@ -158,6 +158,7 @@
           <td><span class="miqdor-val">{{ r.miqdor }}</span><span class="unit-lbl">{{ r.zamak.unit }}</span></td>
           <td style="font-size:12.5px;font-weight:600;">{{ r.sana|date:"d.m.Y" }}</td>
           <td style="font-size:12px;color:var(--gray-500);">{{ r.izoh|default:"—" }}</td>
+          <td style="font-size:12px;color:var(--gray-600);font-weight:600;">{{ r.created_by.name|default:"—" }}</td>
           <td style="text-align:right;">
             <form method="post" action="{% url 'ceo:rasxod_delete' r.pk %}" onsubmit="return confirm('O\'chirishni tasdiqlaysizmi?')" style="display:inline;">
               {% csrf_token %}

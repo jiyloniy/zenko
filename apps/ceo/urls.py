@@ -71,6 +71,8 @@ urlpatterns = [
     path('additional/<int:pk>/delete/', views.CeoAdditionalOrderDeleteView.as_view(), name='additional_order_delete'),
     path('additional/<int:pk>/hom/add/', views.CeoAdditionalHomLogCreateView.as_view(), name='additional_hom_add'),
     path('additional/<int:pk>/hom/<int:log_pk>/delete/', views.CeoAdditionalHomLogDeleteView.as_view(), name='additional_hom_delete'),
+    path('additional/<int:pk>/tayor/add/', views.CeoAdditionalTayorLogCreateView.as_view(), name='additional_tayor_add'),
+    path('additional/<int:pk>/tayor/<int:log_pk>/delete/', views.CeoAdditionalTayorLogDeleteView.as_view(), name='additional_tayor_delete'),
 
     # Rasxod
     path('rasxod/', views.CeoRasxodListView.as_view(), name='rasxod_list'),

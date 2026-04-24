@@ -8,7 +8,7 @@ from django.views import View
 
 from apps.casting.forms import StanokForm
 from apps.casting.models import (
-    AdditionalHomLog, AdditionalOrder,
+    AdditionalHomLog, AdditionalOrder, AdditionalTayorLog,
     HomMahsulotLog, RasxodLog, Stanok, TayorMahsulotLog, Zamak,
 )
 from apps.order.models import Order
@@ -589,12 +589,16 @@ class AdditionalOrderCreateView(CastingManagerRequiredMixin, View):
 class AdditionalOrderDetailView(CastingManagerRequiredMixin, View):
     def get(self, request, pk):
         order = get_object_or_404(AdditionalOrder, pk=pk)
-        hom_loglar = order.hom_loglar.select_related('stanok', 'created_by').order_by('-sana', '-created_at')
-        hom_jami   = hom_loglar.aggregate(j=Sum('miqdor'))['j'] or 0
+        hom_loglar   = order.hom_loglar.select_related('stanok', 'created_by').order_by('-sana', '-created_at')
+        tayor_loglar = order.tayor_loglar.select_related('created_by').order_by('-sana', '-created_at')
+        hom_jami     = hom_loglar.aggregate(j=Sum('miqdor'))['j'] or 0
+        tayor_jami   = tayor_loglar.aggregate(j=Sum('miqdor'))['j'] or 0
         return render(request, 'casting/additional_order_detail.html', {
             'order': order,
             'hom_loglar': hom_loglar,
+            'tayor_loglar': tayor_loglar,
             'hom_jami': hom_jami,
+            'tayor_jami': tayor_jami,
             'stanoklar': Stanok.objects.filter(status=Stanok.Status.ACTIVE),
             'today': timezone.localdate(),
             'active_nav': 'additional',
@@ -663,6 +667,39 @@ class AdditionalHomLogCreateView(CastingManagerRequiredMixin, View):
 class AdditionalHomLogDeleteView(CastingManagerRequiredMixin, View):
     def post(self, request, pk, log_pk):
         log = get_object_or_404(AdditionalHomLog, pk=log_pk, add_order_id=pk)
+        log.delete()
+        messages.success(request, 'Log o\'chirildi.')
+        return redirect('casting:additional_order_detail', pk=pk)
+
+
+class AdditionalTayorLogCreateView(CastingManagerRequiredMixin, View):
+    def post(self, request, pk):
+        order = get_object_or_404(AdditionalOrder, pk=pk)
+        if order.status == AdditionalOrder.Status.NEW:
+            messages.error(request, 'Yangi buyurtmaga log yozib bo\'lmaydi.')
+            return redirect('casting:additional_order_detail', pk=pk)
+        try:
+            miqdor = int(request.POST.get('miqdor', 0))
+            assert miqdor > 0
+        except (ValueError, AssertionError):
+            messages.error(request, 'Miqdor musbat son bo\'lishi kerak.')
+            return redirect('casting:additional_order_detail', pk=pk)
+        try:
+            sana = datetime.date.fromisoformat(request.POST.get('sana', ''))
+        except ValueError:
+            sana = timezone.localdate()
+        AdditionalTayorLog.objects.create(
+            add_order=order, miqdor=miqdor, sana=sana,
+            izoh=request.POST.get('izoh', '').strip(),
+            created_by=request.user,
+        )
+        messages.success(request, f'{miqdor} dona tayor mahsulot qo\'shildi.')
+        return redirect('casting:additional_order_detail', pk=pk)
+
+
+class AdditionalTayorLogDeleteView(CastingManagerRequiredMixin, View):
+    def post(self, request, pk, log_pk):
+        log = get_object_or_404(AdditionalTayorLog, pk=log_pk, add_order_id=pk)
         log.delete()
         messages.success(request, 'Log o\'chirildi.')
         return redirect('casting:additional_order_detail', pk=pk)
