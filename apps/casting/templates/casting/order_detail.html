@@ -3,7 +3,11 @@
 {% block page_title %}Buyurtma{% endblock %}
 
 {% block topbar_actions %}
-<a href="{% url 'casting:order_list' %}?status={{ order.status }}" class="btn btn-ghost btn-sm">
+<a href="{% url 'casting:order_log' order.pk %}" class="btn btn-primary btn-sm">
+  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>
+  Log yozish
+</a>
+<a href="{% url 'casting:order_list' %}" class="btn btn-secondary btn-sm">
   <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18"/></svg>
   Orqaga
 </a>
@@ -11,192 +15,396 @@
 
 {% block extra_css %}
 <style>
-.detail-wrap{display:grid;grid-template-columns:1fr 340px;gap:20px;align-items:start;}
-.detail-main,.detail-side{background:var(--surface);border:1px solid var(--border);border-radius:16px;overflow:hidden;}
+/* Layout */
+.page-grid{display:grid;grid-template-columns:1fr 340px;gap:20px;align-items:start;}
 
-/* Image */
-.detail-img{width:100%;max-height:360px;object-fit:cover;display:block;}
-.detail-img-ph{width:100%;height:260px;background:var(--surface2);display:flex;align-items:center;justify-content:center;}
-.detail-img-ph svg{width:60px;height:60px;color:var(--muted2);}
+/* Hero card */
+.hero-card{background:var(--white);border:1px solid var(--gray-200);border-radius:16px;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.05);margin-bottom:16px;}
+.hero-img-wrap{position:relative;width:100%;height:260px;cursor:pointer;overflow:hidden;background:var(--gray-100);}
+.hero-img{width:100%;height:100%;object-fit:cover;display:block;transition:transform .4s;}
+.hero-img-wrap:hover .hero-img{transform:scale(1.03);}
+.hero-img-ph{width:100%;height:260px;background:var(--gray-100);display:flex;align-items:center;justify-content:center;}
+.hero-img-ph svg{width:56px;height:56px;color:var(--gray-300);}
+.zoom-overlay{position:absolute;inset:0;background:rgba(0,0,0,.25);opacity:0;display:flex;align-items:center;justify-content:center;transition:opacity .2s;}
+.hero-img-wrap:hover .zoom-overlay{opacity:1;}
+.zoom-overlay svg{width:32px;height:32px;color:#fff;}
+.brujka-float{position:absolute;top:12px;left:12px;background:rgba(0,0,0,.62);color:#fff;border-radius:10px;padding:5px 11px;font-size:11px;font-weight:700;display:flex;align-items:center;gap:6px;backdrop-filter:blur(6px);}
+.bf-swatch{width:10px;height:10px;border-radius:50%;flex-shrink:0;}
+.status-float{position:absolute;top:12px;right:12px;}
 
-/* Main body */
-.detail-body{padding:24px;}
-.detail-header{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:20px;}
-.detail-name{font-size:18px;font-weight:800;color:var(--text);line-height:1.35;}
-.detail-num{font-size:11px;color:var(--muted2);font-family:monospace;margin-top:4px;}
+.badge{display:inline-flex;align-items:center;gap:5px;padding:5px 12px;border-radius:20px;font-size:12px;font-weight:700;}
+.badge .dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;}
+.b-accepted{background:rgba(34,197,94,.15);color:#16A34A;} .b-accepted .dot{background:#22C55E;}
+.b-in_process{background:rgba(249,115,22,.15);color:#C2410C;} .b-in_process .dot{background:#F97316;animation:blink 2s infinite;}
+.b-ready{background:rgba(59,130,246,.15);color:#1D4ED8;} .b-ready .dot{background:#3B82F6;}
+.b-new{background:rgba(139,92,246,.15);color:#6D28D9;} .b-new .dot{background:#8B5CF6;}
+.b-delivered{background:rgba(107,114,128,.15);color:#4B5563;} .b-delivered .dot{background:#6B7280;}
+.b-cancelled{background:rgba(239,68,68,.15);color:#DC2626;} .b-cancelled .dot{background:#EF4444;}
 
-.badge{display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border-radius:20px;font-size:11.5px;font-weight:700;white-space:nowrap;}
-.badge .dot{width:6px;height:6px;border-radius:50%;flex-shrink:0;}
-.b-accepted{background:rgba(34,197,94,.1);color:#4ADE80;} .b-accepted .dot{background:#4ADE80;}
-.b-in_process{background:rgba(234,179,8,.1);color:#FCD34D;} .b-in_process .dot{background:#FCD34D;animation:pulse 2s infinite;}
-.b-ready{background:rgba(59,130,246,.1);color:#60A5FA;} .b-ready .dot{background:#60A5FA;}
-.b-new{background:rgba(139,92,246,.1);color:#A78BFA;} .b-new .dot{background:#A78BFA;}
-.b-delivered{background:rgba(113,113,122,.1);color:#A1A1AA;} .b-delivered .dot{background:#A1A1AA;}
-.b-cancelled{background:rgba(239,68,68,.1);color:#F87171;} .b-cancelled .dot{background:#F87171;}
+/* Info body */
+.info-body{padding:20px 22px;}
+.order-name{font-size:17px;font-weight:800;color:var(--black);line-height:1.3;margin-bottom:3px;}
+.order-num{font-size:10.5px;color:var(--gray-400);font-family:monospace;}
 
-/* Info grid */
-.info-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px;}
-.info-item{background:var(--surface2);border:1px solid var(--border2);border-radius:10px;padding:12px 14px;}
-.info-label{font-size:10.5px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px;}
-.info-val{font-size:14px;font-weight:700;color:var(--text);}
-.info-val.overdue{color:var(--red);}
-.prio-badge{display:inline-block;padding:2px 8px;border-radius:5px;font-size:12px;font-weight:600;}
-.pd-low{background:rgba(113,113,122,.1);color:#A1A1AA;}
-.pd-normal{background:rgba(59,130,246,.1);color:#60A5FA;}
-.pd-high{background:rgba(249,115,22,.1);color:#FB923C;}
-.pd-urgent{background:rgba(239,68,68,.1);color:#F87171;}
+.meta-chips{display:flex;flex-wrap:wrap;gap:7px;margin-top:12px;}
+.mc{display:inline-flex;align-items:center;gap:5px;padding:5px 11px;border-radius:8px;font-size:12px;font-weight:600;}
+.mc svg{width:13px;height:13px;flex-shrink:0;}
+.mc-qty{background:#EFF6FF;color:#1D4ED8;}
+.mc-dl{background:#FEF9EC;color:#92400E;}
+.mc-dl.late{background:#FEF2F2;color:#DC2626;}
+.mc-prio-low{background:#F1F5F9;color:#475569;}
+.mc-prio-normal{background:#EFF6FF;color:#2563EB;}
+.mc-prio-high{background:#FFF7ED;color:#C2410C;}
+.mc-prio-urgent{background:#FEF2F2;color:#DC2626;}
 
-/* Note */
-.note-block{background:var(--surface2);border:1px solid var(--border2);border-radius:10px;padding:14px;margin-bottom:20px;}
-.note-label{font-size:10.5px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px;}
-.note-text{font-size:13.5px;color:var(--text);line-height:1.6;white-space:pre-wrap;}
+/* Progress section */
+.progress-card{background:var(--white);border:1px solid var(--gray-200);border-radius:16px;padding:20px 22px;box-shadow:0 1px 4px rgba(0,0,0,.05);margin-bottom:16px;}
+.pc-title{font-size:13px;font-weight:700;color:var(--black);margin-bottom:16px;display:flex;align-items:center;justify-content:space-between;}
+.pc-pct{font-size:22px;font-weight:900;color:var(--orange);}
+
+.prog-item{margin-bottom:14px;}
+.prog-item:last-child{margin-bottom:0;}
+.prog-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:5px;}
+.prog-lbl{font-size:12px;font-weight:700;color:var(--gray-600);display:flex;align-items:center;gap:5px;}
+.prog-val{font-size:13px;font-weight:800;}
+.prog-bar{height:10px;background:var(--gray-200);border-radius:5px;overflow:hidden;}
+.prog-fill{height:100%;border-radius:5px;transition:width .5s cubic-bezier(.4,0,.2,1);}
+.pf-hom{background:linear-gradient(90deg,#F97316,#FBBF24);}
+.pf-tayor{background:linear-gradient(90deg,#22C55E,#4ADE80);}
+.prog-sub{font-size:10.5px;color:var(--gray-400);margin-top:4px;text-align:right;}
+
+/* Mini bar chart */
+.mini-chart{display:flex;align-items:flex-end;gap:4px;height:60px;margin-top:16px;padding-top:8px;border-top:1px solid var(--gray-100);}
+.mc-group{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;}
+.mc-bars{display:flex;gap:1px;align-items:flex-end;width:100%;}
+.mc-bar{flex:1;border-radius:2px 2px 0 0;min-height:1px;}
+.mc-bar-h{background:#FDBA74;}
+.mc-bar-t{background:#4ADE80;}
+.mc-lbl{font-size:7.5px;color:var(--gray-400);font-weight:600;white-space:nowrap;}
 
 /* Side */
-.side-section{padding:18px 20px;border-bottom:1px solid var(--border2);}
-.side-section:last-child{border-bottom:none;}
-.side-title{font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.6px;margin-bottom:14px;}
-.broshka-card{display:flex;align-items:center;gap:12px;}
-.broshka-img{width:48px;height:48px;border-radius:10px;object-fit:cover;border:1px solid var(--border);flex-shrink:0;}
-.broshka-img-ph{width:48px;height:48px;border-radius:10px;background:var(--surface2);display:grid;place-items:center;flex-shrink:0;}
-.broshka-img-ph svg{width:20px;height:20px;color:var(--muted2);}
-.broshka-name{font-weight:700;font-size:13px;color:var(--text);}
-.broshka-coating{font-size:11px;color:var(--muted);margin-top:2px;}
-.broshka-color-row{display:flex;align-items:center;gap:8px;margin-top:8px;}
-.color-swatch{width:20px;height:20px;border-radius:5px;border:1px solid var(--border);flex-shrink:0;}
-.color-code{font-size:11.5px;color:var(--muted);font-family:monospace;}
+.side-card{background:var(--white);border:1px solid var(--gray-200);border-radius:16px;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.05);margin-bottom:16px;}
+.ss{padding:16px 18px;border-bottom:1px solid var(--gray-100);}
+.ss:last-child{border-bottom:none;}
+.ss-title{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--gray-500);margin-bottom:12px;}
 
-.meta-row{display:flex;align-items:center;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border2);}
-.meta-row:last-child{border-bottom:none;}
-.meta-key{font-size:12px;color:var(--muted);}
-.meta-val{font-size:12px;font-weight:600;color:var(--text);}
+.broshka-row{display:flex;align-items:center;gap:10px;}
+.br-img{width:44px;height:44px;border-radius:9px;object-fit:cover;border:1px solid var(--gray-200);flex-shrink:0;cursor:pointer;}
+.br-img-ph{width:44px;height:44px;border-radius:9px;background:var(--gray-100);display:grid;place-items:center;flex-shrink:0;}
+.br-img-ph svg{width:18px;height:18px;color:var(--gray-300);}
+.br-name{font-size:13px;font-weight:700;color:var(--black);}
+.br-coat{font-size:11px;color:var(--gray-500);margin-top:2px;}
+.color-row{display:flex;align-items:center;gap:8px;margin-top:10px;}
+.cswatch{width:22px;height:22px;border-radius:6px;border:1px solid var(--gray-200);}
+.ccode{font-size:11.5px;color:var(--gray-500);font-family:monospace;}
 
-@keyframes pulse{0%,100%{opacity:1;}50%{opacity:.4;}}
-@media(max-width:900px){.detail-wrap{grid-template-columns:1fr;}}
-@media(max-width:500px){.info-grid{grid-template-columns:1fr;}}
+.info-row{display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid var(--gray-100);}
+.info-row:last-child{border-bottom:none;}
+.ir-key{font-size:12px;color:var(--gray-500);}
+.ir-val{font-size:12px;font-weight:600;color:var(--black);}
+.ir-val.late{color:#DC2626;}
+
+/* Log list mini */
+.log-mini{display:flex;flex-direction:column;gap:6px;max-height:280px;overflow-y:auto;}
+.lm-item{display:flex;align-items:center;gap:9px;padding:8px 10px;background:var(--gray-50);border-radius:9px;border:1px solid var(--gray-100);}
+.lm-dot{width:28px;height:28px;border-radius:8px;display:grid;place-items:center;flex-shrink:0;}
+.lm-dot-h{background:#FFF7ED;color:#F97316;}
+.lm-dot-t{background:#F0FDF4;color:#16A34A;}
+.lm-dot svg{width:13px;height:13px;}
+.lm-body{flex:1;min-width:0;}
+.lm-qty{font-size:13px;font-weight:800;color:var(--black);}
+.lm-qty span{font-size:10px;color:var(--gray-400);font-weight:500;margin-left:2px;}
+.lm-meta{font-size:10.5px;color:var(--gray-400);margin-top:1px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.lm-date{font-size:10.5px;font-weight:600;color:var(--gray-500);flex-shrink:0;}
+.log-empty{text-align:center;padding:16px;color:var(--gray-400);font-size:12px;}
+
+/* Log tabs */
+.log-tabs{display:flex;gap:4px;margin-bottom:10px;}
+.lt{padding:5px 12px;border-radius:8px;border:1.5px solid var(--gray-200);font-size:12px;font-weight:700;cursor:pointer;transition:all .15s;background:var(--white);}
+.lt.active-h{border-color:#F97316;color:#F97316;background:#FFF7ED;}
+.lt.active-t{border-color:#22C55E;color:#22C55E;background:#F0FDF4;}
+
+/* Note */
+.note-box{background:var(--gray-50);border:1px solid var(--gray-200);border-radius:10px;padding:12px 14px;}
+.note-box p{font-size:13px;color:var(--gray-700);line-height:1.6;white-space:pre-wrap;}
+
+/* Lightbox */
+.lb{display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.92);align-items:center;justify-content:center;backdrop-filter:blur(8px);}
+.lb.show{display:flex;}
+.lb img{max-width:90vw;max-height:88vh;object-fit:contain;border-radius:12px;}
+.lb-x{position:absolute;top:18px;right:18px;width:38px;height:38px;border-radius:50%;background:rgba(255,255,255,.15);border:none;color:#fff;cursor:pointer;display:grid;place-items:center;}
+.lb-x svg{width:18px;height:18px;}
+
+@keyframes blink{0%,100%{opacity:1;}50%{opacity:.3;}}
+@media(max-width:960px){.page-grid{grid-template-columns:1fr;}}
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="detail-wrap">
+<div class="page-grid">
 
-  <!-- Main card -->
-  <div class="detail-main">
-    {% with img=order.image|default:order.brujka.image %}
-    {% if img %}
-      <div style="position:relative;cursor:pointer;" onclick="openLb('{{ img.url }}','{{ order.name|escapejs }}')">
-        <img src="{{ img.url }}" class="detail-img" alt="" style="transition:opacity .2s;">
-        <div style="position:absolute;bottom:10px;right:10px;background:rgba(0,0,0,.55);color:#fff;border-radius:8px;padding:5px 10px;font-size:11px;font-weight:600;display:flex;align-items:center;gap:5px;backdrop-filter:blur(4px);">
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width:12px;height:12px"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 3.75v4.5m0-4.5h4.5m-4.5 0L9 9M3.75 20.25v-4.5m0 4.5h4.5m-4.5 0L9 15M20.25 3.75h-4.5m4.5 0v4.5m0-4.5L15 9m5.25 11.25h-4.5m4.5 0v-4.5m0 4.5L15 15"/></svg>
-          Kattalashtirish
-        </div>
+  <!-- LEFT COLUMN -->
+  <div>
+    <!-- Hero image + name -->
+    <div class="hero-card">
+      {% if order.image %}
+      <div class="hero-img-wrap" onclick="openLb('{{ order.image.url }}')">
+        <img src="{{ order.image.url }}" class="hero-img" alt="">
+        <div class="zoom-overlay"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 3.75v4.5m0-4.5h4.5m-4.5 0L9 9M3.75 20.25v-4.5m0 4.5h4.5m-4.5 0L9 15M20.25 3.75h-4.5m4.5 0v4.5m0-4.5L15 9m5.25 11.25h-4.5m4.5 0v-4.5m0 4.5L15 15"/></svg></div>
+        {% if order.brujka %}<div class="brujka-float"><span class="bf-swatch" style="background:{{ order.brujka.color }};"></span>{{ order.brujka.name }}</div>{% endif %}
+        <div class="status-float"><span class="badge b-{{ order.status }}"><span class="dot"></span>{{ order.get_status_display }}</span></div>
       </div>
-    {% else %}
-      <div class="detail-img-ph">
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m2.25 15.75 5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159m-1.5-1.5 1.409-1.409a2.25 2.25 0 0 1 3.182 0l2.909 2.909M3.75 21h16.5A2.25 2.25 0 0 0 22.5 18.75V5.25A2.25 2.25 0 0 0 20.25 3H3.75A2.25 2.25 0 0 0 1.5 5.25v13.5A2.25 2.25 0 0 0 3.75 21Z"/></svg>
+      {% elif order.brujka and order.brujka.image %}
+      <div class="hero-img-wrap" onclick="openLb('{{ order.brujka.image.url }}')">
+        <img src="{{ order.brujka.image.url }}" class="hero-img" alt="">
+        <div class="zoom-overlay"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 3.75v4.5m0-4.5h4.5m-4.5 0L9 9M3.75 20.25v-4.5m0 4.5h4.5m-4.5 0L9 15M20.25 3.75h-4.5m4.5 0v4.5m0-4.5L15 9m5.25 11.25h-4.5m4.5 0v-4.5m0 4.5L15 15"/></svg></div>
+        <div class="brujka-float"><span class="bf-swatch" style="background:{{ order.brujka.color }};"></span>{{ order.brujka.name }}</div>
+        <div class="status-float"><span class="badge b-{{ order.status }}"><span class="dot"></span>{{ order.get_status_display }}</span></div>
       </div>
-    {% endif %}
-    {% endwith %}
+      {% else %}
+      <div class="hero-img-ph"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m2.25 15.75 5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159m-1.5-1.5 1.409-1.409a2.25 2.25 0 0 1 3.182 0l2.909 2.909M3.75 21h16.5A2.25 2.25 0 0 0 22.5 18.75V5.25A2.25 2.25 0 0 0 20.25 3H3.75A2.25 2.25 0 0 0 1.5 5.25v13.5A2.25 2.25 0 0 0 3.75 21Z"/></svg></div>
+      {% endif %}
 
-    <div class="detail-body">
-      <div class="detail-header">
-        <div>
-          <div class="detail-name">{{ order.name }}</div>
-          <div class="detail-num">{{ order.order_number }}</div>
-        </div>
-        <span class="badge b-{{ order.status }}"><span class="dot"></span>{{ order.get_status_display }}</span>
-      </div>
-
-      <div class="info-grid">
-        <div class="info-item">
-          <div class="info-label">Miqdor</div>
-          <div class="info-val">{{ order.quantity }} <span style="font-size:12px;font-weight:500;color:var(--muted)">dona</span></div>
-        </div>
-        <div class="info-item">
-          <div class="info-label">Muddat</div>
-          <div class="info-val {% if order.is_overdue %}overdue{% endif %}">
+      <div class="info-body">
+        <div class="order-name">{{ order.name }}</div>
+        <div class="order-num">{{ order.order_number }}</div>
+        <div class="meta-chips">
+          <span class="mc mc-qty">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5"/></svg>
+            {{ order.quantity }} dona
+          </span>
+          <span class="mc mc-dl {% if order.is_overdue %}late{% endif %}">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5"/></svg>
             {{ order.deadline|date:"d.m.Y" }}{% if order.is_overdue %} ⚠{% endif %}
-          </div>
+          </span>
+          <span class="mc mc-prio-{{ order.priority }}">{{ order.get_priority_display }}</span>
         </div>
-        <div class="info-item">
-          <div class="info-label">Muhimlik</div>
-          <div class="info-val"><span class="prio-badge pd-{{ order.priority }}">{{ order.get_priority_display }}</span></div>
+        {% if order.note %}
+        <div class="note-box" style="margin-top:14px;">
+          <p>{{ order.note }}</p>
         </div>
-        <div class="info-item">
-          <div class="info-label">Yaratilgan</div>
-          <div class="info-val" style="font-size:12px;">{{ order.created_at|date:"d.m.Y H:i" }}</div>
-        </div>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- Progress card -->
+    <div class="progress-card">
+      <div class="pc-title">
+        <span>Bajarilish holati</span>
+        {% with tayor_pct=tayor_jami|default:0 %}
+        <span class="pc-pct">{% if order.quantity %}{% widthratio tayor_jami order.quantity 100 %}{% else %}0{% endif %}%</span>
+        {% endwith %}
       </div>
 
-      {% if order.note %}
-      <div class="note-block">
-        <div class="note-label">Izoh</div>
-        <div class="note-text">{{ order.note }}</div>
+      <!-- Hom progress -->
+      <div class="prog-item">
+        <div class="prog-head">
+          <span class="prog-lbl">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width:14px;height:14px;color:#F97316;"><path stroke-linecap="round" stroke-linejoin="round" d="m21 7.5-9-5.25L3 7.5m18 0-9 5.25m9-5.25v9l-9 5.25M3 7.5l9 5.25M3 7.5v9l9 5.25m0-9v9"/></svg>
+            Hom mahsulot kiritilgan
+          </span>
+          <span class="prog-val" style="color:#F97316;">{{ hom_jami }} / {{ order.quantity }}</span>
+        </div>
+        <div class="prog-bar">
+          <div class="prog-fill pf-hom" style="width:{% if order.quantity %}{% if hom_jami >= order.quantity %}100{% else %}{% widthratio hom_jami order.quantity 100 %}{% endif %}{% else %}0{% endif %}%"></div>
+        </div>
+        <div class="prog-sub">{% if order.quantity %}{% widthratio hom_jami order.quantity 100 %}{% else %}0{% endif %}% to'ldirildi</div>
       </div>
-      {% endif %}
 
-      {% if order.created_by %}
-      <div class="meta-row" style="border-top:1px solid var(--border2);padding-top:12px;">
-        <span class="meta-key">Buyurtma bergan</span>
-        <span class="meta-val">{{ order.created_by.name }}</span>
+      <!-- Tayor progress -->
+      <div class="prog-item">
+        <div class="prog-head">
+          <span class="prog-lbl">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width:14px;height:14px;color:#22C55E;"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/></svg>
+            Tayyor mahsulot
+          </span>
+          <span class="prog-val" style="color:#22C55E;">{{ tayor_jami }} / {{ order.quantity }}</span>
+        </div>
+        <div class="prog-bar">
+          <div class="prog-fill pf-tayor" style="width:{% if order.quantity %}{% if tayor_jami >= order.quantity %}100{% else %}{% widthratio tayor_jami order.quantity 100 %}{% endif %}{% else %}0{% endif %}%"></div>
+        </div>
+        <div class="prog-sub">{% if order.quantity %}{% widthratio tayor_jami order.quantity 100 %}{% else %}0{% endif %}% tayyor</div>
       </div>
-      {% endif %}
+
+      <!-- Qoldi -->
+      {% with qoldi=order.quantity|add:"-"|add:tayor_jami %}
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0 0;border-top:1px solid var(--gray-100);margin-top:4px;">
+        <span style="font-size:12px;color:var(--gray-600);font-weight:600;">Qoldi ishlab chiqarish:</span>
+        <span style="font-size:16px;font-weight:900;color:var(--orange);">{{ order.quantity|add:"-0" }} - {{ tayor_jami }} = <span id="qoldi"></span> dona</span>
+      </div>
+      {% endwith %}
+
+      <!-- Mini bar chart (7 kun) -->
+      <div style="margin-top:14px;padding-top:12px;border-top:1px solid var(--gray-100);">
+        <div style="font-size:11px;font-weight:700;color:var(--gray-500);margin-bottom:8px;display:flex;justify-content:space-between;">
+          <span>So'nggi 7 kunlik faoliyat</span>
+          <span style="display:flex;gap:10px;">
+            <span style="display:flex;align-items:center;gap:4px;"><span style="width:8px;height:8px;border-radius:2px;background:#FDBA74;display:inline-block;"></span>Hom</span>
+            <span style="display:flex;align-items:center;gap:4px;"><span style="width:8px;height:8px;border-radius:2px;background:#4ADE80;display:inline-block;"></span>Tayor</span>
+          </span>
+        </div>
+        <div class="mini-chart" id="miniChart"></div>
+      </div>
     </div>
   </div>
 
-  <!-- Side card -->
-  <div class="detail-side">
+  <!-- RIGHT COLUMN -->
+  <div>
+    <!-- Broshka -->
     {% if order.brujka %}
-    <div class="side-section">
-      <div class="side-title">Broshka</div>
-      <div class="broshka-card">
-        {% if order.brujka.image %}
-          <img src="{{ order.brujka.image.url }}" class="broshka-img" alt="">
-        {% else %}
-          <div class="broshka-img-ph">
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m2.25 15.75 5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159m-1.5-1.5 1.409-1.409a2.25 2.25 0 0 1 3.182 0l2.909 2.909M3.75 21h16.5A2.25 2.25 0 0 0 22.5 18.75V5.25A2.25 2.25 0 0 0 20.25 3H3.75A2.25 2.25 0 0 0 1.5 5.25v13.5A2.25 2.25 0 0 0 3.75 21Z"/></svg>
+    <div class="side-card">
+      <div class="ss">
+        <div class="ss-title">Broshka</div>
+        <div class="broshka-row">
+          {% if order.brujka.image %}
+          <img src="{{ order.brujka.image.url }}" class="br-img" alt="" onclick="openLb('{{ order.brujka.image.url }}')">
+          {% else %}
+          <div class="br-img-ph"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m2.25 15.75 5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159"/></svg></div>
+          {% endif %}
+          <div>
+            <div class="br-name">{{ order.brujka.name }}</div>
+            <div class="br-coat">{{ order.brujka.get_coating_type_display }}</div>
           </div>
-        {% endif %}
-        <div>
-          <div class="broshka-name">{{ order.brujka.name }}</div>
-          <div class="broshka-coating">{{ order.brujka.get_coating_type_display }}</div>
         </div>
-      </div>
-      <div class="broshka-color-row">
-        <div class="color-swatch" style="background:{{ order.brujka.color }};"></div>
-        <span class="color-code">{{ order.brujka.color }}</span>
+        <div class="color-row">
+          <div class="cswatch" style="background:{{ order.brujka.color }};"></div>
+          <span class="ccode">{{ order.brujka.color }}</span>
+        </div>
       </div>
     </div>
     {% endif %}
 
-    <div class="side-section">
-      <div class="side-title">Holat tarixi</div>
-      <div class="meta-row">
-        <span class="meta-key">Joriy holat</span>
-        <span class="badge b-{{ order.status }}"><span class="dot"></span>{{ order.get_status_display }}</span>
+    <!-- Order info -->
+    <div class="side-card">
+      <div class="ss">
+        <div class="ss-title">Buyurtma ma'lumotlari</div>
+        <div class="info-row">
+          <span class="ir-key">Holat</span>
+          <span class="badge b-{{ order.status }}" style="font-size:11px;padding:3px 9px;"><span class="dot"></span>{{ order.get_status_display }}</span>
+        </div>
+        <div class="info-row">
+          <span class="ir-key">Yaratilgan</span>
+          <span class="ir-val">{{ order.created_at|date:"d.m.Y" }}</span>
+        </div>
+        {% if order.created_by %}
+        <div class="info-row">
+          <span class="ir-key">Kim tomonidan</span>
+          <span class="ir-val">{{ order.created_by.name }}</span>
+        </div>
+        {% endif %}
+        <div class="info-row">
+          <span class="ir-key">Yangilangan</span>
+          <span class="ir-val">{{ order.updated_at|date:"d.m H:i" }}</span>
+        </div>
+        <div class="info-row">
+          <span class="ir-key">Muddati</span>
+          <span class="ir-val {% if order.is_overdue %}late{% endif %}">{{ order.deadline|date:"d.m.Y" }}{% if order.is_overdue %} ⚠{% endif %}</span>
+        </div>
       </div>
-      <div class="meta-row">
-        <span class="meta-key">So'nggi yangilanish</span>
-        <span class="meta-val">{{ order.updated_at|date:"d.m.Y H:i" }}</span>
+    </div>
+
+    <!-- Log mini list -->
+    <div class="side-card">
+      <div class="ss">
+        <div class="ss-title">So'nggi loglar</div>
+        <div class="log-tabs">
+          <button class="lt active-h" onclick="showTab('hom',this)">🔶 Hom ({{ hom_loglar|length }})</button>
+          <button class="lt" onclick="showTab('tayor',this)">🟢 Tayor ({{ tayor_loglar|length }})</button>
+        </div>
+
+        <!-- Hom logs -->
+        <div id="tab-hom" class="log-mini">
+          {% for log in hom_loglar|slice:":10" %}
+          <div class="lm-item">
+            <div class="lm-dot lm-dot-h"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m21 7.5-9-5.25L3 7.5m18 0-9 5.25m9-5.25v9l-9 5.25M3 7.5l9 5.25M3 7.5v9l9 5.25m0-9v9"/></svg></div>
+            <div class="lm-body">
+              <div class="lm-qty">{{ log.miqdor }}<span>dona</span></div>
+              <div class="lm-meta">{% if log.stanok %}{{ log.stanok.name }} · {% endif %}{% if log.izoh %}{{ log.izoh }}{% endif %}</div>
+            </div>
+            <div class="lm-date">{{ log.sana|date:"d.m" }}</div>
+          </div>
+          {% empty %}
+          <div class="log-empty">Hom mahsulot yozuvi yo'q</div>
+          {% endfor %}
+        </div>
+
+        <!-- Tayor logs -->
+        <div id="tab-tayor" class="log-mini" style="display:none;">
+          {% for log in tayor_loglar|slice:":10" %}
+          <div class="lm-item">
+            <div class="lm-dot lm-dot-t"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/></svg></div>
+            <div class="lm-body">
+              <div class="lm-qty">{{ log.miqdor }}<span>dona</span></div>
+              <div class="lm-meta">{% if log.izoh %}{{ log.izoh }}{% endif %}</div>
+            </div>
+            <div class="lm-date">{{ log.sana|date:"d.m" }}</div>
+          </div>
+          {% empty %}
+          <div class="log-empty">Tayor mahsulot yozuvi yo'q</div>
+          {% endfor %}
+        </div>
       </div>
-      <div class="meta-row">
-        <span class="meta-key">Muddati o'tganmi</span>
-        <span class="meta-val {% if order.is_overdue %}overdue{% endif %}">{% if order.is_overdue %}Ha ⚠{% else %}Yo'q{% endif %}</span>
+
+      <div class="ss" style="text-align:center;">
+        <a href="{% url 'casting:order_log' order.pk %}" class="btn btn-primary" style="width:100%;justify-content:center;">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>
+          Yangi log qo'shish
+        </a>
       </div>
     </div>
   </div>
-
 </div>
 
 <!-- Lightbox -->
-<div id="lb" onclick="closeLb(event)" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.92);align-items:center;justify-content:center;backdrop-filter:blur(8px);">
-  <button onclick="closeLb()" style="position:absolute;top:20px;right:20px;width:40px;height:40px;border-radius:50%;background:rgba(255,255,255,.15);border:none;color:#fff;cursor:pointer;display:grid;place-items:center;">
-    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width:20px;height:20px"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12"/></svg>
-  </button>
-  <img id="lbI" src="" alt="" style="max-width:90vw;max-height:88vh;object-fit:contain;border-radius:12px;">
+<div class="lb" id="lb" onclick="if(event.target===this)closeLb()">
+  <button class="lb-x" onclick="closeLb()"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12"/></svg></button>
+  <img id="lbI" src="" alt="">
 </div>
+{% endblock %}
+
+{% block extra_js %}
 <script>
-function openLb(url,cap){var l=document.getElementById('lb');document.getElementById('lbI').src=url;l.style.display='flex';document.body.style.overflow='hidden';}
-function closeLb(e){if(e&&e.target!==document.getElementById('lb')&&!e.target.closest('button[onclick="closeLb()"]'))return;var l=document.getElementById('lb');l.style.display='none';document.body.style.overflow='';}
-document.addEventListener('keydown',function(e){if(e.key==='Escape')closeLb({target:document.getElementById('lb')});});
+// Lightbox
+function openLb(u){document.getElementById('lbI').src=u;document.getElementById('lb').classList.add('show');document.body.style.overflow='hidden';}
+function closeLb(){document.getElementById('lb').classList.remove('show');document.body.style.overflow='';}
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeLb();});
+
+// Qoldi
+(function(){
+  var q = {{ order.quantity }}, t = {{ tayor_jami }};
+  document.getElementById('qoldi').textContent = Math.max(0, q - t);
+})();
+
+// Log tabs
+function showTab(name, btn){
+  document.getElementById('tab-hom').style.display  = name==='hom'  ? '' : 'none';
+  document.getElementById('tab-tayor').style.display = name==='tayor'? '' : 'none';
+  document.querySelectorAll('.lt').forEach(b=>b.classList.remove('active-h','active-t'));
+  btn.classList.add(name==='hom'?'active-h':'active-t');
+}
+
+// Mini bar chart
+(function(){
+  var labels = {{ chart_labels|safe }};
+  var homs   = {{ chart_hom|safe }};
+  var tayors = {{ chart_tayor|safe }};
+  var maxV   = Math.max(...homs, ...tayors, 1);
+  var ch     = document.getElementById('miniChart');
+  var H      = 48;
+  labels.forEach(function(l,i){
+    var hPx = Math.max(Math.round(homs[i]/maxV*H), homs[i]>0?2:0);
+    var tPx = Math.max(Math.round(tayors[i]/maxV*H), tayors[i]>0?2:0);
+    var g = document.createElement('div');
+    g.className = 'mc-group';
+    g.title = l+': hom='+homs[i]+', tayor='+tayors[i];
+    g.innerHTML =
+      '<div class="mc-bars">'+
+        '<div class="mc-bar mc-bar-h" style="height:'+hPx+'px"></div>'+
+        '<div class="mc-bar mc-bar-t" style="height:'+tPx+'px"></div>'+
+      '</div>'+
+      '<div class="mc-lbl">'+l+'</div>';
+    ch.appendChild(g);
+  });
+})();
 </script>
 {% endblock %}

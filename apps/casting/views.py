@@ -159,9 +159,31 @@ class CastingStatsView(CastingManagerRequiredMixin, View):
 class CastingOrderDetailView(CastingManagerRequiredMixin, View):
     def get(self, request, pk):
         order = get_object_or_404(Order.objects.select_related('brujka', 'created_by'), pk=pk)
+
+        hom_loglar   = order.hom_loglar.select_related('stanok', 'created_by').order_by('-sana', '-created_at')
+        tayor_loglar = order.tayor_loglar.select_related('created_by').order_by('-sana', '-created_at')
+        hom_jami     = hom_loglar.aggregate(j=Sum('miqdor'))['j'] or 0
+        tayor_jami   = tayor_loglar.aggregate(j=Sum('miqdor'))['j'] or 0
+
+        # Kunlik loglar (so'nggi 7 kun)
+        today = timezone.localdate()
+        days  = [(today - datetime.timedelta(days=i)) for i in range(6, -1, -1)]
+        hom_by_day   = {r['sana']: r['j'] for r in hom_loglar.filter(sana__in=days).values('sana').annotate(j=Sum('miqdor'))}
+        tayor_by_day = {r['sana']: r['j'] for r in tayor_loglar.filter(sana__in=days).values('sana').annotate(j=Sum('miqdor'))}
+
         return render(request, 'casting/order_detail.html', {
             'order': order,
             'active_nav': 'orders',
+            'status_filter': order.status,
+            'hom_loglar':   hom_loglar,
+            'tayor_loglar': tayor_loglar,
+            'hom_jami':     hom_jami,
+            'tayor_jami':   tayor_jami,
+            'today':        today,
+            'chart_labels': [d.strftime('%d.%m') for d in days],
+            'chart_hom':    [hom_by_day.get(d, 0)   for d in days],
+            'chart_tayor':  [tayor_by_day.get(d, 0)  for d in days],
+            'stanoklar':    Stanok.objects.filter(status=Stanok.Status.ACTIVE),
         })
 
 
