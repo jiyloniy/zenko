@@ -4,77 +4,86 @@
 
 {% block extra_css %}
 <style>
-/* ── Stats bar ── */
-.stats-bar{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:12px;margin-bottom:22px;}
-.sb-card{background:var(--white);border:1px solid var(--gray-200);border-radius:13px;padding:14px 16px;box-shadow:0 1px 3px rgba(0,0,0,.04);}
+/* Stats bar */
+.stats-bar{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin-bottom:20px;}
+.sb-card{background:var(--white);border:1px solid var(--gray-200);border-radius:13px;padding:14px 16px 12px;box-shadow:0 1px 3px rgba(0,0,0,.04);position:relative;overflow:hidden;}
+.sb-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;}
+.sb-orange::before{background:linear-gradient(90deg,#F97316,#FBBF24);}
+.sb-green::before{background:linear-gradient(90deg,#22C55E,#4ADE80);}
+.sb-blue::before{background:linear-gradient(90deg,#3B82F6,#60A5FA);}
 .sb-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--gray-500);margin-bottom:6px;}
-.sb-val{font-size:24px;font-weight:900;color:var(--black);line-height:1;}
-.sb-sub{font-size:11px;color:var(--gray-400);margin-top:3px;}
-.sb-today{border-left:3px solid var(--orange);}
-.sb-hom{border-left:3px solid #F97316;}
-.sb-tayor{border-left:3px solid #22C55E;}
+.sb-val{font-size:26px;font-weight:900;color:var(--black);line-height:1;}
+.sb-sub{font-size:11px;color:var(--gray-400);margin-top:4px;}
 
-/* ── Filter ── */
+/* Total progress */
+.total-progress{background:var(--white);border:1px solid var(--gray-200);border-radius:13px;padding:16px 18px;margin-bottom:20px;box-shadow:0 1px 3px rgba(0,0,0,.04);}
+.tp-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;}
+.tp-title{font-size:13px;font-weight:700;color:var(--black);}
+.tp-pct{font-size:20px;font-weight:900;color:var(--orange);}
+.tp-bar{height:12px;background:var(--gray-200);border-radius:6px;overflow:hidden;}
+.tp-fill{height:100%;border-radius:6px;background:linear-gradient(90deg,#22C55E,#4ADE80);transition:width .5s;}
+.tp-labels{display:flex;justify-content:space-between;margin-top:6px;font-size:11px;color:var(--gray-500);font-weight:600;}
+
+/* Filter */
 .filter-bar{display:flex;gap:10px;align-items:center;margin-bottom:20px;flex-wrap:wrap;}
 .filter-bar input{flex:1;min-width:180px;padding:9px 14px;background:var(--white);border:1.5px solid var(--gray-200);border-radius:10px;color:var(--black);font-family:inherit;font-size:13px;outline:none;transition:border-color .18s;}
 .filter-bar input:focus{border-color:var(--orange);}
 .filter-bar input::placeholder{color:var(--gray-400);}
 
-/* ── Grid ── */
+/* Grid */
 .order-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:16px;}
 .order-card{background:var(--white);border:1px solid var(--gray-200);border-radius:16px;overflow:hidden;transition:box-shadow .2s,transform .18s;box-shadow:0 1px 3px rgba(0,0,0,.05);}
-.order-card:hover{box-shadow:0 6px 20px rgba(0,0,0,.1);transform:translateY(-2px);}
+.order-card:hover{box-shadow:0 8px 24px rgba(0,0,0,.1);transform:translateY(-2px);}
 
 /* Image */
 .oc-img-wrap{position:relative;width:100%;height:160px;cursor:pointer;overflow:hidden;background:var(--gray-100);}
 .oc-img{width:100%;height:100%;object-fit:cover;display:block;transition:transform .3s;}
 .oc-img-wrap:hover .oc-img{transform:scale(1.04);}
-.oc-img-ph{width:100%;height:160px;background:var(--gray-100);display:flex;align-items:center;justify-content:center;}
-.oc-img-ph svg{width:44px;height:44px;color:var(--gray-300);}
-.img-zoom-hint{position:absolute;bottom:8px;right:8px;background:rgba(0,0,0,.55);color:#fff;border-radius:7px;padding:4px 8px;font-size:10.5px;font-weight:600;display:flex;align-items:center;gap:4px;backdrop-filter:blur(4px);opacity:0;transition:opacity .2s;}
-.img-zoom-hint svg{width:11px;height:11px;}
-.oc-img-wrap:hover .img-zoom-hint{opacity:1;}
-.brujka-badge{position:absolute;top:8px;left:8px;background:rgba(0,0,0,.6);color:#fff;border-radius:8px;padding:4px 9px;font-size:10.5px;font-weight:700;backdrop-filter:blur(4px);display:flex;align-items:center;gap:5px;}
-.brujka-badge .bswatch{width:9px;height:9px;border-radius:50%;flex-shrink:0;}
+.oc-img-ph{width:100%;height:160px;background:var(--gray-100);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;}
+.oc-img-ph svg{width:36px;height:36px;color:var(--gray-300);}
+.oc-img-ph span{font-size:11px;color:var(--gray-400);font-weight:600;}
+.zoom-hint{position:absolute;inset:0;background:rgba(0,0,0,.3);display:flex;align-items:center;justify-content:center;opacity:0;transition:opacity .2s;}
+.oc-img-wrap:hover .zoom-hint{opacity:1;}
+.zoom-hint svg{width:28px;height:28px;color:#fff;}
+.brujka-badge{position:absolute;top:8px;left:8px;background:rgba(0,0,0,.6);color:#fff;border-radius:8px;padding:4px 9px;font-size:10.5px;font-weight:700;backdrop-filter:blur(4px);display:flex;align-items:center;gap:5px;max-width:calc(100% - 16px);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.bswatch{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
 
 /* Body */
 .oc-body{padding:14px 16px 16px;}
-.oc-name{font-weight:700;font-size:13.5px;color:var(--black);text-decoration:none;display:block;line-height:1.35;margin-bottom:2px;}
+.oc-name{font-weight:700;font-size:13px;color:var(--black);text-decoration:none;display:block;line-height:1.35;margin-bottom:2px;}
 .oc-name:hover{color:var(--orange);}
-.oc-num{font-size:10.5px;color:var(--gray-400);font-family:monospace;}
-
-/* Meta chips */
-.oc-meta{display:flex;flex-wrap:wrap;gap:7px;margin-top:10px;}
-.mc{display:inline-flex;align-items:center;gap:4px;padding:4px 9px;border-radius:8px;font-size:11.5px;font-weight:600;background:var(--gray-100);color:var(--gray-600);}
-.mc svg{width:12px;height:12px;flex-shrink:0;}
-.mc-deadline{background:#FEF9EC;color:#92400E;}
-.mc-deadline.overdue{background:#FEF2F2;color:#DC2626;}
+.oc-num{font-size:10px;color:var(--gray-400);font-family:monospace;}
+.oc-meta{display:flex;flex-wrap:wrap;gap:6px;margin-top:9px;}
+.mc{display:inline-flex;align-items:center;gap:4px;padding:3px 8px;border-radius:7px;font-size:11px;font-weight:600;}
+.mc svg{width:11px;height:11px;flex-shrink:0;}
 .mc-qty{background:#EFF6FF;color:#1D4ED8;}
+.mc-dl{background:#FEF9EC;color:#92400E;}
+.mc-dl.late{background:#FEF2F2;color:#DC2626;}
 
 /* Progress */
-.oc-progress{margin-top:12px;}
-.op-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;}
-.op-label{font-size:10.5px;font-weight:600;color:var(--gray-500);}
+.oc-progress{margin-top:11px;}
+.op-item{margin-bottom:7px;}
+.op-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:3px;}
+.op-lbl{font-size:10px;font-weight:700;color:var(--gray-500);text-transform:uppercase;letter-spacing:.4px;}
 .op-val{font-size:11px;font-weight:700;}
-.op-bar{height:6px;background:var(--gray-200);border-radius:3px;overflow:hidden;margin-bottom:8px;}
-.op-fill{height:100%;border-radius:3px;transition:width .4s;}
+.op-bar{height:6px;background:var(--gray-200);border-radius:3px;overflow:hidden;}
+.op-fill{height:100%;border-radius:3px;}
 .op-hom{background:linear-gradient(90deg,#F97316,#FB923C);}
 .op-tayor{background:linear-gradient(90deg,#22C55E,#4ADE80);}
 
 /* Actions */
 .oc-actions{display:flex;gap:7px;margin-top:12px;padding-top:11px;border-top:1px solid var(--gray-100);}
-.oc-actions .btn{flex:1;justify-content:center;font-size:12px;padding:7px 10px;}
-.btn-log{background:#F0FDF4;color:#16A34A;border:1px solid #BBF7D0;}
+.oc-actions .btn{flex:1;justify-content:center;font-size:12px;padding:7px 8px;}
+.btn-log{background:#F0FDF4;color:#16A34A;border:1px solid #BBF7D0;border-radius:9px;}
 .btn-log:hover{background:#DCFCE7;}
 
 /* Lightbox */
 .lightbox{display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.92);align-items:center;justify-content:center;backdrop-filter:blur(8px);}
 .lightbox.show{display:flex;}
 .lightbox img{max-width:90vw;max-height:88vh;object-fit:contain;border-radius:12px;box-shadow:0 24px 80px rgba(0,0,0,.6);}
-.lb-close{position:absolute;top:20px;right:20px;width:40px;height:40px;border-radius:50%;background:rgba(255,255,255,.15);border:none;color:#fff;cursor:pointer;display:grid;place-items:center;transition:background .18s;}
+.lb-close{position:absolute;top:20px;right:20px;width:40px;height:40px;border-radius:50%;background:rgba(255,255,255,.15);border:none;color:#fff;cursor:pointer;display:grid;place-items:center;}
 .lb-close:hover{background:rgba(255,255,255,.25);}
 .lb-close svg{width:20px;height:20px;}
-.lb-caption{position:absolute;bottom:24px;left:50%;transform:translateX(-50%);color:rgba(255,255,255,.7);font-size:13px;font-weight:600;background:rgba(0,0,0,.5);padding:6px 16px;border-radius:20px;white-space:nowrap;}
 
 /* Empty */
 .empty-wrap{padding:60px 20px;text-align:center;color:var(--gray-400);}
@@ -87,34 +96,46 @@
 
 {% block content %}
 
-<!-- Stats bar -->
+<!-- Stats -->
 <div class="stats-bar">
-  <div class="sb-card sb-today">
+  <div class="sb-card sb-orange">
     <div class="sb-label">Bugun — hom</div>
     <div class="sb-val">{{ stats.hom_bugun }}</div>
     <div class="sb-sub">dona kiritildi</div>
   </div>
-  <div class="sb-card sb-today" style="border-left-color:#22C55E;">
+  <div class="sb-card sb-green">
     <div class="sb-label">Bugun — tayor</div>
     <div class="sb-val">{{ stats.tayor_bugun }}</div>
-    <div class="sb-sub">dona tayyor</div>
+    <div class="sb-sub">dona tayyor bo'ldi</div>
   </div>
-  <div class="sb-card sb-hom">
-    <div class="sb-label">Jami hom</div>
-    <div class="sb-val">{{ stats.hom_jami }}</div>
-    <div class="sb-sub">dona kiritilgan</div>
-  </div>
-  <div class="sb-card sb-tayor">
+  <div class="sb-card sb-blue">
     <div class="sb-label">Jami tayor</div>
     <div class="sb-val">{{ stats.tayor_jami }}</div>
-    <div class="sb-sub">dona tayyor</div>
+    <div class="sb-sub">/ {{ stats.buyurtma_jami }} dona</div>
   </div>
   <div class="sb-card">
-    <div class="sb-label">Aktiv order</div>
+    <div class="sb-label">Aktiv orderlar</div>
     <div class="sb-val">{{ stats.order_count }}</div>
-    <div class="sb-sub">{{ stats.buyurtma_jami }} dona jami</div>
+    <div class="sb-sub">ishlab chiqarilmoqda</div>
   </div>
 </div>
+
+<!-- Umumiy progress -->
+{% if stats.buyurtma_jami %}
+<div class="total-progress">
+  <div class="tp-head">
+    <span class="tp-title">Umumiy bajarilish darajasi</span>
+    <span class="tp-pct">{{ stats.tayor_pct }}%</span>
+  </div>
+  <div class="tp-bar">
+    <div class="tp-fill" style="width:{{ stats.tayor_pct }}%"></div>
+  </div>
+  <div class="tp-labels">
+    <span>🟢 Tayor: {{ stats.tayor_jami }} dona</span>
+    <span>Jami: {{ stats.buyurtma_jami }} dona</span>
+  </div>
+</div>
+{% endif %}
 
 <!-- Search -->
 <form class="filter-bar" method="get">
@@ -129,32 +150,29 @@
 {% if orders %}
 <div class="order-grid">
 {% for order in orders %}
-{% with hom=order.hom_loglar.all tayor=order.tayor_loglar.all %}
-{% with hom_sum=order.hom_loglar.all|length tayor_sum=order.tayor_loglar.all|length %}
 <div class="order-card">
 
-  <!-- Image -->
-  {% with img=order.image|default:order.brujka.image %}
-  {% if img %}
-  <div class="oc-img-wrap" onclick="openLightbox('{{ img.url }}','{{ order.name|escapejs }}')">
-    <img src="{{ img.url }}" class="oc-img" alt="">
+  <!-- Image: order.image → brujka.image → placeholder -->
+  {% if order.image %}
+  <div class="oc-img-wrap" onclick="openLb('{{ order.image.url }}','{{ order.name|escapejs }}')">
+    <img src="{{ order.image.url }}" class="oc-img" alt="">
+    <div class="zoom-hint"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 3.75v4.5m0-4.5h4.5m-4.5 0L9 9M3.75 20.25v-4.5m0 4.5h4.5m-4.5 0L9 15M20.25 3.75h-4.5m4.5 0v4.5m0-4.5L15 9m5.25 11.25h-4.5m4.5 0v-4.5m0 4.5L15 15"/></svg></div>
     {% if order.brujka %}
-    <div class="brujka-badge">
-      <span class="bswatch" style="background:{{ order.brujka.color }};"></span>
-      {{ order.brujka.name }}
-    </div>
+    <div class="brujka-badge"><span class="bswatch" style="background:{{ order.brujka.color }};"></span>{{ order.brujka.name }}</div>
     {% endif %}
-    <div class="img-zoom-hint">
-      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 3.75v4.5m0-4.5h4.5m-4.5 0L9 9M3.75 20.25v-4.5m0 4.5h4.5m-4.5 0L9 15M20.25 3.75h-4.5m4.5 0v4.5m0-4.5L15 9m5.25 11.25h-4.5m4.5 0v-4.5m0 4.5L15 15"/></svg>
-      Kattalashtirish
-    </div>
+  </div>
+  {% elif order.brujka and order.brujka.image %}
+  <div class="oc-img-wrap" onclick="openLb('{{ order.brujka.image.url }}','{{ order.name|escapejs }}')">
+    <img src="{{ order.brujka.image.url }}" class="oc-img" alt="">
+    <div class="zoom-hint"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 3.75v4.5m0-4.5h4.5m-4.5 0L9 9M3.75 20.25v-4.5m0 4.5h4.5m-4.5 0L9 15M20.25 3.75h-4.5m4.5 0v4.5m0-4.5L15 9m5.25 11.25h-4.5m4.5 0v-4.5m0 4.5L15 15"/></svg></div>
+    <div class="brujka-badge"><span class="bswatch" style="background:{{ order.brujka.color }};"></span>{{ order.brujka.name }}</div>
   </div>
   {% else %}
   <div class="oc-img-ph">
     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m2.25 15.75 5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159m-1.5-1.5 1.409-1.409a2.25 2.25 0 0 1 3.182 0l2.909 2.909M3.75 21h16.5A2.25 2.25 0 0 0 22.5 18.75V5.25A2.25 2.25 0 0 0 20.25 3H3.75A2.25 2.25 0 0 0 1.5 5.25v13.5A2.25 2.25 0 0 0 3.75 21Z"/></svg>
+    <span>Rasm yo'q</span>
   </div>
   {% endif %}
-  {% endwith %}
 
   <div class="oc-body">
     <a href="{% url 'casting:order_detail' order.pk %}" class="oc-name">{{ order.name }}</a>
@@ -165,26 +183,37 @@
         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5"/></svg>
         {{ order.quantity }} dona
       </span>
-      <span class="mc mc-deadline {% if order.is_overdue %}overdue{% endif %}">
+      <span class="mc mc-dl {% if order.is_overdue %}late{% endif %}">
         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5"/></svg>
         {{ order.deadline|date:"d.m.Y" }}{% if order.is_overdue %} ⚠{% endif %}
       </span>
     </div>
 
-    <!-- Progress -->
+    <!-- Progress bars from annotated values -->
     <div class="oc-progress">
-      {% with h=order.hom_loglar.all t=order.tayor_loglar.all %}
-      {% comment %}Annotated via view would be better but using template here{% endcomment %}
-      <div class="op-row">
-        <span class="op-label">🔶 Hom kiritilgan</span>
-        <span class="op-val" style="color:#F97316;" id="hv-{{ order.pk }}">—</span>
+      {% with hs=order.hom_sum|default:0 ts=order.tayor_sum|default:0 qty=order.quantity %}
+      <div class="op-item">
+        <div class="op-top">
+          <span class="op-lbl">🔶 Hom</span>
+          <span class="op-val" style="color:#F97316;">{{ hs }}/{{ qty }}</span>
+        </div>
+        <div class="op-bar">
+          {% if qty %}
+          <div class="op-fill op-hom" style="width:{% if hs >= qty %}100{% else %}{% widthratio hs qty 100 %}{% endif %}%"></div>
+          {% endif %}
+        </div>
       </div>
-      <div class="op-bar"><div class="op-fill op-hom" id="hb-{{ order.pk }}" style="width:0%"></div></div>
-      <div class="op-row">
-        <span class="op-label">🟢 Tayor</span>
-        <span class="op-val" style="color:#16A34A;" id="tv-{{ order.pk }}">—</span>
+      <div class="op-item">
+        <div class="op-top">
+          <span class="op-lbl">🟢 Tayor</span>
+          <span class="op-val" style="color:#16A34A;">{{ ts }}/{{ qty }}</span>
+        </div>
+        <div class="op-bar">
+          {% if qty %}
+          <div class="op-fill op-tayor" style="width:{% if ts >= qty %}100{% else %}{% widthratio ts qty 100 %}{% endif %}%"></div>
+          {% endif %}
+        </div>
       </div>
-      <div class="op-bar"><div class="op-fill op-tayor" id="tb-{{ order.pk }}" style="width:0%"></div></div>
       {% endwith %}
     </div>
 
@@ -198,26 +227,8 @@
         Log
       </a>
     </div>
-
-    <!-- Hidden data for JS -->
-    <script>
-    (function(){
-      var qty = {{ order.quantity }};
-      var hSum = 0, tSum = 0;
-      {% for log in order.hom_loglar.all %}hSum += {{ log.miqdor }};{% endfor %}
-      {% for log in order.tayor_loglar.all %}tSum += {{ log.miqdor }};{% endfor %}
-      var hPct = qty > 0 ? Math.min(100, Math.round(hSum/qty*100)) : 0;
-      var tPct = qty > 0 ? Math.min(100, Math.round(tSum/qty*100)) : 0;
-      document.getElementById('hv-{{ order.pk }}').textContent = hSum + '/' + qty;
-      document.getElementById('tv-{{ order.pk }}').textContent = tSum + '/' + qty;
-      document.getElementById('hb-{{ order.pk }}').style.width = hPct + '%';
-      document.getElementById('tb-{{ order.pk }}').style.width = tPct + '%';
-    })();
-    </script>
   </div>
 </div>
-{% endwith %}
-{% endwith %}
 {% endfor %}
 </div>
 {% else %}
@@ -228,29 +239,25 @@
 {% endif %}
 
 <!-- Lightbox -->
-<div class="lightbox" id="lightbox" onclick="closeLightbox(event)">
-  <button class="lb-close" onclick="closeLightbox()">
+<div class="lightbox" id="lightbox" onclick="if(event.target===this)closeLb()">
+  <button class="lb-close" onclick="closeLb()">
     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12"/></svg>
   </button>
   <img id="lbImg" src="" alt="">
-  <div class="lb-caption" id="lbCaption"></div>
 </div>
-
 {% endblock %}
 
 {% block extra_js %}
 <script>
-function openLightbox(url, caption){
-  document.getElementById('lbImg').src = url;
-  document.getElementById('lbCaption').textContent = caption;
+function openLb(url,cap){
+  document.getElementById('lbImg').src=url;
   document.getElementById('lightbox').classList.add('show');
-  document.body.style.overflow = 'hidden';
+  document.body.style.overflow='hidden';
 }
-function closeLightbox(e){
-  if(e && e.target !== document.getElementById('lightbox') && !e.target.closest('.lb-close')) return;
+function closeLb(){
   document.getElementById('lightbox').classList.remove('show');
-  document.body.style.overflow = '';
+  document.body.style.overflow='';
 }
-document.addEventListener('keydown', e => { if(e.key==='Escape') closeLightbox({target:document.getElementById('lightbox')}); });
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeLb();});
 </script>
 {% endblock %}

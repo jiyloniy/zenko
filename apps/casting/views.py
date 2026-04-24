@@ -17,46 +17,75 @@ from apps.order.views.mixins import CastingManagerRequiredMixin
 class CastingOrderListView(CastingManagerRequiredMixin, View):
     def get(self, request):
         q = request.GET.get('q', '').strip()
-        qs = Order.objects.select_related('brujka', 'created_by').filter(
+        base_qs = Order.objects.select_related('brujka', 'created_by').filter(
             status=Order.Status.IN_PROCESS
         )
         if q:
-            qs = qs.filter(name__icontains=q)
+            base_qs = base_qs.filter(name__icontains=q)
+
+        # Har bir order uchun hom/tayor summalarini annotate qilamiz
+        orders = base_qs.annotate(
+            hom_sum=Sum('hom_loglar__miqdor'),
+            tayor_sum=Sum('tayor_loglar__miqdor'),
+        ).order_by('deadline', '-priority')
 
         today = timezone.localdate()
-        # Bugungi loglar
-        hom_bugun  = HomMahsulotLog.objects.filter(sana=today).aggregate(j=Sum('miqdor'))['j'] or 0
+        # Barcha in_process orderlar (filter qilinmagan, statistika uchun)
+        all_ip = Order.objects.filter(status=Order.Status.IN_PROCESS)
+        buyurtma_jami = all_ip.aggregate(j=Sum('quantity'))['j'] or 0
+
+        # Bugungi loglar (barcha orderlar bo'yicha)
+        hom_bugun   = HomMahsulotLog.objects.filter(sana=today).aggregate(j=Sum('miqdor'))['j'] or 0
         tayor_bugun = TayorMahsulotLog.objects.filter(sana=today).aggregate(j=Sum('miqdor'))['j'] or 0
-        # Jami loglar
-        hom_jami   = HomMahsulotLog.objects.aggregate(j=Sum('miqdor'))['j'] or 0
-        tayor_jami  = TayorMahsulotLog.objects.aggregate(j=Sum('miqdor'))['j'] or 0
-        # Umumiy buyurtma miqdori (ishlab chiqarilmoqda)
-        buyurtma_jami = qs.aggregate(j=Sum('quantity'))['j'] or 0
+        # Jami tayor (in_process orderlarga tegishli)
+        tayor_jami  = TayorMahsulotLog.objects.filter(
+            order__status=Order.Status.IN_PROCESS
+        ).aggregate(j=Sum('miqdor'))['j'] or 0
+        hom_jami    = HomMahsulotLog.objects.filter(
+            order__status=Order.Status.IN_PROCESS
+        ).aggregate(j=Sum('miqdor'))['j'] or 0
 
         return render(request, 'casting/order_list.html', {
-            'orders': qs.order_by('deadline', '-priority'),
+            'orders': orders,
             'q': q,
             'active_nav': 'orders',
             'status_filter': 'in_process',
+            'today': today,
             'stats': {
-                'hom_bugun':    hom_bugun,
-                'tayor_bugun':  tayor_bugun,
-                'hom_jami':     hom_jami,
-                'tayor_jami':   tayor_jami,
-                'buyurtma_jami': buyurtma_jami,
-                'order_count':  qs.count(),
+                'hom_bugun':      hom_bugun,
+                'tayor_bugun':    tayor_bugun,
+                'hom_jami':       hom_jami,
+                'tayor_jami':     tayor_jami,
+                'buyurtma_jami':  buyurtma_jami,
+                'order_count':    all_ip.count(),
+                'tayor_pct':      round(tayor_jami / buyurtma_jami * 100) if buyurtma_jami else 0,
             },
         })
 
 
 class CastingStatsView(CastingManagerRequiredMixin, View):
     def get(self, request):
-        from django.db.models import Count
         today = timezone.localdate()
-        # So'nggi 14 kun
-        days = [(today - datetime.timedelta(days=i)) for i in range(13, -1, -1)]
 
-        hom_by_day  = {
+        # Sana oralig'i
+        try:
+            date_from = datetime.date.fromisoformat(request.GET.get('from', ''))
+        except ValueError:
+            date_from = today - datetime.timedelta(days=13)
+        try:
+            date_to = datetime.date.fromisoformat(request.GET.get('to', ''))
+        except ValueError:
+            date_to = today
+        if date_from > date_to:
+            date_from = date_to - datetime.timedelta(days=13)
+
+        days = []
+        d = date_from
+        while d <= date_to:
+            days.append(d)
+            d += datetime.timedelta(days=1)
+
+        hom_by_day = {
             r['sana']: r['j']
             for r in HomMahsulotLog.objects.filter(sana__in=days)
                 .values('sana').annotate(j=Sum('miqdor'))
@@ -68,44 +97,62 @@ class CastingStatsView(CastingManagerRequiredMixin, View):
         }
 
         chart_labels = [d.strftime('%d.%m') for d in days]
-        chart_hom    = [hom_by_day.get(d, 0)  for d in days]
+        chart_hom    = [hom_by_day.get(d, 0) for d in days]
         chart_tayor  = [tayor_by_day.get(d, 0) for d in days]
 
-        # Stanok bo'yicha hom
         stanok_stats = list(
-            HomMahsulotLog.objects.values('stanok__name')
-            .annotate(j=Sum('miqdor'))
-            .order_by('-j')[:8]
+            HomMahsulotLog.objects.filter(sana__range=(date_from, date_to))
+                .values('stanok__name').annotate(j=Sum('miqdor')).order_by('-j')[:8]
         )
-        # Umumiy
-        hom_jami    = HomMahsulotLog.objects.aggregate(j=Sum('miqdor'))['j'] or 0
-        tayor_jami  = TayorMahsulotLog.objects.aggregate(j=Sum('miqdor'))['j'] or 0
+
+        ndays     = len(days) or 1
+        hom_davr  = sum(chart_hom)
+        tayor_davr = sum(chart_tayor)
+        avg_hom   = round(hom_davr  / ndays, 1)
+        avg_tayor = round(tayor_davr / ndays, 1)
         hom_bugun   = hom_by_day.get(today, 0)
         tayor_bugun = tayor_by_day.get(today, 0)
-        # O'rtacha kunlik (14 kun)
-        avg_hom   = round(hom_jami  / 14, 1)
-        avg_tayor = round(tayor_jami / 14, 1)
 
-        # Buyurtmalar
-        in_process = Order.objects.filter(status=Order.Status.IN_PROCESS)
-        order_count = in_process.count()
+        in_process    = Order.objects.filter(status=Order.Status.IN_PROCESS)
+        order_count   = in_process.count()
         buyurtma_jami = in_process.aggregate(j=Sum('quantity'))['j'] or 0
+        tayor_jami_ip = TayorMahsulotLog.objects.filter(
+            order__status=Order.Status.IN_PROCESS
+        ).aggregate(j=Sum('miqdor'))['j'] or 0
+        hom_jami_ip   = HomMahsulotLog.objects.filter(
+            order__status=Order.Status.IN_PROCESS
+        ).aggregate(j=Sum('miqdor'))['j'] or 0
+        tayor_pct = round(tayor_jami_ip / buyurtma_jami * 100) if buyurtma_jami else 0
+
+        order_progress = list(
+            in_process.annotate(
+                t_sum=Sum('tayor_loglar__miqdor'),
+                h_sum=Sum('hom_loglar__miqdor'),
+            ).values('id', 'name', 'quantity', 't_sum', 'h_sum', 'deadline')
+            .order_by('deadline')
+        )
 
         return render(request, 'casting/stats.html', {
             'active_nav': 'stats',
             'today': today,
+            'date_from': date_from,
+            'date_to': date_to,
             'hom_bugun': hom_bugun,
             'tayor_bugun': tayor_bugun,
-            'hom_jami': hom_jami,
-            'tayor_jami': tayor_jami,
+            'hom_davr': hom_davr,
+            'tayor_davr': tayor_davr,
             'avg_hom': avg_hom,
             'avg_tayor': avg_tayor,
             'order_count': order_count,
             'buyurtma_jami': buyurtma_jami,
+            'tayor_jami_ip': tayor_jami_ip,
+            'hom_jami_ip': hom_jami_ip,
+            'tayor_pct': tayor_pct,
             'stanok_stats': stanok_stats,
             'chart_labels': chart_labels,
             'chart_hom': chart_hom,
             'chart_tayor': chart_tayor,
+            'order_progress': order_progress,
         })
 
 

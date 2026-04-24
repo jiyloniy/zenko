@@ -1,182 +1,201 @@
 {% extends "casting/base.html" %}
-{% block title %}Statistika — Zenko Quyish{% endblock %}
+{% block title %}Statistika — Quyish{% endblock %}
 {% block page_title %}Ishlab chiqarish statistikasi{% endblock %}
 
 {% block extra_css %}
 <style>
-/* KPI cards */
-.kpi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:14px;margin-bottom:28px;}
-.kpi{background:var(--white);border:1px solid var(--gray-200);border-radius:16px;padding:20px 20px 16px;position:relative;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.05);transition:transform .18s,box-shadow .2s;}
-.kpi:hover{transform:translateY(-2px);box-shadow:0 6px 18px rgba(0,0,0,.08);}
+/* Date filter */
+.date-filter{background:var(--white);border:1px solid var(--gray-200);border-radius:13px;padding:14px 18px;margin-bottom:22px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;box-shadow:0 1px 3px rgba(0,0,0,.04);}
+.date-filter label{font-size:12px;font-weight:700;color:var(--gray-600);}
+.date-filter input[type=date]{padding:7px 12px;border:1.5px solid var(--gray-200);border-radius:9px;font-size:13px;font-family:inherit;color:var(--black);outline:none;transition:border-color .18s;}
+.date-filter input[type=date]:focus{border-color:var(--orange);}
+.df-presets{display:flex;gap:6px;flex-wrap:wrap;}
+.df-preset{padding:5px 12px;border-radius:8px;border:1.5px solid var(--gray-200);background:var(--white);font-size:12px;font-weight:600;color:var(--gray-600);cursor:pointer;text-decoration:none;transition:all .15s;}
+.df-preset:hover,.df-preset.active{border-color:var(--orange);color:var(--orange);background:var(--orange-light);}
+
+/* Motivation hero */
+.hero{background:linear-gradient(135deg,#1A1A1A,#2D2D2D);border-radius:16px;padding:22px 26px;margin-bottom:22px;display:flex;align-items:center;justify-content:space-between;gap:16px;position:relative;overflow:hidden;}
+.hero::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 500px 200px at 85% 50%,rgba(245,130,32,.12),transparent);}
+.hero-left{position:relative;}
+.hero-emoji{font-size:32px;margin-bottom:4px;}
+.hero-title{font-size:19px;font-weight:800;color:#fff;letter-spacing:-.3px;}
+.hero-sub{font-size:12px;color:rgba(255,255,255,.5);margin-top:3px;}
+.hero-right{display:flex;gap:10px;flex-shrink:0;position:relative;}
+.hs{text-align:center;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:12px;padding:12px 16px;min-width:72px;}
+.hs-val{font-size:24px;font-weight:900;letter-spacing:-1px;line-height:1;}
+.hs-lbl{font-size:9.5px;font-weight:700;color:rgba(255,255,255,.4);text-transform:uppercase;letter-spacing:.8px;margin-top:3px;}
+
+/* KPI grid */
+.kpi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:22px;}
+.kpi{background:var(--white);border:1px solid var(--gray-200);border-radius:14px;padding:18px 18px 14px;position:relative;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,.04);}
 .kpi::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;}
-.kpi-orange::before{background:linear-gradient(90deg,#F97316,#FBBF24);}
-.kpi-green::before{background:linear-gradient(90deg,#22C55E,#4ADE80);}
-.kpi-blue::before{background:linear-gradient(90deg,#3B82F6,#60A5FA);}
-.kpi-purple::before{background:linear-gradient(90deg,#8B5CF6,#A78BFA);}
-.kpi-label{font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--gray-500);margin-bottom:10px;}
-.kpi-val{font-size:32px;font-weight:900;color:var(--black);line-height:1;letter-spacing:-1px;}
-.kpi-unit{font-size:13px;font-weight:600;color:var(--gray-400);margin-left:3px;}
-.kpi-sub{font-size:11px;color:var(--gray-500);margin-top:6px;display:flex;align-items:center;gap:4px;}
-.kpi-icon{position:absolute;bottom:14px;right:16px;opacity:.07;}
-.kpi-icon svg{width:48px;height:48px;}
+.kpi-o::before{background:linear-gradient(90deg,#F97316,#FBBF24);}
+.kpi-g::before{background:linear-gradient(90deg,#22C55E,#4ADE80);}
+.kpi-b::before{background:linear-gradient(90deg,#3B82F6,#60A5FA);}
+.kpi-p::before{background:linear-gradient(90deg,#8B5CF6,#A78BFA);}
+.kpi-lbl{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.7px;color:var(--gray-500);margin-bottom:8px;}
+.kpi-val{font-size:28px;font-weight:900;color:var(--black);line-height:1;letter-spacing:-1px;}
+.kpi-unit{font-size:12px;color:var(--gray-400);font-weight:600;margin-left:2px;}
+.kpi-sub{font-size:11px;color:var(--gray-500);margin-top:5px;}
 
-/* Motivatsion hero */
-.motivation-bar{background:linear-gradient(135deg,#1A1A1A 0%,#2D2D2D 100%);border-radius:16px;padding:22px 26px;margin-bottom:28px;display:flex;align-items:center;justify-content:space-between;gap:16px;overflow:hidden;position:relative;}
-.motivation-bar::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 400px 200px at 80% 50%,rgba(245,130,32,.15),transparent);}
-.mb-left{position:relative;}
-.mb-emoji{font-size:36px;margin-bottom:4px;}
-.mb-title{font-size:20px;font-weight:800;color:#fff;letter-spacing:-.3px;}
-.mb-sub{font-size:13px;color:rgba(255,255,255,.55);margin-top:3px;}
-.mb-right{display:flex;gap:12px;position:relative;flex-shrink:0;}
-.mb-stat{text-align:center;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:12px;padding:12px 18px;}
-.mb-stat-val{font-size:26px;font-weight:900;color:var(--orange);letter-spacing:-1px;}
-.mb-stat-lbl{font-size:10px;font-weight:600;color:rgba(255,255,255,.45);text-transform:uppercase;letter-spacing:.8px;margin-top:2px;}
+/* Chart */
+.chart-card{background:var(--white);border:1px solid var(--gray-200);border-radius:14px;padding:20px 22px;margin-bottom:20px;box-shadow:0 1px 3px rgba(0,0,0,.04);}
+.cc-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;flex-wrap:wrap;gap:8px;}
+.cc-title{font-size:14px;font-weight:700;color:var(--black);}
+.cc-legend{display:flex;gap:12px;}
+.lg-item{display:flex;align-items:center;gap:5px;font-size:11.5px;font-weight:600;color:var(--gray-600);}
+.lg-dot{width:9px;height:9px;border-radius:50%;}
 
-/* Chart section */
-.chart-section{background:var(--white);border:1px solid var(--gray-200);border-radius:16px;padding:22px 24px;margin-bottom:22px;box-shadow:0 1px 4px rgba(0,0,0,.05);}
-.cs-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;}
-.cs-title{font-size:14px;font-weight:700;color:var(--black);}
-.cs-legend{display:flex;gap:14px;}
-.legend-item{display:flex;align-items:center;gap:6px;font-size:11.5px;font-weight:600;color:var(--gray-600);}
-.legend-dot{width:10px;height:10px;border-radius:50%;}
+.bar-chart{display:flex;align-items:flex-end;gap:4px;height:160px;padding-bottom:24px;position:relative;}
+.bar-chart::after{content:'';position:absolute;bottom:24px;left:0;right:0;height:1px;background:var(--gray-200);}
+.bg{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;min-width:0;cursor:default;}
+.bp{display:flex;gap:1px;align-items:flex-end;width:100%;}
+.b{flex:1;border-radius:3px 3px 0 0;min-height:2px;transition:opacity .15s;}
+.b:hover{opacity:.75;}
+.bh{background:linear-gradient(180deg,#F97316,#FDBA74);}
+.bt{background:linear-gradient(180deg,#22C55E,#86EFAC);}
+.bl{font-size:8.5px;color:var(--gray-400);font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;text-align:center;}
 
-/* Bar chart */
-.bar-chart{display:flex;align-items:flex-end;gap:6px;height:160px;padding-bottom:26px;position:relative;}
-.bar-chart::before{content:'';position:absolute;bottom:26px;left:0;right:0;height:1px;background:var(--gray-200);}
-.bar-group{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;min-width:0;}
-.bar-pair{display:flex;gap:2px;align-items:flex-end;width:100%;}
-.bar{flex:1;border-radius:4px 4px 0 0;min-height:2px;transition:opacity .2s;}
-.bar:hover{opacity:.8;}
-.bar-hom{background:linear-gradient(180deg,#F97316,#FDBA74);}
-.bar-tayor{background:linear-gradient(180deg,#22C55E,#86EFAC);}
-.bar-label{font-size:9px;color:var(--gray-400);font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;text-align:center;}
+/* Two col */
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px;}
 
-/* Stanok table */
-.two-col{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:22px;}
-.stanok-section{background:var(--white);border:1px solid var(--gray-200);border-radius:16px;padding:20px 22px;box-shadow:0 1px 4px rgba(0,0,0,.05);}
-.ss-title{font-size:13px;font-weight:700;color:var(--black);margin-bottom:16px;display:flex;align-items:center;gap:8px;}
-.ss-title svg{width:16px;height:16px;color:var(--orange);}
-.stanok-row{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--gray-100);}
-.stanok-row:last-child{border-bottom:none;}
-.sr-rank{width:22px;height:22px;border-radius:6px;background:var(--gray-100);display:grid;place-items:center;font-size:10px;font-weight:800;color:var(--gray-500);flex-shrink:0;}
-.sr-rank.gold{background:#FFF7ED;color:#F97316;}
-.sr-rank.silver{background:#F1F5F9;color:#64748B;}
-.sr-rank.bronze{background:#FFF3E0;color:#D97706;}
-.sr-name{flex:1;font-size:13px;font-weight:600;color:var(--black);min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-.sr-bar-wrap{width:80px;height:6px;background:var(--gray-200);border-radius:3px;flex-shrink:0;}
-.sr-bar-fill{height:100%;border-radius:3px;background:linear-gradient(90deg,#F97316,#FBBF24);}
-.sr-val{font-size:12px;font-weight:700;color:var(--gray-600);min-width:36px;text-align:right;}
+/* Stanok reyting */
+.section-card{background:var(--white);border:1px solid var(--gray-200);border-radius:14px;padding:18px 20px;box-shadow:0 1px 3px rgba(0,0,0,.04);}
+.sc-title{font-size:13px;font-weight:700;color:var(--black);margin-bottom:14px;display:flex;align-items:center;gap:7px;}
+.sc-title svg{width:15px;height:15px;color:var(--orange);}
+.sr{display:flex;align-items:center;gap:9px;padding:7px 0;border-bottom:1px solid var(--gray-100);}
+.sr:last-child{border-bottom:none;}
+.sr-n{width:20px;height:20px;border-radius:5px;background:var(--gray-100);display:grid;place-items:center;font-size:10px;font-weight:800;color:var(--gray-500);flex-shrink:0;}
+.sr-n.g1{background:#FFF7ED;color:#F97316;}
+.sr-n.g2{background:#F1F5F9;color:#64748B;}
+.sr-n.g3{background:#FFF3E0;color:#D97706;}
+.sr-name{flex:1;font-size:12.5px;font-weight:600;color:var(--black);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.sr-bw{width:70px;height:5px;background:var(--gray-200);border-radius:3px;flex-shrink:0;}
+.sr-bf{height:100%;border-radius:3px;background:linear-gradient(90deg,#F97316,#FBBF24);}
+.sr-v{font-size:12px;font-weight:700;color:var(--gray-600);min-width:32px;text-align:right;}
 
-/* Plan section */
-.plan-section{background:var(--white);border:1px solid var(--gray-200);border-radius:16px;padding:20px 22px;box-shadow:0 1px 4px rgba(0,0,0,.05);}
-.ps-title{font-size:13px;font-weight:700;color:var(--black);margin-bottom:16px;}
-.plan-row{display:flex;align-items:center;gap:12px;margin-bottom:14px;}
-.plan-row:last-child{margin-bottom:0;}
-.pl-label{font-size:12px;font-weight:600;color:var(--gray-600);width:120px;flex-shrink:0;}
-.pl-bar-wrap{flex:1;height:10px;background:var(--gray-200);border-radius:5px;overflow:hidden;}
-.pl-bar{height:100%;border-radius:5px;transition:width .6s cubic-bezier(.4,0,.2,1);}
-.pl-hom-bar{background:linear-gradient(90deg,#F97316,#FBBF24);}
-.pl-tayor-bar{background:linear-gradient(90deg,#22C55E,#4ADE80);}
-.pl-val{font-size:12px;font-weight:700;color:var(--gray-700);width:70px;text-align:right;flex-shrink:0;}
+/* Order progress */
+.order-progress-list{display:flex;flex-direction:column;gap:8px;}
+.op-row{background:var(--gray-50);border:1px solid var(--gray-200);border-radius:10px;padding:12px 14px;}
+.op-head{display:flex;justify-content:space-between;align-items:flex-start;gap:8px;margin-bottom:8px;}
+.op-name{font-size:12.5px;font-weight:700;color:var(--black);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;}
+.op-dl{font-size:10.5px;font-weight:600;flex-shrink:0;}
+.op-dl.ok{color:#16A34A;} .op-dl.late{color:#DC2626;}
+.op-bars{display:grid;grid-template-columns:1fr 1fr;gap:6px;}
+.opb-item{display:flex;align-items:center;gap:6px;}
+.opb-lbl{font-size:10px;font-weight:700;color:var(--gray-500);width:30px;flex-shrink:0;}
+.opb-wrap{flex:1;height:5px;background:var(--gray-200);border-radius:3px;overflow:hidden;}
+.opb-fill{height:100%;border-radius:3px;}
+.opb-hom{background:#F97316;}
+.opb-tayor{background:#22C55E;}
+.opb-val{font-size:10.5px;font-weight:700;color:var(--gray-600);min-width:32px;text-align:right;}
 
-@media(max-width:900px){.two-col{grid-template-columns:1fr;}.mb-right{display:none;}}
-@media(max-width:600px){.kpi-grid{grid-template-columns:1fr 1fr;}.motivation-bar{flex-direction:column;align-items:flex-start;}.mb-right{display:flex;width:100%;}}
+/* Motivatsion box */
+.motive-box{background:var(--gray-50);border:1px solid var(--gray-200);border-radius:12px;padding:14px 16px;text-align:center;}
+.mb-emoji{font-size:28px;margin-bottom:6px;}
+.mb-title{font-size:13px;font-weight:700;color:var(--black);}
+.mb-sub{font-size:11.5px;color:var(--gray-500);margin-top:4px;}
+
+@media(max-width:900px){.two-col{grid-template-columns:1fr;}.hero-right{display:none;}}
+@media(max-width:600px){.kpi-grid{grid-template-columns:1fr 1fr;}.date-filter{flex-direction:column;align-items:stretch;}}
 </style>
 {% endblock %}
 
 {% block content %}
 
 <!-- Motivatsion hero -->
-<div class="motivation-bar">
-  <div class="mb-left">
-    <div class="mb-emoji">🏭</div>
-    <div class="mb-title">Bugun ham kuchli ishlayapmiz!</div>
-    <div class="mb-sub">{{ today|date:"d F Y" }} · Quyish bo'limi</div>
+<div class="hero">
+  <div class="hero-left">
+    <div class="hero-emoji">🏭</div>
+    <div class="hero-title">Bugun ham kuchli ishlayapmiz!</div>
+    <div class="hero-sub">{{ today|date:"d F Y" }} · Quyish bo'limi</div>
   </div>
-  <div class="mb-right">
-    <div class="mb-stat">
-      <div class="mb-stat-val">{{ hom_bugun }}</div>
-      <div class="mb-stat-lbl">Hom bugun</div>
+  <div class="hero-right">
+    <div class="hs">
+      <div class="hs-val" style="color:#FB923C;">{{ hom_bugun }}</div>
+      <div class="hs-lbl">Hom bugun</div>
     </div>
-    <div class="mb-stat">
-      <div class="mb-stat-val" style="color:#4ADE80;">{{ tayor_bugun }}</div>
-      <div class="mb-stat-lbl">Tayor bugun</div>
+    <div class="hs">
+      <div class="hs-val" style="color:#4ADE80;">{{ tayor_bugun }}</div>
+      <div class="hs-lbl">Tayor bugun</div>
     </div>
-    <div class="mb-stat">
-      <div class="mb-stat-val" style="color:#60A5FA;">{{ order_count }}</div>
-      <div class="mb-stat-lbl">Aktiv order</div>
+    <div class="hs">
+      <div class="hs-val" style="color:#60A5FA;">{{ tayor_pct }}%</div>
+      <div class="hs-lbl">Bajarildi</div>
     </div>
+  </div>
+</div>
+
+<!-- Sana filtri -->
+<div class="date-filter">
+  <label>Dan:</label>
+  <input type="date" id="dfFrom" value="{{ date_from|date:'Y-m-d' }}">
+  <label>Gacha:</label>
+  <input type="date" id="dfTo" value="{{ date_to|date:'Y-m-d' }}">
+  <button onclick="applyDates()" class="btn btn-primary btn-sm">Ko'rish</button>
+  <div class="df-presets">
+    <a href="?from={% now "Y-m-d" %}&to={% now "Y-m-d" %}" class="df-preset">Bugun</a>
+    <a href="?from={{ week_from }}&to={{ today|date:'Y-m-d' }}" class="df-preset" id="pWeek">7 kun</a>
+    <a href="?from={{ month_from }}&to={{ today|date:'Y-m-d' }}" class="df-preset" id="pMonth">30 kun</a>
   </div>
 </div>
 
 <!-- KPI -->
 <div class="kpi-grid">
-  <div class="kpi kpi-orange">
-    <div class="kpi-label">Bugun — hom</div>
+  <div class="kpi kpi-o">
+    <div class="kpi-lbl">Bugun hom</div>
     <div class="kpi-val">{{ hom_bugun }}<span class="kpi-unit">dona</span></div>
-    <div class="kpi-sub">O'rtacha: {{ avg_hom }} dona/kun</div>
-    <div class="kpi-icon"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m21 7.5-9-5.25L3 7.5m18 0-9 5.25m9-5.25v9l-9 5.25M3 7.5l9 5.25M3 7.5v9l9 5.25m0-9v9"/></svg></div>
+    <div class="kpi-sub">O'rtacha: {{ avg_hom }}/kun</div>
   </div>
-  <div class="kpi kpi-green">
-    <div class="kpi-label">Bugun — tayor</div>
+  <div class="kpi kpi-g">
+    <div class="kpi-lbl">Bugun tayor</div>
     <div class="kpi-val">{{ tayor_bugun }}<span class="kpi-unit">dona</span></div>
-    <div class="kpi-sub">O'rtacha: {{ avg_tayor }} dona/kun</div>
-    <div class="kpi-icon"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/></svg></div>
+    <div class="kpi-sub">O'rtacha: {{ avg_tayor }}/kun</div>
   </div>
-  <div class="kpi kpi-blue">
-    <div class="kpi-label">14 kun — hom</div>
-    <div class="kpi-val">{{ hom_jami }}<span class="kpi-unit">dona</span></div>
-    <div class="kpi-sub">So'nggi 2 hafta</div>
-    <div class="kpi-icon"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 0 1 3 19.875v-6.75ZM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V8.625ZM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V4.125Z"/></svg></div>
+  <div class="kpi kpi-b">
+    <div class="kpi-lbl">Davr — hom</div>
+    <div class="kpi-val">{{ hom_davr }}<span class="kpi-unit">dona</span></div>
+    <div class="kpi-sub">{{ date_from|date:"d.m" }} – {{ date_to|date:"d.m" }}</div>
   </div>
-  <div class="kpi kpi-purple">
-    <div class="kpi-label">14 kun — tayor</div>
-    <div class="kpi-val">{{ tayor_jami }}<span class="kpi-unit">dona</span></div>
-    <div class="kpi-sub">So'nggi 2 hafta</div>
-    <div class="kpi-icon"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M11.35 3.836c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 0 0 .75-.75 2.25 2.25 0 0 0-.1-.664m-5.8 0A2.251 2.251 0 0 1 13.5 2.25H15c1.012 0 1.867.668 2.15 1.586m-5.8 0c-.376.023-.75.05-1.124.08C9.095 4.01 8.25 4.973 8.25 6.108V8.25m8.9-4.414c.376.023.75.05 1.124.08 1.131.094 1.976 1.057 1.976 2.192V16.5A2.25 2.25 0 0 1 18 18.75h-2.25"/></svg></div>
+  <div class="kpi kpi-p">
+    <div class="kpi-lbl">Davr — tayor</div>
+    <div class="kpi-val">{{ tayor_davr }}<span class="kpi-unit">dona</span></div>
+    <div class="kpi-sub">{{ date_from|date:"d.m" }} – {{ date_to|date:"d.m" }}</div>
   </div>
-  <div class="kpi kpi-orange" style="border-top-color:transparent;">
-    <div class="kpi-label">Aktiv orderlar</div>
-    <div class="kpi-val">{{ order_count }}<span class="kpi-unit">ta</span></div>
-    <div class="kpi-sub">{{ buyurtma_jami }} dona jami</div>
+  <div class="kpi kpi-g">
+    <div class="kpi-lbl">Jami bajarildi</div>
+    <div class="kpi-val">{{ tayor_pct }}<span class="kpi-unit">%</span></div>
+    <div class="kpi-sub">{{ tayor_jami_ip }}/{{ buyurtma_jami }} dona</div>
   </div>
 </div>
 
 <!-- Bar chart -->
-<div class="chart-section">
-  <div class="cs-head">
-    <span class="cs-title">So'nggi 14 kunlik faoliyat</span>
-    <div class="cs-legend">
-      <span class="legend-item"><span class="legend-dot" style="background:#F97316;"></span> Hom</span>
-      <span class="legend-item"><span class="legend-dot" style="background:#22C55E;"></span> Tayor</span>
+<div class="chart-card">
+  <div class="cc-head">
+    <span class="cc-title">Kunlik faoliyat</span>
+    <div class="cc-legend">
+      <span class="lg-item"><span class="lg-dot" style="background:#F97316;"></span>Hom</span>
+      <span class="lg-item"><span class="lg-dot" style="background:#22C55E;"></span>Tayor</span>
     </div>
   </div>
-  <div class="bar-chart" id="barChart">
-    <!-- rendered by JS -->
-  </div>
+  <div class="bar-chart" id="barChart"></div>
 </div>
 
-<!-- Two col: stanok + plan -->
+<!-- Two col: stanok + order progress -->
 <div class="two-col">
-
-  <!-- Stanok reytingi -->
-  <div class="stanok-section">
-    <div class="ss-title">
-      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M11.42 15.17 17.25 21A2.652 2.652 0 0 0 21 17.25l-5.877-5.877M11.42 15.17l2.496-3.03c.317-.384.74-.626 1.208-.766"/></svg>
-      Stanok reytingi (hom bo'yicha)
+  <div class="section-card">
+    <div class="sc-title">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M11.42 15.17 17.25 21A2.652 2.652 0 0 0 21 17.25l-5.877-5.877"/></svg>
+      Stanok reytingi (hom)
     </div>
     {% if stanok_stats %}
-    {% with max_val=stanok_stats.0.j %}
+    {% with mx=stanok_stats.0.j %}
     {% for row in stanok_stats %}
-    <div class="stanok-row">
-      <div class="sr-rank {% if forloop.counter == 1 %}gold{% elif forloop.counter == 2 %}silver{% elif forloop.counter == 3 %}bronze{% endif %}">{{ forloop.counter }}</div>
+    <div class="sr">
+      <div class="sr-n {% if forloop.counter == 1 %}g1{% elif forloop.counter == 2 %}g2{% elif forloop.counter == 3 %}g3{% endif %}">{{ forloop.counter }}</div>
       <div class="sr-name">{{ row.stanok__name|default:"—" }}</div>
-      <div class="sr-bar-wrap">
-        {% if max_val %}
-        <div class="sr-bar-fill" style="width:{% widthratio row.j max_val 100 %}%"></div>
-        {% endif %}
-      </div>
-      <div class="sr-val">{{ row.j }}</div>
+      <div class="sr-bw">{% if mx %}<div class="sr-bf" style="width:{% widthratio row.j mx 100 %}%"></div>{% endif %}</div>
+      <div class="sr-v">{{ row.j }}</div>
     </div>
     {% endfor %}
     {% endwith %}
@@ -185,82 +204,125 @@
     {% endif %}
   </div>
 
-  <!-- Kunlik plan -->
-  <div class="plan-section">
-    <div class="ps-title">Bugungi holat (o'rtachaga nisbatan)</div>
-    <div class="plan-row">
-      <span class="pl-label">🔶 Hom mahsulot</span>
-      <div class="pl-bar-wrap">
-        <div class="pl-bar pl-hom-bar" id="planHom" style="width:0%"></div>
-      </div>
-      <span class="pl-val">{{ hom_bugun }} / <span style="color:var(--gray-400);">{{ avg_hom }}</span></span>
+  <div class="section-card">
+    <div class="sc-title">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 0 1 3 19.875v-6.75Z"/></svg>
+      Bugungi maqsad
     </div>
-    <div class="plan-row">
-      <span class="pl-label">🟢 Tayor mahsulot</span>
-      <div class="pl-bar-wrap">
-        <div class="pl-bar pl-tayor-bar" id="planTayor" style="width:0%"></div>
+    {% if avg_tayor > 0 %}
+    {% with pct_h=hom_bugun avg_h=avg_hom pct_t=tayor_bugun avg_t=avg_tayor %}
+    <div style="margin-bottom:14px;">
+      <div style="display:flex;justify-content:space-between;font-size:11.5px;font-weight:600;color:var(--gray-600);margin-bottom:5px;">
+        <span>🔶 Hom mahsulot</span><span>{{ hom_bugun }} / <span style="color:var(--gray-400);">{{ avg_hom }}</span></span>
       </div>
-      <span class="pl-val">{{ tayor_bugun }} / <span style="color:var(--gray-400);">{{ avg_tayor }}</span></span>
+      <div style="height:8px;background:var(--gray-200);border-radius:4px;overflow:hidden;">
+        <div style="height:100%;border-radius:4px;background:linear-gradient(90deg,#F97316,#FBBF24);width:{% if avg_hom %}{% widthratio hom_bugun avg_hom 100 %}{% else %}0{% endif %}%;max-width:100%;transition:width .5s;"></div>
+      </div>
     </div>
-
-    <div style="margin-top:20px;padding:14px;background:var(--gray-50);border-radius:12px;border:1px solid var(--gray-200);">
-      {% if tayor_bugun >= avg_tayor %}
-      <div style="font-size:20px;margin-bottom:4px;">🎉</div>
-      <div style="font-size:13px;font-weight:700;color:#16A34A;">Ajoyib! O'rtachadan yuqori!</div>
-      <div style="font-size:12px;color:var(--gray-500);margin-top:3px;">Bugun {{ tayor_bugun }} dona tayor — davom eting!</div>
+    <div style="margin-bottom:16px;">
+      <div style="display:flex;justify-content:space-between;font-size:11.5px;font-weight:600;color:var(--gray-600);margin-bottom:5px;">
+        <span>🟢 Tayor mahsulot</span><span>{{ tayor_bugun }} / <span style="color:var(--gray-400);">{{ avg_tayor }}</span></span>
+      </div>
+      <div style="height:8px;background:var(--gray-200);border-radius:4px;overflow:hidden;">
+        <div style="height:100%;border-radius:4px;background:linear-gradient(90deg,#22C55E,#4ADE80);width:{% if avg_tayor %}{% widthratio tayor_bugun avg_tayor 100 %}{% else %}0{% endif %}%;max-width:100%;transition:width .5s;"></div>
+      </div>
+    </div>
+    {% endwith %}
+    {% endif %}
+    <div class="motive-box">
+      {% if tayor_bugun >= avg_tayor and avg_tayor > 0 %}
+      <div class="mb-emoji">🎉</div>
+      <div class="mb-title">Ajoyib! O'rtachadan yuqori!</div>
+      <div class="mb-sub">{{ tayor_bugun }} dona tayor — rekord!</div>
       {% elif tayor_bugun > 0 %}
-      <div style="font-size:20px;margin-bottom:4px;">💪</div>
-      <div style="font-size:13px;font-weight:700;color:var(--orange);">Yaxshi! O'rtachaga {% widthratio avg_tayor 1 1 %} dona qoldi!</div>
-      <div style="font-size:12px;color:var(--gray-500);margin-top:3px;">O'rtacha: {{ avg_tayor }} dona/kun</div>
+      <div class="mb-emoji">💪</div>
+      <div class="mb-title">Yaxshi natija!</div>
+      <div class="mb-sub">Maqsad: {{ avg_tayor }} dona. Davom eting!</div>
       {% else %}
-      <div style="font-size:20px;margin-bottom:4px;">🚀</div>
-      <div style="font-size:13px;font-weight:700;color:var(--black);">Yangi kun boshlanmoqda!</div>
-      <div style="font-size:12px;color:var(--gray-500);margin-top:3px;">Kun maqsad: {{ avg_tayor }} dona tayor</div>
+      <div class="mb-emoji">🚀</div>
+      <div class="mb-title">Kuchli kun boshlayapmiz!</div>
+      <div class="mb-sub">Kunlik maqsad: ~{{ avg_tayor }} dona tayor</div>
       {% endif %}
     </div>
   </div>
 </div>
+
+<!-- Order progress -->
+{% if order_progress %}
+<div class="section-card" style="margin-bottom:20px;">
+  <div class="sc-title">
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M20.25 7.5l-.625 10.632a2.25 2.25 0 01-2.247 2.118H6.622a2.25 2.25 0 01-2.247-2.118L3.75 7.5M10 11.25h4M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125z"/></svg>
+    Order bo'yicha bajarilish
+  </div>
+  <div class="order-progress-list">
+    {% for op in order_progress %}
+    {% with hs=op.h_sum|default:0 ts=op.t_sum|default:0 qty=op.quantity %}
+    <div class="op-row">
+      <div class="op-head">
+        <span class="op-name">{{ op.name }}</span>
+        <span class="op-dl {% if op.deadline < today %}late{% else %}ok{% endif %}">{{ op.deadline|date:"d.m.Y" }}</span>
+      </div>
+      <div class="op-bars">
+        <div class="opb-item">
+          <span class="opb-lbl">Hom</span>
+          <div class="opb-wrap"><div class="opb-fill opb-hom" style="width:{% if qty %}{% widthratio hs qty 100 %}{% else %}0{% endif %}%;max-width:100%;"></div></div>
+          <span class="opb-val">{{ hs }}/{{ qty }}</span>
+        </div>
+        <div class="opb-item">
+          <span class="opb-lbl">Tayor</span>
+          <div class="opb-wrap"><div class="opb-fill opb-tayor" style="width:{% if qty %}{% widthratio ts qty 100 %}{% else %}0{% endif %}%;max-width:100%;"></div></div>
+          <span class="opb-val">{{ ts }}/{{ qty }}</span>
+        </div>
+      </div>
+    </div>
+    {% endwith %}
+    {% endfor %}
+  </div>
+</div>
+{% endif %}
 
 {% endblock %}
 
 {% block extra_js %}
 <script>
 (function(){
-  var labels  = {{ chart_labels|safe }};
-  var homData = {{ chart_hom|safe }};
-  var tayData = {{ chart_tayor|safe }};
-  var maxVal  = Math.max(...homData, ...tayData, 1);
-  var chart   = document.getElementById('barChart');
-  var chartH  = 134; // px usable height
-
-  labels.forEach(function(lbl, i){
-    var hPct = Math.round(homData[i] / maxVal * 100);
-    var tPct = Math.round(tayData[i] / maxVal * 100);
-    var hPx  = Math.max(hPct * chartH / 100, homData[i] > 0 ? 3 : 0);
-    var tPx  = Math.max(tPct * chartH / 100, tayData[i] > 0 ? 3 : 0);
-    var grp  = document.createElement('div');
-    grp.className = 'bar-group';
-    grp.title = lbl + ': hom=' + homData[i] + ', tayor=' + tayData[i];
-    grp.innerHTML =
-      '<div class="bar-pair">' +
-        '<div class="bar bar-hom" style="height:' + hPx + 'px"></div>' +
-        '<div class="bar bar-tayor" style="height:' + tPx + 'px"></div>' +
-      '</div>' +
-      '<div class="bar-label">' + lbl + '</div>';
-    chart.appendChild(grp);
+  // Bar chart
+  var labels = {{ chart_labels|safe }};
+  var homs   = {{ chart_hom|safe }};
+  var tayors = {{ chart_tayor|safe }};
+  var maxV   = Math.max(...homs, ...tayors, 1);
+  var ch     = document.getElementById('barChart');
+  var H      = 134;
+  labels.forEach(function(l,i){
+    var hPx = Math.max(Math.round(homs[i]/maxV*H), homs[i]>0?2:0);
+    var tPx = Math.max(Math.round(tayors[i]/maxV*H), tayors[i]>0?2:0);
+    var g = document.createElement('div');
+    g.className = 'bg';
+    g.title = l+': hom='+homs[i]+', tayor='+tayors[i];
+    g.innerHTML =
+      '<div class="bp">'+
+        '<div class="b bh" style="height:'+hPx+'px"></div>'+
+        '<div class="b bt" style="height:'+tPx+'px"></div>'+
+      '</div>'+
+      '<div class="bl">'+l+'</div>';
+    ch.appendChild(g);
   });
 
-  // Plan bars
-  var avgH = {{ avg_hom|default:1 }};
-  var avgT = {{ avg_tayor|default:1 }};
-  var hBugun = {{ hom_bugun }};
-  var tBugun = {{ tayor_bugun }};
-  if(avgH > 0){
-    document.getElementById('planHom').style.width = Math.min(100, Math.round(hBugun/avgH*100)) + '%';
-  }
-  if(avgT > 0){
-    document.getElementById('planTayor').style.width = Math.min(100, Math.round(tBugun/avgT*100)) + '%';
-  }
+  // Date filter apply
+  window.applyDates = function(){
+    var f = document.getElementById('dfFrom').value;
+    var t = document.getElementById('dfTo').value;
+    if(f && t) window.location.href = '?from='+f+'&to='+t;
+  };
+
+  // Preset links
+  var today = new Date();
+  function fmt(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
+  var t = fmt(today);
+  var w = new Date(today); w.setDate(w.getDate()-6);
+  var m = new Date(today); m.setDate(m.getDate()-29);
+  document.getElementById('pWeek').href = '?from='+fmt(w)+'&to='+t;
+  document.getElementById('pMonth').href = '?from='+fmt(m)+'&to='+t;
 })();
 </script>
 {% endblock %}
