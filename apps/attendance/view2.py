@@ -28,7 +28,7 @@ TELEGRAM_BOT_TOKEN  = '8723846245:AAFMLFT1gyYIh0FYfBJN-AOCmXcWf49l6pg'
 TELEGRAM_CHANNEL_ID = -1003457723502
 
 # Smena boshlanishidan bu daqiqa ichida kelish — "vaqtida" hisoblanadi
-LATE_GRACE_MINUTES = 15
+LATE_GRACE_MINUTES = 20
 
 # Smena tugashidan keyin bu daqiqa ichida skanerlash —
 # check_out = smena end_time yoziladi (kiyim almashish vaqti)
@@ -237,20 +237,29 @@ def _compute_check_in_info(actual_in: datetime, start_dt: datetime | None) -> di
     # diff == 0..LATE_GRACE_MINUTES → vaqtida
     # diff > LATE_GRACE_MINUTES → kech
 
-    if diff < 0:
-        # Erta keldi: hisob smena boshidan
+    if diff < -LATE_GRACE_MINUTES:
+        # O'ta erta keldi (20 daqiqadan ko'p oldin): hisob haqiqiy vaqtdan
+        return {
+            'effective_in': actual_in,
+            'status': 'early',
+            'diff_minutes': diff,
+            'note': f'Smenadan {abs(diff)} daqiqa oldin keldi (hisob kelgan vaqtdan)',
+        }
+    elif diff < 0:
+        # 0–20 daqiqa oldin keldi: hisob smena boshidan
         return {
             'effective_in': start_dt,
             'status': 'early',
             'diff_minutes': diff,
-            'note': f'Smenadan {abs(diff)} daqiqa oldin keldi',
+            'note': f'Smenadan {abs(diff)} daqiqa oldin keldi (hisob smena boshidan)',
         }
     elif diff <= LATE_GRACE_MINUTES:
+        # 0–20 daqiqa kechikdi: hisob smena boshidan
         return {
-            'effective_in': actual_in,
+            'effective_in': start_dt,
             'status': Attendance.STATUS_PRESENT,
             'diff_minutes': diff,
-            'note': 'Vaqtida keldi' if diff == 0 else f'{diff} daqiqa kechikdi (chegara ichida)',
+            'note': 'Vaqtida keldi' if diff == 0 else f'{diff} daqiqa kechikdi (chegara ichida, hisob smena boshidan)',
         }
     else:
         return {
