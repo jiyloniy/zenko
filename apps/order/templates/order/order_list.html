@@ -11,157 +11,196 @@
 
 {% block extra_css %}
 <style>
-.filter-wrap{background:var(--white);border:1px solid var(--gray-200);border-radius:14px;padding:16px 20px;margin-bottom:24px;display:flex;gap:10px;align-items:center;flex-wrap:wrap;box-shadow:0 1px 3px rgba(0,0,0,.04);}
-.filter-wrap input[type=text],.filter-wrap select{padding:8px 13px;border:1.5px solid var(--gray-200);border-radius:9px;font-size:13px;background:var(--white);color:var(--black);min-width:150px;transition:border-color .18s;}
-.filter-wrap input:focus,.filter-wrap select:focus{outline:none;border-color:var(--orange);}
-.stats-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:14px;margin-bottom:24px;}
-.stat-tile{background:var(--white);border:1px solid var(--gray-200);border-radius:14px;padding:18px 20px;display:flex;align-items:center;gap:14px;box-shadow:0 1px 3px rgba(0,0,0,.04);transition:box-shadow .2s,transform .18s;}
-.stat-tile:hover{box-shadow:0 4px 16px rgba(0,0,0,.07);transform:translateY(-2px);}
-.stat-tile .si{width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
-.stat-tile .si svg{width:21px;height:21px;}
-.si-all{background:#F1F5F9;color:#475569;}
-.si-new{background:#EFF6FF;color:#2563EB;}
-.si-proc{background:#FFF7ED;color:#EA580C;}
-.si-done{background:#F0FDF4;color:#16A34A;}
-.stat-tile .sv{font-size:24px;font-weight:800;color:var(--black);line-height:1;}
-.stat-tile .sl{font-size:12px;color:var(--gray-500);font-weight:500;margin-top:2px;}
-.order-table-wrap{background:var(--white);border:1px solid var(--gray-200);border-radius:16px;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.05);}
-.order-table{width:100%;border-collapse:collapse;font-size:13.5px;}
-.order-table th{text-align:left;padding:11px 16px;font-weight:700;color:var(--gray-500);font-size:11px;text-transform:uppercase;letter-spacing:.6px;border-bottom:2px solid var(--gray-200);background:var(--gray-50);white-space:nowrap;}
-.order-table td{padding:14px 16px;border-bottom:1px solid var(--gray-100);vertical-align:middle;color:var(--gray-700);}
-.order-table tbody tr:hover td{background:#FAFAFA;}
-.order-table tbody tr:last-child td{border-bottom:none;}
-.order-thumb{width:46px;height:46px;border-radius:10px;object-fit:cover;border:1px solid var(--gray-200);}
-.order-thumb-ph{width:46px;height:46px;border-radius:10px;background:var(--gray-100);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
-.order-thumb-ph svg{width:20px;height:20px;color:var(--gray-300);}
-.order-name-link{text-decoration:none;}
-.order-name{font-weight:700;color:var(--black);font-size:14px;}
-.order-num{font-size:11px;color:var(--gray-400);margin-top:2px;font-family:monospace;}
-.spill{display:inline-flex;align-items:center;gap:5px;padding:4px 11px;border-radius:20px;font-size:11.5px;font-weight:700;}
-.spill .dot{width:6px;height:6px;border-radius:50%;flex-shrink:0;}
-.sp-new{background:#EFF6FF;color:#1D4ED8;}        .sp-new .dot{background:#3B82F6;}
-.sp-accepted{background:#F0FDF4;color:#15803D;}   .sp-accepted .dot{background:#22C55E;}
-.sp-in_process{background:#FFF7ED;color:#C2410C;} .sp-in_process .dot{background:#F97316;animation:blink 2s infinite;}
-.sp-ready{background:#F0FDF4;color:#166534;}      .sp-ready .dot{background:#16A34A;}
-.sp-delivered{background:var(--gray-100);color:var(--gray-500);} .sp-delivered .dot{background:var(--gray-300);}
-.sp-cancelled{background:#FEF2F2;color:#B91C1C;}  .sp-cancelled .dot{background:#EF4444;}
-.prio-low{display:inline-block;padding:2px 8px;border-radius:5px;font-size:11px;font-weight:600;background:#F1F5F9;color:#475569;}
-.prio-normal{display:inline-block;padding:2px 8px;border-radius:5px;font-size:11px;font-weight:600;background:#EFF6FF;color:#2563EB;}
-.prio-high{display:inline-block;padding:2px 8px;border-radius:5px;font-size:11px;font-weight:600;background:#FFF7ED;color:#C2410C;}
-.prio-urgent{display:inline-block;padding:2px 8px;border-radius:5px;font-size:11px;font-weight:600;background:#FEF2F2;color:#B91C1C;}
-.deadline-late{color:#DC2626;font-weight:700;}
-.overdue-tag{font-size:10px;color:#DC2626;font-weight:600;margin-top:2px;}
-.actions-cell{display:flex;gap:5px;align-items:center;justify-content:flex-end;}
+/* Stats bar */
+.stats-bar{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin-bottom:20px;}
+.sb-card{background:var(--white);border:1px solid var(--gray-200);border-radius:13px;padding:14px 16px 12px;box-shadow:0 1px 3px rgba(0,0,0,.04);position:relative;overflow:hidden;}
+.sb-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;}
+.sb-orange::before{background:linear-gradient(90deg,#F97316,#FBBF24);}
+.sb-green::before{background:linear-gradient(90deg,#22C55E,#4ADE80);}
+.sb-blue::before{background:linear-gradient(90deg,#3B82F6,#60A5FA);}
+.sb-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--gray-500);margin-bottom:6px;}
+.sb-val{font-size:26px;font-weight:900;color:var(--black);line-height:1;}
+.sb-sub{font-size:11px;color:var(--gray-400);margin-top:4px;}
+
+/* Filter */
+.filter-bar{display:flex;gap:10px;align-items:center;margin-bottom:20px;flex-wrap:wrap;}
+.filter-bar input{flex:1;min-width:180px;padding:9px 14px;background:var(--white);border:1.5px solid var(--gray-200);border-radius:10px;color:var(--black);font-family:inherit;font-size:13px;outline:none;transition:border-color .18s;}
+.filter-bar input:focus{border-color:var(--orange);}
+.filter-bar input::placeholder{color:var(--gray-400);}
+.filter-bar select{padding:8px 13px;background:var(--white);border:1.5px solid var(--gray-200);border-radius:9px;font-size:13px;color:var(--black);outline:none;transition:border-color .18s;}
+.filter-bar select:focus{border-color:var(--orange);}
+
+/* Grid */
+.order-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px;}
+.order-card{background:var(--white);border:1px solid var(--gray-200);border-radius:16px;overflow:hidden;transition:box-shadow .2s,transform .18s;box-shadow:0 1px 3px rgba(0,0,0,.05);}
+.order-card:hover{box-shadow:0 8px 24px rgba(0,0,0,.1);transform:translateY(-2px);}
+
+/* Image */
+.oc-img-wrap{position:relative;width:100%;height:160px;cursor:pointer;overflow:hidden;background:var(--gray-100);}
+.oc-img{width:100%;height:100%;object-fit:cover;display:block;transition:transform .3s;}
+.oc-img-wrap:hover .oc-img{transform:scale(1.04);}
+.oc-img-ph{width:100%;height:160px;background:var(--gray-100);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;}
+.oc-img-ph svg{width:36px;height:36px;color:var(--gray-300);}
+.zoom-hint{position:absolute;inset:0;background:rgba(0,0,0,.3);display:flex;align-items:center;justify-content:center;opacity:0;transition:opacity .2s;}
+.oc-img-wrap:hover .zoom-hint{opacity:1;}
+.zoom-hint svg{width:28px;height:28px;color:#fff;}
+
+/* Body */
+.oc-body{padding:14px 16px 16px;}
+
+/* Order nomi */
+.oc-name{text-decoration:none;display:flex;flex-direction:column;gap:4px;margin-bottom:10px;}
+.oc-name-title{font-size:15px;font-weight:700;color:var(--black);line-height:1.2;}
+.oc-num{font-size:10px;color:var(--gray-300);font-family:monospace;}
+
+/* Status badge */
+.oc-status{display:inline-flex;align-items:center;gap:5px;padding:5px 11px;border-radius:20px;font-size:11.5px;font-weight:700;margin-bottom:8px;}
+.oc-status .dot{width:6px;height:6px;border-radius:50%;flex-shrink:0;}
+.sp-new{background:#EFF6FF;color:#1D4ED8;}.sp-new .dot{background:#3B82F6;}
+.sp-accepted{background:#F0FDF4;color:#15803D;}.sp-accepted .dot{background:#22C55E;}
+.sp-in_process{background:#FFF7ED;color:#C2410C;}.sp-in_process .dot{background:#F97316;animation:blink 2s infinite;}
+.sp-ready{background:#F0FDF4;color:#166534;}.sp-ready .dot{background:#16A34A;}
+.sp-delivered{background:var(--gray-100);color:var(--gray-500);}.sp-delivered .dot{background:var(--gray-300);}
+.sp-cancelled{background:#FEF2F2;color:#B91C1C;}.sp-cancelled .dot{background:#EF4444;}
+
+/* Priority badge */
+.oc-priority{display:inline-flex;align-items:center;gap:6px;padding:6px 10px;border-radius:7px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.3px;margin-bottom:8px;}
+.oc-priority svg{width:16px;height:16px;stroke-width:2;}
+.oc-prio-low{background:#DCFCE7;color:#15803D;border:1px solid #BBF7D0;}
+.oc-prio-normal{background:#EFF6FF;color:#1D4ED8;border:1px solid #BFDBFE;}
+.oc-prio-high{background:#FEF3C7;color:#B45309;border:1px solid #FCD34D;}
+.oc-prio-urgent{background:#FEE2E2;color:#DC2626;border:1px solid #FECACA;}
+.oc-prio-text{flex:1;}
+
+/* Quantity and deadline */
+.oc-meta{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:10px 0;font-size:13px;margin-bottom:8px;border-top:1px solid var(--gray-100);border-bottom:1px solid var(--gray-100);}
+.oc-qty{font-weight:700;color:var(--orange);font-size:16px;}
+.oc-deadline{color:var(--gray-600);font-weight:600;}
+.oc-deadline.late{color:#DC2626;}
+
+/* Actions */
+.oc-actions{display:flex;gap:6px;margin-top:12px;padding-top:0;}
+.oc-actions .btn{flex:1;justify-content:center;font-size:12px;padding:7px 8px;}
+
+/* Lightbox */
+.lightbox{display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.92);align-items:center;justify-content:center;backdrop-filter:blur(8px);}
+.lightbox.show{display:flex;}
+.lightbox img{max-width:90vw;max-height:88vh;object-fit:contain;border-radius:12px;box-shadow:0 24px 80px rgba(0,0,0,.6);}
+.lb-close{position:absolute;top:20px;right:20px;width:40px;height:40px;border-radius:50%;background:rgba(255,255,255,.15);border:none;color:#fff;cursor:pointer;display:grid;place-items:center;}
+.lb-close:hover{background:rgba(255,255,255,.25);}
+.lb-close svg{width:20px;height:20px;}
+
+/* Empty */
+.empty-wrap{padding:60px 20px;text-align:center;color:var(--gray-400);}
+.empty-wrap svg{width:52px;height:52px;margin-bottom:14px;opacity:.2;}
+.empty-wrap p{font-size:14px;}
+
 @keyframes blink{0%,100%{opacity:1;}50%{opacity:.35;}}
-.empty-wrap{padding:70px 20px;text-align:center;color:var(--gray-400);}
-.empty-wrap svg{width:56px;height:56px;margin-bottom:16px;opacity:.28;}
-.empty-wrap p{font-size:15px;margin-bottom:20px;}
+
 .pagination{display:flex;justify-content:center;align-items:center;gap:6px;margin-top:28px;}
 .page-btn{padding:7px 13px;border-radius:8px;font-size:13px;font-weight:600;text-decoration:none;background:var(--white);border:1px solid var(--gray-200);color:var(--gray-700);transition:all .18s;}
 .page-btn:hover{background:var(--gray-100);}
 .page-btn.active{background:var(--orange);color:#fff;border-color:var(--orange);}
-@media(max-width:768px){.order-table th:nth-child(5),.order-table td:nth-child(5){display:none;}}
-@media(max-width:580px){.order-table th:nth-child(4),.order-table td:nth-child(4){display:none;}.filter-wrap{flex-direction:column;align-items:stretch;}.filter-wrap input,.filter-wrap select{min-width:0;}}
+
+@media(max-width:640px){.order-grid{grid-template-columns:1fr;}.stats-bar{grid-template-columns:1fr 1fr;}}
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="stats-row">
-    <div class="stat-tile">
-        <div class="si si-all"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M20.25 7.5l-.625 10.632a2.25 2.25 0 01-2.247 2.118H6.622a2.25 2.25 0 01-2.247-2.118L3.75 7.5M10 11.25h4M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125z"/></svg></div>
-        <div><div class="sv">{{ total }}</div><div class="sl">Jami buyurtmalar</div></div>
-    </div>
-    <div class="stat-tile">
-        <div class="si si-new"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v6m3-3H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z"/></svg></div>
-        <div><div class="sv">{{ new_count }}</div><div class="sl">Yangi</div></div>
-    </div>
-    <div class="stat-tile">
-        <div class="si si-proc"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182"/></svg></div>
-        <div><div class="sv">{{ in_process_count }}</div><div class="sl">Jarayonda</div></div>
-    </div>
-    <div class="stat-tile">
-        <div class="si si-done"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg></div>
-        <div><div class="sv">{{ ready_count }}</div><div class="sl">Tayyor</div></div>
-    </div>
+
+<!-- Stats -->
+<div class="stats-bar">
+  <div class="sb-card sb-orange">
+    <div class="sb-label">Jami</div>
+    <div class="sb-val">{{ total }}</div>
+    <div class="sb-sub">buyurtmalar</div>
+  </div>
+  <div class="sb-card sb-blue">
+    <div class="sb-label">Yangi</div>
+    <div class="sb-val">{{ new_count }}</div>
+    <div class="sb-sub">qabul qilinmagan</div>
+  </div>
+  <div class="sb-card sb-orange">
+    <div class="sb-label">Jarayonda</div>
+    <div class="sb-val">{{ in_process_count }}</div>
+    <div class="sb-sub">ishlab chiqarilmoqda</div>
+  </div>
+  <div class="sb-card sb-green">
+    <div class="sb-label">Tayyor</div>
+    <div class="sb-val">{{ ready_count }}</div>
+    <div class="sb-sub">bajarildi</div>
+  </div>
 </div>
 
-<form class="filter-wrap" method="get">
-    <input type="text" name="q" value="{{ q }}" placeholder="Qidirish (nomi, raqami)...">
-    <select name="status" onchange="this.form.submit()">
-        <option value="">Barcha statuslar</option>
-        {% for val,label in statuses %}<option value="{{ val }}" {% if val == current_status %}selected{% endif %}>{{ label }}</option>{% endfor %}
-    </select>
-    <button type="submit" class="btn btn-secondary btn-sm">
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width:14px;height:14px"><path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z"/></svg>
-        Qidirish
-    </button>
-    {% if q or current_status %}
-    <a href="{% url 'order:order_list' %}" class="btn btn-sm" style="background:#FEF2F2;color:#DC2626;border:1px solid #FECACA;">
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width:13px;height:13px"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12"/></svg>
-        Tozalash
-    </a>
-    {% endif %}
+<!-- Search & Filter -->
+<form class="filter-bar" method="get">
+  <input type="text" name="q" value="{{ q }}" placeholder="Buyurtma nomi bo'yicha qidirish...">
+  <select name="status" onchange="this.form.submit()">
+    <option value="">Barcha statuslar</option>
+    {% for val,label in statuses %}<option value="{{ val }}" {% if val == current_status %}selected{% endif %}>{{ label }}</option>{% endfor %}
+  </select>
+  <button type="submit" class="btn btn-secondary btn-sm">
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z"/></svg>
+    Qidirish
+  </button>
+  {% if q or current_status %}<a href="{% url 'order:order_list' %}" class="btn btn-sm" style="background:#FEF2F2;color:#DC2626;border:1px solid #FECACA;">Tozalash</a>{% endif %}
 </form>
 
 {% if orders %}
-<div class="order-table-wrap">
-    <table class="order-table">
-        <thead>
-            <tr>
-                <th style="width:54px;"></th>
-                <th>Buyurtma</th>
-                <th>Miqdor</th>
-                <th>Muddat</th>
-                <th>Muhimlik</th>
-                <th>Status</th>
-                <th style="text-align:right;padding-right:20px;">Amallar</th>
-            </tr>
-        </thead>
-        <tbody>
-        {% for order in orders %}
-        <tr>
-            <td>
-                {% if order.image %}
-                <img src="{{ order.image.url }}" class="order-thumb" alt="">
-                {% else %}
-                <div class="order-thumb-ph"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m2.25 15.75 5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159m-1.5-1.5 1.409-1.409a2.25 2.25 0 0 1 3.182 0l2.909 2.909M3.75 21h16.5A2.25 2.25 0 0 0 22.5 18.75V5.25A2.25 2.25 0 0 0 20.25 3H3.75A2.25 2.25 0 0 0 1.5 5.25v13.5A2.25 2.25 0 0 0 3.75 21Z"/></svg></div>
-                {% endif %}
-            </td>
-            <td>
-                <a href="{% url 'order:order_detail' order.pk %}" class="order-name-link">
-                    <div class="order-name">{{ order.name }}</div>
-                    <div class="order-num">{{ order.order_number }}</div>
-                </a>
-            </td>
-            <td><strong>{{ order.quantity }}</strong> <span style="color:var(--gray-400);font-size:12px;">dona</span></td>
-            <td>
-                <span class="{% if order.is_overdue %}deadline-late{% endif %}">{{ order.deadline|date:"d.m.Y" }}</span>
-                {% if order.is_overdue %}<div class="overdue-tag">Muddati o'tdi</div>{% endif %}
-            </td>
-            <td><span class="prio-{{ order.priority }}">{{ order.get_priority_display }}</span></td>
-            <td>
-                <span class="spill sp-{{ order.status }}"><span class="dot"></span>{{ order.get_status_display }}</span>
-            </td>
-            <td>
-                <div class="actions-cell">
-                    <a href="{% url 'order:order_detail' order.pk %}" class="btn btn-secondary btn-sm" title="Ko'rish">
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width:13px;height:13px"><path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
-                    </a>
-                    <a href="{% url 'ceo:order_log' order.pk %}" class="btn btn-sm" style="background:#F0FDF4;color:#16A34A;border:1px solid #BBF7D0;" title="Log">
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width:13px;height:13px"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 12h16.5m-16.5 3.75h16.5M3.75 19.5h16.5M5.625 4.5h12.75a1.875 1.875 0 0 1 0 3.75H5.625a1.875 1.875 0 0 1 0-3.75Z"/></svg>
-                    </a>
-                    <a href="{% url 'order:order_edit' order.pk %}" class="btn btn-sm" style="background:var(--orange-light);color:var(--orange);" title="Tahrirlash">
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width:13px;height:13px"><path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Z"/></svg>
-                    </a>
-                    <a href="{% url 'order:order_delete' order.pk %}" class="btn btn-sm" style="background:#FEF2F2;color:#EF4444;" title="O'chirish">
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width:13px;height:13px"><path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0"/></svg>
-                    </a>
-                </div>
-            </td>
-        </tr>
-        {% endfor %}
-        </tbody>
-    </table>
+<div class="order-grid">
+{% for order in orders %}
+<div class="order-card">
+
+  <!-- Image -->
+  {% if order.image %}
+  <div class="oc-img-wrap" onclick="openLb('{{ order.image.url }}','{{ order.name|escapejs }}')">
+    <img src="{{ order.image.url }}" class="oc-img" alt="">
+    <div class="zoom-hint"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 3.75v4.5m0-4.5h4.5m-4.5 0L9 9M3.75 20.25v-4.5m0 4.5h4.5m-4.5 0L9 15M20.25 3.75h-4.5m4.5 0v4.5m0-4.5L15 9m5.25 11.25h-4.5m4.5 0v-4.5m0 4.5L15 15"/></svg></div>
+  </div>
+  {% else %}
+  <div class="oc-img-ph" style="background:linear-gradient(135deg,#F3F4F6,#E5E7EB);">
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1" stroke="#D1D5DB"><path stroke-linecap="round" stroke-linejoin="round" d="m2.25 15.75 5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159m-1.5-1.5 1.409-1.409a2.25 2.25 0 0 1 3.182 0l2.909 2.909M3.75 21h16.5A2.25 2.25 0 0 0 22.5 18.75V5.25A2.25 2.25 0 0 0 20.25 3H3.75A2.25 2.25 0 0 0 1.5 5.25v13.5A2.25 2.25 0 0 0 3.75 21Z"/></svg>
+  </div>
+  {% endif %}
+
+  <div class="oc-body">
+    <!-- Order name -->
+    <a href="{% url 'order:order_detail' order.pk %}" class="oc-name">
+      <span class="oc-name-title">{{ order.name }}</span>
+      <span class="oc-num">{{ order.order_number }}</span>
+    </a>
+
+    <!-- Status badge -->
+    <span class="oc-status sp-{{ order.status }}"><span class="dot"></span>{{ order.get_status_display }}</span>
+
+    <!-- Priority badge -->
+    {% if order.priority %}
+    <div class="oc-priority oc-prio-{{ order.priority }}">
+      {% if order.priority == 'low' %}<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 13.5L12 21m0 0l-7.5-7.5M12 21V3"/></svg>{% elif order.priority == 'normal' %}<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 3c4.97 0 9 4.03 9 9s-4.03 9-9 9-9-4.03-9-9 4.03-9 9-9z"/></svg>{% elif order.priority == 'high' %}<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c.865.865 2.291 1.375 3.803 1.375H19.5a4.5 4.5 0 001.327-8.727m0 0c-.694.784-1.48 1.454-2.359 1.954m0 0a4.5 4.5 0 01-7.753-3.176m7.753 3.176l.001-.001m0 0a4.5 4.5 0 00-7.752-3.176m0 0l-.001.001"/></svg>{% elif order.priority == 'urgent' %}<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c.865.865 2.291 1.375 3.803 1.375H19.5a4.5 4.5 0 001.327-8.727m0 0c-.694.784-1.48 1.454-2.359 1.954m0 0a4.5 4.5 0 01-7.753-3.176m7.753 3.176l.001-.001m0 0a4.5 4.5 0 00-7.752-3.176m0 0l-.001.001"/></svg>{% endif %}
+      <span class="oc-prio-text">{% if order.priority == 'low' %}Past{% elif order.priority == 'normal' %}Oddiy{% elif order.priority == 'high' %}Yuqori{% elif order.priority == 'urgent' %}Shoshilinch{% endif %}</span>
+    </div>
+    {% endif %}
+
+    <!-- Meta info -->
+    <div class="oc-meta">
+      <span class="oc-qty">{{ order.quantity }}</span>
+      <span class="oc-deadline {% if order.is_overdue %}late{% endif %}">{{ order.deadline|date:"d.m.Y" }}{% if order.is_overdue %} ⚠{% endif %}</span>
+    </div>
+
+    <!-- Actions -->
+    <div class="oc-actions">
+      <a href="{% url 'order:order_detail' order.pk %}" class="btn btn-secondary btn-sm">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0Z"/></svg>
+        Ko'rish
+      </a>
+      <a href="{% url 'order:order_edit' order.pk %}" class="btn btn-sm" style="background:var(--orange-light);color:var(--orange);">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Z"/></svg>
+        Tahrirlash
+      </a>
+    </div>
+  </div>
+</div>
+{% endfor %}
 </div>
 
 {% if is_paginated %}
@@ -178,13 +217,36 @@
 
 {% else %}
 <div class="empty-wrap">
-    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M20.25 7.5l-.625 10.632a2.25 2.25 0 01-2.247 2.118H6.622a2.25 2.25 0 01-2.247-2.118L3.75 7.5M10 11.25h4M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125z"/></svg>
-    <p>{% if q or current_status %}Filtr bo'yicha buyurtma topilmadi{% else %}Hali buyurtmalar yo'q{% endif %}</p>
-    {% if not q and not current_status %}
-    <a href="{% url 'order:order_create' %}" class="btn btn-primary">Birinchi buyurtmani yarating</a>
-    {% else %}
-    <a href="{% url 'order:order_list' %}" class="btn btn-secondary">Filterni tozalash</a>
-    {% endif %}
+  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M20.25 7.5l-.625 10.632a2.25 2.25 0 01-2.247 2.118H6.622a2.25 2.25 0 01-2.247-2.118L3.75 7.5M10 11.25h4M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125z"/></svg>
+  <p>{% if q or current_status %}Filtr bo'yicha buyurtma topilmadi{% else %}Hali buyurtmalar yo'q{% endif %}</p>
+  {% if not q and not current_status %}
+  <a href="{% url 'order:order_create' %}" class="btn btn-primary">Birinchi buyurtmani yarating</a>
+  {% else %}
+  <a href="{% url 'order:order_list' %}" class="btn btn-secondary">Filterni tozalash</a>
+  {% endif %}
 </div>
 {% endif %}
+
+<!-- Lightbox -->
+<div class="lightbox" id="lightbox" onclick="if(event.target===this)closeLb()">
+  <button class="lb-close" onclick="closeLb()">
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12"/></svg>
+  </button>
+  <img id="lbImg" src="" alt="">
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function openLb(url,cap){
+  document.getElementById('lbImg').src=url;
+  document.getElementById('lightbox').classList.add('show');
+  document.body.style.overflow='hidden';
+}
+function closeLb(){
+  document.getElementById('lightbox').classList.remove('show');
+  document.body.style.overflow='';
+}
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeLb();});
+</script>
 {% endblock %}
