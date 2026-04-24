@@ -100,24 +100,35 @@
 {% block content %}
 <!-- Order info -->
 <div class="order-info-card">
-  {% if order.image %}
-  <img src="{{ order.image.url }}" class="oi-img" alt="">
-  {% else %}
-  <div class="oi-img-ph"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m2.25 15.75 5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159m-1.5-1.5 1.409-1.409a2.25 2.25 0 0 1 3.182 0l2.909 2.909M3.75 21h16.5A2.25 2.25 0 0 0 22.5 18.75V5.25A2.25 2.25 0 0 0 20.25 3H3.75A2.25 2.25 0 0 0 1.5 5.25v13.5A2.25 2.25 0 0 0 3.75 21Z"/></svg></div>
-  {% endif %}
-  <div style="flex:1;min-width:0;">
-    <div class="oi-name">{{ order.name }}</div>
-    <div class="oi-num">{{ order.order_number }}</div>
-    <div class="oi-meta">
-      <span class="oi-chip sp-{{ order.status }}">{{ order.get_status_display }}</span>
-      <span class="oi-chip" style="background:var(--gray-100);color:var(--gray-600);">
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width:12px;height:12px"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5"/></svg>
-        {{ order.quantity }} dona buyurtma
-      </span>
-      <span class="oi-chip" style="background:var(--gray-100);color:var(--gray-600);">
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width:12px;height:12px"><path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5"/></svg>
-        {{ order.deadline|date:"d.m.Y" }}
-      </span>
+  <!-- Brujka rasm -->
+  <div style="display:flex;gap:14px;align-items:flex-start;flex:1;min-width:0;">
+    {% if order.brujka and order.brujka.image %}
+    <img src="{{ order.brujka.image.url }}" class="oi-img" alt="{{ order.brujka.name }}">
+    {% elif order.image %}
+    <img src="{{ order.image.url }}" class="oi-img" alt="">
+    {% else %}
+    <div class="oi-img-ph"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m2.25 15.75 5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159m-1.5-1.5 1.409-1.409a2.25 2.25 0 0 1 3.182 0l2.909 2.909M3.75 21h16.5A2.25 2.25 0 0 0 22.5 18.75V5.25A2.25 2.25 0 0 0 20.25 3H3.75A2.25 2.25 0 0 0 1.5 5.25v13.5A2.25 2.25 0 0 0 3.75 21Z"/></svg></div>
+    {% endif %}
+    
+    <div style="flex:1;min-width:0;">
+      <!-- Brujka nomi -->
+      {% if order.brujka %}
+      <div style="font-size:18px;font-weight:900;color:var(--black);margin-bottom:6px;">{{ order.brujka.name }}</div>
+      {% endif %}
+      <!-- Order nomi -->
+      <div class="oi-name">{{ order.name }}</div>
+      <div class="oi-num">{{ order.order_number }}</div>
+      <div class="oi-meta">
+        <span class="oi-chip sp-{{ order.status }}">{{ order.get_status_display }}</span>
+        <span class="oi-chip" style="background:var(--gray-100);color:var(--gray-600);">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width:12px;height:12px"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5"/></svg>
+          {{ order.quantity }} dona buyurtma
+        </span>
+        <span class="oi-chip" style="background:var(--gray-100);color:var(--gray-600);">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width:12px;height:12px"><path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5"/></svg>
+          {{ order.deadline|date:"d.m.Y" }}
+        </span>
+      </div>
     </div>
   </div>
 </div>
