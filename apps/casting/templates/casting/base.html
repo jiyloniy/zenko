@@ -12,6 +12,7 @@
   --orange:#F58220;
   --orange-hover:#E06A10;
   --orange-light:rgba(245,130,32,.1);
+  --orange-dim:rgba(245,130,32,.08);
   --black:#1A1A1A;
   --dark:#2D2D2D;
   --white:#FFFFFF;
@@ -24,7 +25,21 @@
   --gray-600:#4B5563;
   --gray-700:#374151;
   --red:#EF4444;
+  --red-dim:rgba(239,68,68,.08);
   --green:#22C55E;
+  --green-dim:rgba(34,197,94,.08);
+  --yellow:#FBBF24;
+  --yellow-dim:rgba(251,191,36,.08);
+  --blue:#3B82F6;
+  --blue-dim:rgba(59,130,246,.08);
+  --surface:#FFFFFF;
+  --surface2:#F9FAFB;
+  --border:#E5E7EB;
+  --border2:#F3F4F6;
+  --text:#1A1A1A;
+  --muted:#6B7280;
+  --muted2:#9CA3AF;
+  --radius:12px;
   --sidebar-w:260px;
   --topbar-h:60px;
 }
@@ -123,6 +138,8 @@ html,body{height:100%;font-family:'Inter',system-ui,sans-serif;background:var(--
 .btn-secondary:hover{background:var(--gray-200);}
 .btn-danger{background:#FEF2F2;color:#DC2626;border:1px solid #FECACA;}
 .btn-danger:hover{background:#FEE2E2;}
+.btn-ghost{background:transparent;color:var(--gray-700);border:1px solid var(--gray-200);}
+.btn-ghost:hover{background:var(--gray-100);border-color:var(--gray-300);}
 .btn-sm{padding:5px 11px;font-size:12px;}
 
 /* ── Messages ── */
