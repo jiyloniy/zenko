@@ -79,6 +79,39 @@
 .anp-chip-date{background:#EFF6FF;color:#1D4ED8;border:1px solid #BFDBFE;}
 .anp-sep{color:var(--gray-300);font-size:14px;font-weight:300;}
 .auto-name-badge{padding:0 12px;font-size:10.5px;font-weight:700;color:#15803D;background:#F0FDF4;border-left:1.5px solid #BBF7D0;height:100%;display:flex;align-items:center;min-height:44px;white-space:nowrap;}
+/* radio cards — status va priority */
+.radio-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin-bottom:4px;}
+.rc{position:relative;display:flex;flex-direction:column;align-items:center;gap:8px;padding:14px 12px;border:2px solid var(--gray-200);border-radius:12px;cursor:pointer;background:var(--white);transition:all .2s ease;min-height:90px;justify-content:center;}
+.rc input[type="radio"]{position:absolute;opacity:0;cursor:pointer;}
+.rc:hover{border-color:var(--orange);background:var(--orange-light);}
+.rc.active,.rc input[type="radio"]:checked~*:parent{border-color:var(--orange);background:var(--orange);box-shadow:0 4px 12px rgba(245,130,32,.25);}
+.rc.active .rc-dot,.rc.active .rc-lbl,.rc.active .rc-prio-icon{color:#fff;}
+.rc-dot{width:12px;height:12px;border-radius:50%;background:var(--gray-300);transition:all .2s ease;}
+.rc-prio-icon{font-size:24px;transition:transform .2s ease;}
+.rc-lbl{font-size:13px;font-weight:700;color:var(--gray-700);text-align:center;transition:color .2s ease;white-space:nowrap;}
+.rc.active .rc-lbl{color:#fff;font-weight:800;}
+/* status specific colors */
+.rc-new{--color:#3B82F6;}
+.rc-new.active{background:linear-gradient(135deg,#3B82F6 0%,#2563EB 100%);border-color:#2563EB;}
+.rc-accepted{--color:#8B5CF6;}
+.rc-accepted.active{background:linear-gradient(135deg,#8B5CF6 0%,#7C3AED 100%);border-color:#7C3AED;}
+.rc-in_process{--color:#F59E0B;}
+.rc-in_process.active{background:linear-gradient(135deg,#F59E0B 0%,#D97706 100%);border-color:#D97706;}
+.rc-ready{--color:#10B981;}
+.rc-ready.active{background:linear-gradient(135deg,#10B981 0%,#059669 100%);border-color:#059669;}
+.rc-delivered{--color:#06B6D4;}
+.rc-delivered.active{background:linear-gradient(135deg,#06B6D4 0%,#0891B2 100%);border-color:#0891B2;}
+.rc-cancelled{--color:#EF4444;}
+.rc-cancelled.active{background:linear-gradient(135deg,#EF4444 0%,#DC2626 100%);border-color:#DC2626;}
+/* priority colors */
+.rc-prio-low{--pcolor:#10B981;}
+.rc-prio-low.active{background:linear-gradient(135deg,#10B981 0%,#059669 100%);border-color:#059669;}
+.rc-prio-normal{--pcolor:#3B82F6;}
+.rc-prio-normal.active{background:linear-gradient(135deg,#3B82F6 0%,#2563EB 100%);border-color:#2563EB;}
+.rc-prio-high{--pcolor:#F59E0B;}
+.rc-prio-high.active{background:linear-gradient(135deg,#F59E0B 0%,#D97706 100%);border-color:#D97706;}
+.rc-prio-urgent{--pcolor:#EF4444;}
+.rc-prio-urgent.active{background:linear-gradient(135deg,#EF4444 0%,#DC2626 100%);border-color:#DC2626;}
 @media(max-width:900px){.form-layout{grid-template-columns:1fr;}.two-col{grid-template-columns:1fr;}}
 </style>
 {% endblock %}
@@ -308,6 +341,27 @@
 </div>
 
 <script>
+// --- Sync radio card active states ---
+function syncCards(groupId) {
+    const cards = document.getElementById(groupId);
+    if (!cards) return;
+    const labels = cards.querySelectorAll('label');
+    labels.forEach(label => {
+        const input = label.querySelector('input[type="radio"]');
+        if (input && input.checked) {
+            label.classList.add('active');
+        } else {
+            label.classList.remove('active');
+        }
+    });
+}
+
+// Initialize on page load
+document.addEventListener('DOMContentLoaded', function() {
+    syncCards('statusCards');
+    syncCards('priorityCards');
+});
+
 // --- Image preview ---
 function previewImage(event) {
     const file = event.target.files[0];
