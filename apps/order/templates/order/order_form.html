@@ -162,22 +162,71 @@
 
                     <div class="section-sep">Holat va muhimlik</div>
 
-                    <div class="two-col">
-                        <div class="f-group">
-                            <label class="f-label">Status</label>
-                            <select name="status" class="f-input">
-                                {% for val,label in form.fields.status.choices %}
-                                <option value="{{ val }}" {% if form.status.value == val %}selected{% elif not form.status.value and val == 'new' %}selected{% endif %}>{{ label }}</option>
-                                {% endfor %}
-                            </select>
+                    <!-- Status radio cards -->
+                    <div class="f-group" style="margin-bottom:16px;">
+                        <label class="f-label">Status</label>
+                        <div class="radio-cards" id="statusCards">
+                            {% with cv=form.status.value|default:'new' %}
+                            <label class="rc rc-new {% if cv == 'new' %}active{% endif %}">
+                                <input type="radio" name="status" value="new" {% if cv == 'new' %}checked{% endif %} onchange="syncCards('statusCards')">
+                                <span class="rc-dot"></span>
+                                <span class="rc-lbl">Yangi</span>
+                            </label>
+                            <label class="rc rc-accepted {% if cv == 'accepted' %}active{% endif %}">
+                                <input type="radio" name="status" value="accepted" {% if cv == 'accepted' %}checked{% endif %} onchange="syncCards('statusCards')">
+                                <span class="rc-dot"></span>
+                                <span class="rc-lbl">Qabul qilindi</span>
+                            </label>
+                            <label class="rc rc-in_process {% if cv == 'in_process' %}active{% endif %}">
+                                <input type="radio" name="status" value="in_process" {% if cv == 'in_process' %}checked{% endif %} onchange="syncCards('statusCards')">
+                                <span class="rc-dot"></span>
+                                <span class="rc-lbl">Ishlab chiqarilmoqda</span>
+                            </label>
+                            <label class="rc rc-ready {% if cv == 'ready' %}active{% endif %}">
+                                <input type="radio" name="status" value="ready" {% if cv == 'ready' %}checked{% endif %} onchange="syncCards('statusCards')">
+                                <span class="rc-dot"></span>
+                                <span class="rc-lbl">Tayyor</span>
+                            </label>
+                            <label class="rc rc-delivered {% if cv == 'delivered' %}active{% endif %}">
+                                <input type="radio" name="status" value="delivered" {% if cv == 'delivered' %}checked{% endif %} onchange="syncCards('statusCards')">
+                                <span class="rc-dot"></span>
+                                <span class="rc-lbl">Topshirildi</span>
+                            </label>
+                            <label class="rc rc-cancelled {% if cv == 'cancelled' %}active{% endif %}">
+                                <input type="radio" name="status" value="cancelled" {% if cv == 'cancelled' %}checked{% endif %} onchange="syncCards('statusCards')">
+                                <span class="rc-dot"></span>
+                                <span class="rc-lbl">Bekor qilindi</span>
+                            </label>
+                            {% endwith %}
                         </div>
-                        <div class="f-group">
-                            <label class="f-label">Muhimlik darajasi</label>
-                            <select name="priority" class="f-input">
-                                {% for val,label in form.fields.priority.choices %}
-                                <option value="{{ val }}" {% if form.priority.value == val %}selected{% endif %}>{{ label }}</option>
-                                {% endfor %}
-                            </select>
+                    </div>
+
+                    <!-- Priority radio cards -->
+                    <div class="f-group" style="margin-bottom:4px;">
+                        <label class="f-label">Muhimlik darajasi</label>
+                        <div class="radio-cards" id="priorityCards">
+                            {% with cv=form.priority.value|default:'normal' %}
+                            <label class="rc rc-prio-low {% if cv == 'low' %}active{% endif %}">
+                                <input type="radio" name="priority" value="low" {% if cv == 'low' %}checked{% endif %} onchange="syncCards('priorityCards')">
+                                <span class="rc-prio-icon">🔽</span>
+                                <span class="rc-lbl">Past</span>
+                            </label>
+                            <label class="rc rc-prio-normal {% if cv == 'normal' %}active{% endif %}">
+                                <input type="radio" name="priority" value="normal" {% if cv == 'normal' %}checked{% endif %} onchange="syncCards('priorityCards')">
+                                <span class="rc-prio-icon">🔵</span>
+                                <span class="rc-lbl">Oddiy</span>
+                            </label>
+                            <label class="rc rc-prio-high {% if cv == 'high' %}active{% endif %}">
+                                <input type="radio" name="priority" value="high" {% if cv == 'high' %}checked{% endif %} onchange="syncCards('priorityCards')">
+                                <span class="rc-prio-icon">🔶</span>
+                                <span class="rc-lbl">Yuqori</span>
+                            </label>
+                            <label class="rc rc-prio-urgent {% if cv == 'urgent' %}active{% endif %}">
+                                <input type="radio" name="priority" value="urgent" {% if cv == 'urgent' %}checked{% endif %} onchange="syncCards('priorityCards')">
+                                <span class="rc-prio-icon">🔴</span>
+                                <span class="rc-lbl">Shoshilinch</span>
+                            </label>
+                            {% endwith %}
                         </div>
                     </div>
 

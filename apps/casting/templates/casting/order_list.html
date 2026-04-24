@@ -50,15 +50,23 @@
 
 /* Body */
 .oc-body{padding:14px 16px 16px;}
-.oc-name{font-weight:700;font-size:13px;color:var(--black);text-decoration:none;display:block;line-height:1.35;margin-bottom:2px;}
+
+/* Brujka nomi — katta, tepada */
+.oc-brujka{display:flex;align-items:center;gap:7px;margin-bottom:8px;}
+.oc-brujka-swatch{width:12px;height:12px;border-radius:50%;flex-shrink:0;box-shadow:0 1px 3px rgba(0,0,0,.2);}
+.oc-brujka-name{font-size:17px;font-weight:900;color:var(--black);letter-spacing:-.3px;line-height:1.2;}
+
+/* Soni va sana */
+.oc-qty-date{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:10px;gap:8px;}
+.oc-qty-big{font-size:22px;font-weight:900;color:var(--orange);letter-spacing:-.5px;line-height:1;}
+.oc-qty-unit{font-size:12px;font-weight:600;color:var(--gray-400);margin-left:3px;}
+.oc-date{font-size:13px;font-weight:700;color:var(--gray-600);}
+.oc-date.late{color:#DC2626;}
+
+/* Order nomi (pastda, kichik) */
+.oc-name{font-weight:600;font-size:12px;color:var(--gray-500);text-decoration:none;display:block;line-height:1.35;margin-bottom:1px;}
 .oc-name:hover{color:var(--orange);}
-.oc-num{font-size:10px;color:var(--gray-400);font-family:monospace;}
-.oc-meta{display:flex;flex-wrap:wrap;gap:6px;margin-top:9px;}
-.mc{display:inline-flex;align-items:center;gap:4px;padding:3px 8px;border-radius:7px;font-size:11px;font-weight:600;}
-.mc svg{width:11px;height:11px;flex-shrink:0;}
-.mc-qty{background:#EFF6FF;color:#1D4ED8;}
-.mc-dl{background:#FEF9EC;color:#92400E;}
-.mc-dl.late{background:#FEF2F2;color:#DC2626;}
+.oc-num{font-size:10px;color:var(--gray-300);font-family:monospace;margin-bottom:8px;}
 
 /* Progress */
 .oc-progress{margin-top:11px;}
@@ -174,19 +182,23 @@
   {% endif %}
 
   <div class="oc-body">
+    <!-- Brujka nomi katta, tepada -->
+    {% if order.brujka %}
+    <div class="oc-brujka">
+      <span class="oc-brujka-swatch" style="background:{{ order.brujka.color }};"></span>
+      <span class="oc-brujka-name">{{ order.brujka.name }}</span>
+    </div>
+    {% endif %}
+
+    <!-- Soni va sana brujka nomidan keyin -->
+    <div class="oc-qty-date">
+      <span class="oc-qty-big">{{ order.quantity }}<span class="oc-qty-unit">dona</span></span>
+      <span class="oc-date {% if order.is_overdue %}late{% endif %}">{{ order.deadline|date:"d.m.Y" }}{% if order.is_overdue %} ⚠{% endif %}</span>
+    </div>
+
+    <!-- Order nomi (kichikroq, pastda) -->
     <a href="{% url 'casting:order_detail' order.pk %}" class="oc-name">{{ order.name }}</a>
     <div class="oc-num">{{ order.order_number }}</div>
-
-    <div class="oc-meta">
-      <span class="mc mc-qty">
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5"/></svg>
-        {{ order.quantity }} dona
-      </span>
-      <span class="mc mc-dl {% if order.is_overdue %}late{% endif %}">
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5"/></svg>
-        {{ order.deadline|date:"d.m.Y" }}{% if order.is_overdue %} ⚠{% endif %}
-      </span>
-    </div>
 
     <!-- Progress bars from annotated values -->
     <div class="oc-progress">

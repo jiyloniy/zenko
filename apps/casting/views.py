@@ -27,7 +27,7 @@ class CastingOrderListView(CastingManagerRequiredMixin, View):
         orders = base_qs.annotate(
             hom_sum=Sum('hom_loglar__miqdor'),
             tayor_sum=Sum('tayor_loglar__miqdor'),
-        ).order_by('deadline', '-priority')
+        ).order_by('-created_at')
 
         today = timezone.localdate()
         # Barcha in_process orderlar (filter qilinmagan, statistika uchun)
