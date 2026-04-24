@@ -1967,7 +1967,10 @@ class SalaryDetailView(CEORequiredMixin, View):
 
 # ── Quyish loglar (CEO) ──────────────────────────────────────────────────────
 
-from apps.casting.models import HomMahsulotLog, Stanok, TayorMahsulotLog  # noqa: E402
+from apps.casting.models import (  # noqa: E402
+    AdditionalHomLog, AdditionalOrder,
+    HomMahsulotLog, RasxodLog, Stanok, TayorMahsulotLog, Zamak,
+)
 from apps.order.models import Order as _Order  # noqa: E402
 from django.db.models import Sum as _Sum  # noqa: E402
 
@@ -2200,4 +2203,210 @@ class StanokDeleteView(CEORequiredMixin, View):
         stanok.delete()
         messages.success(request, f'"{name}" o\'chirildi.')
         return redirect('ceo:stanok_list')
+
+
+# ── CEO: Additional Orders ────────────────────────────────────────────────────
+import datetime as _ceo_dt  # noqa: E402
+
+
+class CeoAdditionalOrderListView(CEORequiredMixin, View):
+    def get(self, request):
+        status_f = request.GET.get('status', '')
+        qs = AdditionalOrder.objects.select_related('created_by').annotate(hom_sum=_Sum('hom_loglar__miqdor'))
+        if status_f:
+            qs = qs.filter(status=status_f)
+        counts = {s: AdditionalOrder.objects.filter(status=s).count() for s, _ in AdditionalOrder.Status.choices}
+        return render(request, 'ceo/additional_order_list.html', {
+            'orders': qs.order_by('-created_at'), 'counts': counts, 'status_f': status_f,
+            'statuses': AdditionalOrder.Status.choices, 'active_nav': 'additional',
+        })
+
+
+class CeoAdditionalOrderCreateView(CEORequiredMixin, View):
+    def get(self, request):
+        return render(request, 'ceo/additional_order_form.html', {
+            'title': "Yangi qo'shimcha buyurtma", 'active_nav': 'additional',
+            'today': timezone.localdate(),
+        })
+
+    def post(self, request):
+        name = request.POST.get('name', '').strip()
+        errors = {}
+        try:
+            qty = int(request.POST.get('quantity', 0))
+            assert qty > 0
+        except (ValueError, AssertionError):
+            errors['quantity'] = "Miqdor musbat son bo'lishi kerak."
+            qty = 0
+        try:
+            deadline = _ceo_dt.date.fromisoformat(request.POST.get('deadline', ''))
+        except ValueError:
+            errors['deadline'] = "Sana noto'g'ri."
+            deadline = None
+        if not name:
+            errors['name'] = 'Nomi majburiy.'
+        if errors:
+            return render(request, 'ceo/additional_order_form.html', {
+                'title': "Yangi qo'shimcha buyurtma", 'errors': errors,
+                'data': request.POST, 'active_nav': 'additional', 'today': timezone.localdate(),
+            })
+        order = AdditionalOrder.objects.create(
+            name=name, quantity=qty, deadline=deadline,
+            note=request.POST.get('note', '').strip(), created_by=request.user,
+        )
+        messages.success(request, f'"{order.name}" yaratildi.')
+        return redirect('ceo:additional_order_detail', pk=order.pk)
+
+
+class CeoAdditionalOrderDetailView(CEORequiredMixin, View):
+    def get(self, request, pk):
+        order = get_object_or_404(AdditionalOrder, pk=pk)
+        hom_loglar = order.hom_loglar.select_related('stanok', 'created_by').order_by('-sana', '-created_at')
+        hom_jami = hom_loglar.aggregate(j=_Sum('miqdor'))['j'] or 0
+        return render(request, 'ceo/additional_order_detail.html', {
+            'order': order, 'hom_loglar': hom_loglar, 'hom_jami': hom_jami,
+            'stanoklar': Stanok.objects.filter(status=Stanok.Status.ACTIVE),
+            'today': timezone.localdate(), 'active_nav': 'additional',
+        })
+
+
+class CeoAdditionalOrderSetStatusView(CEORequiredMixin, View):
+    def post(self, request, pk):
+        order = get_object_or_404(AdditionalOrder, pk=pk)
+        ns = request.POST.get('status', '')
+        if ns in dict(AdditionalOrder.Status.choices):
+            order.status = ns
+            order.save(update_fields=['status'])
+            messages.success(request, 'Holat yangilandi.')
+        return redirect('ceo:additional_order_detail', pk=pk)
+
+
+class CeoAdditionalOrderDeleteView(CEORequiredMixin, View):
+    def post(self, request, pk):
+        get_object_or_404(AdditionalOrder, pk=pk).delete()
+        messages.success(request, "O'chirildi.")
+        return redirect('ceo:additional_order_list')
+
+
+class CeoAdditionalHomLogCreateView(CEORequiredMixin, View):
+    def post(self, request, pk):
+        order = get_object_or_404(AdditionalOrder, pk=pk)
+        if order.status == AdditionalOrder.Status.NEW:
+            messages.error(request, "Avval ishlab chiqarishga o'tkazing.")
+            return redirect('ceo:additional_order_detail', pk=pk)
+        try:
+            miqdor = int(request.POST.get('miqdor', 0))
+            assert miqdor > 0
+        except (ValueError, AssertionError):
+            messages.error(request, 'Miqdor musbat son bo\'lishi kerak.')
+            return redirect('ceo:additional_order_detail', pk=pk)
+        try:
+            sana = _ceo_dt.date.fromisoformat(request.POST.get('sana', ''))
+        except ValueError:
+            sana = timezone.localdate()
+        stanok_id = request.POST.get('stanok', '').strip()
+        stanok = Stanok.objects.filter(pk=stanok_id).first() if stanok_id else None
+        AdditionalHomLog.objects.create(
+            add_order=order, stanok=stanok, miqdor=miqdor, sana=sana,
+            izoh=request.POST.get('izoh', '').strip(), created_by=request.user,
+        )
+        messages.success(request, f'{miqdor} dona hom qo\'shildi.')
+        return redirect('ceo:additional_order_detail', pk=pk)
+
+
+class CeoAdditionalHomLogDeleteView(CEORequiredMixin, View):
+    def post(self, request, pk, log_pk):
+        get_object_or_404(AdditionalHomLog, pk=log_pk, add_order_id=pk).delete()
+        messages.success(request, "Log o'chirildi.")
+        return redirect('ceo:additional_order_detail', pk=pk)
+
+
+# ── CEO: Rasxod ────────────────────────────────────────────────────────────────
+
+class CeoRasxodListView(CEORequiredMixin, View):
+    def get(self, request):
+        today = timezone.localdate()
+        try:
+            date_from = _ceo_dt.date.fromisoformat(request.GET.get('from', ''))
+        except ValueError:
+            date_from = today - _ceo_dt.timedelta(days=29)
+        try:
+            date_to = _ceo_dt.date.fromisoformat(request.GET.get('to', ''))
+        except ValueError:
+            date_to = today
+        stanok_f = request.GET.get('stanok', '').strip()
+        zamak_f  = request.GET.get('zamak', '').strip()
+        qs = RasxodLog.objects.select_related('stanok', 'zamak', 'created_by').filter(sana__range=(date_from, date_to))
+        if stanok_f:
+            qs = qs.filter(stanok_id=stanok_f)
+        if zamak_f:
+            qs = qs.filter(zamak_id=zamak_f)
+        return render(request, 'ceo/rasxod_list.html', {
+            'rasxodlar': qs.order_by('-sana', '-created_at'),
+            'stanoklar': Stanok.objects.filter(status=Stanok.Status.ACTIVE),
+            'zamaklar': Zamak.objects.filter(is_active=True),
+            'stanok_f': stanok_f, 'zamak_f': zamak_f,
+            'date_from': date_from, 'date_to': date_to, 'today': today,
+            'stanok_stats': list(qs.values('stanok__name').annotate(j=_Sum('miqdor')).order_by('-j')[:6]),
+            'zamak_stats': list(qs.values('zamak__name', 'zamak__unit').annotate(j=_Sum('miqdor')).order_by('-j')[:6]),
+            'jami': qs.aggregate(j=_Sum('miqdor'))['j'] or 0,
+            'active_nav': 'rasxod',
+        })
+
+
+class CeoRasxodCreateView(CEORequiredMixin, View):
+    def post(self, request):
+        from decimal import Decimal
+        stanok_id = request.POST.get('stanok', '').strip()
+        zamak_id  = request.POST.get('zamak', '').strip()
+        try:
+            miqdor = float(request.POST.get('miqdor', 0))
+            assert miqdor > 0
+        except (ValueError, AssertionError):
+            messages.error(request, 'Miqdor musbat son bo\'lishi kerak.')
+            return redirect('ceo:rasxod_list')
+        try:
+            sana = _ceo_dt.date.fromisoformat(request.POST.get('sana', ''))
+        except ValueError:
+            sana = timezone.localdate()
+        stanok = get_object_or_404(Stanok, pk=stanok_id) if stanok_id else None
+        zamak  = get_object_or_404(Zamak, pk=zamak_id) if zamak_id else None
+        if not stanok or not zamak:
+            messages.error(request, 'Stanok va zamak majburiy.')
+            return redirect('ceo:rasxod_list')
+        RasxodLog.objects.create(
+            stanok=stanok, zamak=zamak, miqdor=Decimal(str(miqdor)),
+            sana=sana, izoh=request.POST.get('izoh', '').strip(), created_by=request.user,
+        )
+        messages.success(request, f'{miqdor} {zamak.unit} rasxod yozildi.')
+        return redirect('ceo:rasxod_list')
+
+
+class CeoRasxodDeleteView(CEORequiredMixin, View):
+    def post(self, request, pk):
+        get_object_or_404(RasxodLog, pk=pk).delete()
+        messages.success(request, "Rasxod o'chirildi.")
+        return redirect('ceo:rasxod_list')
+
+
+class CeoZamakListView(CEORequiredMixin, View):
+    def get(self, request):
+        return render(request, 'ceo/zamak_list.html', {'zamaklar': Zamak.objects.all(), 'active_nav': 'rasxod'})
+
+    def post(self, request):
+        name = request.POST.get('name', '').strip()
+        unit = request.POST.get('unit', 'kg').strip()
+        if not name:
+            messages.error(request, 'Nomi majburiy.')
+            return redirect('ceo:zamak_list')
+        Zamak.objects.create(name=name, unit=unit)
+        messages.success(request, f'"{name}" zamak qo\'shildi.')
+        return redirect('ceo:zamak_list')
+
+
+class CeoZamakDeleteView(CEORequiredMixin, View):
+    def post(self, request, pk):
+        get_object_or_404(Zamak, pk=pk).delete()
+        messages.success(request, "O'chirildi.")
+        return redirect('ceo:zamak_list')
 

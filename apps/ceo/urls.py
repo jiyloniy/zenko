@@ -63,6 +63,22 @@ urlpatterns = [
     path('orders/<int:pk>/tayor/<int:log_pk>/edit/', views.TayorLogEditView.as_view(), name='tayor_log_edit'),
     path('orders/<int:pk>/tayor/<int:log_pk>/delete/', views.TayorLogDeleteView.as_view(), name='tayor_log_delete'),
 
+    # Additional Orders
+    path('additional/', views.CeoAdditionalOrderListView.as_view(), name='additional_order_list'),
+    path('additional/create/', views.CeoAdditionalOrderCreateView.as_view(), name='additional_order_create'),
+    path('additional/<int:pk>/', views.CeoAdditionalOrderDetailView.as_view(), name='additional_order_detail'),
+    path('additional/<int:pk>/set-status/', views.CeoAdditionalOrderSetStatusView.as_view(), name='additional_set_status'),
+    path('additional/<int:pk>/delete/', views.CeoAdditionalOrderDeleteView.as_view(), name='additional_order_delete'),
+    path('additional/<int:pk>/hom/add/', views.CeoAdditionalHomLogCreateView.as_view(), name='additional_hom_add'),
+    path('additional/<int:pk>/hom/<int:log_pk>/delete/', views.CeoAdditionalHomLogDeleteView.as_view(), name='additional_hom_delete'),
+
+    # Rasxod
+    path('rasxod/', views.CeoRasxodListView.as_view(), name='rasxod_list'),
+    path('rasxod/add/', views.CeoRasxodCreateView.as_view(), name='rasxod_add'),
+    path('rasxod/<int:pk>/delete/', views.CeoRasxodDeleteView.as_view(), name='rasxod_delete'),
+    path('zamaklar/', views.CeoZamakListView.as_view(), name='zamak_list'),
+    path('zamaklar/<int:pk>/delete/', views.CeoZamakDeleteView.as_view(), name='zamak_delete'),
+
     # Stanoklar
     path('stanoklar/', views.StanokListView.as_view(), name='stanok_list'),
     path('stanoklar/create/', views.StanokCreateView.as_view(), name='stanok_create'),

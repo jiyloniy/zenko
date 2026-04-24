@@ -154,8 +154,23 @@
 </div>
 {% endif %}
 
+<!-- Tabs: Yangi / Ishlab chiqarilmoqda -->
+<div style="display:flex;gap:8px;margin-bottom:16px;">
+  <a href="?tab=new&q={{ q }}" class="btn {% if tab == 'new' %}btn-primary{% else %}btn-secondary{% endif %}" style="gap:8px;">
+    <span style="width:8px;height:8px;border-radius:50%;background:{% if tab == 'new' %}#fff{% else %}#3B82F6{% endif %};flex-shrink:0;"></span>
+    Yangi
+    <span style="background:rgba(255,255,255,.2);border-radius:10px;padding:1px 7px;font-size:11px;">{{ new_count }}</span>
+  </a>
+  <a href="?tab=in_process&q={{ q }}" class="btn {% if tab == 'in_process' %}btn-primary{% else %}btn-secondary{% endif %}" style="gap:8px;">
+    <span style="width:8px;height:8px;border-radius:50%;background:{% if tab == 'in_process' %}#fff{% else %}#F97316{% endif %};flex-shrink:0;animation:{% if tab == 'in_process' %}none{% else %}blink 2s infinite{% endif %};"></span>
+    Ishlab chiqarilmoqda
+    <span style="background:rgba(255,255,255,.2);border-radius:10px;padding:1px 7px;font-size:11px;">{{ ip_count }}</span>
+  </a>
+</div>
+
 <!-- Search -->
 <form class="filter-bar" method="get">
+  <input type="hidden" name="tab" value="{{ tab }}">
   <input type="text" name="q" value="{{ q }}" placeholder="Buyurtma nomi bo'yicha qidirish...">
   <button type="submit" class="btn btn-secondary btn-sm">
     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z"/></svg>
@@ -246,6 +261,22 @@
     </div>
 
     <div class="oc-actions">
+      {% if order.status == 'new' %}
+      <!-- Yangi: faqat ko'rish + ishlab chiqarishga o'tkazish -->
+      <a href="{% url 'casting:order_detail' order.pk %}" class="btn btn-secondary btn-sm">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"/></svg>
+        Ko'rish
+      </a>
+      <form method="post" action="{% url 'casting:order_set_status' order.pk %}" style="flex:1;">
+        {% csrf_token %}
+        <input type="hidden" name="status" value="in_process">
+        <button type="submit" class="btn btn-sm" style="width:100%;justify-content:center;background:linear-gradient(135deg,#F97316,#FBBF24);color:#fff;border:none;font-weight:700;">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width:13px;height:13px;"><path stroke-linecap="round" stroke-linejoin="round" d="M5.25 5.653c0-.856.917-1.398 1.667-.986l11.54 6.347a1.125 1.125 0 0 1 0 1.972l-11.54 6.347a1.125 1.125 0 0 1-1.667-.986V5.653Z"/></svg>
+          Ishlab chiqarishga
+        </button>
+      </form>
+      {% else %}
+      <!-- In process: ko'rish + log -->
       <a href="{% url 'casting:order_detail' order.pk %}" class="btn btn-secondary btn-sm">
         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"/></svg>
         Ko'rish
@@ -254,6 +285,7 @@
         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 12h16.5m-16.5 3.75h16.5M3.75 19.5h16.5M5.625 4.5h12.75a1.875 1.875 0 0 1 0 3.75H5.625a1.875 1.875 0 0 1 0-3.75Z"/></svg>
         Log
       </a>
+      {% endif %}
     </div>
   </div>
 </div>

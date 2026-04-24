@@ -1,0 +1,96 @@
+{% extends "casting/base.html" %}
+{% block title %}{{ title }} — Zenko{% endblock %}
+{% block page_title %}{{ title }}{% endblock %}
+
+{% block topbar_actions %}
+<a href="{% url 'casting:additional_order_list' %}" class="btn btn-secondary btn-sm">
+  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18"/></svg>
+  Orqaga
+</a>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.form-wrap{max-width:520px;}
+.form-card{background:var(--white);border:1px solid var(--gray-200);border-radius:16px;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.05);}
+.fh{padding:20px 24px;background:var(--black);display:flex;align-items:center;gap:12px;}
+.fh-icon{width:40px;height:40px;background:var(--orange);border-radius:10px;display:grid;place-items:center;flex-shrink:0;}
+.fh-icon svg{width:20px;height:20px;color:#fff;}
+.fh h2{font-size:16px;font-weight:700;color:#fff;margin:0;}
+.fh p{font-size:11px;color:rgba(255,255,255,.5);margin:2px 0 0;}
+.fb{padding:24px;}
+.err-block{background:#FEF2F2;border:1px solid #FECACA;border-radius:10px;padding:11px 14px;margin-bottom:18px;color:#DC2626;font-size:13px;}
+.err-block ul{margin:0;padding-left:16px;}
+.f-g{display:flex;flex-direction:column;gap:5px;margin-bottom:16px;}
+.f-lbl{font-size:12px;font-weight:600;color:var(--gray-700);}
+.f-lbl .req{color:var(--orange);}
+.f-inp{padding:9px 12px;border:1.5px solid var(--gray-200);border-radius:9px;font-size:14px;font-family:inherit;color:var(--black);background:var(--white);outline:none;width:100%;transition:border-color .18s,box-shadow .18s;}
+.f-inp:focus{border-color:var(--orange);box-shadow:0 0 0 3px rgba(245,130,32,.1);}
+.f-inp.err{border-color:#EF4444;}
+.f-err{font-size:11.5px;color:#DC2626;margin-top:3px;}
+.f-textarea{min-height:80px;resize:vertical;}
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.note-box{background:#EFF6FF;border:1px solid #BFDBFE;border-radius:10px;padding:12px 14px;margin-bottom:16px;font-size:12.5px;color:#1D4ED8;line-height:1.5;}
+.note-box svg{width:14px;height:14px;vertical-align:middle;margin-right:4px;}
+.fa{display:flex;gap:10px;padding:18px 24px;border-top:1px solid var(--gray-200);background:var(--gray-50);}
+.btn-save{padding:10px 28px;border-radius:10px;font-size:14px;font-weight:700;border:none;background:var(--orange);color:#fff;cursor:pointer;font-family:inherit;transition:background .18s;}
+.btn-save:hover{background:var(--orange-hover);}
+.btn-cancel{padding:10px 20px;border-radius:10px;font-size:14px;font-weight:500;border:1.5px solid var(--gray-200);background:var(--white);color:var(--gray-700);text-decoration:none;transition:all .18s;}
+.btn-cancel:hover{background:var(--gray-100);}
+@media(max-width:500px){.two-col{grid-template-columns:1fr;}.fa{flex-direction:column;}}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="form-wrap">
+<div class="form-card">
+  <div class="fh">
+    <div class="fh-icon"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v6m3-3H9m12 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/></svg></div>
+    <div><h2>{{ title }}</h2><p>Broshkasiz sinov buyurtmasi</p></div>
+  </div>
+  <div class="fb">
+    <div class="note-box">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m11.25 11.25.041-.02a.75.75 0 0 1 1.063.852l-.708 2.836a.75.75 0 0 0 1.063.853l.041-.021M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9-3.75h.008v.008H12V8.25Z"/></svg>
+      Bu buyurtmada <strong>broshka bog'lanmaydi</strong> — yangi qolip sinovi uchun.
+      Buyurtma yaratilgach log yozish uchun avval <strong>ishlab chiqarishga o'tkazish</strong> kerak.
+    </div>
+
+    {% if errors %}
+    <div class="err-block"><ul>{% for k,v in errors.items %}<li>{{ v }}</li>{% endfor %}</ul></div>
+    {% endif %}
+
+    <form method="post" id="ao-form">
+      {% csrf_token %}
+      <div class="f-g">
+        <label class="f-lbl">Nomi <span class="req">*</span></label>
+        <input class="f-inp {% if errors.name %}err{% endif %}" type="text" name="name" value="{{ data.name|default:'' }}" placeholder="masalan: Sinov qolip №3" autofocus required>
+        {% if errors.name %}<span class="f-err">{{ errors.name }}</span>{% endif %}
+      </div>
+      <div class="two-col">
+        <div class="f-g">
+          <label class="f-lbl">Miqdor <span class="req">*</span></label>
+          <input class="f-inp {% if errors.quantity %}err{% endif %}" type="number" name="quantity" value="{{ data.quantity|default:'' }}" min="1" placeholder="dona" required>
+          {% if errors.quantity %}<span class="f-err">{{ errors.quantity }}</span>{% endif %}
+        </div>
+        <div class="f-g">
+          <label class="f-lbl">Muddat <span class="req">*</span></label>
+          <input class="f-inp {% if errors.deadline %}err{% endif %}" type="date" name="deadline" value="{{ data.deadline|default:today|date:'Y-m-d' }}" required>
+          {% if errors.deadline %}<span class="f-err">{{ errors.deadline }}</span>{% endif %}
+        </div>
+      </div>
+      <div class="f-g">
+        <label class="f-lbl">Izoh</label>
+        <textarea class="f-inp f-textarea" name="note" placeholder="Sinov maqsadi, qo'shimcha ma'lumot...">{{ data.note|default:'' }}</textarea>
+      </div>
+    </form>
+  </div>
+  <div class="fa">
+    <button type="submit" form="ao-form" class="btn-save">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width:14px;height:14px;display:inline;margin-right:5px;"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5"/></svg>
+      Yaratish
+    </button>
+    <a href="{% url 'casting:additional_order_list' %}" class="btn-cancel">Bekor qilish</a>
+  </div>
+</div>
+</div>
+{% endblock %}

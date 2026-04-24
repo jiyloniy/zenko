@@ -190,10 +190,24 @@ html,body{height:100%;font-family:'Inter',system-ui,sans-serif;background:var(--
         Statistika
       </a>
 
+      <div class="nav-label">Qo'shimcha</div>
+      <a href="{% url 'casting:additional_order_list' %}" class="nav-link {% if active_nav == 'additional' %}active{% endif %}">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v6m3-3H9m12 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/></svg>
+        Qo'shimcha buyurtmalar
+      </a>
+      <a href="{% url 'casting:rasxod_list' %}" class="nav-link {% if active_nav == 'rasxod' %}active{% endif %}">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 3v11.25A2.25 2.25 0 0 0 6 16.5h2.25M3.75 3h-1.5m1.5 0h16.5m0 0h1.5m-1.5 0v11.25A2.25 2.25 0 0 1 18 16.5h-2.25m-7.5 0h7.5m-7.5 0-1 3m8.5-3 1 3m0 0 .5 1.5m-.5-1.5h-9.5m0 0-.5 1.5"/></svg>
+        Rasxod
+      </a>
+
       <div class="nav-label">Uskunalar</div>
       <a href="{% url 'casting:stanok_list' %}" class="nav-link {% if active_nav == 'stanoklar' %}active{% endif %}">
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M11.42 15.17 17.25 21A2.652 2.652 0 0 0 21 17.25l-5.877-5.877M11.42 15.17l2.496-3.03c.317-.384.74-.626 1.208-.766M11.42 15.17l-4.655 5.653a2.548 2.548 0 1 1-3.586-3.586l5.653-4.655m5.896-3.42c.02-.1.04-.198.065-.296m-5.96 3.716a5.29 5.29 0 0 0 .243-2.194 5.29 5.29 0 0 0-5.396-5.028.75.75 0 0 0-.493 1.286l2.054 2.054-.44 1.947-1.947.44-2.054-2.054a.75.75 0 0 0-1.286.493 5.29 5.29 0 0 0 5.028 5.396m5.96-3.716.065-.296m0 0a5.29 5.29 0 0 0-1.36-4.87l-1.6-1.6a5.29 5.29 0 0 0-6.894-.343"/></svg>
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M11.42 15.17 17.25 21A2.652 2.652 0 0 0 21 17.25l-5.877-5.877M11.42 15.17l2.496-3.03c.317-.384.74-.626 1.208-.766M11.42 15.17l-4.655 5.653a2.548 2.548 0 1 1-3.586-3.586l5.653-4.655"/></svg>
         Stanoklar
+      </a>
+      <a href="{% url 'casting:zamak_list' %}" class="nav-link {% if active_nav == 'zamaklar' %}active{% endif %}">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M20.25 6.375c0 2.278-3.694 4.125-8.25 4.125S3.75 8.653 3.75 6.375m16.5 0c0-2.278-3.694-4.125-8.25-4.125S3.75 4.097 3.75 6.375m16.5 0v11.25c0 2.278-3.694 4.125-8.25 4.125s-8.25-1.847-8.25-4.125V6.375"/></svg>
+        Zamaklar
       </a>
     </nav>
 

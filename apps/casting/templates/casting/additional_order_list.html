@@ -1,0 +1,115 @@
+{% extends "casting/base.html" %}
+{% block title %}Qo'shimcha buyurtmalar — Zenko{% endblock %}
+{% block page_title %}Qo'shimcha buyurtmalar{% endblock %}
+
+{% block topbar_actions %}
+<a href="{% url 'casting:additional_order_create' %}" class="btn btn-primary">
+  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>
+  Yangi buyurtma
+</a>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.status-tabs{display:flex;gap:6px;margin-bottom:20px;flex-wrap:wrap;}
+.st-tab{padding:6px 14px;border-radius:20px;border:1.5px solid var(--gray-200);font-size:12px;font-weight:700;text-decoration:none;color:var(--gray-600);background:var(--white);transition:all .15s;display:inline-flex;align-items:center;gap:6px;}
+.st-tab:hover{border-color:var(--orange);color:var(--orange);}
+.st-tab.active{background:var(--orange);color:#fff;border-color:var(--orange);}
+.st-cnt{background:rgba(255,255,255,.25);border-radius:10px;padding:1px 6px;font-size:10px;}
+.st-tab:not(.active) .st-cnt{background:var(--gray-100);color:var(--gray-500);}
+
+.ao-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px;}
+.ao-card{background:var(--white);border:1px solid var(--gray-200);border-radius:14px;padding:16px 18px;box-shadow:0 1px 3px rgba(0,0,0,.04);transition:box-shadow .2s,transform .18s;}
+.ao-card:hover{box-shadow:0 6px 18px rgba(0,0,0,.08);transform:translateY(-1px);}
+.ao-top{display:flex;justify-content:space-between;align-items:flex-start;gap:8px;margin-bottom:10px;}
+.ao-name{font-size:15px;font-weight:800;color:var(--black);line-height:1.3;}
+.ao-num{font-size:10px;color:var(--gray-400);font-family:monospace;margin-top:2px;}
+.badge{display:inline-flex;align-items:center;gap:4px;padding:4px 9px;border-radius:20px;font-size:11px;font-weight:700;}
+.badge .dot{width:5px;height:5px;border-radius:50%;flex-shrink:0;}
+.b-new{background:#EFF6FF;color:#1D4ED8;} .b-new .dot{background:#3B82F6;}
+.b-in_process{background:#FFF7ED;color:#C2410C;} .b-in_process .dot{background:#F97316;animation:blink 2s infinite;}
+.b-done{background:#F0FDF4;color:#16A34A;} .b-done .dot{background:#22C55E;}
+.b-cancelled{background:#FEF2F2;color:#DC2626;} .b-cancelled .dot{background:#EF4444;}
+.ao-meta{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px;}
+.mc{display:inline-flex;align-items:center;gap:4px;padding:3px 8px;border-radius:7px;font-size:11px;font-weight:600;}
+.mc-qty{background:#EFF6FF;color:#1D4ED8;}
+.mc-dl{background:#FEF9EC;color:#92400E;}
+.mc-dl.late{background:#FEF2F2;color:#DC2626;}
+.ao-progress{margin-bottom:10px;}
+.ap-bar{height:6px;background:var(--gray-200);border-radius:3px;overflow:hidden;margin-top:4px;}
+.ap-fill{height:100%;border-radius:3px;background:linear-gradient(90deg,#F97316,#FBBF24);}
+.ap-lbl{display:flex;justify-content:space-between;font-size:11px;font-weight:600;color:var(--gray-500);}
+.ao-actions{display:flex;gap:6px;padding-top:10px;border-top:1px solid var(--gray-100);}
+.ao-actions a,.ao-actions button{flex:1;justify-content:center;font-size:12px;padding:6px 8px;}
+.empty-wrap{padding:60px;text-align:center;color:var(--gray-400);}
+.empty-wrap svg{width:48px;height:48px;margin-bottom:14px;opacity:.2;}
+.empty-wrap p{font-size:14px;}
+@keyframes blink{0%,100%{opacity:1;}50%{opacity:.3;}}
+@media(max-width:600px){.ao-grid{grid-template-columns:1fr;}}
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Status tabs -->
+<div class="status-tabs">
+  <a href="?status=" class="st-tab {% if not request.GET.status %}active{% endif %}">
+    Barchasi <span class="st-cnt">{{ counts.new|add:counts.in_process|add:counts.done|add:counts.cancelled }}</span>
+  </a>
+  {% for val,label in statuses %}
+  <a href="?status={{ val }}" class="st-tab {% if request.GET.status == val %}active{% endif %}">
+    {{ label }} <span class="st-cnt">{{ counts|dict_get:val|default:0 }}</span>
+  </a>
+  {% endfor %}
+</div>
+
+{% if orders %}
+<div class="ao-grid">
+{% for order in orders %}
+<div class="ao-card">
+  <div class="ao-top">
+    <div>
+      <div class="ao-name">{{ order.name }}</div>
+      <div class="ao-num">{{ order.order_number }}</div>
+    </div>
+    <span class="badge b-{{ order.status }}"><span class="dot"></span>{{ order.get_status_display }}</span>
+  </div>
+
+  <div class="ao-meta">
+    <span class="mc mc-qty">{{ order.quantity }} dona</span>
+    <span class="mc mc-dl {% if order.is_overdue %}late{% endif %}">{{ order.deadline|date:"d.m.Y" }}{% if order.is_overdue %} ⚠{% endif %}</span>
+  </div>
+
+  <!-- Hom progress -->
+  {% with hs=order.hom_sum|default:0 %}
+  <div class="ao-progress">
+    <div class="ap-lbl"><span>🔶 Hom kiritilgan</span><span>{{ hs }}/{{ order.quantity }}</span></div>
+    <div class="ap-bar"><div class="ap-fill" style="width:{% if order.quantity %}{% if hs >= order.quantity %}100{% else %}{% widthratio hs order.quantity 100 %}{% endif %}{% else %}0{% endif %}%"></div></div>
+  </div>
+  {% endwith %}
+
+  <div class="ao-actions">
+    <a href="{% url 'casting:additional_order_detail' order.pk %}" class="btn btn-secondary btn-sm">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"/></svg>
+      Ko'rish
+    </a>
+    {% if order.status == 'new' %}
+    <form method="post" action="{% url 'casting:additional_set_status' order.pk %}" style="flex:1;">
+      {% csrf_token %}<input type="hidden" name="status" value="in_process">
+      <button type="submit" class="btn btn-sm" style="width:100%;justify-content:center;background:linear-gradient(135deg,#F97316,#FBBF24);color:#fff;border:none;font-weight:700;">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width:13px;height:13px;"><path stroke-linecap="round" stroke-linejoin="round" d="M5.25 5.653c0-.856.917-1.398 1.667-.986l11.54 6.347a1.125 1.125 0 0 1 0 1.972l-11.54 6.347a1.125 1.125 0 0 1-1.667-.986V5.653Z"/></svg>
+        Ishlab chiqarishga
+      </button>
+    </form>
+    {% endif %}
+  </div>
+</div>
+{% endfor %}
+</div>
+{% else %}
+<div class="empty-wrap">
+  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v6m3-3H9m12 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/></svg>
+  <p>Qo'shimcha buyurtmalar yo'q</p>
+  <a href="{% url 'casting:additional_order_create' %}" class="btn btn-primary">Birinchisini yarating</a>
+</div>
+{% endif %}
+{% endblock %}

@@ -7,7 +7,10 @@ from django.utils import timezone
 from django.views import View
 
 from apps.casting.forms import StanokForm
-from apps.casting.models import HomMahsulotLog, Stanok, TayorMahsulotLog
+from apps.casting.models import (
+    AdditionalHomLog, AdditionalOrder,
+    HomMahsulotLog, RasxodLog, Stanok, TayorMahsulotLog, Zamak,
+)
 from apps.order.models import Order
 from apps.order.views.mixins import CastingManagerRequiredMixin
 
@@ -16,15 +19,18 @@ from apps.order.views.mixins import CastingManagerRequiredMixin
 
 class CastingOrderListView(CastingManagerRequiredMixin, View):
     def get(self, request):
-        q = request.GET.get('q', '').strip()
+        q          = request.GET.get('q', '').strip()
+        status_tab = request.GET.get('tab', 'new')  # 'new' | 'in_process'
+        if status_tab not in ('new', 'in_process'):
+            status_tab = 'new'
+
         base_qs = Order.objects.select_related('brujka', 'created_by').filter(
-            status=Order.Status.IN_PROCESS
+            status__in=[Order.Status.NEW, Order.Status.IN_PROCESS]
         )
         if q:
             base_qs = base_qs.filter(name__icontains=q)
 
-        # Har bir order uchun hom/tayor summalarini annotate qilamiz
-        orders = base_qs.annotate(
+        orders = base_qs.filter(status=status_tab).annotate(
             hom_sum=Sum('hom_loglar__miqdor'),
             tayor_sum=Sum('tayor_loglar__miqdor'),
         ).order_by('-created_at')
@@ -45,11 +51,17 @@ class CastingOrderListView(CastingManagerRequiredMixin, View):
             order__status=Order.Status.IN_PROCESS
         ).aggregate(j=Sum('miqdor'))['j'] or 0
 
+        new_count = Order.objects.filter(status=Order.Status.NEW).count()
+        ip_count  = Order.objects.filter(status=Order.Status.IN_PROCESS).count()
+
         return render(request, 'casting/order_list.html', {
             'orders': orders,
             'q': q,
+            'tab': status_tab,
+            'new_count': new_count,
+            'ip_count':  ip_count,
             'active_nav': 'orders',
-            'status_filter': 'in_process',
+            'status_filter': status_tab,
             'today': today,
             'stats': {
                 'hom_bugun':      hom_bugun,
@@ -377,3 +389,288 @@ class TayorLogDeleteView(CastingManagerRequiredMixin, View):
         log.delete()
         messages.success(request, 'Log o\'chirildi.')
         return redirect('casting:order_log', pk=pk)
+
+
+# ── Order status o'zgartirish ─────────────────────────────────────────────────
+
+class OrderSetStatusView(CastingManagerRequiredMixin, View):
+    """Casting manager new → in_process ga o'tkazadi."""
+    def post(self, request, pk):
+        order = get_object_or_404(Order, pk=pk)
+        new_status = request.POST.get('status', '')
+        allowed = {Order.Status.IN_PROCESS, Order.Status.ACCEPTED}
+        if new_status in allowed:
+            order.status = new_status
+            order.save(update_fields=['status'])
+            messages.success(request, f'"{order.name}" holati yangilandi.')
+        return redirect('casting:order_list')
+
+
+# ── Rasxod ────────────────────────────────────────────────────────────────────
+
+class RasxodListView(CastingManagerRequiredMixin, View):
+    def get(self, request):
+        q        = request.GET.get('q', '').strip()
+        stanok_f = request.GET.get('stanok', '').strip()
+        zamak_f  = request.GET.get('zamak', '').strip()
+        today    = timezone.localdate()
+
+        try:
+            date_from = datetime.date.fromisoformat(request.GET.get('from', ''))
+        except ValueError:
+            date_from = today - datetime.timedelta(days=29)
+        try:
+            date_to = datetime.date.fromisoformat(request.GET.get('to', ''))
+        except ValueError:
+            date_to = today
+
+        qs = RasxodLog.objects.select_related('stanok', 'zamak', 'created_by')
+        if stanok_f:
+            qs = qs.filter(stanok_id=stanok_f)
+        if zamak_f:
+            qs = qs.filter(zamak_id=zamak_f)
+        if q:
+            qs = qs.filter(izoh__icontains=q)
+        qs = qs.filter(sana__range=(date_from, date_to)).order_by('-sana', '-created_at')
+
+        # Statistika
+        from django.db.models import Count
+        stanok_stats = list(
+            qs.values('stanok__name').annotate(j=Sum('miqdor')).order_by('-j')[:6]
+        )
+        zamak_stats = list(
+            qs.values('zamak__name', 'zamak__unit').annotate(j=Sum('miqdor')).order_by('-j')[:6]
+        )
+        jami = qs.aggregate(j=Sum('miqdor'))['j'] or 0
+
+        return render(request, 'casting/rasxod_list.html', {
+            'rasxodlar':   qs,
+            'stanoklar':   Stanok.objects.filter(status=Stanok.Status.ACTIVE),
+            'zamaklar':    Zamak.objects.filter(is_active=True),
+            'stanok_f':    stanok_f,
+            'zamak_f':     zamak_f,
+            'q':           q,
+            'date_from':   date_from,
+            'date_to':     date_to,
+            'today':       today,
+            'stanok_stats': stanok_stats,
+            'zamak_stats':  zamak_stats,
+            'jami':         jami,
+            'active_nav':  'rasxod',
+        })
+
+
+class RasxodCreateView(CastingManagerRequiredMixin, View):
+    def post(self, request):
+        stanok_id = request.POST.get('stanok', '').strip()
+        zamak_id  = request.POST.get('zamak', '').strip()
+        try:
+            miqdor = float(request.POST.get('miqdor', 0))
+            assert miqdor > 0
+        except (ValueError, AssertionError):
+            messages.error(request, 'Miqdor musbat son bo\'lishi kerak.')
+            return redirect('casting:rasxod_list')
+        try:
+            sana = datetime.date.fromisoformat(request.POST.get('sana', ''))
+        except ValueError:
+            sana = timezone.localdate()
+        stanok = get_object_or_404(Stanok, pk=stanok_id) if stanok_id else None
+        zamak  = get_object_or_404(Zamak, pk=zamak_id) if zamak_id else None
+        if not stanok or not zamak:
+            messages.error(request, 'Stanok va zamak majburiy.')
+            return redirect('casting:rasxod_list')
+        from decimal import Decimal
+        RasxodLog.objects.create(
+            stanok=stanok, zamak=zamak, miqdor=Decimal(str(miqdor)),
+            sana=sana, izoh=request.POST.get('izoh', '').strip(),
+            created_by=request.user,
+        )
+        messages.success(request, f'{miqdor} {zamak.unit} rasxod yozildi.')
+        return redirect('casting:rasxod_list')
+
+
+class RasxodDeleteView(CastingManagerRequiredMixin, View):
+    def post(self, request, pk):
+        log = get_object_or_404(RasxodLog, pk=pk)
+        log.delete()
+        messages.success(request, 'Rasxod o\'chirildi.')
+        return redirect('casting:rasxod_list')
+
+
+# ── Zamak CRUD ────────────────────────────────────────────────────────────────
+
+class ZamakListView(CastingManagerRequiredMixin, View):
+    def get(self, request):
+        return render(request, 'casting/zamak_list.html', {
+            'zamaklar': Zamak.objects.all(),
+            'active_nav': 'rasxod',
+        })
+
+
+class ZamakCreateView(CastingManagerRequiredMixin, View):
+    def post(self, request):
+        name = request.POST.get('name', '').strip()
+        unit = request.POST.get('unit', 'kg').strip()
+        if not name:
+            messages.error(request, 'Nomi majburiy.')
+            return redirect('casting:zamak_list')
+        Zamak.objects.create(name=name, unit=unit)
+        messages.success(request, f'"{name}" zamak qo\'shildi.')
+        return redirect('casting:zamak_list')
+
+
+class ZamakDeleteView(CastingManagerRequiredMixin, View):
+    def post(self, request, pk):
+        z = get_object_or_404(Zamak, pk=pk)
+        z.delete()
+        messages.success(request, 'Zamak o\'chirildi.')
+        return redirect('casting:zamak_list')
+
+
+# ── Additional Orders ─────────────────────────────────────────────────────────
+
+class AdditionalOrderListView(CastingManagerRequiredMixin, View):
+    def get(self, request):
+        status_f = request.GET.get('status', '')
+        qs = AdditionalOrder.objects.select_related('created_by').annotate(
+            hom_sum=Sum('hom_loglar__miqdor')
+        )
+        if status_f:
+            qs = qs.filter(status=status_f)
+        qs = qs.order_by('-created_at')
+        counts = {s: AdditionalOrder.objects.filter(status=s).count() for s, _ in AdditionalOrder.Status.choices}
+        return render(request, 'casting/additional_order_list.html', {
+            'orders': qs, 'counts': counts, 'status_f': status_f,
+            'statuses': AdditionalOrder.Status.choices, 'active_nav': 'additional',
+        })
+
+
+class AdditionalOrderCreateView(CastingManagerRequiredMixin, View):
+    def get(self, request):
+        return render(request, 'casting/additional_order_form.html', {
+            'title': 'Yangi qo\'shimcha buyurtma',
+            'active_nav': 'additional',
+            'today': timezone.localdate(),
+        })
+
+    def post(self, request):
+        name  = request.POST.get('name', '').strip()
+        note  = request.POST.get('note', '').strip()
+        errors = {}
+        try:
+            qty = int(request.POST.get('quantity', 0))
+            assert qty > 0
+        except (ValueError, AssertionError):
+            errors['quantity'] = 'Miqdor musbat son bo\'lishi kerak.'
+        try:
+            deadline = datetime.date.fromisoformat(request.POST.get('deadline', ''))
+        except ValueError:
+            errors['deadline'] = 'Sana noto\'g\'ri.'
+            deadline = None
+        if not name:
+            errors['name'] = 'Nomi majburiy.'
+        if errors:
+            return render(request, 'casting/additional_order_form.html', {
+                'title': 'Yangi qo\'shimcha buyurtma', 'errors': errors,
+                'data': request.POST, 'active_nav': 'additional',
+                'today': timezone.localdate(),
+            })
+        order = AdditionalOrder.objects.create(
+            name=name, quantity=qty, deadline=deadline,
+            note=note, created_by=request.user,
+        )
+        messages.success(request, f'"{order.name}" qo\'shimcha buyurtma yaratildi.')
+        return redirect('casting:additional_order_detail', pk=order.pk)
+
+
+class AdditionalOrderDetailView(CastingManagerRequiredMixin, View):
+    def get(self, request, pk):
+        order = get_object_or_404(AdditionalOrder, pk=pk)
+        hom_loglar = order.hom_loglar.select_related('stanok', 'created_by').order_by('-sana', '-created_at')
+        hom_jami   = hom_loglar.aggregate(j=Sum('miqdor'))['j'] or 0
+        return render(request, 'casting/additional_order_detail.html', {
+            'order': order,
+            'hom_loglar': hom_loglar,
+            'hom_jami': hom_jami,
+            'stanoklar': Stanok.objects.filter(status=Stanok.Status.ACTIVE),
+            'today': timezone.localdate(),
+            'active_nav': 'additional',
+        })
+
+
+class AdditionalOrderUpdateView(CastingManagerRequiredMixin, View):
+    def post(self, request, pk):
+        order = get_object_or_404(AdditionalOrder, pk=pk)
+        new_status = request.POST.get('status', order.status)
+        if new_status in dict(AdditionalOrder.Status.choices):
+            order.status = new_status
+        name = request.POST.get('name', order.name).strip()
+        if name:
+            order.name = name
+        try:
+            qty = int(request.POST.get('quantity', order.quantity))
+            if qty > 0:
+                order.quantity = qty
+        except ValueError:
+            pass
+        try:
+            order.deadline = datetime.date.fromisoformat(request.POST.get('deadline', ''))
+        except ValueError:
+            pass
+        order.note = request.POST.get('note', order.note).strip()
+        order.save()
+        messages.success(request, 'Yangilandi.')
+        return redirect('casting:additional_order_detail', pk=pk)
+
+
+class AdditionalOrderDeleteView(CastingManagerRequiredMixin, View):
+    def post(self, request, pk):
+        order = get_object_or_404(AdditionalOrder, pk=pk)
+        order.delete()
+        messages.success(request, 'O\'chirildi.')
+        return redirect('casting:additional_order_list')
+
+
+class AdditionalHomLogCreateView(CastingManagerRequiredMixin, View):
+    def post(self, request, pk):
+        order = get_object_or_404(AdditionalOrder, pk=pk)
+        if order.status == AdditionalOrder.Status.NEW:
+            messages.error(request, 'Yangi buyurtmaga log yozib bo\'lmaydi. Avval ishlab chiqarishga o\'tkazing.')
+            return redirect('casting:additional_order_detail', pk=pk)
+        try:
+            miqdor = int(request.POST.get('miqdor', 0))
+            assert miqdor > 0
+        except (ValueError, AssertionError):
+            messages.error(request, 'Miqdor musbat son bo\'lishi kerak.')
+            return redirect('casting:additional_order_detail', pk=pk)
+        try:
+            sana = datetime.date.fromisoformat(request.POST.get('sana', ''))
+        except ValueError:
+            sana = timezone.localdate()
+        stanok_id = request.POST.get('stanok', '').strip()
+        stanok = Stanok.objects.filter(pk=stanok_id).first() if stanok_id else None
+        AdditionalHomLog.objects.create(
+            add_order=order, stanok=stanok, miqdor=miqdor, sana=sana,
+            izoh=request.POST.get('izoh', '').strip(), created_by=request.user,
+        )
+        messages.success(request, f'{miqdor} dona hom mahsulot qo\'shildi.')
+        return redirect('casting:additional_order_detail', pk=pk)
+
+
+class AdditionalHomLogDeleteView(CastingManagerRequiredMixin, View):
+    def post(self, request, pk, log_pk):
+        log = get_object_or_404(AdditionalHomLog, pk=log_pk, add_order_id=pk)
+        log.delete()
+        messages.success(request, 'Log o\'chirildi.')
+        return redirect('casting:additional_order_detail', pk=pk)
+
+
+class AdditionalOrderSetStatusView(CastingManagerRequiredMixin, View):
+    def post(self, request, pk):
+        order = get_object_or_404(AdditionalOrder, pk=pk)
+        new_status = request.POST.get('status', '')
+        if new_status in dict(AdditionalOrder.Status.choices):
+            order.status = new_status
+            order.save(update_fields=['status'])
+            messages.success(request, f'Holat yangilandi: {order.get_status_display()}')
+        return redirect('casting:additional_order_detail', pk=pk)

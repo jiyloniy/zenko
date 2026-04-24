@@ -1,0 +1,78 @@
+{% extends "ceo/base.html" %}
+{% block title %}Zamaklar — Zenko{% endblock %}
+{% block page_title %}Zamaklar{% endblock %}
+
+{% block topbar_actions %}
+<a href="{% url 'ceo:rasxod_list' %}" class="btn btn-secondary btn-sm">
+  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18"/></svg>
+  Rasxodga
+</a>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.page-wrap{display:grid;grid-template-columns:300px 1fr;gap:20px;align-items:start;}
+.add-card{background:var(--white);border:1px solid var(--gray-200);border-radius:14px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,.04);}
+.ac-head{padding:14px 18px;border-bottom:1px solid var(--gray-200);background:var(--gray-50);}
+.ac-title{font-size:13px;font-weight:700;color:var(--black);}
+.ac-body{padding:16px 18px;}
+.f-g{display:flex;flex-direction:column;gap:5px;margin-bottom:12px;}
+.f-lbl{font-size:11px;font-weight:700;color:var(--gray-500);text-transform:uppercase;letter-spacing:.5px;}
+.f-inp{padding:8px 11px;border:1.5px solid var(--gray-200);border-radius:9px;font-size:13px;font-family:inherit;color:var(--black);background:var(--white);outline:none;width:100%;transition:border-color .18s;}
+.f-inp:focus{border-color:var(--orange);}
+.btn-add{width:100%;padding:10px;border-radius:10px;font-size:13px;font-weight:700;border:none;background:var(--orange);color:#fff;cursor:pointer;font-family:inherit;transition:background .18s;}
+.btn-add:hover{background:var(--orange-hover);}
+.table-wrap{background:var(--white);border:1px solid var(--gray-200);border-radius:14px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,.04);}
+.z-table{width:100%;border-collapse:collapse;font-size:13px;}
+.z-table th{text-align:left;padding:10px 14px;font-size:10.5px;font-weight:700;color:var(--gray-500);text-transform:uppercase;letter-spacing:.5px;border-bottom:2px solid var(--gray-200);background:var(--gray-50);}
+.z-table td{padding:12px 14px;border-bottom:1px solid var(--gray-100);vertical-align:middle;}
+.z-table tbody tr:last-child td{border-bottom:none;}
+.z-name{font-size:14px;font-weight:700;color:var(--black);}
+.z-unit{display:inline-block;padding:2px 9px;border-radius:20px;font-size:11px;font-weight:700;background:#EFF6FF;color:#1D4ED8;}
+@media(max-width:768px){.page-wrap{grid-template-columns:1fr;}}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page-wrap">
+  <div class="add-card">
+    <div class="ac-head"><div class="ac-title">Yangi zamak qo'shish</div></div>
+    <div class="ac-body">
+      <form method="post" action="{% url 'ceo:zamak_add' %}">
+        {% csrf_token %}
+        <div class="f-g"><label class="f-lbl">Nomi *</label><input class="f-inp" type="text" name="name" placeholder="masalan: Qo'rg'oshin" required autofocus></div>
+        <div class="f-g"><label class="f-lbl">O'lchov birligi</label><input class="f-inp" type="text" name="unit" placeholder="kg, litr, dona..." value="kg"></div>
+        <button type="submit" class="btn-add">Qo'shish</button>
+      </form>
+    </div>
+  </div>
+  <div>
+    {% if zamaklar %}
+    <div class="table-wrap">
+      <table class="z-table">
+        <thead><tr><th>#</th><th>Nomi</th><th>Birlik</th><th style="text-align:right;">Amal</th></tr></thead>
+        <tbody>
+        {% for z in zamaklar %}
+        <tr>
+          <td style="color:var(--gray-400);font-size:12px;">{{ forloop.counter }}</td>
+          <td><div class="z-name">{{ z.name }}</div></td>
+          <td><span class="z-unit">{{ z.unit }}</span></td>
+          <td style="text-align:right;">
+            <form method="post" action="{% url 'ceo:zamak_delete' z.pk %}" onsubmit="return confirm('O\'chirishni tasdiqlaysizmi?')" style="display:inline;">
+              {% csrf_token %}
+              <button type="submit" class="btn btn-sm btn-danger" style="padding:4px 9px;">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width:12px;height:12px;"><path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0"/></svg>
+              </button>
+            </form>
+          </td>
+        </tr>
+        {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <div style="padding:40px;text-align:center;color:var(--gray-400);background:var(--white);border:1px solid var(--gray-200);border-radius:14px;">Zamaklar yo'q. Chapda qo'shing.</div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}
