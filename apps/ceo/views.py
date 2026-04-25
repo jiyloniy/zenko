@@ -1969,7 +1969,7 @@ class SalaryDetailView(CEORequiredMixin, View):
 
 from apps.casting.models import (  # noqa: E402
     AdditionalHomLog, AdditionalOrder, AdditionalTayorLog,
-    HomMahsulotLog, RasxodLog, Stanok, TayorMahsulotLog, Zamak, AtxotRasxod,
+    HomMahsulotLog, RasxodLog, Stanok, TayorMahsulotLog, Zamak, QuyishRasxod,
 )
 from apps.order.models import Order as _Order  # noqa: E402
 from django.db.models import Sum as _Sum  # noqa: E402
@@ -2428,26 +2428,24 @@ class CeoRasxodDeleteView(CEORequiredMixin, View):
         return redirect('ceo:rasxod_list')
 
 
-# ── CEO: Atxot Rasxod ──────────────────────────────────────────────────────────
+# ── CEO: Quyish Rasxod ─────────────────────────────────────────────────────────
 
-class CeoAtxotRasxodListView(CEORequiredMixin, View):
+class CeoQuyishRasxodListView(CEORequiredMixin, View):
     def get(self, request):
-        rasxodlar   = AtxotRasxod.objects.select_related('created_by').all()
+        rasxodlar   = QuyishRasxod.objects.select_related('created_by').all()
         jami_miqdor = rasxodlar.aggregate(j=_Sum('miqdor'))['j'] or 0
-        jami_kg     = rasxodlar.aggregate(j=_Sum('kg'))['j'] or 0
-        return render(request, 'ceo/atxot_rasxod_list.html', {
+        return render(request, 'ceo/quyish_rasxod_list.html', {
             'rasxodlar':   rasxodlar,
             'jami_miqdor': jami_miqdor,
-            'jami_kg':     jami_kg,
-            'active_nav':  'atxot_rasxod',
+            'active_nav':  'quyish_rasxod',
             'today':       timezone.localdate(),
         })
 
 
-class CeoAtxotRasxodCreateView(CEORequiredMixin, View):
+class CeoQuyishRasxodCreateView(CEORequiredMixin, View):
     def post(self, request):
-        from apps.casting.forms import AtxotRasxodForm
-        form = AtxotRasxodForm(request.POST)
+        from apps.casting.forms import QuyishRasxodForm
+        form = QuyishRasxodForm(request.POST)
         if form.is_valid():
             r = form.save(commit=False)
             r.created_by = request.user
@@ -2455,14 +2453,14 @@ class CeoAtxotRasxodCreateView(CEORequiredMixin, View):
             messages.success(request, 'Rasxod qo\'shildi.')
         else:
             messages.error(request, 'Xatolik: ' + str(form.errors))
-        return redirect('ceo:atxot_rasxod_list')
+        return redirect('ceo:quyish_rasxod_list')
 
 
-class CeoAtxotRasxodDeleteView(CEORequiredMixin, View):
+class CeoQuyishRasxodDeleteView(CEORequiredMixin, View):
     def post(self, request, pk):
-        get_object_or_404(AtxotRasxod, pk=pk).delete()
+        get_object_or_404(QuyishRasxod, pk=pk).delete()
         messages.success(request, 'Rasxod o\'chirildi.')
-        return redirect('ceo:atxot_rasxod_list')
+        return redirect('ceo:quyish_rasxod_list')
 
 
 class CeoZamakListView(CEORequiredMixin, View):

@@ -80,9 +80,9 @@ urlpatterns = [
     path('rasxod/<int:pk>/delete/', views.CeoRasxodDeleteView.as_view(), name='rasxod_delete'),
 
     # Quyish Rasxod
-    path('atxot-rasxod/', views.CeoAtxotRasxodListView.as_view(), name='atxot_rasxod_list'),
-    path('atxot-rasxod/add/', views.CeoAtxotRasxodCreateView.as_view(), name='atxot_rasxod_add'),
-    path('atxot-rasxod/<int:pk>/delete/', views.CeoAtxotRasxodDeleteView.as_view(), name='atxot_rasxod_delete'),
+    path('quyish-rasxod/', views.CeoQuyishRasxodListView.as_view(), name='quyish_rasxod_list'),
+    path('quyish-rasxod/add/', views.CeoQuyishRasxodCreateView.as_view(), name='quyish_rasxod_add'),
+    path('quyish-rasxod/<int:pk>/delete/', views.CeoQuyishRasxodDeleteView.as_view(), name='quyish_rasxod_delete'),
     path('zamaklar/', views.CeoZamakListView.as_view(), name='zamak_list'),
     path('zamaklar/add/', views.CeoZamakListView.as_view(), name='zamak_add'),
     path('zamaklar/<int:pk>/delete/', views.CeoZamakDeleteView.as_view(), name='zamak_delete'),

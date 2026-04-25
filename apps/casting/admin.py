@@ -1,7 +1,7 @@
 from django.contrib import admin
 from apps.casting.models import (
     Stanok, Zamak, RasxodLog, AdditionalOrder, AdditionalHomLog,
-    AdditionalTayorLog, HomMahsulotLog, TayorMahsulotLog, AtxotRasxod
+    AdditionalTayorLog, HomMahsulotLog, TayorMahsulotLog, QuyishRasxod
 )
 
 
@@ -27,10 +27,10 @@ class RasxodLogAdmin(admin.ModelAdmin):
     readonly_fields = ('created_at',)
 
 
-@admin.register(AtxotRasxod)
-class AtxotRasxodAdmin(admin.ModelAdmin):
-    list_display = ('rasxod_turi', 'nomi', 'miqdor', 'kg', 'sana', 'created_by')
-    list_filter = ('rasxod_turi', 'sana')
+@admin.register(QuyishRasxod)
+class QuyishRasxodAdmin(admin.ModelAdmin):
+    list_display = ('nomi', 'miqdor', 'sana', 'created_by')
+    list_filter = ('sana',)
     search_fields = ('nomi',)
     readonly_fields = ('created_at', 'updated_at')
 

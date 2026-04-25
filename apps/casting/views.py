@@ -6,10 +6,10 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 from django.views import View
 
-from apps.casting.forms import StanokForm, AtxotRasxodForm
+from apps.casting.forms import StanokForm, QuyishRasxodForm
 from apps.casting.models import (
     AdditionalHomLog, AdditionalOrder, AdditionalTayorLog,
-    HomMahsulotLog, RasxodLog, Stanok, TayorMahsulotLog, Zamak, AtxotRasxod,
+    HomMahsulotLog, RasxodLog, Stanok, TayorMahsulotLog, Zamak, QuyishRasxod,
 )
 from apps.order.models import Order
 from apps.order.views.mixins import CastingManagerRequiredMixin
@@ -716,79 +716,72 @@ class AdditionalOrderSetStatusView(CastingManagerRequiredMixin, View):
         return redirect('casting:additional_order_detail', pk=pk)
 
 
-# ── Atxot Rasxod CRUD ─────────────────────────────────────────────────────────
+# ── Quyish Rasxod CRUD ────────────────────────────────────────────────────────
 
-class AtxotRasxodListView(CastingManagerRequiredMixin, View):
-    """Quyish bo'limi rasxodlari ro'yxati."""
+class QuyishRasxodListView(CastingManagerRequiredMixin, View):
     def get(self, request):
-        rasxodlar = AtxotRasxod.objects.select_related('created_by').all()
+        rasxodlar   = QuyishRasxod.objects.select_related('created_by').all()
         jami_miqdor = rasxodlar.aggregate(j=Sum('miqdor'))['j'] or 0
-        jami_kg     = rasxodlar.aggregate(j=Sum('kg'))['j'] or 0
-        return render(request, 'casting/atxot_rasxod_list.html', {
+        return render(request, 'casting/quyish_rasxod_list.html', {
             'rasxodlar':   rasxodlar,
             'jami_miqdor': jami_miqdor,
-            'jami_kg':     jami_kg,
-            'active_nav':  'atxot_rasxod',
+            'active_nav':  'quyish_rasxod',
             'today':       timezone.localdate(),
         })
 
 
-class AtxotRasxodCreateView(CastingManagerRequiredMixin, View):
-    """Atxot rasxodi yaratish."""
+class QuyishRasxodCreateView(CastingManagerRequiredMixin, View):
     def get(self, request):
-        form = AtxotRasxodForm()
-        return render(request, 'casting/atxot_rasxod_form.html', {
+        form = QuyishRasxodForm()
+        return render(request, 'casting/quyish_rasxod_form.html', {
             'form': form,
-            'active_nav': 'atxot_rasxod',
+            'active_nav': 'quyish_rasxod',
             'today': timezone.localdate(),
         })
 
     def post(self, request):
-        form = AtxotRasxodForm(request.POST)
+        form = QuyishRasxodForm(request.POST)
         if form.is_valid():
             rasxod = form.save(commit=False)
             rasxod.created_by = request.user
             rasxod.save()
             messages.success(request, 'Rasxod qo\'shildi.')
-            return redirect('casting:atxot_rasxod_list')
-        return render(request, 'casting/atxot_rasxod_form.html', {
+            return redirect('casting:quyish_rasxod_list')
+        return render(request, 'casting/quyish_rasxod_form.html', {
             'form': form,
-            'active_nav': 'atxot_rasxod',
+            'active_nav': 'quyish_rasxod',
             'today': timezone.localdate(),
         })
 
 
-class AtxotRasxodUpdateView(CastingManagerRequiredMixin, View):
-    """Atxot rasxodi tahrirlash."""
+class QuyishRasxodUpdateView(CastingManagerRequiredMixin, View):
     def get(self, request, pk):
-        rasxod = get_object_or_404(AtxotRasxod, pk=pk)
-        form = AtxotRasxodForm(instance=rasxod)
-        return render(request, 'casting/atxot_rasxod_form.html', {
+        rasxod = get_object_or_404(QuyishRasxod, pk=pk)
+        form = QuyishRasxodForm(instance=rasxod)
+        return render(request, 'casting/quyish_rasxod_form.html', {
             'rasxod': rasxod,
             'form': form,
-            'active_nav': 'atxot_rasxod',
+            'active_nav': 'quyish_rasxod',
             'today': timezone.localdate(),
         })
 
     def post(self, request, pk):
-        rasxod = get_object_or_404(AtxotRasxod, pk=pk)
-        form = AtxotRasxodForm(request.POST, instance=rasxod)
+        rasxod = get_object_or_404(QuyishRasxod, pk=pk)
+        form = QuyishRasxodForm(request.POST, instance=rasxod)
         if form.is_valid():
             form.save()
             messages.success(request, 'Rasxod yangilandi.')
-            return redirect('casting:atxot_rasxod_list')
-        return render(request, 'casting/atxot_rasxod_form.html', {
+            return redirect('casting:quyish_rasxod_list')
+        return render(request, 'casting/quyish_rasxod_form.html', {
             'rasxod': rasxod,
             'form': form,
-            'active_nav': 'atxot_rasxod',
+            'active_nav': 'quyish_rasxod',
             'today': timezone.localdate(),
         })
 
 
-class AtxotRasxodDeleteView(CastingManagerRequiredMixin, View):
-    """Atxot rasxodi o'chirish."""
+class QuyishRasxodDeleteView(CastingManagerRequiredMixin, View):
     def post(self, request, pk):
-        rasxod = get_object_or_404(AtxotRasxod, pk=pk)
-        rasxod.delete()
+        get_object_or_404(QuyishRasxod, pk=pk).delete()
         messages.success(request, 'Rasxod o\'chirildi.')
-        return redirect('casting:atxot_rasxod_list')
+        return redirect('casting:quyish_rasxod_list')
