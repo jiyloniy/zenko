@@ -244,3 +244,36 @@ class TayorMahsulotLog(models.Model):
 
     def __str__(self):
         return f'{self.order} | {self.miqdor} dona tayyor ({self.sana})'
+
+
+class AtxotRasxod(models.Model):
+    """Quyish bo'limi uchun mustaqil rasxod yozuvi."""
+
+    class RasxodTuri(models.TextChoices):
+        MATERIAL  = 'material',  'Material'
+        ENERGIYA  = 'energiya',  'Energiya'
+        MEHNAT    = 'mehnat',    'Mehnat'
+        BOSHQA    = 'boshqa',    'Boshqa'
+
+    rasxod_turi  = models.CharField('Rasxod turi', max_length=30, choices=RasxodTuri.choices, default=RasxodTuri.BOSHQA)
+    nomi         = models.CharField('Nomi', max_length=300)
+    miqdor       = models.DecimalField('Miqdor', max_digits=10, decimal_places=2)
+    kg           = models.DecimalField('Kg', max_digits=10, decimal_places=2, default=0)
+    sana         = models.DateField('Sana')
+    izoh         = models.TextField('Izoh', blank=True)
+    created_by   = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True, blank=True,
+        verbose_name="Qo'shgan",
+    )
+    created_at   = models.DateTimeField(auto_now_add=True)
+    updated_at   = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering            = ['-sana', '-created_at']
+        verbose_name        = 'Atxot rasxodi'
+        verbose_name_plural = 'Atxot rasxodlari'
+
+    def __str__(self):
+        return f'{self.nomi} — {self.miqdor} ({self.sana})'

@@ -1,5 +1,5 @@
 from django import forms
-from apps.casting.models import Stanok
+from apps.casting.models import Stanok, AtxotRasxod
 
 
 class StanokForm(forms.ModelForm):
@@ -53,3 +53,72 @@ class StanokForm(forms.ModelForm):
             raise forms.ValidationError("Noto'g'ri holat tanlanmoqda.")
         
         return status
+
+
+class AtxotRasxodForm(forms.ModelForm):
+    """Atxot rasxodi yaratish va tahrirlash uchun forma."""
+
+    class Meta:
+        model = AtxotRasxod
+        fields = ['rasxod_turi', 'nomi', 'miqdor', 'kg', 'sana', 'izoh']
+        widgets = {
+            'rasxod_turi': forms.Select(attrs={
+                'class': 'f-inp',
+            }),
+            'nomi': forms.TextInput(attrs={
+                'class': 'f-inp',
+                'placeholder': 'Rasxod nomi',
+                'required': True,
+            }),
+            'miqdor': forms.NumberInput(attrs={
+                'class': 'f-inp',
+                'placeholder': '0.00',
+                'step': '0.01',
+                'min': '0',
+                'required': True,
+            }),
+            'kg': forms.NumberInput(attrs={
+                'class': 'f-inp',
+                'placeholder': '0.00 kg',
+                'step': '0.01',
+                'min': '0',
+                'required': True,
+            }),
+            'sana': forms.DateInput(attrs={
+                'class': 'f-inp',
+                'type': 'date',
+                'required': True,
+            }),
+            'izoh': forms.Textarea(attrs={
+                'class': 'f-inp',
+                'placeholder': 'Ixtiyoriy izoh...',
+                'rows': 2,
+            }),
+        }
+        labels = {
+            'rasxod_turi': 'Rasxod turi',
+            'nomi': 'Rasxod nomi',
+            'miqdor': 'Miqdor',
+            'kg': 'Kg',
+            'sana': 'Sana',
+            'izoh': 'Izoh',
+        }
+    
+    def clean_nomi(self):
+        nomi = self.cleaned_data.get('nomi', '').strip()
+        if not nomi:
+            raise forms.ValidationError('Rasxod nomi majburiy.')
+        return nomi
+    
+    def clean_miqdor(self):
+        miqdor = self.cleaned_data.get('miqdor')
+        if miqdor is not None and miqdor < 0:
+            raise forms.ValidationError('Miqdor manfiy bo\'lishi mumkin emas.')
+        return miqdor
+    
+    def clean_kg(self):
+        kg = self.cleaned_data.get('kg')
+        if kg is not None and kg < 0:
+            raise forms.ValidationError('Kg manfiy bo\'lishi mumkin emas.')
+        return kg
+

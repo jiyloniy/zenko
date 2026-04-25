@@ -14,6 +14,12 @@ urlpatterns = [
     path('orders/<int:pk>/hom/<int:log_pk>/delete/', views.HomLogDeleteView.as_view(), name='hom_log_delete'),
     path('orders/<int:pk>/tayor/add/', views.TayorLogCreateView.as_view(), name='tayor_log_add'),
     path('orders/<int:pk>/tayor/<int:log_pk>/delete/', views.TayorLogDeleteView.as_view(), name='tayor_log_delete'),
+    
+    # Atxot rasxodlari
+    path('atxot-rasxod/', views.AtxotRasxodListView.as_view(), name='atxot_rasxod_list'),
+    path('atxot-rasxod/create/', views.AtxotRasxodCreateView.as_view(), name='atxot_rasxod_create'),
+    path('atxot-rasxod/<int:pk>/edit/', views.AtxotRasxodUpdateView.as_view(), name='atxot_rasxod_edit'),
+    path('atxot-rasxod/<int:pk>/delete/', views.AtxotRasxodDeleteView.as_view(), name='atxot_rasxod_delete'),
 
     # Stanoklar
     path('stanoklar/', views.StanokListView.as_view(), name='stanok_list'),

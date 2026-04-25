@@ -6,10 +6,10 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 from django.views import View
 
-from apps.casting.forms import StanokForm
+from apps.casting.forms import StanokForm, AtxotRasxodForm
 from apps.casting.models import (
     AdditionalHomLog, AdditionalOrder, AdditionalTayorLog,
-    HomMahsulotLog, RasxodLog, Stanok, TayorMahsulotLog, Zamak,
+    HomMahsulotLog, RasxodLog, Stanok, TayorMahsulotLog, Zamak, AtxotRasxod,
 )
 from apps.order.models import Order
 from apps.order.views.mixins import CastingManagerRequiredMixin
@@ -714,3 +714,81 @@ class AdditionalOrderSetStatusView(CastingManagerRequiredMixin, View):
             order.save(update_fields=['status'])
             messages.success(request, f'Holat yangilandi: {order.get_status_display()}')
         return redirect('casting:additional_order_detail', pk=pk)
+
+
+# ── Atxot Rasxod CRUD ─────────────────────────────────────────────────────────
+
+class AtxotRasxodListView(CastingManagerRequiredMixin, View):
+    """Quyish bo'limi rasxodlari ro'yxati."""
+    def get(self, request):
+        rasxodlar = AtxotRasxod.objects.select_related('created_by').all()
+        jami_miqdor = rasxodlar.aggregate(j=Sum('miqdor'))['j'] or 0
+        jami_kg     = rasxodlar.aggregate(j=Sum('kg'))['j'] or 0
+        return render(request, 'casting/atxot_rasxod_list.html', {
+            'rasxodlar':   rasxodlar,
+            'jami_miqdor': jami_miqdor,
+            'jami_kg':     jami_kg,
+            'active_nav':  'atxot_rasxod',
+            'today':       timezone.localdate(),
+        })
+
+
+class AtxotRasxodCreateView(CastingManagerRequiredMixin, View):
+    """Atxot rasxodi yaratish."""
+    def get(self, request):
+        form = AtxotRasxodForm()
+        return render(request, 'casting/atxot_rasxod_form.html', {
+            'form': form,
+            'active_nav': 'atxot_rasxod',
+            'today': timezone.localdate(),
+        })
+
+    def post(self, request):
+        form = AtxotRasxodForm(request.POST)
+        if form.is_valid():
+            rasxod = form.save(commit=False)
+            rasxod.created_by = request.user
+            rasxod.save()
+            messages.success(request, 'Rasxod qo\'shildi.')
+            return redirect('casting:atxot_rasxod_list')
+        return render(request, 'casting/atxot_rasxod_form.html', {
+            'form': form,
+            'active_nav': 'atxot_rasxod',
+            'today': timezone.localdate(),
+        })
+
+
+class AtxotRasxodUpdateView(CastingManagerRequiredMixin, View):
+    """Atxot rasxodi tahrirlash."""
+    def get(self, request, pk):
+        rasxod = get_object_or_404(AtxotRasxod, pk=pk)
+        form = AtxotRasxodForm(instance=rasxod)
+        return render(request, 'casting/atxot_rasxod_form.html', {
+            'rasxod': rasxod,
+            'form': form,
+            'active_nav': 'atxot_rasxod',
+            'today': timezone.localdate(),
+        })
+
+    def post(self, request, pk):
+        rasxod = get_object_or_404(AtxotRasxod, pk=pk)
+        form = AtxotRasxodForm(request.POST, instance=rasxod)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Rasxod yangilandi.')
+            return redirect('casting:atxot_rasxod_list')
+        return render(request, 'casting/atxot_rasxod_form.html', {
+            'rasxod': rasxod,
+            'form': form,
+            'active_nav': 'atxot_rasxod',
+            'today': timezone.localdate(),
+        })
+
+
+class AtxotRasxodDeleteView(CastingManagerRequiredMixin, View):
+    """Atxot rasxodi o'chirish."""
+    def post(self, request, pk):
+        rasxod = get_object_or_404(AtxotRasxod, pk=pk)
+        rasxod.delete()
+        messages.success(request, 'Rasxod o\'chirildi.')
+        return redirect('casting:atxot_rasxod_list')

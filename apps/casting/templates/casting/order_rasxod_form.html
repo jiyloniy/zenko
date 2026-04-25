@@ -1,0 +1,181 @@
+{% extends "casting/base.html" %}
+{% block title %}{% if rasxod %}{{ rasxod.nomi }} — Tahrirlash{% else %}Rasxod qo'sh{% endif %}{% endblock %}
+{% block page_title %}{% if rasxod %}Rasxod tahrirlash{% else %}Yangi rasxod{% endif %}{% endblock %}
+
+{% block topbar_actions %}
+<a href="{% url 'casting:order_rasxod_list' order.pk %}" class="btn btn-secondary btn-sm">
+  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18"/></svg>
+  Orqaga
+</a>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.form-container{display:grid;grid-template-columns:300px 1fr;gap:24px;max-width:1200px;}
+
+/* Order info sidebar */
+.order-sidebar{background:var(--white);border:1px solid var(--gray-200);border-radius:14px;padding:18px;box-shadow:0 1px 3px rgba(0,0,0,.04);height:fit-content;position:sticky;top:20px;}
+.os-title{font-size:12px;font-weight:700;color:var(--gray-500);text-transform:uppercase;letter-spacing:.5px;margin-bottom:12px;}
+.os-card{background:var(--gray-50);border:1px solid var(--gray-200);border-radius:10px;padding:12px;margin-bottom:12px;}
+.os-card-name{font-size:13px;font-weight:800;color:var(--black);margin-bottom:4px;}
+.os-card-num{font-size:10px;color:var(--gray-400);font-family:monospace;}
+
+/* Form */
+.form-card{background:var(--white);border:1px solid var(--gray-200);border-radius:14px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,.04);}
+.fc-head{padding:16px 20px;background:var(--gray-50);border-bottom:1px solid var(--gray-200);}
+.fc-head-title{font-size:13px;font-weight:700;color:var(--black);}
+.fc-body{padding:20px;}
+
+/* Form fields */
+.form-group{margin-bottom:16px;}
+.form-label{font-size:11px;font-weight:700;color:var(--gray-500);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px;display:block;}
+.form-input, .form-select, .form-textarea{width:100%;padding:10px 12px;border:1.5px solid var(--gray-200);border-radius:10px;font-size:13px;font-family:inherit;color:var(--black);background:var(--white);outline:none;transition:border-color .18s;}
+.form-input:focus, .form-select:focus, .form-textarea:focus{border-color:var(--orange);}
+.form-textarea{resize:vertical;min-height:80px;}
+
+/* Grid */
+.form-grid-2{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.form-grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;}
+
+/* Button */
+.btn-submit{width:100%;padding:12px;border-radius:10px;font-size:13.5px;font-weight:700;border:none;background:var(--orange);color:#fff;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:6px;transition:background .18s;margin-top:8px;}
+.btn-submit:hover{background:var(--orange-hover);}
+
+/* Errors */
+.errorlist{list-style:none;padding:0;margin-bottom:12px;}
+.errorlist li{padding:8px 12px;background:#FEE2E2;border:1px solid #FECACA;border-radius:8px;color:#DC2626;font-size:12px;margin-bottom:6px;}
+
+.form-errors{background:#FEF2F2;border:1px solid #FEE2E2;border-radius:10px;padding:12px 14px;margin-bottom:16px;}
+.form-errors p{font-size:12px;color:#DC2626;margin:0;}
+
+@media(max-width:900px){
+  .form-container{grid-template-columns:1fr;}
+  .order-sidebar{position:static;}
+  .form-grid-2, .form-grid-3{grid-template-columns:1fr;}
+}
+</style>
+{% endblock %}
+
+{% block content %}
+
+<div class="form-container">
+  
+  <!-- Order Info Sidebar -->
+  <div class="order-sidebar">
+    <div class="os-title">📦 Buyurtma</div>
+    <div class="os-card">
+      <div class="os-card-name">{{ order.name }}</div>
+      <div class="os-card-num">{{ order.order_number }}</div>
+    </div>
+    
+    {% if rasxod %}
+    <div class="os-title" style="margin-top:20px;">⏱️ Ma'lumotlar</div>
+    <div class="os-card">
+      <div style="font-size:10px;color:var(--gray-500);margin-bottom:4px;">Yaratilgan:</div>
+      <div style="font-size:12px;font-weight:600;color:var(--black);">{{ rasxod.created_at|date:"d.m.Y H:i" }}</div>
+    </div>
+    <div class="os-card">
+      <div style="font-size:10px;color:var(--gray-500);margin-bottom:4px;">Yangilangan:</div>
+      <div style="font-size:12px;font-weight:600;color:var(--black);">{{ rasxod.updated_at|date:"d.m.Y H:i" }}</div>
+    </div>
+    {% endif %}
+  </div>
+  
+  <!-- Form -->
+  <div class="form-card">
+    <div class="fc-head">
+      <div class="fc-head-title">
+        {% if rasxod %}
+          ✎ Rasxod tahrirlash
+        {% else %}
+          ➕ Yangi rasxod
+        {% endif %}
+      </div>
+    </div>
+    <div class="fc-body">
+      {% if form.non_field_errors %}
+      <div class="form-errors">
+        {% for error in form.non_field_errors %}
+        <p>{{ error }}</p>
+        {% endfor %}
+      </div>
+      {% endif %}
+      
+      <form method="post">
+        {% csrf_token %}
+        
+        <!-- Rasxod Turi -->
+        <div class="form-group">
+          <label class="form-label" for="{{ form.rasxod_turi.id_for_label }}">{{ form.rasxod_turi.label }}</label>
+          <select name="rasxod_turi" class="form-select" required>
+            <option value="">— Tanlang —</option>
+            {% for value, label in form.rasxod_turi.field.choices %}
+              {% if value %}
+              <option value="{{ value }}" {% if form.rasxod_turi.value == value %}selected{% endif %}>{{ label }}</option>
+              {% endif %}
+            {% endfor %}
+          </select>
+          {% if form.rasxod_turi.errors %}
+          <ul class="errorlist">{{ form.rasxod_turi.errors }}</ul>
+          {% endif %}
+        </div>
+        
+        <!-- Rasxod Nomi -->
+        <div class="form-group">
+          <label class="form-label" for="{{ form.nomi.id_for_label }}">{{ form.nomi.label }}</label>
+          <input type="text" name="nomi" class="form-input" value="{{ form.nomi.value|default:'' }}" placeholder="masalan: Qora bo'y" required>
+          {% if form.nomi.errors %}
+          <ul class="errorlist">{{ form.nomi.errors }}</ul>
+          {% endif %}
+        </div>
+        
+        <!-- Miqdor va Kg -->
+        <div class="form-grid-2">
+          <div class="form-group">
+            <label class="form-label" for="{{ form.miqdor.id_for_label }}">{{ form.miqdor.label }}</label>
+            <input type="number" name="miqdor" class="form-input" value="{{ form.miqdor.value|default:'' }}" step="0.01" min="0" placeholder="0.00" required>
+            {% if form.miqdor.errors %}
+            <ul class="errorlist">{{ form.miqdor.errors }}</ul>
+            {% endif %}
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="{{ form.kg.id_for_label }}">{{ form.kg.label }}</label>
+            <input type="number" name="kg" class="form-input" value="{{ form.kg.value|default:'' }}" step="0.01" min="0" placeholder="0.00 kg" required>
+            {% if form.kg.errors %}
+            <ul class="errorlist">{{ form.kg.errors }}</ul>
+            {% endif %}
+          </div>
+        </div>
+        
+        <!-- Sana -->
+        <div class="form-group">
+          <label class="form-label" for="{{ form.sana.id_for_label }}">{{ form.sana.label }}</label>
+          <input type="date" name="sana" class="form-input" value="{% if form.sana.value %}{{ form.sana.value|date:'Y-m-d' }}{% else %}{{ today|date:'Y-m-d' }}{% endif %}" required>
+          {% if form.sana.errors %}
+          <ul class="errorlist">{{ form.sana.errors }}</ul>
+          {% endif %}
+        </div>
+        
+        <!-- Izoh -->
+        <div class="form-group">
+          <label class="form-label" for="{{ form.izoh.id_for_label }}">{{ form.izoh.label }}</label>
+          <textarea name="izoh" class="form-textarea" placeholder="Ixtiyoriy izoh...">{{ form.izoh.value|default:'' }}</textarea>
+          {% if form.izoh.errors %}
+          <ul class="errorlist">{{ form.izoh.errors }}</ul>
+          {% endif %}
+        </div>
+        
+        <!-- Submit -->
+        <button type="submit" class="btn-submit">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width:16px;height:16px;">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+          </svg>
+          {% if rasxod %}Saqlash{% else %}Qo'shish{% endif %}
+        </button>
+      </form>
+    </div>
+  </div>
+
+</div>
+
+{% endblock %}
