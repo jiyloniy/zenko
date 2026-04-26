@@ -6,12 +6,12 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 from django.views import View
 
-from apps.casting.forms import StanokForm, QuyishRasxodForm
+from apps.casting.forms import StanokForm, QuyishRasxodForm, OrderForm
 from apps.casting.models import (
     AdditionalHomLog, AdditionalOrder, AdditionalTayorLog,
     HomMahsulotLog, RasxodLog, Stanok, TayorMahsulotLog, Zamak, QuyishRasxod,
 )
-from apps.order.models import Order
+from apps.order.models import Order, Brujka
 from apps.order.views.mixins import CastingManagerRequiredMixin
 
 
@@ -785,3 +785,166 @@ class QuyishRasxodDeleteView(CastingManagerRequiredMixin, View):
         get_object_or_404(QuyishRasxod, pk=pk).delete()
         messages.success(request, 'Rasxod o\'chirildi.')
         return redirect('casting:quyish_rasxod_list')
+
+
+# ── Order Manage (Casting Manager) ───────────────────────────────────────────
+
+class OrderManageListView(CastingManagerRequiredMixin, View):
+    """Barcha buyurtmalar ro'yxati — casting manager boshqaruvi."""
+
+    def get(self, request):
+        q        = request.GET.get('q', '').strip()
+        status_f = request.GET.get('status', '')
+        prio_f   = request.GET.get('priority', '')
+
+        qs = Order.objects.select_related('brujka', 'created_by').all()
+        if q:
+            qs = qs.filter(name__icontains=q)
+        if status_f:
+            qs = qs.filter(status=status_f)
+        if prio_f:
+            qs = qs.filter(priority=prio_f)
+
+        counts = {s: Order.objects.filter(status=s).count() for s, _ in Order.Status.choices}
+        return render(request, 'casting/order_manage_list.html', {
+            'orders':    qs.order_by('-created_at'),
+            'q':         q,
+            'status_f':  status_f,
+            'prio_f':    prio_f,
+            'counts':    counts,
+            'statuses':  Order.Status.choices,
+            'priorities': Order.Priority.choices,
+            'active_nav': 'order_manage',
+        })
+
+
+class OrderCreateView(CastingManagerRequiredMixin, View):
+    """Yangi buyurtma yaratish — status avtomatik 'accepted' bo'ladi."""
+
+    def get(self, request):
+        form = OrderForm()
+        return render(request, 'casting/order_form.html', {
+            'form':      form,
+            'title':     'Yangi buyurtma',
+            'active_nav': 'order_manage',
+        })
+
+    def post(self, request):
+        form = OrderForm(request.POST, request.FILES)
+        if form.is_valid():
+            order = form.save(commit=False)
+            order.status     = Order.Status.ACCEPTED
+            order.created_by = request.user
+            order.save()
+            messages.success(request, f'"{order.name}" buyurtmasi yaratildi — Qabul qilindi.')
+            return redirect('casting:order_manage_list')
+        return render(request, 'casting/order_form.html', {
+            'form':      form,
+            'title':     'Yangi buyurtma',
+            'active_nav': 'order_manage',
+        })
+
+
+class OrderUpdateView(CastingManagerRequiredMixin, View):
+    """Buyurtmani tahrirlash — faqat o'zi yaratgan buyurtmani."""
+
+    def _get_own(self, request, pk):
+        return get_object_or_404(Order, pk=pk, created_by=request.user)
+
+    def get(self, request, pk):
+        order = self._get_own(request, pk)
+        form  = OrderForm(instance=order)
+        return render(request, 'casting/order_form.html', {
+            'form':      form,
+            'order':     order,
+            'title':     f'{order.name} — tahrirlash',
+            'active_nav': 'order_manage',
+        })
+
+    def post(self, request, pk):
+        order = self._get_own(request, pk)
+        form  = OrderForm(request.POST, request.FILES, instance=order)
+        if form.is_valid():
+            form.save()
+            messages.success(request, f'"{order.name}" yangilandi.')
+            return redirect('casting:order_manage_list')
+        return render(request, 'casting/order_form.html', {
+            'form':      form,
+            'order':     order,
+            'title':     f'{order.name} — tahrirlash',
+            'active_nav': 'order_manage',
+        })
+
+
+class OrderDeleteView(CastingManagerRequiredMixin, View):
+    """Buyurtmani o'chirish — faqat o'zi yaratgan buyurtmani."""
+
+    def get(self, request, pk):
+        order = get_object_or_404(Order, pk=pk, created_by=request.user)
+        return render(request, 'casting/order_confirm_delete.html', {
+            'order':     order,
+            'active_nav': 'order_manage',
+        })
+
+    def post(self, request, pk):
+        order = get_object_or_404(Order, pk=pk, created_by=request.user)
+        name  = order.name
+        order.delete()
+        messages.success(request, f'"{name}" buyurtmasi o\'chirildi.')
+        return redirect('casting:order_manage_list')
+
+
+class OrderSetStatusView2(CastingManagerRequiredMixin, View):
+    """Buyurtma statusini o'zgartirish (bekor qilish yoki boshqa holatlarga o'tkazish)."""
+
+    def post(self, request, pk):
+        order      = get_object_or_404(Order, pk=pk)
+        new_status = request.POST.get('status', '')
+        allowed    = [s for s, _ in Order.Status.choices]
+        if new_status in allowed:
+            order.status = new_status
+            order.save(update_fields=['status'])
+            messages.success(request, f'Holat: {order.get_status_display()}')
+        else:
+            messages.error(request, 'Noto\'g\'ri holat.')
+        next_url = request.POST.get('next', '')
+        if next_url:
+            return redirect(next_url)
+        return redirect('casting:order_manage_list')
+
+
+# ── Brujkalar ─────────────────────────────────────────────────────────────────
+
+class BrujkaListView(CastingManagerRequiredMixin, View):
+    def get(self, request):
+        q  = request.GET.get('q', '').strip()
+        ct = request.GET.get('coating', '')
+        qs = Brujka.objects.all()
+        if q:
+            qs = qs.filter(name__icontains=q)
+        if ct:
+            qs = qs.filter(coating_type=ct)
+        counts = {
+            'total':    Brujka.objects.count(),
+            'active':   Brujka.objects.filter(is_active=True).count(),
+            'inactive': Brujka.objects.filter(is_active=False).count(),
+        }
+        return render(request, 'casting/brujka_list.html', {
+            'brujkalar':   qs.order_by('name'),
+            'q':           q,
+            'ct':          ct,
+            'counts':      counts,
+            'coating_choices': Brujka.CoatingType.choices,
+            'active_nav':  'brujkalar',
+        })
+
+
+class BrujkaDetailView(CastingManagerRequiredMixin, View):
+    def get(self, request, pk):
+        brujka = get_object_or_404(Brujka, pk=pk)
+        orders = Order.objects.filter(brujka=brujka).select_related('created_by').order_by('-created_at')[:20]
+        return render(request, 'casting/brujka_detail.html', {
+            'brujka':    brujka,
+            'orders':    orders,
+            'active_nav': 'brujkalar',
+        })

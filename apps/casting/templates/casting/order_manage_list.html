@@ -1,0 +1,217 @@
+{% extends "casting/base.html" %}
+{% block title %}Buyurtmalar boshqaruvi — Zenko{% endblock %}
+{% block page_title %}Buyurtmalar boshqaruvi{% endblock %}
+
+{% block extra_css %}
+<style>
+/* Status badge colors */
+.st-badge{display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;white-space:nowrap;}
+.st-new{background:#EFF6FF;color:#1D4ED8;border:1px solid #BFDBFE;}
+.st-accepted{background:#F0FDF4;color:#16A34A;border:1px solid #BBF7D0;}
+.st-in_process{background:#FEF3C7;color:#B45309;border:1px solid #FCD34D;}
+.st-ready{background:#F0FDF4;color:#047857;border:1px solid #6EE7B7;}
+.st-delivered{background:#F3F4F6;color:#374151;border:1px solid #D1D5DB;}
+.st-cancelled{background:#FEF2F2;color:#DC2626;border:1px solid #FECACA;}
+
+.prio-badge{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:20px;font-size:10px;font-weight:700;}
+.prio-low{background:#DCFCE7;color:#15803D;}
+.prio-normal{background:#EFF6FF;color:#1D4ED8;}
+.prio-high{background:#FEF3C7;color:#B45309;}
+.prio-urgent{background:#FEE2E2;color:#DC2626;}
+
+/* Stats row */
+.stats-row{display:flex;gap:10px;margin-bottom:20px;flex-wrap:wrap;}
+.sr-card{background:var(--white);border:1px solid var(--gray-200);border-radius:11px;padding:12px 16px;flex:1;min-width:110px;box-shadow:0 1px 3px rgba(0,0,0,.04);}
+.sr-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--gray-400);margin-bottom:4px;}
+.sr-val{font-size:22px;font-weight:900;color:var(--black);}
+
+/* Filter */
+.filter-wrap{background:var(--white);border:1px solid var(--gray-200);border-radius:13px;padding:16px;margin-bottom:20px;display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end;}
+.f-group{display:flex;flex-direction:column;gap:4px;min-width:140px;}
+.f-group label{font-size:11px;font-weight:600;color:var(--gray-500);text-transform:uppercase;letter-spacing:.5px;}
+.f-sel,.f-inp-sm{padding:8px 12px;background:var(--gray-50);border:1.5px solid var(--gray-200);border-radius:9px;color:var(--black);font-family:inherit;font-size:13px;outline:none;transition:border-color .18s;}
+.f-sel:focus,.f-inp-sm:focus{border-color:var(--orange);}
+.f-inp-sm{flex:1;min-width:180px;}
+
+/* Table */
+.tbl-wrap{background:var(--white);border:1px solid var(--gray-200);border-radius:14px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,.04);}
+table{width:100%;border-collapse:collapse;}
+th{padding:11px 14px;text-align:left;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:var(--gray-500);background:var(--gray-50);border-bottom:1px solid var(--gray-200);}
+td{padding:12px 14px;border-bottom:1px solid var(--gray-100);font-size:13px;color:var(--black);vertical-align:middle;}
+tr:last-child td{border-bottom:none;}
+tr:hover td{background:var(--gray-50);}
+
+.order-img{width:40px;height:40px;border-radius:8px;object-fit:cover;}
+.order-img-ph{width:40px;height:40px;border-radius:8px;background:var(--gray-100);display:grid;place-items:center;}
+.order-img-ph svg{width:18px;height:18px;color:var(--gray-300);}
+
+.actions-cell{display:flex;gap:6px;flex-wrap:wrap;}
+
+/* Status dropdown form */
+.status-form select{padding:4px 8px;border-radius:7px;border:1.5px solid var(--gray-200);font-size:12px;font-family:inherit;background:var(--gray-50);cursor:pointer;}
+.status-form select:focus{outline:none;border-color:var(--orange);}
+
+/* Empty */
+.empty-wrap{padding:60px 20px;text-align:center;color:var(--gray-400);}
+.empty-wrap svg{width:48px;height:48px;margin-bottom:12px;opacity:.2;}
+
+@media(max-width:900px){th:nth-child(5),td:nth-child(5){display:none;}}
+@media(max-width:700px){th:nth-child(4),td:nth-child(4){display:none;}}
+</style>
+{% endblock %}
+
+{% block topbar_actions %}
+<a href="{% url 'casting:order_create' %}" class="btn btn-primary">
+  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>
+  Yangi buyurtma
+</a>
+{% endblock %}
+
+{% block content %}
+
+<!-- Stats -->
+<div class="stats-row">
+  <div class="sr-card"><div class="sr-label">Yangi</div><div class="sr-val">{{ counts.new|default:0 }}</div></div>
+  <div class="sr-card"><div class="sr-label">Qabul qilindi</div><div class="sr-val">{{ counts.accepted|default:0 }}</div></div>
+  <div class="sr-card"><div class="sr-label">Ishlab chiqarilmoqda</div><div class="sr-val">{{ counts.in_process|default:0 }}</div></div>
+  <div class="sr-card"><div class="sr-label">Tayyor</div><div class="sr-val">{{ counts.ready|default:0 }}</div></div>
+  <div class="sr-card"><div class="sr-label">Topshirildi</div><div class="sr-val">{{ counts.delivered|default:0 }}</div></div>
+  <div class="sr-card"><div class="sr-label">Bekor</div><div class="sr-val">{{ counts.cancelled|default:0 }}</div></div>
+</div>
+
+<!-- Filters -->
+<form class="filter-wrap" method="get">
+  <div class="f-group" style="flex:2;min-width:200px;">
+    <label>Qidirish</label>
+    <input type="text" name="q" value="{{ q }}" class="f-inp-sm" placeholder="Buyurtma nomi...">
+  </div>
+  <div class="f-group">
+    <label>Status</label>
+    <select name="status" class="f-sel">
+      <option value="">Barcha</option>
+      {% for val, label in statuses %}
+      <option value="{{ val }}" {% if status_f == val %}selected{% endif %}>{{ label }}</option>
+      {% endfor %}
+    </select>
+  </div>
+  <div class="f-group">
+    <label>Muhimlik</label>
+    <select name="priority" class="f-sel">
+      <option value="">Barcha</option>
+      {% for val, label in priorities %}
+      <option value="{{ val }}" {% if prio_f == val %}selected{% endif %}>{{ label }}</option>
+      {% endfor %}
+    </select>
+  </div>
+  <div style="display:flex;gap:6px;align-items:flex-end;">
+    <button type="submit" class="btn btn-primary btn-sm">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z"/></svg>
+      Filter
+    </button>
+    {% if q or status_f or prio_f %}
+    <a href="{% url 'casting:order_manage_list' %}" class="btn btn-sm" style="background:#FEF2F2;color:#DC2626;border:1px solid #FECACA;">Tozalash</a>
+    {% endif %}
+  </div>
+</form>
+
+{% if messages %}
+<div class="messages-wrap">
+  {% for msg in messages %}
+  <div class="msg msg-{{ msg.tags }}">
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/></svg>
+    {{ msg }}
+  </div>
+  {% endfor %}
+</div>
+{% endif %}
+
+{% if orders %}
+<div class="tbl-wrap">
+<table>
+  <thead>
+    <tr>
+      <th></th>
+      <th>Buyurtma</th>
+      <th>Status</th>
+      <th>Muhimlik</th>
+      <th>Miqdor</th>
+      <th>Muddat</th>
+      <th>Yaratuvchi</th>
+      <th>Amallar</th>
+    </tr>
+  </thead>
+  <tbody>
+  {% for order in orders %}
+  <tr>
+    <td>
+      {% if order.image %}
+        <img src="{{ order.image.url }}" class="order-img" alt="">
+      {% elif order.brujka and order.brujka.image %}
+        <img src="{{ order.brujka.image.url }}" class="order-img" alt="">
+      {% else %}
+        <div class="order-img-ph">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m2.25 15.75 5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159m-1.5-1.5 1.409-1.409a2.25 2.25 0 0 1 3.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 0 0 1.5-1.5V6a1.5 1.5 0 0 0-1.5-1.5H3.75A1.5 1.5 0 0 0 2.25 6v12a1.5 1.5 0 0 0 1.5 1.5Zm10.5-11.25h.008v.008h-.008V8.25Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Z"/></svg>
+        </div>
+      {% endif %}
+    </td>
+    <td>
+      <div style="font-weight:700;font-size:13px;">{{ order.name }}</div>
+      <div style="font-size:11px;color:var(--gray-400);font-family:monospace;">{{ order.order_number }}</div>
+      {% if order.brujka %}
+      <div style="font-size:11px;color:var(--gray-500);display:flex;align-items:center;gap:4px;margin-top:2px;">
+        <span style="width:8px;height:8px;border-radius:50%;background:{{ order.brujka.color }};flex-shrink:0;"></span>
+        {{ order.brujka.name }}
+      </div>
+      {% endif %}
+    </td>
+    <td>
+      <!-- Status o'zgartirish -->
+      <form class="status-form" method="post" action="{% url 'casting:order_set_status2' order.pk %}">
+        {% csrf_token %}
+        <input type="hidden" name="next" value="{% url 'casting:order_manage_list' %}{% if request.GET.urlencode %}?{{ request.GET.urlencode }}{% endif %}">
+        <select name="status" onchange="this.form.submit()" title="Statusni o'zgartirish">
+          {% for val, label in statuses %}
+          <option value="{{ val }}" {% if order.status == val %}selected{% endif %}>{{ label }}</option>
+          {% endfor %}
+        </select>
+      </form>
+    </td>
+    <td>
+      <span class="prio-badge prio-{{ order.priority }}">{{ order.get_priority_display }}</span>
+    </td>
+    <td style="font-weight:700;">{{ order.quantity }} <span style="font-size:11px;color:var(--gray-400);font-weight:400;">dona</span></td>
+    <td>
+      <span {% if order.is_overdue %}style="color:#DC2626;font-weight:700;"{% endif %}>
+        {{ order.deadline|date:"d.m.Y" }}
+      </span>
+      {% if order.is_overdue %}<div style="font-size:10px;color:#DC2626;font-weight:600;">Muddati o'tgan</div>{% endif %}
+    </td>
+    <td style="font-size:12px;color:var(--gray-500);">{{ order.created_by.name|default:"—" }}</td>
+    <td>
+      <div class="actions-cell">
+        <a href="{% url 'casting:order_log' order.pk %}" class="btn btn-sm btn-secondary" title="Log">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 12h16.5m-16.5 3.75h16.5M3.75 19.5h16.5M5.625 4.5h12.75a1.875 1.875 0 0 1 0 3.75H5.625a1.875 1.875 0 0 1 0-3.75Z"/></svg>
+        </a>
+        {% if order.created_by == request.user %}
+        <a href="{% url 'casting:order_edit' order.pk %}" class="btn btn-sm btn-secondary" title="Tahrirlash">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125"/></svg>
+        </a>
+        <a href="{% url 'casting:order_delete' order.pk %}" class="btn btn-sm btn-danger" title="O'chirish">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0"/></svg>
+        </a>
+        {% endif %}
+      </div>
+    </td>
+  </tr>
+  {% endfor %}
+  </tbody>
+</table>
+</div>
+{% else %}
+<div class="empty-wrap">
+  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z"/></svg>
+  <p>Buyurtmalar topilmadi</p>
+</div>
+{% endif %}
+
+{% endblock %}

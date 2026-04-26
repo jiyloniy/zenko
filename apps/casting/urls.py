@@ -37,6 +37,17 @@ urlpatterns = [
     path('zamaklar/add/', views.ZamakCreateView.as_view(), name='zamak_add'),
     path('zamaklar/<int:pk>/delete/', views.ZamakDeleteView.as_view(), name='zamak_delete'),
 
+    # Order manage (casting manager CRUD)
+    path('manage/', views.OrderManageListView.as_view(), name='order_manage_list'),
+    path('manage/create/', views.OrderCreateView.as_view(), name='order_create'),
+    path('manage/<int:pk>/edit/', views.OrderUpdateView.as_view(), name='order_edit'),
+    path('manage/<int:pk>/delete/', views.OrderDeleteView.as_view(), name='order_delete'),
+    path('manage/<int:pk>/set-status/', views.OrderSetStatusView2.as_view(), name='order_set_status2'),
+
+    # Brujkalar
+    path('brujkalar/', views.BrujkaListView.as_view(), name='brujka_list'),
+    path('brujkalar/<int:pk>/', views.BrujkaDetailView.as_view(), name='brujka_detail'),
+
     # Additional orders
     path('additional/', views.AdditionalOrderListView.as_view(), name='additional_order_list'),
     path('additional/create/', views.AdditionalOrderCreateView.as_view(), name='additional_order_create'),

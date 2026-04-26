@@ -1,0 +1,169 @@
+{% extends "casting/base.html" %}
+{% block title %}{{ brujka.name }} — Zenko{% endblock %}
+{% block page_title %}{{ brujka.name }}{% endblock %}
+
+{% block extra_css %}
+<style>
+.detail-layout{display:grid;grid-template-columns:320px 1fr;gap:20px;align-items:start;}
+@media(max-width:800px){.detail-layout{grid-template-columns:1fr;}}
+
+/* Left: Brujka info */
+.bk-info-card{background:var(--white);border:1px solid var(--gray-200);border-radius:16px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,.04);position:sticky;top:calc(var(--topbar-h) + 16px);}
+.bk-info-img{width:100%;height:240px;object-fit:cover;display:block;}
+.bk-info-img-ph{width:100%;height:240px;background:var(--gray-100);display:flex;align-items:center;justify-content:center;}
+.bk-info-img-ph svg{width:56px;height:56px;color:var(--gray-300);}
+.bk-color-bar{height:5px;}
+.bk-info-body{padding:18px 20px;}
+.bk-info-name{font-size:20px;font-weight:900;color:var(--black);margin-bottom:10px;display:flex;align-items:center;gap:10px;}
+.bk-swatch{width:16px;height:16px;border-radius:50%;flex-shrink:0;box-shadow:0 1px 3px rgba(0,0,0,.2);}
+.bk-info-row{display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-bottom:1px solid var(--gray-100);font-size:13px;}
+.bk-info-row:last-child{border-bottom:none;}
+.bk-info-label{color:var(--gray-500);}
+.bk-info-val{font-weight:600;color:var(--black);}
+.bk-desc{font-size:13px;color:var(--gray-500);line-height:1.6;margin-top:12px;padding-top:12px;border-top:1px solid var(--gray-100);}
+
+/* Status badge */
+.active-badge{background:#F0FDF4;color:#16A34A;border:1px solid #BBF7D0;padding:3px 10px;border-radius:20px;font-size:12px;font-weight:700;}
+.inactive-badge{background:#F3F4F6;color:#6B7280;border:1px solid #D1D5DB;padding:3px 10px;border-radius:20px;font-size:12px;font-weight:700;}
+
+/* Right: Orders */
+.orders-section-title{font-size:15px;font-weight:800;color:var(--black);margin-bottom:14px;display:flex;align-items:center;justify-content:space-between;}
+.orders-section-title span{font-size:12px;font-weight:600;color:var(--gray-400);}
+
+.tbl-wrap{background:var(--white);border:1px solid var(--gray-200);border-radius:14px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,.04);}
+table{width:100%;border-collapse:collapse;}
+th{padding:10px 14px;text-align:left;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:var(--gray-500);background:var(--gray-50);border-bottom:1px solid var(--gray-200);}
+td{padding:11px 14px;border-bottom:1px solid var(--gray-100);font-size:13px;color:var(--black);vertical-align:middle;}
+tr:last-child td{border-bottom:none;}
+tr:hover td{background:var(--gray-50);}
+
+.st-badge{display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;}
+.st-new{background:#EFF6FF;color:#1D4ED8;border:1px solid #BFDBFE;}
+.st-accepted{background:#F0FDF4;color:#16A34A;border:1px solid #BBF7D0;}
+.st-in_process{background:#FEF3C7;color:#B45309;border:1px solid #FCD34D;}
+.st-ready{background:#F0FDF4;color:#047857;border:1px solid #6EE7B7;}
+.st-delivered{background:#F3F4F6;color:#374151;border:1px solid #D1D5DB;}
+.st-cancelled{background:#FEF2F2;color:#DC2626;border:1px solid #FECACA;}
+
+/* Empty */
+.empty-wrap{padding:40px 20px;text-align:center;color:var(--gray-400);}
+.empty-wrap svg{width:40px;height:40px;margin-bottom:10px;opacity:.2;}
+</style>
+{% endblock %}
+
+{% block topbar_actions %}
+<a href="{% url 'casting:brujka_list' %}" class="btn btn-secondary btn-sm">
+  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18"/></svg>
+  Orqaga
+</a>
+{% endblock %}
+
+{% block content %}
+
+{% if messages %}
+<div class="messages-wrap">
+  {% for msg in messages %}
+  <div class="msg msg-{{ msg.tags }}">{{ msg }}</div>
+  {% endfor %}
+</div>
+{% endif %}
+
+<div class="detail-layout">
+
+  <!-- Brujka info -->
+  <div class="bk-info-card">
+    {% if brujka.image %}
+    <img src="{{ brujka.image.url }}" class="bk-info-img" alt="{{ brujka.name }}">
+    {% else %}
+    <div class="bk-info-img-ph">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m2.25 15.75 5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159m-1.5-1.5 1.409-1.409a2.25 2.25 0 0 1 3.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 0 0 1.5-1.5V6a1.5 1.5 0 0 0-1.5-1.5H3.75A1.5 1.5 0 0 0 2.25 6v12a1.5 1.5 0 0 0 1.5 1.5Zm10.5-11.25h.008v.008h-.008V8.25Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Z"/></svg>
+    </div>
+    {% endif %}
+    <div class="bk-color-bar" style="background:{{ brujka.color }};"></div>
+    <div class="bk-info-body">
+      <div class="bk-info-name">
+        <span class="bk-swatch" style="background:{{ brujka.color }};"></span>
+        {{ brujka.name }}
+      </div>
+      <div class="bk-info-row">
+        <span class="bk-info-label">Holati</span>
+        {% if brujka.is_active %}
+        <span class="active-badge">Faol</span>
+        {% else %}
+        <span class="inactive-badge">Faol emas</span>
+        {% endif %}
+      </div>
+      <div class="bk-info-row">
+        <span class="bk-info-label">Qoplama turi</span>
+        <span class="bk-info-val">{{ brujka.get_coating_type_display }}</span>
+      </div>
+      <div class="bk-info-row">
+        <span class="bk-info-label">Rang (hex)</span>
+        <span class="bk-info-val" style="display:flex;align-items:center;gap:6px;">
+          <span style="width:14px;height:14px;border-radius:3px;background:{{ brujka.color }};border:1px solid var(--gray-200);"></span>
+          {{ brujka.color }}
+        </span>
+      </div>
+      <div class="bk-info-row">
+        <span class="bk-info-label">Jami buyurtmalar</span>
+        <span class="bk-info-val">{{ brujka.orders.count }} ta</span>
+      </div>
+      <div class="bk-info-row">
+        <span class="bk-info-label">Yaratilgan</span>
+        <span class="bk-info-val">{{ brujka.created_at|date:"d.m.Y" }}</span>
+      </div>
+      {% if brujka.description %}
+      <div class="bk-desc">{{ brujka.description }}</div>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Orders -->
+  <div>
+    <div class="orders-section-title">
+      So'nggi buyurtmalar
+      <span>{{ orders|length }} ta ko'rsatilmoqda</span>
+    </div>
+
+    {% if orders %}
+    <div class="tbl-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Buyurtma</th>
+          <th>Status</th>
+          <th>Miqdor</th>
+          <th>Muddat</th>
+          <th>Yaratuvchi</th>
+        </tr>
+      </thead>
+      <tbody>
+      {% for order in orders %}
+      <tr>
+        <td>
+          <div style="font-weight:700;">{{ order.name }}</div>
+          <div style="font-size:11px;color:var(--gray-400);font-family:monospace;">{{ order.order_number }}</div>
+        </td>
+        <td><span class="st-badge st-{{ order.status }}">{{ order.get_status_display }}</span></td>
+        <td><strong>{{ order.quantity }}</strong> <span style="font-size:11px;color:var(--gray-400);">dona</span></td>
+        <td>
+          <span {% if order.is_overdue %}style="color:#DC2626;font-weight:700;"{% endif %}>
+            {{ order.deadline|date:"d.m.Y" }}
+          </span>
+        </td>
+        <td style="font-size:12px;color:var(--gray-500);">{{ order.created_by.name|default:"—" }}</td>
+      </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+    </div>
+    {% else %}
+    <div class="empty-wrap">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z"/></svg>
+      <p>Bu brujka uchun buyurtmalar yo'q</p>
+    </div>
+    {% endif %}
+  </div>
+</div>
+
+{% endblock %}

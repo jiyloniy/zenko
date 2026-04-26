@@ -1,5 +1,69 @@
 from django import forms
 from apps.casting.models import Stanok, QuyishRasxod
+from apps.order.models import Order, Brujka
+
+
+class OrderForm(forms.ModelForm):
+    """Casting manager uchun buyurtma yaratish/tahrirlash formasi."""
+
+    class Meta:
+        model = Order
+        fields = ['name', 'brujka', 'quantity', 'deadline', 'priority', 'note', 'image']
+        widgets = {
+            'name': forms.TextInput(attrs={
+                'class': 'f-inp',
+                'placeholder': 'Buyurtma nomi',
+                'required': True,
+                'autofocus': True,
+            }),
+            'brujka': forms.Select(attrs={'class': 'f-inp'}),
+            'quantity': forms.NumberInput(attrs={
+                'class': 'f-inp',
+                'placeholder': '0',
+                'min': '1',
+                'required': True,
+            }),
+            'deadline': forms.DateInput(attrs={
+                'class': 'f-inp',
+                'type': 'date',
+                'required': True,
+            }),
+            'priority': forms.Select(attrs={'class': 'f-inp'}),
+            'note': forms.Textarea(attrs={
+                'class': 'f-inp',
+                'placeholder': 'Ixtiyoriy izoh...',
+                'rows': 3,
+            }),
+            'image': forms.ClearableFileInput(attrs={'class': 'f-inp'}),
+        }
+        labels = {
+            'name': 'Buyurtma nomi',
+            'brujka': 'Brujka',
+            'quantity': 'Miqdor (dona)',
+            'deadline': 'Muddat',
+            'priority': 'Muhimlik',
+            'note': 'Izoh',
+            'image': 'Rasm',
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        brujka_field = self.fields['brujka']  # type: ignore[index]
+        brujka_field.queryset = Brujka.objects.filter(is_active=True).order_by('name')  # type: ignore[attr-defined]
+        brujka_field.empty_label = '— Brujka tanlang —'  # type: ignore[attr-defined]
+        brujka_field.required = False
+
+    def clean_quantity(self):
+        qty = self.cleaned_data.get('quantity')
+        if qty is None or qty < 1:
+            raise forms.ValidationError('Miqdor kamida 1 bo\'lishi kerak.')
+        return qty
+
+    def clean_deadline(self):
+        deadline = self.cleaned_data.get('deadline')
+        if not deadline:
+            raise forms.ValidationError('Muddat majburiy.')
+        return deadline
 
 
 class StanokForm(forms.ModelForm):
