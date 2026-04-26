@@ -15,8 +15,8 @@
 @media(max-width:900px){.form-layout{grid-template-columns:1fr;}}
 
 /* Main card */
-.form-card{background:var(--white);border:1px solid var(--gray-200);border-radius:16px;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.05);margin-bottom:16px;}
-.fc-head{background:var(--black);padding:18px 22px;display:flex;align-items:center;gap:12px;}
+.form-card{background:var(--white);border:1px solid var(--gray-200);border-radius:16px;box-shadow:0 1px 4px rgba(0,0,0,.05);margin-bottom:16px;}
+.fc-head{background:var(--black);padding:18px 22px;display:flex;align-items:center;gap:12px;border-radius:16px 16px 0 0;}
 .fc-hico{width:38px;height:38px;background:var(--orange);border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
 .fc-hico svg{width:20px;height:20px;color:#fff;}
 .fc-htitle{font-size:15px;font-weight:700;color:#fff;margin:0;}
@@ -56,7 +56,8 @@ textarea.f-inp{resize:vertical;min-height:80px;}
 .brujka-search-input{width:100%;padding:10px 14px 10px 40px;border:1.5px solid var(--gray-200);border-radius:10px;font-size:13.5px;color:var(--black);background:var(--white);transition:border-color .18s,box-shadow .18s;box-sizing:border-box;font-family:inherit;}
 .brujka-search-input:focus{outline:none;border-color:var(--orange);box-shadow:0 0 0 3px rgba(245,130,32,.1);}
 .brujka-search-icon{position:absolute;left:12px;top:50%;transform:translateY(-50%);width:16px;height:16px;color:var(--gray-400);pointer-events:none;}
-.brujka-dropdown{position:absolute;top:calc(100% + 5px);left:0;right:0;background:var(--white);border:1.5px solid var(--gray-200);border-radius:12px;box-shadow:0 10px 28px rgba(0,0,0,.12);z-index:200;max-height:300px;overflow-y:auto;display:none;}
+/* Dropdown: fixed — hech qanday overflow:hidden ta'sir qilmaydi */
+.brujka-dropdown{position:fixed;background:var(--white);border:1.5px solid var(--gray-200);border-radius:12px;box-shadow:0 10px 32px rgba(0,0,0,.14);z-index:9999;max-height:320px;overflow-y:auto;display:none;}
 .brujka-dropdown.open{display:block;}
 .brujka-option{display:flex;align-items:center;gap:12px;padding:10px 14px;cursor:pointer;transition:background .12s;border-bottom:1px solid var(--gray-100);}
 .brujka-option:last-child{border-bottom:none;}
@@ -491,12 +492,32 @@ document.getElementById('brujkaSearch').addEventListener('focus', function() {
   doSearch(this.value.trim());
 });
 document.addEventListener('click', function(e) {
-  if (!e.target.closest('.brujka-search-wrap')) {
+  if (!e.target.closest('.brujka-search-wrap') && !e.target.closest('#brujkaDropdown')) {
     document.getElementById('brujkaDropdown').classList.remove('open');
   }
 });
+// Scroll yoki resize bo'lsa dropdown pozitsiyasini yangilaymiz
+window.addEventListener('scroll', function() {
+  const dd = document.getElementById('brujkaDropdown');
+  if (dd && dd.classList.contains('open')) positionDropdown();
+}, true);
+window.addEventListener('resize', function() {
+  const dd = document.getElementById('brujkaDropdown');
+  if (dd && dd.classList.contains('open')) positionDropdown();
+});
+
+function positionDropdown() {
+  const inp = document.getElementById('brujkaSearch');
+  const dd  = document.getElementById('brujkaDropdown');
+  if (!inp || !dd) return;
+  const rect = inp.getBoundingClientRect();
+  dd.style.left  = rect.left + 'px';
+  dd.style.top   = (rect.bottom + 5) + 'px';
+  dd.style.width = rect.width + 'px';
+}
 
 function doSearch(q) {
+  positionDropdown();
   fetch(SEARCH_URL + '?q=' + encodeURIComponent(q))
     .then(r => r.json())
     .then(data => renderDropdown(data.results));

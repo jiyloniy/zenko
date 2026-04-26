@@ -21,12 +21,13 @@ from apps.order.views.mixins import CastingManagerRequiredMixin
 class CastingOrderListView(CastingManagerRequiredMixin, View):
     def get(self, request):
         q          = request.GET.get('q', '').strip()
-        status_tab = request.GET.get('tab', 'new')  # 'new' | 'in_process'
-        if status_tab not in ('new', 'in_process'):
-            status_tab = 'new'
+        status_tab = request.GET.get('tab', 'accepted')  # 'accepted' | 'in_process'
+        if status_tab not in ('accepted', 'in_process'):
+            status_tab = 'accepted'
 
+        # "Yangi" tab = accepted, "Ishlab chiqarilmoqda" = in_process
         base_qs = Order.objects.select_related('brujka', 'created_by').filter(
-            status__in=[Order.Status.NEW, Order.Status.IN_PROCESS]
+            status__in=[Order.Status.ACCEPTED, Order.Status.IN_PROCESS]
         )
         if q:
             base_qs = base_qs.filter(name__icontains=q)
@@ -37,14 +38,11 @@ class CastingOrderListView(CastingManagerRequiredMixin, View):
         ).order_by('-created_at')
 
         today = timezone.localdate()
-        # Barcha in_process orderlar (filter qilinmagan, statistika uchun)
         all_ip = Order.objects.filter(status=Order.Status.IN_PROCESS)
         buyurtma_jami = all_ip.aggregate(j=Sum('quantity'))['j'] or 0
 
-        # Bugungi loglar (barcha orderlar bo'yicha)
         hom_bugun   = HomMahsulotLog.objects.filter(sana=today).aggregate(j=Sum('miqdor'))['j'] or 0
         tayor_bugun = TayorMahsulotLog.objects.filter(sana=today).aggregate(j=Sum('miqdor'))['j'] or 0
-        # Jami tayor (in_process orderlarga tegishli)
         tayor_jami  = TayorMahsulotLog.objects.filter(
             order__status=Order.Status.IN_PROCESS
         ).aggregate(j=Sum('miqdor'))['j'] or 0
@@ -52,26 +50,26 @@ class CastingOrderListView(CastingManagerRequiredMixin, View):
             order__status=Order.Status.IN_PROCESS
         ).aggregate(j=Sum('miqdor'))['j'] or 0
 
-        new_count = Order.objects.filter(status=Order.Status.NEW).count()
-        ip_count  = Order.objects.filter(status=Order.Status.IN_PROCESS).count()
+        accepted_count = Order.objects.filter(status=Order.Status.ACCEPTED).count()
+        ip_count       = Order.objects.filter(status=Order.Status.IN_PROCESS).count()
 
         return render(request, 'casting/order_list.html', {
-            'orders': orders,
-            'q': q,
-            'tab': status_tab,
-            'new_count': new_count,
-            'ip_count':  ip_count,
-            'active_nav': 'orders',
-            'status_filter': status_tab,
-            'today': today,
+            'orders':         orders,
+            'q':              q,
+            'tab':            status_tab,
+            'accepted_count': accepted_count,
+            'ip_count':       ip_count,
+            'active_nav':     'orders',
+            'status_filter':  status_tab,
+            'today':          today,
             'stats': {
-                'hom_bugun':      hom_bugun,
-                'tayor_bugun':    tayor_bugun,
-                'hom_jami':       hom_jami,
-                'tayor_jami':     tayor_jami,
-                'buyurtma_jami':  buyurtma_jami,
-                'order_count':    all_ip.count(),
-                'tayor_pct':      round(tayor_jami / buyurtma_jami * 100) if buyurtma_jami else 0,
+                'hom_bugun':     hom_bugun,
+                'tayor_bugun':   tayor_bugun,
+                'hom_jami':      hom_jami,
+                'tayor_jami':    tayor_jami,
+                'buyurtma_jami': buyurtma_jami,
+                'order_count':   all_ip.count(),
+                'tayor_pct':     round(tayor_jami / buyurtma_jami * 100) if buyurtma_jami else 0,
             },
         })
 

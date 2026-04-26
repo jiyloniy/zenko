@@ -154,15 +154,15 @@
 </div>
 {% endif %}
 
-<!-- Tabs: Yangi / Ishlab chiqarilmoqda -->
+<!-- Tabs: Qabul qilindi / Ishlab chiqarilmoqda -->
 <div style="display:flex;gap:8px;margin-bottom:16px;">
-  <a href="?tab=new&q={{ q }}" class="btn {% if tab == 'new' %}btn-primary{% else %}btn-secondary{% endif %}" style="gap:8px;">
-    <span style="width:8px;height:8px;border-radius:50%;background:{% if tab == 'new' %}#fff{% else %}#3B82F6{% endif %};flex-shrink:0;"></span>
-    Yangi
-    <span style="background:rgba(255,255,255,.2);border-radius:10px;padding:1px 7px;font-size:11px;">{{ new_count }}</span>
+  <a href="?tab=accepted&q={{ q }}" class="btn {% if tab == 'accepted' %}btn-primary{% else %}btn-secondary{% endif %}" style="gap:8px;">
+    <span style="width:8px;height:8px;border-radius:50%;background:{% if tab == 'accepted' %}#fff{% else %}#22C55E{% endif %};flex-shrink:0;"></span>
+    Qabul qilindi
+    <span style="background:rgba(255,255,255,.2);border-radius:10px;padding:1px 7px;font-size:11px;">{{ accepted_count }}</span>
   </a>
   <a href="?tab=in_process&q={{ q }}" class="btn {% if tab == 'in_process' %}btn-primary{% else %}btn-secondary{% endif %}" style="gap:8px;">
-    <span style="width:8px;height:8px;border-radius:50%;background:{% if tab == 'in_process' %}#fff{% else %}#F97316{% endif %};flex-shrink:0;animation:{% if tab == 'in_process' %}none{% else %}blink 2s infinite{% endif %};"></span>
+    <span style="width:8px;height:8px;border-radius:50%;background:{% if tab == 'in_process' %}#fff{% else %}#F97316{% endif %};flex-shrink:0;{% if tab != 'in_process' %}animation:blink 2s infinite;{% endif %}"></span>
     Ishlab chiqarilmoqda
     <span style="background:rgba(255,255,255,.2);border-radius:10px;padding:1px 7px;font-size:11px;">{{ ip_count }}</span>
   </a>
