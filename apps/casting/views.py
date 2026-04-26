@@ -2,6 +2,7 @@ import datetime
 
 from django.contrib import messages
 from django.db.models import Sum
+from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 from django.views import View
@@ -946,3 +947,24 @@ class BrujkaDetailView(CastingManagerRequiredMixin, View):
             'order_statuses': Order.Status.choices,
             'active_nav':     'brujkalar',
         })
+
+
+class BrujkaSearchAPIView(CastingManagerRequiredMixin, View):
+    """AJAX brujka qidiruv — order form uchun."""
+
+    def get(self, request):
+        q  = request.GET.get('q', '').strip()
+        qs = Brujka.objects.filter(is_active=True)
+        if q:
+            qs = qs.filter(name__icontains=q)
+        data = [
+            {
+                'id':      b.pk,
+                'name':    b.name,
+                'color':   b.color,
+                'coating': b.get_coating_type_display(),
+                'image':   b.image.url if b.image else '',
+            }
+            for b in qs.order_by('name')[:25]
+        ]
+        return JsonResponse({'results': data})

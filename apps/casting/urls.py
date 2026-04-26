@@ -47,6 +47,7 @@ urlpatterns = [
     # Brujkalar
     path('brujkalar/', views.BrujkaListView.as_view(), name='brujka_list'),
     path('brujkalar/<int:pk>/', views.BrujkaDetailView.as_view(), name='brujka_detail'),
+    path('brujkalar/search/', views.BrujkaSearchAPIView.as_view(), name='brujka_search'),
 
     # Additional orders
     path('additional/', views.AdditionalOrderListView.as_view(), name='additional_order_list'),

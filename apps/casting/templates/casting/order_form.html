@@ -11,70 +11,127 @@
 
 {% block extra_css %}
 <style>
-.form-layout{display:grid;grid-template-columns:1fr 360px;gap:20px;align-items:start;}
-@media(max-width:860px){.form-layout{grid-template-columns:1fr;}}
+.form-layout{display:grid;grid-template-columns:1fr 320px;gap:20px;align-items:start;}
+@media(max-width:900px){.form-layout{grid-template-columns:1fr;}}
 
 /* Main card */
-.form-card{background:var(--white);border:1px solid var(--gray-200);border-radius:16px;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.05);}
-.fc-head{padding:16px 22px;border-bottom:1px solid var(--gray-100);display:flex;align-items:center;gap:10px;}
-.fc-head-icon{width:36px;height:36px;border-radius:9px;background:var(--orange-light);display:grid;place-items:center;flex-shrink:0;}
-.fc-head-icon svg{width:18px;height:18px;color:var(--orange);}
-.fc-head-title{font-size:14px;font-weight:700;color:var(--black);}
-.fc-head-sub{font-size:11px;color:var(--gray-400);margin-top:1px;}
+.form-card{background:var(--white);border:1px solid var(--gray-200);border-radius:16px;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.05);margin-bottom:16px;}
+.fc-head{background:var(--black);padding:18px 22px;display:flex;align-items:center;gap:12px;}
+.fc-hico{width:38px;height:38px;background:var(--orange);border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.fc-hico svg{width:20px;height:20px;color:#fff;}
+.fc-htitle{font-size:15px;font-weight:700;color:#fff;margin:0;}
+.fc-hsub{font-size:11px;color:rgba(255,255,255,.45);margin-top:2px;}
 .fc-body{padding:22px;}
 
+/* Section separator */
+.sec-sep{font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.9px;color:var(--orange);display:flex;align-items:center;gap:8px;margin-bottom:14px;margin-top:4px;}
+.sec-sep::after{content:'';flex:1;height:1px;background:var(--gray-200);}
+
 /* Form fields */
-.f-group{display:flex;flex-direction:column;gap:6px;margin-bottom:16px;}
-.f-group:last-child{margin-bottom:0;}
-.f-row{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
-.f-label{font-size:11px;font-weight:700;color:var(--gray-600);text-transform:uppercase;letter-spacing:.5px;}
+.f-group{margin-bottom:16px;}
+.f-label{display:block;font-size:12px;font-weight:700;color:var(--gray-700);margin-bottom:6px;text-transform:uppercase;letter-spacing:.4px;}
 .f-req{color:var(--orange);margin-left:2px;}
-.f-inp{padding:10px 14px;background:var(--gray-50);border:1.5px solid var(--gray-200);border-radius:10px;color:var(--black);font-family:inherit;font-size:14px;outline:none;transition:border-color .18s,background .18s;width:100%;}
-.f-inp:focus{border-color:var(--orange);background:#fff;}
+.f-inp{width:100%;padding:10px 14px;border:1.5px solid var(--gray-200);border-radius:10px;font-size:13.5px;color:var(--black);background:var(--white);transition:border-color .18s,box-shadow .18s;box-sizing:border-box;font-family:inherit;}
+.f-inp:focus{outline:none;border-color:var(--orange);box-shadow:0 0 0 3px rgba(245,130,32,.1);}
 .f-inp::placeholder{color:var(--gray-400);}
-select.f-inp{cursor:pointer;}
-textarea.f-inp{resize:vertical;min-height:90px;}
-.f-error{font-size:12px;color:#DC2626;font-weight:500;display:flex;align-items:center;gap:4px;}
+textarea.f-inp{resize:vertical;min-height:80px;}
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+.f-error{font-size:12px;color:#DC2626;margin-top:4px;display:flex;align-items:center;gap:4px;}
 .f-error svg{width:12px;height:12px;flex-shrink:0;}
-.f-hint{font-size:11px;color:var(--gray-400);}
 
-/* File input */
-.file-wrap{position:relative;}
-.file-wrap input[type="file"]{padding:8px 14px;background:var(--gray-50);border:1.5px dashed var(--gray-300);border-radius:10px;width:100%;font-family:inherit;font-size:13px;color:var(--gray-500);cursor:pointer;}
-.file-wrap input[type="file"]:hover{border-color:var(--orange);}
+/* Auto name box */
+.auto-name-box{display:flex;align-items:stretch;border:1.5px solid var(--gray-200);border-radius:10px;overflow:hidden;background:var(--gray-50);min-height:44px;transition:border-color .18s;}
+.auto-name-box:focus-within{border-color:var(--orange);box-shadow:0 0 0 3px rgba(245,130,32,.1);}
+.anb-prefix{padding:0 14px;font-size:13px;font-weight:800;color:var(--orange);background:var(--orange-light);border-right:1.5px solid #FED7AA;display:flex;align-items:center;white-space:nowrap;min-height:44px;letter-spacing:.5px;flex-shrink:0;}
+.anb-parts{flex:1;padding:8px 14px;display:flex;align-items:center;gap:6px;flex-wrap:wrap;min-height:44px;}
+.anb-placeholder{font-size:12.5px;color:var(--gray-400);font-style:italic;}
+.anb-chip{display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:20px;font-size:12px;font-weight:700;white-space:nowrap;}
+.anb-chip-brujka{background:#FFF7ED;color:#C2410C;border:1px solid #FED7AA;}
+.anb-chip-date{background:#EFF6FF;color:#1D4ED8;border:1px solid #BFDBFE;}
+.anb-chip-sep{color:var(--gray-300);font-size:13px;}
+.anb-badge{padding:0 12px;font-size:10.5px;font-weight:700;color:#15803D;background:#F0FDF4;border-left:1.5px solid #BBF7D0;display:flex;align-items:center;min-height:44px;white-space:nowrap;flex-shrink:0;}
 
-/* Current image */
-.cur-img-wrap{display:flex;align-items:center;gap:12px;background:var(--gray-50);border:1px solid var(--gray-200);border-radius:10px;padding:10px 14px;margin-bottom:8px;}
-.cur-img{width:56px;height:56px;border-radius:9px;object-fit:cover;border:1px solid var(--gray-200);}
-.cur-img-info{flex:1;}
-.cur-img-label{font-size:11px;font-weight:600;color:var(--gray-500);}
-.cur-img-name{font-size:12px;color:var(--black);margin-top:2px;}
+/* Brujka picker */
+.brujka-search-wrap{position:relative;}
+.brujka-search-input{width:100%;padding:10px 14px 10px 40px;border:1.5px solid var(--gray-200);border-radius:10px;font-size:13.5px;color:var(--black);background:var(--white);transition:border-color .18s,box-shadow .18s;box-sizing:border-box;font-family:inherit;}
+.brujka-search-input:focus{outline:none;border-color:var(--orange);box-shadow:0 0 0 3px rgba(245,130,32,.1);}
+.brujka-search-icon{position:absolute;left:12px;top:50%;transform:translateY(-50%);width:16px;height:16px;color:var(--gray-400);pointer-events:none;}
+.brujka-dropdown{position:absolute;top:calc(100% + 5px);left:0;right:0;background:var(--white);border:1.5px solid var(--gray-200);border-radius:12px;box-shadow:0 10px 28px rgba(0,0,0,.12);z-index:200;max-height:300px;overflow-y:auto;display:none;}
+.brujka-dropdown.open{display:block;}
+.brujka-option{display:flex;align-items:center;gap:12px;padding:10px 14px;cursor:pointer;transition:background .12s;border-bottom:1px solid var(--gray-100);}
+.brujka-option:last-child{border-bottom:none;}
+.brujka-option:hover,.brujka-option.selected{background:var(--orange-light);}
+.bo-img{width:44px;height:44px;border-radius:9px;object-fit:cover;flex-shrink:0;border:1px solid var(--gray-200);}
+.bo-img-ph{width:44px;height:44px;border-radius:9px;flex-shrink:0;display:flex;align-items:center;justify-content:center;}
+.bo-img-ph-inner{width:20px;height:20px;border-radius:5px;}
+.bo-name{font-size:13.5px;font-weight:700;color:var(--black);}
+.bo-sub{font-size:11px;color:var(--gray-400);margin-top:2px;display:flex;align-items:center;gap:6px;}
+.bo-dot{width:9px;height:9px;border-radius:50%;flex-shrink:0;}
+.bo-coating{background:#FFF7ED;color:#C2410C;padding:1px 7px;border-radius:5px;font-size:10.5px;font-weight:600;}
 
-/* Sidebar card */
-.side-card{background:var(--white);border:1px solid var(--gray-200);border-radius:16px;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.05);}
-.sc-head{padding:14px 18px;border-bottom:1px solid var(--gray-100);font-size:13px;font-weight:700;color:var(--black);}
-.sc-body{padding:18px;}
+/* Selected brujka card */
+.brujka-selected{display:none;align-items:center;gap:14px;padding:12px 14px;background:var(--orange-light);border:1.5px solid var(--orange);border-radius:10px;margin-top:10px;}
+.brujka-selected.show{display:flex;}
+.bs-img{width:54px;height:54px;border-radius:10px;object-fit:cover;flex-shrink:0;border:2px solid rgba(245,130,32,.3);}
+.bs-img-ph{width:54px;height:54px;border-radius:10px;flex-shrink:0;display:flex;align-items:center;justify-content:center;}
+.bs-name{font-size:14px;font-weight:800;color:var(--black);}
+.bs-sub{font-size:12px;color:var(--gray-600);margin-top:3px;}
+.bs-clear{margin-left:auto;width:28px;height:28px;background:rgba(255,255,255,.8);border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;border:none;flex-shrink:0;transition:background .15s;}
+.bs-clear:hover{background:#FEE2E2;}
+.bs-clear svg{width:13px;height:13px;color:#DC2626;}
 
-/* Info banner */
-.info-banner{background:#EFF6FF;border:1px solid #BFDBFE;border-radius:11px;padding:12px 16px;font-size:12.5px;color:#1D4ED8;display:flex;gap:10px;line-height:1.5;margin-bottom:16px;}
-.info-banner svg{width:16px;height:16px;flex-shrink:0;margin-top:1px;}
+/* Priority radio cards */
+.radio-cards{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;}
+.rc{position:relative;display:flex;flex-direction:column;align-items:center;gap:7px;padding:14px 8px;border:2px solid var(--gray-200);border-radius:12px;cursor:pointer;background:var(--white);transition:all .18s;min-height:80px;justify-content:center;}
+.rc input[type="radio"]{position:absolute;opacity:0;pointer-events:none;}
+.rc:hover{border-color:var(--orange);background:var(--orange-light);}
+.rc-icon{width:26px;height:26px;display:flex;align-items:center;justify-content:center;border-radius:8px;}
+.rc-icon svg{width:22px;height:22px;stroke-width:2;}
+.rc-lbl{font-size:11.5px;font-weight:700;color:var(--gray-700);text-align:center;white-space:nowrap;}
+.rc-prio-low .rc-icon{background:#DCFCE7;color:#15803D;}
+.rc-prio-low.active{background:linear-gradient(135deg,#22C55E,#16A34A);border-color:#16A34A;}
+.rc-prio-low.active .rc-icon{background:rgba(255,255,255,.2);color:#fff;}
+.rc-prio-low.active .rc-lbl{color:#fff;}
+.rc-prio-normal .rc-icon{background:#EFF6FF;color:#1D4ED8;}
+.rc-prio-normal.active{background:linear-gradient(135deg,#3B82F6,#2563EB);border-color:#2563EB;}
+.rc-prio-normal.active .rc-icon{background:rgba(255,255,255,.2);color:#fff;}
+.rc-prio-normal.active .rc-lbl{color:#fff;}
+.rc-prio-high .rc-icon{background:#FEF3C7;color:#B45309;}
+.rc-prio-high.active{background:linear-gradient(135deg,#F59E0B,#D97706);border-color:#D97706;}
+.rc-prio-high.active .rc-icon{background:rgba(255,255,255,.2);color:#fff;}
+.rc-prio-high.active .rc-lbl{color:#fff;}
+.rc-prio-urgent .rc-icon{background:#FEE2E2;color:#DC2626;}
+.rc-prio-urgent.active{background:linear-gradient(135deg,#EF4444,#DC2626);border-color:#DC2626;}
+.rc-prio-urgent.active .rc-icon{background:rgba(255,255,255,.2);color:#fff;}
+.rc-prio-urgent.active .rc-lbl{color:#fff;}
 
-/* Priority option pills preview */
-.prio-info{display:flex;flex-direction:column;gap:5px;margin-top:6px;}
-.pi-row{display:flex;align-items:center;gap:8px;padding:6px 10px;border-radius:8px;font-size:12px;font-weight:600;}
-.pi-low{background:#DCFCE7;color:#15803D;}
-.pi-normal{background:#EFF6FF;color:#1D4ED8;}
-.pi-high{background:#FEF3C7;color:#B45309;}
-.pi-urgent{background:#FEE2E2;color:#DC2626;}
-.pi-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;}
+/* Image upload */
+.img-upload-zone{border:2px dashed var(--gray-200);border-radius:12px;padding:24px 20px;text-align:center;cursor:pointer;position:relative;transition:border-color .18s,background .18s;}
+.img-upload-zone:hover{border-color:var(--orange);background:var(--orange-light);}
+.img-upload-zone input{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%;}
+.img-upload-zone svg{width:32px;height:32px;color:var(--gray-300);margin-bottom:6px;}
+.img-upload-zone p{font-size:13px;color:var(--gray-500);font-weight:500;margin:0 0 3px;}
+.img-upload-zone small{font-size:11px;color:var(--gray-400);}
+.img-preview-wrap{position:relative;border-radius:12px;overflow:hidden;}
+.img-preview-wrap img{width:100%;max-height:200px;object-fit:cover;display:block;border-radius:12px;border:1px solid var(--gray-200);}
+.img-clear-btn{position:absolute;top:8px;right:8px;width:28px;height:28px;background:#EF4444;border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;border:none;}
+.img-clear-btn svg{width:13px;height:13px;color:#fff;}
 
-/* Order meta (edit mode) */
-.order-meta{display:flex;flex-direction:column;gap:8px;}
-.om-row{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--gray-100);font-size:13px;}
-.om-row:last-child{border-bottom:none;}
-.om-label{color:var(--gray-500);}
-.om-val{font-weight:600;color:var(--black);}
-.badge{display:inline-flex;align-items:center;gap:4px;padding:4px 9px;border-radius:20px;font-size:11px;font-weight:700;}
+/* Sidebar cards */
+.side-card{background:var(--white);border:1px solid var(--gray-200);border-radius:14px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,.04);margin-bottom:14px;}
+.sc-head{background:var(--gray-50);padding:13px 18px;border-bottom:1px solid var(--gray-200);}
+.sc-head h4{font-size:13px;font-weight:700;color:var(--black);margin:0;}
+.sc-body{padding:16px 18px;}
+.tip-row{display:flex;gap:10px;padding:8px 0;border-bottom:1px solid var(--gray-100);font-size:12.5px;color:var(--gray-600);line-height:1.4;}
+.tip-row:last-child{border-bottom:none;}
+.tip-row svg{width:15px;height:15px;color:var(--orange);flex-shrink:0;margin-top:1px;}
+
+/* Order meta */
+.meta-row{display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-bottom:1px solid var(--gray-100);font-size:13px;}
+.meta-row:last-child{border-bottom:none;}
+.meta-label{color:var(--gray-500);}
+.meta-val{font-weight:600;color:var(--black);}
+.badge{display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:20px;font-size:11px;font-weight:700;}
 .badge .dot{width:5px;height:5px;border-radius:50%;}
 .b-new{background:#EFF6FF;color:#1D4ED8;} .b-new .dot{background:#3B82F6;}
 .b-accepted{background:#F0FDF4;color:#16A34A;} .b-accepted .dot{background:#22C55E;}
@@ -82,175 +139,439 @@ textarea.f-inp{resize:vertical;min-height:90px;}
 .b-ready{background:#F0FDFA;color:#047857;} .b-ready .dot{background:#14B8A6;}
 .b-delivered{background:#F3F4F6;color:#374151;} .b-delivered .dot{background:#9CA3AF;}
 .b-cancelled{background:#FEF2F2;color:#DC2626;} .b-cancelled .dot{background:#EF4444;}
-
-/* Submit btn */
-.submit-wrap{padding:18px 22px;border-top:1px solid var(--gray-100);display:flex;gap:10px;}
 </style>
 {% endblock %}
 
 {% block content %}
-<form method="post" enctype="multipart/form-data" novalidate>
+<form method="post" enctype="multipart/form-data" novalidate id="orderForm">
 {% csrf_token %}
+<input type="hidden" name="brujka" id="brujkaHidden" value="{{ form.brujka.value|default:'' }}">
+<input type="hidden" name="name"   id="orderNameHidden" value="{{ form.name.value|default:'' }}">
 
 <div class="form-layout">
 
-  <!-- LEFT: Main fields -->
+  <!-- LEFT -->
   <div>
 
-    {% if not order %}
-    <div class="info-banner">
-      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m11.25 11.25.041-.02a.75.75 0 0 1 1.063.852l-.708 2.836a.75.75 0 0 0 1.063.853l.041-.021M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9-3.75h.008v.008H12V8.25Z"/></svg>
-      <span>Yangi buyurtma yaratilganda status avtomatik <strong>Qabul qilindi</strong> ga o'rnatiladi.</span>
+    {% if form.errors %}
+    <div style="background:#FEF2F2;border:1px solid #FECACA;border-radius:12px;padding:14px 18px;margin-bottom:16px;">
+      <strong style="color:#B91C1C;font-size:13px;display:flex;align-items:center;gap:6px;">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width:15px;height:15px;"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 3.75h.008v.008H12v-.008Z"/></svg>
+        Xatoliklar mavjud
+      </strong>
+      <ul style="margin:8px 0 0 18px;color:#DC2626;font-size:12.5px;line-height:1.7;">
+        {% for field in form %}{% for error in field.errors %}<li><b>{{ field.label }}:</b> {{ error }}</li>{% endfor %}{% endfor %}
+      </ul>
     </div>
     {% endif %}
 
+    <!-- Brujka tanlash -->
     <div class="form-card">
       <div class="fc-head">
-        <div class="fc-head-icon">
+        <div class="fc-hico">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M21 7.5l-9-5.25L3 7.5m18 0l-9 5.25m9-5.25v9l-9 5.25M3 7.5l9 5.25M3 7.5v9l9 5.25m0-9v9"/></svg>
+        </div>
+        <div>
+          <div class="fc-htitle">Brujka tanlash</div>
+          <div class="fc-hsub">Rasmlari bilan qidirish</div>
+        </div>
+      </div>
+      <div class="fc-body">
+        <div class="f-group" style="margin-bottom:0;">
+          <label class="f-label">Brujka <span style="font-size:11px;color:var(--gray-400);font-weight:500;text-transform:none;">(ixtiyoriy)</span></label>
+          <div class="brujka-search-wrap">
+            <svg class="brujka-search-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z"/></svg>
+            <input type="text" class="brujka-search-input" id="brujkaSearch" placeholder="Brujka nomini qidirish..." autocomplete="off">
+            <div class="brujka-dropdown" id="brujkaDropdown"></div>
+          </div>
+          <div class="brujka-selected" id="brujkaSelectedCard">
+            <div id="bsImgWrap"></div>
+            <div style="flex:1;">
+              <div class="bs-name" id="bsName"></div>
+              <div class="bs-sub" id="bsSub"></div>
+            </div>
+            <button type="button" class="bs-clear" onclick="clearBrujka()" title="Brujkani olib tashlash">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12"/></svg>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Asosiy ma'lumotlar -->
+    <div class="form-card">
+      <div class="fc-head">
+        <div class="fc-hico">
           <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z"/></svg>
         </div>
         <div>
-          <div class="fc-head-title">Asosiy ma'lumotlar</div>
-          <div class="fc-head-sub">Buyurtma nomi, brujka, miqdor</div>
+          <div class="fc-htitle">Asosiy ma'lumotlar</div>
+          <div class="fc-hsub">Nom avtomatik, miqdor va muddat kerak</div>
         </div>
       </div>
       <div class="fc-body">
 
-        <!-- Nomi -->
+        <!-- Auto name -->
         <div class="f-group">
-          <label class="f-label">Buyurtma nomi <span class="f-req">*</span></label>
-          {{ form.name }}
-          {% if form.name.errors %}
-          <span class="f-error">
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 3.75h.008v.008H12v-.008Z"/></svg>
-            {{ form.name.errors.0 }}
-          </span>
-          {% endif %}
+          <label class="f-label">Buyurtma nomi</label>
+          <div class="auto-name-box" id="autoNameBox">
+            <div class="anb-prefix" id="anPrefix">#XXXX</div>
+            <div class="anb-parts" id="anParts">
+              <span class="anb-placeholder" id="anPlaceholder">Brujka va sana tanlanganida avtomatik</span>
+            </div>
+            <div class="anb-badge">Avtomatik</div>
+          </div>
         </div>
 
-        <!-- Brujka + Miqdor -->
-        <div class="f-row">
-          <div class="f-group">
-            <label class="f-label">Brujka</label>
-            {{ form.brujka }}
-            {% if form.brujka.errors %}<span class="f-error">{{ form.brujka.errors.0 }}</span>{% endif %}
-          </div>
+        <div class="two-col">
           <div class="f-group">
             <label class="f-label">Miqdor (dona) <span class="f-req">*</span></label>
-            {{ form.quantity }}
-            {% if form.quantity.errors %}<span class="f-error">{{ form.quantity.errors.0 }}</span>{% endif %}
+            <input type="number" name="quantity" class="f-inp" value="{{ form.quantity.value|default:'' }}" min="1" required placeholder="100">
+            {% if form.quantity.errors %}<div class="f-error"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 3.75h.008v.008H12v-.008Z"/></svg>{{ form.quantity.errors.0 }}</div>{% endif %}
           </div>
-        </div>
-
-        <!-- Muddat + Muhimlik -->
-        <div class="f-row">
           <div class="f-group">
             <label class="f-label">Muddat <span class="f-req">*</span></label>
-            {{ form.deadline }}
-            {% if form.deadline.errors %}<span class="f-error">{{ form.deadline.errors.0 }}</span>{% endif %}
-          </div>
-          <div class="f-group">
-            <label class="f-label">Muhimlik darajasi</label>
-            {{ form.priority }}
-            {% if form.priority.errors %}<span class="f-error">{{ form.priority.errors.0 }}</span>{% endif %}
+            <input type="date" name="deadline" id="deadlineInput" class="f-inp" value="{{ form.deadline.value|default:'' }}" required oninput="updateAutoName()">
+            {% if form.deadline.errors %}<div class="f-error">{{ form.deadline.errors.0 }}</div>{% endif %}
           </div>
         </div>
 
-        <!-- Izoh -->
         <div class="f-group">
           <label class="f-label">Izoh</label>
-          {{ form.note }}
-          {% if form.note.errors %}<span class="f-error">{{ form.note.errors.0 }}</span>{% endif %}
+          <textarea name="note" class="f-inp">{{ form.note.value|default:'' }}</textarea>
         </div>
 
+      </div>
+    </div>
+
+    <!-- Muhimlik -->
+    <div class="form-card">
+      <div class="fc-head">
+        <div class="fc-hico">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3 3v1.5M3 21v-6m0 0 2.77-.693a9 9 0 0 1 6.208.682l.108.054a9 9 0 0 0 6.086.71l3.114-.732a48.524 48.524 0 0 1-.005-10.499l-3.11.732a9 9 0 0 1-6.085-.711l-.108-.054a9 9 0 0 0-6.208-.682L3 4.5M3 15V4.5"/></svg>
+        </div>
+        <div>
+          <div class="fc-htitle">Muhimlik darajasi</div>
+          <div class="fc-hsub">Buyurtma qanchalik shoshilinch</div>
+        </div>
+      </div>
+      <div class="fc-body">
+        {% with cv=form.priority.value|default:'normal' %}
+        <div class="radio-cards" id="priorityCards">
+          <label class="rc rc-prio-low {% if cv == 'low' %}active{% endif %}">
+            <input type="radio" name="priority" value="low" {% if cv == 'low' %}checked{% endif %} onchange="syncCards('priorityCards')">
+            <span class="rc-icon"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 13.5 12 21m0 0-7.5-7.5M12 21V3"/></svg></span>
+            <span class="rc-lbl">Past</span>
+          </label>
+          <label class="rc rc-prio-normal {% if cv == 'normal' %}active{% endif %}">
+            <input type="radio" name="priority" value="normal" {% if cv == 'normal' %}checked{% endif %} onchange="syncCards('priorityCards')">
+            <span class="rc-icon"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5M3.75 17.25h16.5"/></svg></span>
+            <span class="rc-lbl">Oddiy</span>
+          </label>
+          <label class="rc rc-prio-high {% if cv == 'high' %}active{% endif %}">
+            <input type="radio" name="priority" value="high" {% if cv == 'high' %}checked{% endif %} onchange="syncCards('priorityCards')">
+            <span class="rc-icon"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126Z"/></svg></span>
+            <span class="rc-lbl">Yuqori</span>
+          </label>
+          <label class="rc rc-prio-urgent {% if cv == 'urgent' %}active{% endif %}">
+            <input type="radio" name="priority" value="urgent" {% if cv == 'urgent' %}checked{% endif %} onchange="syncCards('priorityCards')">
+            <span class="rc-icon"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 3.75h.008v.008H12v-.008Z"/></svg></span>
+            <span class="rc-lbl">Shoshilinch</span>
+          </label>
+        </div>
+        {% endwith %}
       </div>
     </div>
 
     <!-- Rasm -->
-    <div class="form-card" style="margin-top:16px;">
+    <div class="form-card" style="margin-bottom:0;">
       <div class="fc-head">
-        <div class="fc-head-icon">
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m2.25 15.75 5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159m-1.5-1.5 1.409-1.409a2.25 2.25 0 0 1 3.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 0 0 1.5-1.5V6a1.5 1.5 0 0 0-1.5-1.5H3.75A1.5 1.5 0 0 0 2.25 6v12a1.5 1.5 0 0 0 1.5 1.5Zm10.5-11.25h.008v.008h-.008V8.25Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Z"/></svg>
+        <div class="fc-hico">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m2.25 15.75 5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159m-1.5-1.5 1.409-1.409a2.25 2.25 0 0 1 3.182 0l2.909 2.909M3.75 21h16.5A2.25 2.25 0 0 0 22.5 18.75V5.25A2.25 2.25 0 0 0 20.25 3H3.75A2.25 2.25 0 0 0 1.5 5.25v13.5A2.25 2.25 0 0 0 3.75 21Z"/></svg>
         </div>
         <div>
-          <div class="fc-head-title">Rasm (ixtiyoriy)</div>
-          <div class="fc-head-sub">JPG, PNG — maks 5 MB</div>
+          <div class="fc-htitle">Mahsulot rasmi</div>
+          <div class="fc-hsub">PNG, JPG — maks 5MB</div>
         </div>
       </div>
       <div class="fc-body">
         {% if order and order.image %}
-        <div class="cur-img-wrap">
-          <img src="{{ order.image.url }}" class="cur-img" alt="">
-          <div class="cur-img-info">
-            <div class="cur-img-label">Joriy rasm</div>
-            <div class="cur-img-name">Yangi rasm yuklasangiz almashtiriladi</div>
+        <div class="img-preview-wrap" id="previewWrap">
+          <img src="{{ order.image.url }}" id="previewImg" alt="">
+          <button type="button" class="img-clear-btn" onclick="clearImage()">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12"/></svg>
+          </button>
+        </div>
+        <input type="file" name="image" id="imageInput" accept="image/*" style="display:none;" onchange="previewImage(event)">
+        <button type="button" onclick="document.getElementById('imageInput').click()" class="btn btn-secondary btn-sm" style="margin-top:10px;">Rasmni almashtirish</button>
+        {% else %}
+        <div class="img-upload-zone" id="uploadZone">
+          <input type="file" name="image" id="imageInput" accept="image/*" onchange="previewImage(event)">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m2.25 15.75 5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159m-1.5-1.5 1.409-1.409a2.25 2.25 0 0 1 3.182 0l2.909 2.909M3.75 21h16.5A2.25 2.25 0 0 0 22.5 18.75V5.25A2.25 2.25 0 0 0 20.25 3H3.75A2.25 2.25 0 0 0 1.5 5.25v13.5A2.25 2.25 0 0 0 3.75 21Z"/></svg>
+          <p>Rasm yuklash uchun bosing</p>
+          <small>PNG, JPG, WEBP — maks 5MB</small>
+        </div>
+        <div id="previewWrap" style="display:none;">
+          <div class="img-preview-wrap">
+            <img id="previewImg" src="" alt="">
+            <button type="button" class="img-clear-btn" onclick="clearImage()">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12"/></svg>
+            </button>
           </div>
         </div>
         {% endif %}
-        <div class="file-wrap">{{ form.image }}</div>
-        {% if form.image.errors %}<span class="f-error" style="margin-top:6px;">{{ form.image.errors.0 }}</span>{% endif %}
       </div>
     </div>
 
     <!-- Submit -->
     <div style="display:flex;gap:10px;margin-top:16px;">
-      <button type="submit" class="btn btn-primary" style="flex:1;justify-content:center;padding:12px;">
+      <button type="submit" class="btn btn-primary" style="flex:1;justify-content:center;padding:13px 20px;font-size:14px;">
         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5"/></svg>
         {% if order %}Saqlash{% else %}Buyurtma yaratish{% endif %}
       </button>
-      <a href="{% url 'casting:order_manage_list' %}" class="btn btn-secondary" style="padding:12px 24px;">Bekor qilish</a>
+      <a href="{% url 'casting:order_manage_list' %}" class="btn btn-secondary" style="padding:13px 22px;">Bekor qilish</a>
     </div>
   </div>
 
-  <!-- RIGHT: Sidebar info -->
+  <!-- RIGHT sidebar -->
   <div>
-
-    <!-- Priority info -->
     <div class="side-card">
-      <div class="sc-head">Muhimlik darajalari</div>
+      <div class="sc-head"><h4>Ma'lumot</h4></div>
       <div class="sc-body">
-        <div class="prio-info">
-          <div class="pi-row pi-low"><span class="pi-dot" style="background:#22C55E;"></span>Past — oddiy buyurtma</div>
-          <div class="pi-row pi-normal"><span class="pi-dot" style="background:#3B82F6;"></span>Oddiy — standart</div>
-          <div class="pi-row pi-high"><span class="pi-dot" style="background:#F59E0B;"></span>Yuqori — tezlashtirish kerak</div>
-          <div class="pi-row pi-urgent"><span class="pi-dot" style="background:#EF4444;"></span>Shoshilinch — zudlik bilan</div>
+        <div class="tip-row">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m11.25 11.25.041-.02a.75.75 0 0 1 1.063.852l-.708 2.836a.75.75 0 0 0 1.063.853l.041-.021M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9-3.75h.008v.008H12V8.25Z"/></svg>
+          Buyurtma raqami avtomatik beriladi.
+        </div>
+        <div class="tip-row">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M21 7.5l-9-5.25L3 7.5m18 0l-9 5.25m9-5.25v9l-9 5.25M3 7.5l9 5.25M3 7.5v9l9 5.25m0-9v9"/></svg>
+          Brujka tanlanganida nom va rasm avtomatik qo'shiladi.
+        </div>
+        <div class="tip-row">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/></svg>
+          {% if order %}Saqlangach ro'yxatga qaytasiz.{% else %}Yaratilganda status <b>Qabul qilindi</b> bo'ladi.{% endif %}
+        </div>
+        <div class="tip-row">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25"/></svg>
+          Muddat o'tsa buyurtma kechikgan deb belgilanadi.
         </div>
       </div>
     </div>
 
     {% if order %}
-    <!-- Order meta -->
-    <div class="side-card" style="margin-top:16px;">
-      <div class="sc-head">Buyurtma ma'lumotlari</div>
+    <div class="side-card">
+      <div class="sc-head"><h4>Buyurtma haqida</h4></div>
       <div class="sc-body">
-        <div class="order-meta">
-          <div class="om-row">
-            <span class="om-label">Raqam</span>
-            <span class="om-val" style="font-family:monospace;font-size:12px;">{{ order.order_number }}</span>
-          </div>
-          <div class="om-row">
-            <span class="om-label">Status</span>
-            <span class="badge b-{{ order.status }}"><span class="dot"></span>{{ order.get_status_display }}</span>
-          </div>
-          <div class="om-row">
-            <span class="om-label">Yaratuvchi</span>
-            <span class="om-val">{{ order.created_by.name|default:"—" }}</span>
-          </div>
-          <div class="om-row">
-            <span class="om-label">Yaratilgan</span>
-            <span class="om-val">{{ order.created_at|date:"d.m.Y H:i" }}</span>
-          </div>
-          <div class="om-row">
-            <span class="om-label">Yangilangan</span>
-            <span class="om-val">{{ order.updated_at|date:"d.m.Y H:i" }}</span>
-          </div>
+        <div class="meta-row">
+          <span class="meta-label">Raqam</span>
+          <span class="meta-val" style="font-family:monospace;font-size:12px;">{{ order.order_number }}</span>
+        </div>
+        <div class="meta-row">
+          <span class="meta-label">Status</span>
+          <span class="badge b-{{ order.status }}"><span class="dot"></span>{{ order.get_status_display }}</span>
+        </div>
+        <div class="meta-row">
+          <span class="meta-label">Yaratuvchi</span>
+          <span class="meta-val">{{ order.created_by.name|default:"—" }}</span>
+        </div>
+        <div class="meta-row">
+          <span class="meta-label">Yaratilgan</span>
+          <span class="meta-val" style="font-size:12px;">{{ order.created_at|date:"d.m.Y H:i" }}</span>
         </div>
       </div>
     </div>
     {% endif %}
-
   </div>
 </div>
 
 </form>
+
+<script>
+// ── Priority radio cards sync ──────────────────────────────────────────────
+function syncCards(groupId) {
+  const group = document.getElementById(groupId);
+  if (!group) return;
+  group.querySelectorAll('label').forEach(lbl => {
+    const inp = lbl.querySelector('input[type="radio"]');
+    lbl.classList.toggle('active', inp && inp.checked);
+  });
+}
+document.addEventListener('DOMContentLoaded', () => syncCards('priorityCards'));
+
+// ── Image preview ──────────────────────────────────────────────────────────
+function previewImage(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = ev => {
+    const wrap = document.getElementById('previewWrap');
+    const img  = document.getElementById('previewImg');
+    const zone = document.getElementById('uploadZone');
+    if (img)  img.src = ev.target.result;
+    if (wrap) wrap.style.display = 'block';
+    if (zone) zone.style.display = 'none';
+  };
+  reader.readAsDataURL(file);
+}
+function clearImage() {
+  const inp  = document.getElementById('imageInput');
+  const wrap = document.getElementById('previewWrap');
+  const zone = document.getElementById('uploadZone');
+  if (inp)  inp.value = '';
+  if (wrap) wrap.style.display = 'none';
+  if (zone) zone.style.display = 'block';
+}
+
+// ── Auto name generator ────────────────────────────────────────────────────
+let currentBrujkaName = '';
+function updateAutoName() {
+  const prefix  = document.getElementById('anPrefix');
+  const parts   = document.getElementById('anParts');
+  const hidden  = document.getElementById('orderNameHidden');
+  const ph      = document.getElementById('anPlaceholder');
+  const deadline = document.getElementById('deadlineInput');
+
+  const brName  = currentBrujkaName;
+  const dateVal = deadline ? deadline.value : '';
+
+  if (!brName && !dateVal) {
+    if (ph) ph.style.display = '';
+    parts.innerHTML = '<span class="anb-placeholder" id="anPlaceholder">Brujka va sana tanlanganida avtomatik</span>';
+    hidden.value = '';
+    return;
+  }
+
+  const now  = new Date();
+  const rnd  = String(Math.floor(Math.random() * 9000) + 1000);
+  const pfx  = '#' + rnd;
+
+  let chips = '';
+  let nameParts = [];
+
+  if (brName) {
+    chips += `<span class="anb-chip anb-chip-brujka">${brName}</span>`;
+    nameParts.push(brName);
+  }
+  if (brName && dateVal) chips += `<span class="anb-chip-sep">—</span>`;
+  if (dateVal) {
+    const d = new Date(dateVal);
+    const formatted = d.getDate().toString().padStart(2,'0') + '.' + (d.getMonth()+1).toString().padStart(2,'0') + '.' + d.getFullYear();
+    chips += `<span class="anb-chip anb-chip-date">${formatted}</span>`;
+    nameParts.push(formatted);
+  }
+
+  prefix.textContent = pfx;
+  parts.innerHTML = chips;
+  hidden.value = pfx + ' ' + nameParts.join(' — ');
+}
+
+// ── Brujka search ──────────────────────────────────────────────────────────
+let searchTimer = null;
+let selectedBrujka = null;
+const SEARCH_URL = '{% url "casting:brujka_search" %}';
+
+// Pre-select on edit
+(function() {
+  const val = document.getElementById('brujkaHidden').value;
+  if (val) {
+    fetch(SEARCH_URL + '?q=')
+      .then(r => r.json())
+      .then(data => {
+        const found = data.results.find(b => b.id == val);
+        if (found) selectBrujka(found, false);
+      });
+  }
+})();
+
+document.getElementById('brujkaSearch').addEventListener('input', function() {
+  clearTimeout(searchTimer);
+  const q = this.value.trim();
+  searchTimer = setTimeout(() => doSearch(q), 180);
+});
+document.getElementById('brujkaSearch').addEventListener('focus', function() {
+  doSearch(this.value.trim());
+});
+document.addEventListener('click', function(e) {
+  if (!e.target.closest('.brujka-search-wrap')) {
+    document.getElementById('brujkaDropdown').classList.remove('open');
+  }
+});
+
+function doSearch(q) {
+  fetch(SEARCH_URL + '?q=' + encodeURIComponent(q))
+    .then(r => r.json())
+    .then(data => renderDropdown(data.results));
+}
+
+function renderDropdown(results) {
+  const dd = document.getElementById('brujkaDropdown');
+  if (!results.length) {
+    dd.innerHTML = '<div style="padding:16px;font-size:13px;color:var(--gray-400);text-align:center;">Topilmadi</div>';
+    dd.classList.add('open');
+    return;
+  }
+  dd.innerHTML = results.map(b => {
+    const imgHtml = b.image
+      ? `<img src="${b.image}" class="bo-img" alt="">`
+      : `<div class="bo-img-ph" style="background:${b.color}22;"><div class="bo-img-ph-inner" style="background:${b.color};"></div></div>`;
+    const sel = selectedBrujka && selectedBrujka.id == b.id ? 'selected' : '';
+    const safeB = JSON.stringify(b).replace(/"/g,'&quot;');
+    return `<div class="brujka-option ${sel}" onclick="selectBrujka(JSON.parse(this.dataset.b))" data-b="${safeB}">
+      ${imgHtml}
+      <div style="flex:1;min-width:0;">
+        <div class="bo-name">${b.name}</div>
+        <div class="bo-sub">
+          <span class="bo-dot" style="background:${b.color};"></span>
+          <span>${b.color}</span>
+          <span class="bo-coating">${b.coating}</span>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+  dd.classList.add('open');
+}
+
+function selectBrujka(b, regen = true) {
+  selectedBrujka = b;
+  currentBrujkaName = b.name;
+
+  document.getElementById('brujkaHidden').value = b.id;
+  document.getElementById('brujkaSearch').value = '';
+  document.getElementById('brujkaDropdown').classList.remove('open');
+
+  // Show selected card
+  const card = document.getElementById('brujkaSelectedCard');
+  const imgWrap = document.getElementById('bsImgWrap');
+  document.getElementById('bsName').textContent = b.name;
+  document.getElementById('bsSub').innerHTML = `<span style="display:inline-flex;align-items:center;gap:5px;"><span style="width:10px;height:10px;border-radius:50%;background:${b.color};display:inline-block;"></span> ${b.color} &nbsp;·&nbsp; ${b.coating}</span>`;
+
+  if (b.image) {
+    imgWrap.innerHTML = `<img src="${b.image}" class="bs-img" alt="">`;
+  } else {
+    imgWrap.innerHTML = `<div class="bs-img-ph" style="background:${b.color}22;"><span style="width:24px;height:24px;border-radius:6px;background:${b.color};display:inline-block;"></span></div>`;
+  }
+  card.classList.add('show');
+
+  if (regen) updateAutoName();
+}
+
+function clearBrujka() {
+  selectedBrujka = null;
+  currentBrujkaName = '';
+  document.getElementById('brujkaHidden').value = '';
+  document.getElementById('brujkaSearch').value = '';
+  document.getElementById('brujkaSelectedCard').classList.remove('show');
+  updateAutoName();
+}
+
+// ── Form submit: ensure hidden name has a value ────────────────────────────
+document.getElementById('orderForm').addEventListener('submit', function() {
+  const hidden = document.getElementById('orderNameHidden');
+  if (!hidden.value.trim()) {
+    const rnd = String(Math.floor(Math.random() * 9000) + 1000);
+    const dl  = document.getElementById('deadlineInput');
+    hidden.value = '#' + rnd + (dl && dl.value ? ' — ' + dl.value : '');
+  }
+});
+</script>
+
 {% endblock %}
