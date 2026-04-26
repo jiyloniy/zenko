@@ -846,13 +846,10 @@ class OrderCreateView(CastingManagerRequiredMixin, View):
 
 
 class OrderUpdateView(CastingManagerRequiredMixin, View):
-    """Buyurtmani tahrirlash — faqat o'zi yaratgan buyurtmani."""
-
-    def _get_own(self, request, pk):
-        return get_object_or_404(Order, pk=pk, created_by=request.user)
+    """Buyurtmani tahrirlash — har qanday orderni, lekin status faqat o'zinikida."""
 
     def get(self, request, pk):
-        order = self._get_own(request, pk)
+        order = get_object_or_404(Order, pk=pk)
         form  = OrderForm(instance=order)
         return render(request, 'casting/order_form.html', {
             'form':      form,
@@ -862,7 +859,7 @@ class OrderUpdateView(CastingManagerRequiredMixin, View):
         })
 
     def post(self, request, pk):
-        order = self._get_own(request, pk)
+        order = get_object_or_404(Order, pk=pk)
         form  = OrderForm(request.POST, request.FILES, instance=order)
         if form.is_valid():
             form.save()
@@ -895,10 +892,10 @@ class OrderDeleteView(CastingManagerRequiredMixin, View):
 
 
 class OrderSetStatusView2(CastingManagerRequiredMixin, View):
-    """Buyurtma statusini o'zgartirish (bekor qilish yoki boshqa holatlarga o'tkazish)."""
+    """Status o'zgartirish — faqat o'zi yaratgan orderlar."""
 
     def post(self, request, pk):
-        order      = get_object_or_404(Order, pk=pk)
+        order = get_object_or_404(Order, pk=pk, created_by=request.user)
         new_status = request.POST.get('status', '')
         allowed    = [s for s, _ in Order.Status.choices]
         if new_status in allowed:
@@ -942,9 +939,10 @@ class BrujkaListView(CastingManagerRequiredMixin, View):
 class BrujkaDetailView(CastingManagerRequiredMixin, View):
     def get(self, request, pk):
         brujka = get_object_or_404(Brujka, pk=pk)
-        orders = Order.objects.filter(brujka=brujka).select_related('created_by').order_by('-created_at')[:20]
+        orders = Order.objects.filter(brujka=brujka).select_related('created_by').order_by('-created_at')[:30]
         return render(request, 'casting/brujka_detail.html', {
-            'brujka':    brujka,
-            'orders':    orders,
-            'active_nav': 'brujkalar',
+            'brujka':         brujka,
+            'orders':         orders,
+            'order_statuses': Order.Status.choices,
+            'active_nav':     'brujkalar',
         })

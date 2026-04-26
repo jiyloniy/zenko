@@ -4,75 +4,109 @@
 
 {% block extra_css %}
 <style>
-/* Stats */
-.stats-row{display:flex;gap:10px;margin-bottom:20px;flex-wrap:wrap;}
-.sr-card{background:var(--white);border:1px solid var(--gray-200);border-radius:11px;padding:12px 16px;flex:1;min-width:110px;box-shadow:0 1px 3px rgba(0,0,0,.04);}
-.sr-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--gray-400);margin-bottom:4px;}
-.sr-val{font-size:24px;font-weight:900;color:var(--black);}
+@keyframes shimmer{0%{background-position:-200% 0;}100%{background-position:200% 0;}}
 
-/* Filter */
-.filter-wrap{display:flex;gap:10px;margin-bottom:20px;flex-wrap:wrap;align-items:center;}
-.f-inp-sm{padding:9px 14px;background:var(--white);border:1.5px solid var(--gray-200);border-radius:10px;color:var(--black);font-family:inherit;font-size:13px;outline:none;transition:border-color .18s;min-width:180px;}
-.f-inp-sm:focus{border-color:var(--orange);}
-.f-sel{padding:9px 12px;background:var(--white);border:1.5px solid var(--gray-200);border-radius:10px;color:var(--black);font-family:inherit;font-size:13px;outline:none;transition:border-color .18s;}
-.f-sel:focus{border-color:var(--orange);}
+/* Stats */
+.stats-bar{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:22px;}
+.sb-card{background:var(--white);border:1px solid var(--gray-200);border-radius:14px;padding:16px 18px;box-shadow:0 1px 3px rgba(0,0,0,.04);position:relative;overflow:hidden;}
+.sb-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;}
+.sb-all::before{background:linear-gradient(90deg,var(--orange),#FBBF24);}
+.sb-active::before{background:linear-gradient(90deg,#22C55E,#4ADE80);}
+.sb-inactive::before{background:linear-gradient(90deg,#9CA3AF,#D1D5DB);}
+.sb-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--gray-400);margin-bottom:6px;}
+.sb-val{font-size:28px;font-weight:900;color:var(--black);line-height:1;}
+.sb-sub{font-size:11px;color:var(--gray-400);margin-top:4px;}
+
+/* Search */
+.search-wrap{background:var(--white);border:1px solid var(--gray-200);border-radius:13px;padding:14px 16px;margin-bottom:22px;display:flex;gap:10px;flex-wrap:wrap;align-items:center;}
+.sb-inp{flex:1;min-width:200px;padding:9px 14px;background:var(--gray-50);border:1.5px solid var(--gray-200);border-radius:10px;font-family:inherit;font-size:13px;color:var(--black);outline:none;transition:border-color .18s;}
+.sb-inp:focus{border-color:var(--orange);background:#fff;}
+.sb-sel{padding:9px 12px;background:var(--gray-50);border:1.5px solid var(--gray-200);border-radius:10px;font-family:inherit;font-size:13px;color:var(--black);outline:none;transition:border-color .18s;}
+.sb-sel:focus{border-color:var(--orange);}
 
 /* Grid */
 .brujka-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:16px;}
-.bk-card{background:var(--white);border:1px solid var(--gray-200);border-radius:16px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,.04);transition:box-shadow .2s,transform .18s;}
-.bk-card:hover{box-shadow:0 8px 24px rgba(0,0,0,.1);transform:translateY(-2px);}
-.bk-card.inactive{opacity:.6;}
+
+/* Card */
+.bk-card{background:var(--white);border:1px solid var(--gray-200);border-radius:16px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,.04);transition:box-shadow .22s,transform .18s;text-decoration:none;display:block;position:relative;}
+.bk-card:hover{box-shadow:0 10px 28px rgba(0,0,0,.1);transform:translateY(-3px);}
+.bk-card.inactive{opacity:.65;}
 
 /* Image */
-.bk-img-wrap{position:relative;width:100%;height:180px;overflow:hidden;background:var(--gray-100);}
-.bk-img{width:100%;height:100%;object-fit:cover;display:block;transition:transform .3s;}
-.bk-card:hover .bk-img{transform:scale(1.04);}
-.bk-img-ph{width:100%;height:180px;background:var(--gray-100);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;}
-.bk-img-ph svg{width:40px;height:40px;color:var(--gray-300);}
+.bk-img-wrap{width:100%;height:190px;overflow:hidden;background:var(--gray-100);position:relative;}
+.bk-img{width:100%;height:100%;object-fit:cover;display:block;transition:transform .35s;}
+.bk-card:hover .bk-img{transform:scale(1.06);}
+.bk-img-ph{width:100%;height:190px;background:linear-gradient(135deg,var(--gray-100),var(--gray-200));display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;}
+.bk-img-ph svg{width:44px;height:44px;color:var(--gray-300);}
+.bk-img-ph span{font-size:11px;color:var(--gray-400);font-weight:600;}
+
+/* Color strip */
 .bk-color-strip{position:absolute;bottom:0;left:0;right:0;height:4px;}
-.bk-inactive-badge{position:absolute;top:10px;right:10px;background:rgba(0,0,0,.6);color:#fff;font-size:10px;font-weight:700;padding:3px 8px;border-radius:6px;backdrop-filter:blur(4px);}
+
+/* Overlay on hover */
+.bk-hover-overlay{position:absolute;inset:0;background:rgba(0,0,0,.18);opacity:0;transition:opacity .22s;display:flex;align-items:center;justify-content:center;}
+.bk-card:hover .bk-hover-overlay{opacity:1;}
+.bk-hover-overlay span{background:rgba(255,255,255,.95);color:var(--black);font-size:12px;font-weight:700;padding:7px 16px;border-radius:20px;display:flex;align-items:center;gap:6px;}
+.bk-hover-overlay svg{width:14px;height:14px;}
+
+/* Inactive badge */
+.bk-inactive-pill{position:absolute;top:10px;left:10px;background:rgba(0,0,0,.55);color:#fff;font-size:10px;font-weight:700;padding:3px 9px;border-radius:20px;backdrop-filter:blur(4px);}
 
 /* Body */
-.bk-body{padding:14px 16px 16px;}
-.bk-name{font-size:16px;font-weight:800;color:var(--black);margin-bottom:6px;display:flex;align-items:center;gap:8px;}
-.bk-swatch{width:14px;height:14px;border-radius:50%;flex-shrink:0;box-shadow:0 1px 3px rgba(0,0,0,.2);}
-.bk-coating{font-size:11px;font-weight:600;color:var(--gray-500);background:var(--gray-100);border-radius:6px;padding:3px 8px;display:inline-block;margin-bottom:10px;}
-.bk-desc{font-size:12px;color:var(--gray-500);line-height:1.5;margin-bottom:10px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
-.bk-footer{display:flex;justify-content:space-between;align-items:center;padding-top:10px;border-top:1px solid var(--gray-100);}
-.bk-orders{font-size:12px;color:var(--gray-500);}
-.bk-orders strong{color:var(--black);}
+.bk-body{padding:16px 18px 18px;}
+.bk-name{font-size:16px;font-weight:900;color:var(--black);display:flex;align-items:center;gap:9px;margin-bottom:6px;}
+.bk-swatch{width:14px;height:14px;border-radius:50%;flex-shrink:0;box-shadow:0 2px 4px rgba(0,0,0,.2);}
+
+/* Coating chip */
+.coating-chip{display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border-radius:20px;font-size:11px;font-weight:700;background:var(--gray-100);color:var(--gray-600);margin-bottom:10px;}
+
+/* Description */
+.bk-desc{font-size:12px;color:var(--gray-500);line-height:1.55;margin-bottom:12px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
+
+/* Footer */
+.bk-footer{display:flex;align-items:center;justify-content:space-between;padding-top:12px;border-top:1px solid var(--gray-100);}
+.bk-stat{display:flex;align-items:center;gap:5px;font-size:12px;color:var(--gray-500);}
+.bk-stat svg{width:13px;height:13px;color:var(--gray-400);}
+.bk-stat strong{color:var(--black);}
+.bk-arrow{display:flex;align-items:center;gap:4px;font-size:12px;font-weight:700;color:var(--orange);}
+.bk-arrow svg{width:13px;height:13px;transition:transform .18s;}
+.bk-card:hover .bk-arrow svg{transform:translateX(3px);}
 
 /* Empty */
-.empty-wrap{padding:60px 20px;text-align:center;color:var(--gray-400);}
-.empty-wrap svg{width:52px;height:52px;margin-bottom:14px;opacity:.2;}
+.empty-wrap{padding:70px 20px;text-align:center;color:var(--gray-400);}
+.empty-wrap svg{width:52px;height:52px;margin-bottom:16px;opacity:.18;}
+.empty-wrap p{font-size:14px;}
 
-@media(max-width:640px){.brujka-grid{grid-template-columns:1fr 1fr;}}
+@media(max-width:640px){.brujka-grid{grid-template-columns:1fr 1fr;}.stats-bar{grid-template-columns:1fr;}}
 </style>
 {% endblock %}
 
 {% block content %}
 
 <!-- Stats -->
-<div class="stats-row">
-  <div class="sr-card">
-    <div class="sr-label">Jami brujkalar</div>
-    <div class="sr-val">{{ counts.total }}</div>
+<div class="stats-bar">
+  <div class="sb-card sb-all">
+    <div class="sb-label">Jami brujkalar</div>
+    <div class="sb-val">{{ counts.total }}</div>
+    <div class="sb-sub">ta model</div>
   </div>
-  <div class="sr-card">
-    <div class="sr-label">Faol</div>
-    <div class="sr-val" style="color:var(--green);">{{ counts.active }}</div>
+  <div class="sb-card sb-active">
+    <div class="sb-label">Faol</div>
+    <div class="sb-val" style="color:#22C55E;">{{ counts.active }}</div>
+    <div class="sb-sub">ishlatilmoqda</div>
   </div>
-  <div class="sr-card">
-    <div class="sr-label">Faol emas</div>
-    <div class="sr-val" style="color:var(--gray-400);">{{ counts.inactive }}</div>
+  <div class="sb-card sb-inactive">
+    <div class="sb-label">Faol emas</div>
+    <div class="sb-val" style="color:var(--gray-400);">{{ counts.inactive }}</div>
+    <div class="sb-sub">arxivda</div>
   </div>
 </div>
 
-<!-- Filter -->
-<form class="filter-wrap" method="get">
-  <input type="text" name="q" value="{{ q }}" class="f-inp-sm" placeholder="Brujka nomini qidirish...">
-  <select name="coating" class="f-sel">
-    <option value="">Barcha qoplama</option>
+<!-- Search -->
+<form class="search-wrap" method="get">
+  <input type="text" name="q" value="{{ q }}" class="sb-inp" placeholder="Brujka nomini qidirish...">
+  <select name="coating" class="sb-sel">
+    <option value="">Barcha qoplama turi</option>
     {% for val, label in coating_choices %}
     <option value="{{ val }}" {% if ct == val %}selected{% endif %}>{{ label }}</option>
     {% endfor %}
@@ -82,47 +116,58 @@
     Qidirish
   </button>
   {% if q or ct %}
-  <a href="{% url 'casting:brujka_list' %}" class="btn btn-sm" style="background:#FEF2F2;color:#DC2626;border:1px solid #FECACA;">Tozalash</a>
+  <a href="{% url 'casting:brujka_list' %}" class="btn btn-sm" style="background:#FEF2F2;color:#DC2626;border:1px solid #FECACA;">
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12"/></svg>
+    Tozalash
+  </a>
   {% endif %}
 </form>
-
-{% if messages %}
-<div class="messages-wrap">
-  {% for msg in messages %}
-  <div class="msg msg-{{ msg.tags }}">{{ msg }}</div>
-  {% endfor %}
-</div>
-{% endif %}
 
 {% if brujkalar %}
 <div class="brujka-grid">
 {% for b in brujkalar %}
-<a href="{% url 'casting:brujka_detail' b.pk %}" class="bk-card {% if not b.is_active %}inactive{% endif %}" style="text-decoration:none;">
+<a href="{% url 'casting:brujka_detail' b.pk %}" class="bk-card{% if not b.is_active %} inactive{% endif %}">
+
   <div class="bk-img-wrap">
     {% if b.image %}
     <img src="{{ b.image.url }}" class="bk-img" alt="{{ b.name }}">
     {% else %}
     <div class="bk-img-ph">
       <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m2.25 15.75 5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159m-1.5-1.5 1.409-1.409a2.25 2.25 0 0 1 3.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 0 0 1.5-1.5V6a1.5 1.5 0 0 0-1.5-1.5H3.75A1.5 1.5 0 0 0 2.25 6v12a1.5 1.5 0 0 0 1.5 1.5Zm10.5-11.25h.008v.008h-.008V8.25Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Z"/></svg>
+      <span>Rasm yo'q</span>
     </div>
     {% endif %}
     <div class="bk-color-strip" style="background:{{ b.color }};"></div>
-    {% if not b.is_active %}
-    <div class="bk-inactive-badge">Faol emas</div>
-    {% endif %}
+    <div class="bk-hover-overlay">
+      <span>
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"/></svg>
+        Batafsil
+      </span>
+    </div>
+    {% if not b.is_active %}<div class="bk-inactive-pill">Faol emas</div>{% endif %}
   </div>
+
   <div class="bk-body">
     <div class="bk-name">
       <span class="bk-swatch" style="background:{{ b.color }};"></span>
       {{ b.name }}
     </div>
-    <div class="bk-coating">{{ b.get_coating_type_display }}</div>
+    <div class="coating-chip">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width:12px;height:12px;"><path stroke-linecap="round" stroke-linejoin="round" d="M9.53 16.122a3 3 0 0 0-5.78 1.128 2.25 2.25 0 0 1-2.4 2.245 4.5 4.5 0 0 0 8.4-2.245c0-.399-.078-.78-.22-1.128Zm0 0a15.998 15.998 0 0 0 3.388-1.62m-5.043-.025a15.994 15.994 0 0 1 1.622-3.395m3.42 3.42a15.995 15.995 0 0 0 4.764-4.648l3.876-5.814a1.151 1.151 0 0 0-1.597-1.597L14.146 6.32a15.996 15.996 0 0 0-4.649 4.763m3.42 3.42a6.776 6.776 0 0 0-3.42-3.42"/></svg>
+      {{ b.get_coating_type_display }}
+    </div>
     {% if b.description %}
     <div class="bk-desc">{{ b.description }}</div>
     {% endif %}
     <div class="bk-footer">
-      <span class="bk-orders">Buyurtmalar: <strong>{{ b.orders.count }}</strong></span>
-      <span style="font-size:12px;color:var(--orange);font-weight:600;">Ko'rish →</span>
+      <div class="bk-stat">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z"/></svg>
+        Buyurtmalar: <strong>{{ b.orders.count }}</strong>
+      </div>
+      <div class="bk-arrow">
+        Ko'rish
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3"/></svg>
+      </div>
     </div>
   </div>
 </a>
@@ -131,7 +176,7 @@
 
 {% else %}
 <div class="empty-wrap">
-  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M21 7.5l-9-5.25L3 7.5m18 0l-9 5.25m9-5.25v9l-9 5.25M3 7.5l9 5.25M3 7.5v9l9 5.25m0-9v9"/></svg>
+  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M21 7.5l-9-5.25L3 7.5m18 0l-9 5.25m9-5.25v9l-9 5.25M3 7.5l9 5.25M3 7.5v9l9 5.25m0-9v9"/></svg>
   <p>Brujkalar topilmadi</p>
 </div>
 {% endif %}

@@ -2,126 +2,255 @@
 {% block title %}{{ title }} — Zenko{% endblock %}
 {% block page_title %}{{ title }}{% endblock %}
 
+{% block topbar_actions %}
+<a href="{% url 'casting:order_manage_list' %}" class="btn btn-secondary btn-sm">
+  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18"/></svg>
+  Orqaga
+</a>
+{% endblock %}
+
 {% block extra_css %}
 <style>
-.form-card{background:var(--white);border:1px solid var(--gray-200);border-radius:16px;padding:28px;max-width:680px;box-shadow:0 1px 4px rgba(0,0,0,.05);}
-.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px;}
-.form-group{display:flex;flex-direction:column;gap:6px;}
-.form-group.full{grid-column:1/-1;}
-.f-label{font-size:12px;font-weight:700;color:var(--gray-600);text-transform:uppercase;letter-spacing:.5px;}
-.f-inp{padding:10px 14px;background:var(--gray-50);border:1.5px solid var(--gray-200);border-radius:10px;color:var(--black);font-family:inherit;font-size:14px;outline:none;transition:border-color .18s;width:100%;}
+.form-layout{display:grid;grid-template-columns:1fr 360px;gap:20px;align-items:start;}
+@media(max-width:860px){.form-layout{grid-template-columns:1fr;}}
+
+/* Main card */
+.form-card{background:var(--white);border:1px solid var(--gray-200);border-radius:16px;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.05);}
+.fc-head{padding:16px 22px;border-bottom:1px solid var(--gray-100);display:flex;align-items:center;gap:10px;}
+.fc-head-icon{width:36px;height:36px;border-radius:9px;background:var(--orange-light);display:grid;place-items:center;flex-shrink:0;}
+.fc-head-icon svg{width:18px;height:18px;color:var(--orange);}
+.fc-head-title{font-size:14px;font-weight:700;color:var(--black);}
+.fc-head-sub{font-size:11px;color:var(--gray-400);margin-top:1px;}
+.fc-body{padding:22px;}
+
+/* Form fields */
+.f-group{display:flex;flex-direction:column;gap:6px;margin-bottom:16px;}
+.f-group:last-child{margin-bottom:0;}
+.f-row{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+.f-label{font-size:11px;font-weight:700;color:var(--gray-600);text-transform:uppercase;letter-spacing:.5px;}
+.f-req{color:var(--orange);margin-left:2px;}
+.f-inp{padding:10px 14px;background:var(--gray-50);border:1.5px solid var(--gray-200);border-radius:10px;color:var(--black);font-family:inherit;font-size:14px;outline:none;transition:border-color .18s,background .18s;width:100%;}
 .f-inp:focus{border-color:var(--orange);background:#fff;}
 .f-inp::placeholder{color:var(--gray-400);}
 select.f-inp{cursor:pointer;}
-textarea.f-inp{resize:vertical;min-height:80px;}
-.f-error{font-size:12px;color:#DC2626;font-weight:500;}
+textarea.f-inp{resize:vertical;min-height:90px;}
+.f-error{font-size:12px;color:#DC2626;font-weight:500;display:flex;align-items:center;gap:4px;}
+.f-error svg{width:12px;height:12px;flex-shrink:0;}
 .f-hint{font-size:11px;color:var(--gray-400);}
 
-/* Image preview */
-.img-preview-wrap{position:relative;display:inline-block;}
-.img-preview{width:120px;height:120px;border-radius:12px;object-fit:cover;border:2px solid var(--gray-200);}
-.img-remove-btn{position:absolute;top:-6px;right:-6px;width:22px;height:22px;border-radius:50%;background:#DC2626;border:none;color:#fff;cursor:pointer;display:grid;place-items:center;font-size:13px;line-height:1;}
+/* File input */
+.file-wrap{position:relative;}
+.file-wrap input[type="file"]{padding:8px 14px;background:var(--gray-50);border:1.5px dashed var(--gray-300);border-radius:10px;width:100%;font-family:inherit;font-size:13px;color:var(--gray-500);cursor:pointer;}
+.file-wrap input[type="file"]:hover{border-color:var(--orange);}
 
-/* Priority colors in select */
-.prio-select option[value="urgent"]{color:#DC2626;}
-.prio-select option[value="high"]{color:#B45309;}
+/* Current image */
+.cur-img-wrap{display:flex;align-items:center;gap:12px;background:var(--gray-50);border:1px solid var(--gray-200);border-radius:10px;padding:10px 14px;margin-bottom:8px;}
+.cur-img{width:56px;height:56px;border-radius:9px;object-fit:cover;border:1px solid var(--gray-200);}
+.cur-img-info{flex:1;}
+.cur-img-label{font-size:11px;font-weight:600;color:var(--gray-500);}
+.cur-img-name{font-size:12px;color:var(--black);margin-top:2px;}
 
-/* Action bar */
-.form-actions{display:flex;gap:10px;margin-top:24px;padding-top:20px;border-top:1px solid var(--gray-100);}
+/* Sidebar card */
+.side-card{background:var(--white);border:1px solid var(--gray-200);border-radius:16px;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.05);}
+.sc-head{padding:14px 18px;border-bottom:1px solid var(--gray-100);font-size:13px;font-weight:700;color:var(--black);}
+.sc-body{padding:18px;}
 
-/* Info banner for create */
-.info-banner{background:#EFF6FF;border:1px solid #BFDBFE;border-radius:11px;padding:12px 16px;font-size:13px;color:#1D4ED8;display:flex;align-items:center;gap:10px;margin-bottom:20px;}
-.info-banner svg{width:16px;height:16px;flex-shrink:0;}
+/* Info banner */
+.info-banner{background:#EFF6FF;border:1px solid #BFDBFE;border-radius:11px;padding:12px 16px;font-size:12.5px;color:#1D4ED8;display:flex;gap:10px;line-height:1.5;margin-bottom:16px;}
+.info-banner svg{width:16px;height:16px;flex-shrink:0;margin-top:1px;}
+
+/* Priority option pills preview */
+.prio-info{display:flex;flex-direction:column;gap:5px;margin-top:6px;}
+.pi-row{display:flex;align-items:center;gap:8px;padding:6px 10px;border-radius:8px;font-size:12px;font-weight:600;}
+.pi-low{background:#DCFCE7;color:#15803D;}
+.pi-normal{background:#EFF6FF;color:#1D4ED8;}
+.pi-high{background:#FEF3C7;color:#B45309;}
+.pi-urgent{background:#FEE2E2;color:#DC2626;}
+.pi-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;}
+
+/* Order meta (edit mode) */
+.order-meta{display:flex;flex-direction:column;gap:8px;}
+.om-row{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--gray-100);font-size:13px;}
+.om-row:last-child{border-bottom:none;}
+.om-label{color:var(--gray-500);}
+.om-val{font-weight:600;color:var(--black);}
+.badge{display:inline-flex;align-items:center;gap:4px;padding:4px 9px;border-radius:20px;font-size:11px;font-weight:700;}
+.badge .dot{width:5px;height:5px;border-radius:50%;}
+.b-new{background:#EFF6FF;color:#1D4ED8;} .b-new .dot{background:#3B82F6;}
+.b-accepted{background:#F0FDF4;color:#16A34A;} .b-accepted .dot{background:#22C55E;}
+.b-in_process{background:#FFF7ED;color:#C2410C;} .b-in_process .dot{background:#F97316;}
+.b-ready{background:#F0FDFA;color:#047857;} .b-ready .dot{background:#14B8A6;}
+.b-delivered{background:#F3F4F6;color:#374151;} .b-delivered .dot{background:#9CA3AF;}
+.b-cancelled{background:#FEF2F2;color:#DC2626;} .b-cancelled .dot{background:#EF4444;}
+
+/* Submit btn */
+.submit-wrap{padding:18px 22px;border-top:1px solid var(--gray-100);display:flex;gap:10px;}
 </style>
 {% endblock %}
 
 {% block content %}
+<form method="post" enctype="multipart/form-data" novalidate>
+{% csrf_token %}
 
-{% if not order %}
-<div class="info-banner">
-  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m11.25 11.25.041-.02a.75.75 0 0 1 1.063.852l-.708 2.836a.75.75 0 0 0 1.063.853l.041-.021M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9-3.75h.008v.008H12V8.25Z"/></svg>
-  Yangi buyurtma yaratilganda status avtomatik <strong style="margin:0 4px;">Qabul qilindi</strong> ga o'rnatiladi.
-</div>
-{% endif %}
+<div class="form-layout">
 
-<div class="form-card">
-  {% if messages %}
-  <div style="margin-bottom:16px;">
-    {% for msg in messages %}
-    <div class="msg msg-{{ msg.tags }}" style="margin-bottom:6px;">{{ msg }}</div>
-    {% endfor %}
-  </div>
-  {% endif %}
+  <!-- LEFT: Main fields -->
+  <div>
 
-  <form method="post" enctype="multipart/form-data" novalidate>
-    {% csrf_token %}
-    <div class="form-grid">
+    {% if not order %}
+    <div class="info-banner">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m11.25 11.25.041-.02a.75.75 0 0 1 1.063.852l-.708 2.836a.75.75 0 0 0 1.063.853l.041-.021M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9-3.75h.008v.008H12V8.25Z"/></svg>
+      <span>Yangi buyurtma yaratilganda status avtomatik <strong>Qabul qilindi</strong> ga o'rnatiladi.</span>
+    </div>
+    {% endif %}
 
-      <!-- Nomi -->
-      <div class="form-group full">
-        <label class="f-label">Buyurtma nomi *</label>
-        {{ form.name }}
-        {% if form.name.errors %}<span class="f-error">{{ form.name.errors.0 }}</span>{% endif %}
-      </div>
-
-      <!-- Brujka -->
-      <div class="form-group">
-        <label class="f-label">Brujka</label>
-        {{ form.brujka }}
-        {% if form.brujka.errors %}<span class="f-error">{{ form.brujka.errors.0 }}</span>{% endif %}
-      </div>
-
-      <!-- Miqdor -->
-      <div class="form-group">
-        <label class="f-label">Miqdor (dona) *</label>
-        {{ form.quantity }}
-        {% if form.quantity.errors %}<span class="f-error">{{ form.quantity.errors.0 }}</span>{% endif %}
-      </div>
-
-      <!-- Muddat -->
-      <div class="form-group">
-        <label class="f-label">Muddat *</label>
-        {{ form.deadline }}
-        {% if form.deadline.errors %}<span class="f-error">{{ form.deadline.errors.0 }}</span>{% endif %}
-      </div>
-
-      <!-- Muhimlik -->
-      <div class="form-group">
-        <label class="f-label">Muhimlik darajasi</label>
-        {{ form.priority }}
-        {% if form.priority.errors %}<span class="f-error">{{ form.priority.errors.0 }}</span>{% endif %}
-      </div>
-
-      <!-- Rasm -->
-      <div class="form-group full">
-        <label class="f-label">Rasm (ixtiyoriy)</label>
-        {% if order and order.image %}
-        <div class="img-preview-wrap" style="margin-bottom:8px;">
-          <img src="{{ order.image.url }}" class="img-preview" alt="">
+    <div class="form-card">
+      <div class="fc-head">
+        <div class="fc-head-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z"/></svg>
         </div>
-        {% endif %}
-        {{ form.image }}
-        <span class="f-hint">JPG, PNG — maks 5 MB</span>
-        {% if form.image.errors %}<span class="f-error">{{ form.image.errors.0 }}</span>{% endif %}
+        <div>
+          <div class="fc-head-title">Asosiy ma'lumotlar</div>
+          <div class="fc-head-sub">Buyurtma nomi, brujka, miqdor</div>
+        </div>
       </div>
+      <div class="fc-body">
 
-      <!-- Izoh -->
-      <div class="form-group full">
-        <label class="f-label">Izoh</label>
-        {{ form.note }}
-        {% if form.note.errors %}<span class="f-error">{{ form.note.errors.0 }}</span>{% endif %}
+        <!-- Nomi -->
+        <div class="f-group">
+          <label class="f-label">Buyurtma nomi <span class="f-req">*</span></label>
+          {{ form.name }}
+          {% if form.name.errors %}
+          <span class="f-error">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 3.75h.008v.008H12v-.008Z"/></svg>
+            {{ form.name.errors.0 }}
+          </span>
+          {% endif %}
+        </div>
+
+        <!-- Brujka + Miqdor -->
+        <div class="f-row">
+          <div class="f-group">
+            <label class="f-label">Brujka</label>
+            {{ form.brujka }}
+            {% if form.brujka.errors %}<span class="f-error">{{ form.brujka.errors.0 }}</span>{% endif %}
+          </div>
+          <div class="f-group">
+            <label class="f-label">Miqdor (dona) <span class="f-req">*</span></label>
+            {{ form.quantity }}
+            {% if form.quantity.errors %}<span class="f-error">{{ form.quantity.errors.0 }}</span>{% endif %}
+          </div>
+        </div>
+
+        <!-- Muddat + Muhimlik -->
+        <div class="f-row">
+          <div class="f-group">
+            <label class="f-label">Muddat <span class="f-req">*</span></label>
+            {{ form.deadline }}
+            {% if form.deadline.errors %}<span class="f-error">{{ form.deadline.errors.0 }}</span>{% endif %}
+          </div>
+          <div class="f-group">
+            <label class="f-label">Muhimlik darajasi</label>
+            {{ form.priority }}
+            {% if form.priority.errors %}<span class="f-error">{{ form.priority.errors.0 }}</span>{% endif %}
+          </div>
+        </div>
+
+        <!-- Izoh -->
+        <div class="f-group">
+          <label class="f-label">Izoh</label>
+          {{ form.note }}
+          {% if form.note.errors %}<span class="f-error">{{ form.note.errors.0 }}</span>{% endif %}
+        </div>
+
       </div>
-
     </div>
 
-    <div class="form-actions">
-      <button type="submit" class="btn btn-primary">
+    <!-- Rasm -->
+    <div class="form-card" style="margin-top:16px;">
+      <div class="fc-head">
+        <div class="fc-head-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m2.25 15.75 5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159m-1.5-1.5 1.409-1.409a2.25 2.25 0 0 1 3.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 0 0 1.5-1.5V6a1.5 1.5 0 0 0-1.5-1.5H3.75A1.5 1.5 0 0 0 2.25 6v12a1.5 1.5 0 0 0 1.5 1.5Zm10.5-11.25h.008v.008h-.008V8.25Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Z"/></svg>
+        </div>
+        <div>
+          <div class="fc-head-title">Rasm (ixtiyoriy)</div>
+          <div class="fc-head-sub">JPG, PNG — maks 5 MB</div>
+        </div>
+      </div>
+      <div class="fc-body">
+        {% if order and order.image %}
+        <div class="cur-img-wrap">
+          <img src="{{ order.image.url }}" class="cur-img" alt="">
+          <div class="cur-img-info">
+            <div class="cur-img-label">Joriy rasm</div>
+            <div class="cur-img-name">Yangi rasm yuklasangiz almashtiriladi</div>
+          </div>
+        </div>
+        {% endif %}
+        <div class="file-wrap">{{ form.image }}</div>
+        {% if form.image.errors %}<span class="f-error" style="margin-top:6px;">{{ form.image.errors.0 }}</span>{% endif %}
+      </div>
+    </div>
+
+    <!-- Submit -->
+    <div style="display:flex;gap:10px;margin-top:16px;">
+      <button type="submit" class="btn btn-primary" style="flex:1;justify-content:center;padding:12px;">
         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5"/></svg>
         {% if order %}Saqlash{% else %}Buyurtma yaratish{% endif %}
       </button>
-      <a href="{% url 'casting:order_manage_list' %}" class="btn btn-secondary">Bekor qilish</a>
+      <a href="{% url 'casting:order_manage_list' %}" class="btn btn-secondary" style="padding:12px 24px;">Bekor qilish</a>
     </div>
-  </form>
+  </div>
+
+  <!-- RIGHT: Sidebar info -->
+  <div>
+
+    <!-- Priority info -->
+    <div class="side-card">
+      <div class="sc-head">Muhimlik darajalari</div>
+      <div class="sc-body">
+        <div class="prio-info">
+          <div class="pi-row pi-low"><span class="pi-dot" style="background:#22C55E;"></span>Past — oddiy buyurtma</div>
+          <div class="pi-row pi-normal"><span class="pi-dot" style="background:#3B82F6;"></span>Oddiy — standart</div>
+          <div class="pi-row pi-high"><span class="pi-dot" style="background:#F59E0B;"></span>Yuqori — tezlashtirish kerak</div>
+          <div class="pi-row pi-urgent"><span class="pi-dot" style="background:#EF4444;"></span>Shoshilinch — zudlik bilan</div>
+        </div>
+      </div>
+    </div>
+
+    {% if order %}
+    <!-- Order meta -->
+    <div class="side-card" style="margin-top:16px;">
+      <div class="sc-head">Buyurtma ma'lumotlari</div>
+      <div class="sc-body">
+        <div class="order-meta">
+          <div class="om-row">
+            <span class="om-label">Raqam</span>
+            <span class="om-val" style="font-family:monospace;font-size:12px;">{{ order.order_number }}</span>
+          </div>
+          <div class="om-row">
+            <span class="om-label">Status</span>
+            <span class="badge b-{{ order.status }}"><span class="dot"></span>{{ order.get_status_display }}</span>
+          </div>
+          <div class="om-row">
+            <span class="om-label">Yaratuvchi</span>
+            <span class="om-val">{{ order.created_by.name|default:"—" }}</span>
+          </div>
+          <div class="om-row">
+            <span class="om-label">Yaratilgan</span>
+            <span class="om-val">{{ order.created_at|date:"d.m.Y H:i" }}</span>
+          </div>
+          <div class="om-row">
+            <span class="om-label">Yangilangan</span>
+            <span class="om-val">{{ order.updated_at|date:"d.m.Y H:i" }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    {% endif %}
+
+  </div>
 </div>
 
+</form>
 {% endblock %}
