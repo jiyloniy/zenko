@@ -123,8 +123,8 @@ class QuyishRasxodForm(forms.ModelForm):
     """Quyish rasxodi yaratish va tahrirlash uchun forma."""
 
     class Meta:
-        model = QuyishRasxod
         fields = ['nomi', 'miqdor', 'sana', 'izoh']
+        model = QuyishRasxod
         widgets = {
             'nomi': forms.TextInput(attrs={
                 'class': 'f-inp',
