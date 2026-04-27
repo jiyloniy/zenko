@@ -246,16 +246,14 @@ class TayorMahsulotLog(models.Model):
         return f'{self.order} | {self.miqdor} dona tayyor ({self.sana})'
 
 
+
 class QuyishJarayon(models.Model):
-    """
-    Har bir order uchun quyish bo'limining jarayon holati.
-    Order 'in_process' ga o'tganda avtomatik yaratiladi yoki master o'zi yaratadi.
-    """
+    """Quyish masteri tomonidan boshqariladigan quyish jarayoni."""
 
     class Status(models.TextChoices):
-        QUYILMOQDA   = 'quyilmoqda',   'Quyilmoqda'
+        QUYILMOQDA    = 'quyilmoqda',    'Quyilmoqda'
         QUYIB_BOLINDI = 'quyib_bolindi', "Quyib bo'lindi"
-        QUYILMADI    = 'quyilmadi',    "Quyilmadi"
+        QUYILMADI     = 'quyilmadi',     'Quyilmadi'
 
     order      = models.OneToOneField(
         'order.Order',
@@ -264,12 +262,10 @@ class QuyishJarayon(models.Model):
         verbose_name='Buyurtma',
     )
     status     = models.CharField(
-        'Quyish holati',
-        max_length=20,
-        choices=Status.choices,
-        default=Status.QUYILMOQDA,
+        'Quyish holati', max_length=20,
+        choices=Status.choices, default=Status.QUYILMOQDA,
     )
-    izoh       = models.TextField("Izoh / sabab", blank=True)
+    izoh       = models.TextField('Izoh / sabab', blank=True)
     created_by = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.SET_NULL,
@@ -282,7 +278,7 @@ class QuyishJarayon(models.Model):
         on_delete=models.SET_NULL,
         null=True, blank=True,
         related_name='quyish_jarayon_updates',
-        verbose_name='Oxirgi o\'zgartirgan',
+        verbose_name="Oxirgi o'zgartirgan",
     )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -302,6 +298,43 @@ class QuyishJarayon(models.Model):
             self.Status.QUYIB_BOLINDI: 'green',
             self.Status.QUYILMADI:     'red',
         }.get(self.status, 'gray')
+
+
+class QuyishJarayonLog(models.Model):
+    """Quyish jarayoni ichidagi lог yozuvi."""
+
+    class Natija(models.TextChoices):
+        TUGATILDI      = 'tugatildi',      'Tugatildi'
+        BEKOR_QILINDI  = 'bekor_qilindi',  'Bekor qilindi'
+
+    jarayon    = models.ForeignKey(
+        QuyishJarayon,
+        on_delete=models.CASCADE,
+        related_name='loglar',
+        verbose_name='Quyish jarayoni',
+    )
+    miqdor     = models.PositiveIntegerField('Quyilgan miqdor (dona)', default=0)
+    natija     = models.CharField(
+        'Natija', max_length=20,
+        choices=Natija.choices,
+        null=True, blank=True,
+    )
+    izoh       = models.TextField('Izoh', blank=True)
+    created_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True, blank=True,
+        verbose_name="Yozgan",
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering            = ['-created_at']
+        verbose_name        = 'Quyish log'
+        verbose_name_plural = 'Quyish loglar'
+
+    def __str__(self):
+        return f'{self.jarayon} | {self.miqdor} dona — {self.get_natija_display() or "log"}'
 
 
 class QuyishRasxod(models.Model):

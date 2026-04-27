@@ -19,7 +19,8 @@
       "Bash(sed -i 's|<td style=\"font-size:12px;color:var\\(--gray-500\\);\">{{ r.izoh|default:\"—\" }}</td>|<td style=\"font-size:12px;color:var\\(--gray-500\\);\">{{ r.izoh|default:\"—\" }}</td><td style=\"font-size:12px;color:var\\(--gray-600\\);font-weight:600;\">{{ r.created_by.name|default:\"—\" }}</td>|' d:/dasturllash/zenko/apps/ceo/templates/ceo/rasxod_list.html)",
       "Bash(python -c \"import os; os.rename\\('apps/casting/templates/casting/atxot_rasxod_list.html','apps/casting/templates/casting/quyish_rasxod_list.html'\\); os.rename\\('apps/casting/templates/casting/atxot_rasxod_form.html','apps/casting/templates/casting/quyish_rasxod_form.html'\\); os.rename\\('apps/ceo/templates/ceo/atxot_rasxod_list.html','apps/ceo/templates/ceo/quyish_rasxod_list.html'\\)\")",
       "Bash(grep -E \"\\\\.py$\")",
-      "Bash(python manage.py makemigrations casting --name quyishjarayon)"
+      "Bash(python manage.py makemigrations casting --name quyishjarayon)",
+      "Bash(python manage.py makemigrations casting --name remove_quyishjarayon)"
     ]
   }
 }

@@ -15,10 +15,6 @@ urlpatterns = [
     path('orders/<int:pk>/tayor/add/', views.TayorLogCreateView.as_view(), name='tayor_log_add'),
     path('orders/<int:pk>/tayor/<int:log_pk>/delete/', views.TayorLogDeleteView.as_view(), name='tayor_log_delete'),
     
-    # Quyish jarayoni
-    path('quyish-jarayon/', views.QuyishJarayonListView.as_view(), name='quyish_jarayon_list'),
-    path('quyish-jarayon/<int:pk>/set-status/', views.QuyishJarayonSetStatusView.as_view(), name='quyish_jarayon_set_status'),
-
     # Quyish rasxodlari
     path('quyish-rasxod/', views.QuyishRasxodListView.as_view(), name='quyish_rasxod_list'),
     path('quyish-rasxod/create/', views.QuyishRasxodCreateView.as_view(), name='quyish_rasxod_create'),
@@ -52,6 +48,13 @@ urlpatterns = [
     path('brujkalar/', views.BrujkaListView.as_view(), name='brujka_list'),
     path('brujkalar/<int:pk>/', views.BrujkaDetailView.as_view(), name='brujka_detail'),
     path('brujkalar/search/', views.BrujkaSearchAPIView.as_view(), name='brujka_search'),
+
+    # Quyish jarayon
+    path('quyish-jarayon/', views.QuyishJarayonListView.as_view(), name='quyish_jarayon_list'),
+    path('quyish-jarayon/<int:pk>/', views.QuyishJarayonDetailView.as_view(), name='quyish_jarayon_detail'),
+    path('quyish-jarayon/<int:pk>/set-status/', views.QuyishJarayonSetStatusView.as_view(), name='quyish_jarayon_set_status'),
+    path('quyish-jarayon/<int:pk>/log/add/', views.QuyishJarayonLogCreateView.as_view(), name='quyish_jarayon_log_add'),
+    path('quyish-jarayon/<int:pk>/log/<int:log_pk>/delete/', views.QuyishJarayonLogDeleteView.as_view(), name='quyish_jarayon_log_delete'),
 
     # Additional orders
     path('additional/', views.AdditionalOrderListView.as_view(), name='additional_order_list'),
