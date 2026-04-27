@@ -112,21 +112,29 @@ class IlishJarayonDetailView(AttachManagerRequiredMixin, View):
         total_par     = kun_par + tun_par
         total_broshka = kun_broshka + tun_broshka
 
+        # Progress: maqsad = order.quantity (broshka), 1 broshka = 1 dona
+        target_broshka = jarayon.order.quantity
+        qoldiq_broshka = max(0, target_broshka - total_broshka)
+        progress_pct   = min(100, round(total_broshka / target_broshka * 100)) if target_broshka else 0
+
         form = IlishLogForm(initial={'sana': timezone.now().date()})
 
         return render(request, 'ilish/jarayon_detail.html', {
-            'active_nav':    'jarayonlar',
-            'jarayon':       jarayon,
-            'loglar':        loglar_list,
-            'form':          form,
-            'total_par':     total_par,
-            'total_broshka': total_broshka,
-            'kun_par':       kun_par,
-            'tun_par':       tun_par,
-            'kun_broshka':   kun_broshka,
-            'tun_broshka':   tun_broshka,
-            'kun_count':     len(kun_loglar),
-            'tun_count':     len(tun_loglar),
+            'active_nav':      'jarayonlar',
+            'jarayon':         jarayon,
+            'loglar':          loglar_list,
+            'form':            form,
+            'total_par':       total_par,
+            'total_broshka':   total_broshka,
+            'kun_par':         kun_par,
+            'tun_par':         tun_par,
+            'kun_broshka':     kun_broshka,
+            'tun_broshka':     tun_broshka,
+            'kun_count':       len(kun_loglar),
+            'tun_count':       len(tun_loglar),
+            'target_broshka':  target_broshka,
+            'qoldiq_broshka':  qoldiq_broshka,
+            'progress_pct':    progress_pct,
         })
 
 
