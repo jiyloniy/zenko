@@ -232,24 +232,15 @@
     <div class="oc-num">{{ order.order_number }}</div>
 
     <!-- Progress — accepted tabda ham, in_process tablarida ham -->
-    {% with hs=order.hom_sum|default:0 ts=order.tayor_sum|default:0 qty=order.quantity %}
+    {% with hs=order.hom_sum|default:0 qty=order.quantity %}
     <div class="oc-progress">
       <div class="op-item">
         <div class="op-top">
           <span class="op-lbl">Hom</span>
-          <span class="op-val" style="color:#F97316;">{{ hs }} / {{ qty }}</span>
+          <span class="op-val" style="color:#F97316;">{{ hs }} / {{ qty }} par</span>
         </div>
         <div class="op-bar">
           <div class="op-fill op-hom" style="width:{% if qty %}{% if hs >= qty %}100{% else %}{% widthratio hs qty 100 %}{% endif %}{% else %}0{% endif %}%"></div>
-        </div>
-      </div>
-      <div class="op-item">
-        <div class="op-top">
-          <span class="op-lbl">Tayor</span>
-          <span class="op-val" style="color:#16A34A;">{{ ts }} / {{ qty }}</span>
-        </div>
-        <div class="op-bar">
-          <div class="op-fill op-tayor" style="width:{% if qty %}{% if ts >= qty %}100{% else %}{% widthratio ts qty 100 %}{% endif %}{% else %}0{% endif %}%"></div>
         </div>
       </div>
     </div>
