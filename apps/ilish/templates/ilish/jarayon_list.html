@@ -80,6 +80,10 @@
 .izoh-inp{flex:1;padding:6px 10px;border:1.5px solid var(--gray-200);border-radius:8px;font-size:12px;font-family:inherit;color:var(--black);outline:none;transition:border-color .18s;}
 .izoh-inp:focus{border-color:#8B5CF6;}
 
+/* Accept big btn */
+.btn-accept-big{background:linear-gradient(135deg,#8B5CF6,#7C3AED);color:#fff;border:none;border-radius:10px;padding:10px 16px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;display:flex;align-items:center;gap:7px;transition:all .18s;width:100%;justify-content:center;box-shadow:0 3px 10px rgba(139,92,246,.25);}
+.btn-accept-big:hover{background:linear-gradient(135deg,#7C3AED,#6D28D9);box-shadow:0 6px 18px rgba(139,92,246,.4);transform:translateY(-1px);}
+
 /* Bulk btn */
 .btn-bulk{background:linear-gradient(135deg,#8B5CF6,#7C3AED);color:#fff;border:none;border-radius:9px;padding:7px 14px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;display:flex;align-items:center;gap:5px;transition:all .18s;width:100%;justify-content:center;}
 .btn-bulk:hover{background:linear-gradient(135deg,#7C3AED,#6D28D9);box-shadow:0 4px 12px rgba(139,92,246,.3);}
@@ -109,13 +113,26 @@
 
 /* Hodim rows */
 .hodim-rows{display:flex;flex-direction:column;gap:8px;margin-bottom:14px;}
-.hodim-row{display:grid;grid-template-columns:1fr 80px 28px;gap:6px;align-items:center;}
-.hodim-row select,.hodim-row input{padding:7px 10px;border:1.5px solid var(--gray-200);border-radius:8px;font-size:13px;font-family:inherit;color:var(--black);outline:none;background:var(--white);width:100%;}
-.hodim-row select:focus,.hodim-row input:focus{border-color:#8B5CF6;}
-.rm-btn{width:28px;height:28px;border-radius:7px;background:#FEF2F2;border:1px solid #FECACA;color:#DC2626;cursor:pointer;display:grid;place-items:center;flex-shrink:0;}
+.hodim-row{display:grid;grid-template-columns:1fr 88px 28px;gap:6px;align-items:start;}
+.hodim-soni-inp{padding:7px 10px;border:1.5px solid var(--gray-200);border-radius:8px;font-size:13px;font-family:inherit;color:var(--black);outline:none;background:var(--white);width:100%;}
+.hodim-soni-inp:focus{border-color:#8B5CF6;}
+.rm-btn{width:28px;height:28px;border-radius:7px;background:#FEF2F2;border:1px solid #FECACA;color:#DC2626;cursor:pointer;display:grid;place-items:center;flex-shrink:0;margin-top:1px;}
 .rm-btn:hover{background:#FEE2E2;}
 .add-hodim-btn{display:inline-flex;align-items:center;gap:6px;padding:7px 14px;border-radius:9px;background:var(--gray-100);border:1.5px dashed var(--gray-300);color:var(--gray-600);font-size:12px;font-weight:700;cursor:pointer;transition:.15s;font-family:inherit;}
 .add-hodim-btn:hover{background:var(--gray-200);border-color:var(--gray-400);}
+
+/* Hodim search dropdown */
+.hodim-search-wrap{position:relative;}
+.hodim-search-inp{width:100%;padding:7px 10px 7px 30px;border:1.5px solid var(--gray-200);border-radius:8px;font-size:13px;font-family:inherit;color:var(--black);outline:none;background:var(--white);}
+.hodim-search-inp:focus{border-color:#8B5CF6;}
+.hodim-search-icon{position:absolute;left:9px;top:50%;transform:translateY(-50%);width:14px;height:14px;color:var(--gray-400);pointer-events:none;}
+.hodim-dropdown{position:absolute;top:calc(100% + 4px);left:0;right:0;background:var(--white);border:1.5px solid var(--gray-200);border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,.12);z-index:300;max-height:180px;overflow-y:auto;display:none;}
+.hodim-dropdown.open{display:block;}
+.hodim-opt{padding:8px 12px;font-size:13px;cursor:pointer;transition:.12s;display:flex;align-items:center;gap:8px;}
+.hodim-opt:hover,.hodim-opt.focused{background:rgba(139,92,246,.07);}
+.hodim-opt-avatar{width:26px;height:26px;border-radius:50%;background:rgba(139,92,246,.12);color:#8B5CF6;font-size:11px;font-weight:800;display:grid;place-items:center;flex-shrink:0;}
+.hodim-opt-name{font-weight:600;}
+.hodim-hidden{display:none;}
 
 /* Calc preview */
 .calc-row{background:rgba(139,92,246,.06);border:1.5px solid rgba(139,92,246,.15);border-radius:10px;padding:10px 14px;font-size:12px;color:#6D28D9;font-weight:600;margin-top:10px;display:none;}
@@ -224,7 +241,21 @@
     {% if j.izoh %}<div style="font-size:11.5px;color:var(--gray-500);font-style:italic;padding:7px 10px;background:var(--gray-50);border-radius:8px;border-left:3px solid var(--gray-200);margin-bottom:10px;">{{ j.izoh }}</div>{% endif %}
 
     <div class="jcard-actions">
-      <!-- Status o'zgartirish -->
+
+      {% if j.status == 'qabul_qilindi' %}
+      {# ── Faqat "Qabul qilish" tugmasi ── #}
+      <form method="post" action="{% url 'ilish:jarayon_set_status' j.pk %}" id="sf-{{ j.pk }}">
+        {% csrf_token %}
+        <input type="hidden" name="next_tab" value="{{ tab }}">
+        <input type="hidden" name="status" value="ilinmoqda">
+        <button type="submit" class="btn-accept-big">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" style="width:15px;height:15px;"><path stroke-linecap="round" stroke-linejoin="round" d="M5.25 5.653c0-.856.917-1.398 1.667-.986l11.54 6.347a1.125 1.125 0 0 1 0 1.972l-11.54 6.347a1.125 1.125 0 0 1-1.667-.986V5.653Z"/></svg>
+          Ilinmoqdaga o'tkazish
+        </button>
+      </form>
+
+      {% else %}
+      {# ── Ilinmoqda / boshqa statuslar ── #}
       <form method="post" action="{% url 'ilish:jarayon_set_status' j.pk %}" id="sf-{{ j.pk }}">
         {% csrf_token %}
         <input type="hidden" name="next_tab" value="{{ tab }}">
@@ -233,18 +264,20 @@
           <input class="izoh-inp" type="text" name="izoh" value="{{ j.izoh }}" placeholder="Izoh...">
         </div>
         <div class="status-row">
-          {% if j.status != 'qabul_qilindi' %}<button type="button" class="btn-s bs-qabul" onclick="setSt('{{ j.pk }}','qabul_qilindi')">Qabul</button>{% endif %}
           {% if j.status != 'ilinmoqda' %}<button type="button" class="btn-s bs-ilin" onclick="setSt('{{ j.pk }}','ilinmoqda')">Ilinmoqda</button>{% endif %}
           {% if j.status != 'ilib_bolindi' %}<button type="button" class="btn-s bs-ilib" onclick="setSt('{{ j.pk }}','ilib_bolindi')">Ilib bo'lindi</button>{% endif %}
           {% if j.status != 'bekor_qilindi' %}<button type="button" class="btn-s bs-bekor" onclick="setSt('{{ j.pk }}','bekor_qilindi')">Bekor</button>{% endif %}
         </div>
       </form>
+      {% endif %}
 
-      <!-- Tezkor bulk log -->
+      {# ── Tezkor bulk log — faqat ilinmoqda ── #}
+      {% if j.status == 'ilinmoqda' %}
       <button type="button" class="btn-bulk" onclick="openBulk({{ j.pk }}, '{{ j.order.name|escapejs }}', {{ j.order.quantity }}, '{% if j.order.brujka and j.order.brujka.image %}{{ j.order.brujka.image.url }}{% elif j.order.image %}{{ j.order.image.url }}{% endif %}')">
         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width:14px;height:14px;"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v6m3-3H9m12 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/></svg>
         Tezkor log kiritish
       </button>
+      {% endif %}
 
       <a href="{% url 'ilish:jarayon_detail' j.pk %}" class="btn btn-secondary btn-sm" style="justify-content:center;">
         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M8.25 6.75h12M8.25 12h12m-12 5.25h12M3.75 6.75h.007v.008H3.75V6.75Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0ZM3.75 12h.007v.008H3.75V12Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm-.375 5.25h.007v.008H3.75v-.008Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Z"/></svg>
@@ -356,32 +389,52 @@
 
 {% block extra_js %}
 <script>
-// Status change
+// ── Status change (non-qabul cards) ──
 function setSt(pk, status) {
-  const labels = {qabul_qilindi:'Qabul qilindi',ilinmoqda:'Ilinmoqda',ilib_bolindi:"Ilib bo'lindi",bekor_qilindi:'Bekor qilindi'};
-  if (!confirm(labels[status] + ' deb belgilaysizmi?')) return;
+  const labels = {ilinmoqda:'Ilinmoqda',ilib_bolindi:"Ilib bo'lindi",bekor_qilindi:'Bekor qilindi'};
+  if (!confirm((labels[status]||status) + ' deb belgilaysizmi?')) return;
   document.getElementById('st-' + pk).value = status;
   document.getElementById('sf-' + pk).submit();
 }
 
-// Hodim options HTML
-const hodimOptions = `<option value="">— Hodimni tanlang —</option>` +
-  [{% for h in hodimlar %}{"pk":"{{ h.pk }}","name":"{{ h.name|escapejs }}"},{% endfor %}]
-  .map(h => `<option value="${h.pk}">${h.name}</option>`).join('');
+// ── Hodimlar ma'lumotlari ──
+const HODIMLAR = [
+  {% for h in hodimlar %}{"pk":"{{ h.pk }}","name":"{{ h.name|escapejs }}"},{% endfor %}
+];
 
+// ── Hodim search dropdown logic ──
 let hodimRowCount = 0;
-function addHodimRow() {
+
+function createHodimRow() {
   hodimRowCount++;
-  const div = document.createElement('div');
-  div.className = 'hodim-row';
-  div.id = 'hr-' + hodimRowCount;
-  div.innerHTML = `
-    <select name="hodim_ids" class="hodim-sel" onchange="updateCalc()">${hodimOptions}</select>
-    <input type="number" name="vishilka_sonlar" value="1" min="1" class="hodim-soni" onchange="updateCalc()" oninput="updateCalc()">
-    <button type="button" class="rm-btn" onclick="removeHodimRow('hr-${hodimRowCount}')">
+  const id  = 'hr-' + hodimRowCount;
+  const did = 'hd-' + hodimRowCount;
+
+  const wrap = document.createElement('div');
+  wrap.className = 'hodim-row';
+  wrap.id = id;
+  wrap.innerHTML = `
+    <div class="hodim-search-wrap" id="sw-${hodimRowCount}">
+      <svg class="hodim-search-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z"/></svg>
+      <input type="text" class="hodim-search-inp" placeholder="Hodimni qidiring..." autocomplete="off"
+        oninput="filterHodim(${hodimRowCount})"
+        onfocus="openDropdown(${hodimRowCount})"
+        onblur="closeDropdownDelayed(${hodimRowCount})">
+      <input type="hidden" name="hodim_ids" id="${did}" value="">
+      <div class="hodim-dropdown" id="drop-${hodimRowCount}"></div>
+    </div>
+    <input type="number" name="vishilka_sonlar" value="1" min="1" class="hodim-soni-inp" oninput="updateCalc()">
+    <button type="button" class="rm-btn" onclick="removeHodimRow('${id}')">
       <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width:12px;height:12px;"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12"/></svg>
     </button>`;
-  document.getElementById('hodimRows').appendChild(div);
+  // init dropdown
+  renderDropdown(hodimRowCount, '');
+  return wrap;
+}
+
+function addHodimRow() {
+  const wrap = createHodimRow();
+  document.getElementById('hodimRows').appendChild(wrap);
   updateCalc();
 }
 
@@ -391,18 +444,66 @@ function removeHodimRow(id) {
   updateCalc();
 }
 
+function renderDropdown(n, query) {
+  const drop = document.getElementById('drop-' + n);
+  if (!drop) return;
+  const q = query.toLowerCase();
+  const filtered = q
+    ? HODIMLAR.filter(h => h.name.toLowerCase().includes(q))
+    : HODIMLAR;
+  drop.innerHTML = filtered.length
+    ? filtered.map(h =>
+        `<div class="hodim-opt" onmousedown="selectHodim(${n},'${h.pk}','${h.name.replace(/'/g,"\\'")}')" >
+           <div class="hodim-opt-avatar">${h.name[0].toUpperCase()}</div>
+           <span class="hodim-opt-name">${h.name}</span>
+         </div>`
+      ).join('')
+    : `<div style="padding:10px 12px;font-size:12px;color:var(--gray-400);">Topilmadi</div>`;
+}
+
+function filterHodim(n) {
+  const inp = document.querySelector(`#sw-${n} .hodim-search-inp`);
+  const hid = document.getElementById('hd-' + n);
+  hid.value = ''; // clear selection if typing again
+  renderDropdown(n, inp.value);
+  openDropdown(n);
+  updateCalc();
+}
+
+function openDropdown(n) {
+  const drop = document.getElementById('drop-' + n);
+  if (drop) drop.classList.add('open');
+}
+
+function closeDropdownDelayed(n) {
+  setTimeout(() => {
+    const drop = document.getElementById('drop-' + n);
+    if (drop) drop.classList.remove('open');
+  }, 180);
+}
+
+function selectHodim(n, pk, name) {
+  const inp = document.querySelector(`#sw-${n} .hodim-search-inp`);
+  const hid = document.getElementById('hd-' + n);
+  inp.value = name;
+  hid.value = pk;
+  const drop = document.getElementById('drop-' + n);
+  if (drop) drop.classList.remove('open');
+  updateCalc();
+}
+
+// ── Calc preview ──
 function updateCalc() {
   const vSel = document.getElementById('bulkVishilka');
-  const opt  = vSel.selectedOptions[0];
-  const qty  = opt ? parseInt(opt.dataset.qty) || 0 : 0;
+  const opt  = vSel ? vSel.selectedOptions[0] : null;
+  const qty  = opt ? parseInt(opt.dataset.qty)     || 0 : 0;
   const bro  = opt ? parseInt(opt.dataset.broshka) || 0 : 0;
 
-  const rows    = document.querySelectorAll('.hodim-row');
-  let totalPar  = 0, totalBro = 0, validRows = 0;
-  rows.forEach(r => {
-    const sel  = r.querySelector('.hodim-sel');
-    const soni = parseInt(r.querySelector('.hodim-soni').value) || 0;
-    if (sel && sel.value && soni > 0) {
+  let totalPar = 0, totalBro = 0, validRows = 0;
+  document.querySelectorAll('.hodim-row').forEach(r => {
+    const hid  = r.querySelector('[name="hodim_ids"]');
+    const soni = parseInt(r.querySelector('.hodim-soni-inp').value) || 0;
+    if (hid && hid.value && soni > 0) {
       totalPar += qty * soni;
       totalBro += bro * soni;
       validRows++;
@@ -412,13 +513,13 @@ function updateCalc() {
   const preview = document.getElementById('calcPreview');
   if (qty && validRows) {
     preview.style.display = 'block';
-    preview.innerHTML = `${validRows} hodim · Jami: <strong>${totalPar} par</strong> = <strong style="color:#8B5CF6;">${totalBro} broshka</strong>`;
+    preview.innerHTML = `<strong>${validRows} hodim</strong> · Jami: <strong>${totalPar} par</strong> = <strong style="color:#8B5CF6;">${totalBro} broshka</strong>`;
   } else {
     preview.style.display = 'none';
   }
 }
 
-// Modal open/close
+// ── Modal open / close ──
 function openBulk(pk, name, qty, imgUrl) {
   document.getElementById('bulkForm').action = `/ilish/${pk}/log/bulk/`;
   document.getElementById('thumbName').textContent = name;
@@ -430,13 +531,17 @@ function openBulk(pk, name, qty, imgUrl) {
   } else {
     img.style.display = 'none'; ph.style.display = 'grid';
   }
-  // Reset hodim rows
   document.getElementById('hodimRows').innerHTML = '';
   hodimRowCount = 0;
-  addHodimRow(); // start with one row
+  addHodimRow();
   document.getElementById('calcPreview').style.display = 'none';
   document.getElementById('bulkModal').classList.add('open');
   document.body.style.overflow = 'hidden';
+  // focus search
+  setTimeout(() => {
+    const inp = document.querySelector('#hodimRows .hodim-search-inp');
+    if (inp) inp.focus();
+  }, 80);
 }
 
 function closeBulk() {
