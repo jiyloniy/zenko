@@ -72,10 +72,10 @@
 .oc-prio-urgent{background:#FEE2E2;color:#DC2626;border:1px solid #FECACA;}
 .oc-prio-text{flex:1;}
 
-/* Order nomi (pastda, kichik) */
-.oc-name{font-weight:600;font-size:12px;color:var(--gray-500);text-decoration:none;display:block;line-height:1.35;margin-bottom:1px;}
+/* Order nomi */
+.oc-name{font-weight:900;font-size:16px;color:var(--black);text-decoration:none;display:block;line-height:1.3;margin-bottom:0;}
 .oc-name:hover{color:var(--orange);}
-.oc-num{font-size:10px;color:var(--gray-300);font-family:monospace;margin-bottom:8px;}
+.oc-num{font-size:10px;color:var(--gray-400);font-family:monospace;margin-bottom:8px;margin-top:2px;}
 
 /* Progress */
 .oc-progress{margin-top:11px;}
@@ -239,30 +239,25 @@
   {% endif %}
 
   <div class="oc-body">
-    <!-- Brujka nomi katta, tepada -->
-    {% if order.brujka %}
-    <div class="oc-brujka">
-      <span class="oc-brujka-swatch" style="background:{{ order.brujka.color }};"></span>
-      <span class="oc-brujka-name">{{ order.brujka.name }}</span>
+    <!-- Sarlavha: order nomi + muhimlik (faqat high/urgent) -->
+    <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:6px;">
+      <a href="{% url 'casting:order_detail' order.pk %}" class="oc-name" style="font-size:16px;font-weight:900;color:var(--black);margin-bottom:0;">{{ order.name }}</a>
+      {% if order.priority == 'urgent' %}
+      <span style="flex-shrink:0;font-size:10px;font-weight:800;padding:3px 8px;border-radius:6px;background:#FEE2E2;color:#DC2626;text-transform:uppercase;letter-spacing:.4px;">⚡ Shoshilinch</span>
+      {% elif order.priority == 'high' %}
+      <span style="flex-shrink:0;font-size:10px;font-weight:800;padding:3px 8px;border-radius:6px;background:#FEF3C7;color:#B45309;text-transform:uppercase;letter-spacing:.4px;">↑ Yuqori</span>
+      {% endif %}
     </div>
-    {% endif %}
 
-    <!-- Priority badge -->
-    {% if order.priority %}
-    <div class="oc-priority oc-prio-{{ order.priority }}">
-      {% if order.priority == 'low' %}<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 13.5L12 21m0 0l-7.5-7.5M12 21V3"/></svg>{% elif order.priority == 'normal' %}<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 3c4.97 0 9 4.03 9 9s-4.03 9-9 9-9-4.03-9-9 4.03-9 9-9z"/></svg>{% elif order.priority == 'high' %}<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c.865.865 2.291 1.375 3.803 1.375H19.5a4.5 4.5 0 001.327-8.727m0 0c-.694.784-1.48 1.454-2.359 1.954m0 0a4.5 4.5 0 01-7.753-3.176m7.753 3.176l.001-.001m0 0a4.5 4.5 0 00-7.752-3.176m0 0l-.001.001"/></svg>{% elif order.priority == 'urgent' %}<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c.865.865 2.291 1.375 3.803 1.375H19.5a4.5 4.5 0 001.327-8.727m0 0c-.694.784-1.48 1.454-2.359 1.954m0 0a4.5 4.5 0 01-7.753-3.176m7.753 3.176l.001-.001m0 0a4.5 4.5 0 00-7.752-3.176m0 0l-.001.001"/></svg>{% endif %}
-      <span class="oc-prio-text">{% if order.priority == 'low' %}Past{% elif order.priority == 'normal' %}Oddiy{% elif order.priority == 'high' %}Yuqori{% elif order.priority == 'urgent' %}Shoshilinch{% endif %}</span>
-    </div>
-    {% endif %}
-
-    <!-- Soni va sana brujka nomidan keyin -->
+    <!-- Miqdor va muddat -->
     <div class="oc-qty-date">
       <span class="oc-qty-big">{{ order.quantity }}<span class="oc-qty-unit">dona</span></span>
-      <span class="oc-date {% if order.is_overdue %}late{% endif %}">{{ order.deadline|date:"d.m.Y" }}{% if order.is_overdue %} ⚠{% endif %}</span>
+      <span class="oc-date {% if order.is_overdue %}late{% endif %}">
+        {% if order.is_overdue %}<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width:13px;height:13px;vertical-align:middle;"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126Z"/></svg> {% endif %}{{ order.deadline|date:"d.m.Y" }}
+      </span>
     </div>
 
-    <!-- Order nomi (kichikroq, pastda) -->
-    <a href="{% url 'casting:order_detail' order.pk %}" class="oc-name">{{ order.name }}</a>
+    <!-- Raqam -->
     <div class="oc-num">{{ order.order_number }}</div>
 
     <!-- Progress bars from annotated values -->
@@ -309,26 +304,6 @@
         </button>
       </form>
       {% else %}
-      <!-- In process: quyish holati badge -->
-      {% with j=order.quyish_jarayon %}
-      {% if j %}
-      {% if j.status == 'quyib_bolindi' or j.status == 'quyilmadi' %}
-      <div style="width:100%;margin-bottom:8px;">
-        {% if j.status == 'quyib_bolindi' %}
-        <div style="display:flex;align-items:center;gap:6px;padding:6px 12px;border-radius:10px;background:#F0FDF4;border:1.5px solid #BBF7D0;">
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="#16A34A" style="width:13px;height:13px;flex-shrink:0;"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/></svg>
-          <span style="font-size:12px;font-weight:700;color:#15803D;">Quyib bo'lindi</span>
-        </div>
-        {% else %}
-        <div style="display:flex;align-items:center;gap:6px;padding:6px 12px;border-radius:10px;background:#FFF1F2;border:1.5px solid #FECDD3;">
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="#DC2626" style="width:13px;height:13px;flex-shrink:0;"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12"/></svg>
-          <span style="font-size:12px;font-weight:700;color:#B91C1C;">Quyilmadi</span>
-        </div>
-        {% endif %}
-      </div>
-      {% endif %}
-      {% endif %}
-      {% endwith %}
       <!-- In process: ko'rish + log -->
       <a href="{% url 'casting:order_detail' order.pk %}" class="btn btn-secondary btn-sm">
         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"/></svg>
