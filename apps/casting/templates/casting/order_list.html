@@ -124,17 +124,12 @@
   <div class="sb-card sb-orange">
     <div class="sb-label">Bugun — hom</div>
     <div class="sb-val">{{ stats.hom_bugun }}</div>
-    <div class="sb-sub">dona kiritildi</div>
-  </div>
-  <div class="sb-card sb-green">
-    <div class="sb-label">Bugun — tayor</div>
-    <div class="sb-val">{{ stats.tayor_bugun }}</div>
-    <div class="sb-sub">dona tayyor bo'ldi</div>
+    <div class="sb-sub">par kiritildi</div>
   </div>
   <div class="sb-card sb-blue">
-    <div class="sb-label">Jami tayor</div>
-    <div class="sb-val">{{ stats.tayor_jami }}</div>
-    <div class="sb-sub">/ {{ stats.buyurtma_jami }} dona</div>
+    <div class="sb-label">Jami hom (aktiv)</div>
+    <div class="sb-val">{{ stats.hom_jami }}</div>
+    <div class="sb-sub">/ {{ stats.buyurtma_jami }} par</div>
   </div>
   <div class="sb-card">
     <div class="sb-label">Aktiv orderlar</div>
@@ -142,23 +137,6 @@
     <div class="sb-sub">ishlab chiqarilmoqda</div>
   </div>
 </div>
-
-<!-- Umumiy progress -->
-{% if stats.buyurtma_jami %}
-<div class="total-progress">
-  <div class="tp-head">
-    <span class="tp-title">Umumiy bajarilish darajasi</span>
-    <span class="tp-pct">{{ stats.tayor_pct }}%</span>
-  </div>
-  <div class="tp-bar">
-    <div class="tp-fill" style="width:{{ stats.tayor_pct }}%"></div>
-  </div>
-  <div class="tp-labels">
-    <span>🟢 Tayor: {{ stats.tayor_jami }} dona</span>
-    <span>Jami: {{ stats.buyurtma_jami }} dona</span>
-  </div>
-</div>
-{% endif %}
 
 <!-- Tabs -->
 <div class="ol-tabs">
