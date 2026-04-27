@@ -9,6 +9,7 @@ urlpatterns = [
     path('<int:pk>/', views.IlishJarayonDetailView.as_view(), name='jarayon_detail'),
     path('<int:pk>/set-status/', views.IlishJarayonSetStatusView.as_view(), name='jarayon_set_status'),
     path('<int:pk>/log/add/', views.IlishLogCreateView.as_view(), name='log_create'),
+    path('<int:pk>/log/bulk/', views.BulkLogCreateView.as_view(), name='log_bulk'),
     path('<int:pk>/log/<int:log_pk>/delete/', views.IlishLogDeleteView.as_view(), name='log_delete'),
 
     # Vishilkalar

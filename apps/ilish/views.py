@@ -34,19 +34,33 @@ class AttachManagerRequiredMixin(LoginRequiredMixin):
 
 class IlishJarayonListView(AttachManagerRequiredMixin, View):
     def get(self, request):
+        from apps.casting.models import QuyishJarayon
         tab = request.GET.get('tab', 'ilinmoqda')
         q   = request.GET.get('q', '').strip()
 
-        # Auto-create IlishJarayon for all READY orders that don't have one
-        ready_orders = Order.objects.filter(status=Order.Status.READY)
-        for order in ready_orders:
+        # Quyish holati QUYILMOQDA yoki QUYIB_BOLINDI bo'lgan orderlar uchun
+        # IlishJarayon avtomatik yaratish
+        quyilgan_orders = Order.objects.filter(
+            status__in=[Order.Status.IN_PROCESS, Order.Status.READY],
+            quyish_jarayon__status__in=[
+                QuyishJarayon.Status.QUYILMOQDA,
+                QuyishJarayon.Status.QUYIB_BOLINDI,
+            ],
+        )
+        for order in quyilgan_orders:
+            IlishJarayon.objects.get_or_create(
+                order=order,
+                defaults={'created_by': request.user},
+            )
+        # READY statusli orderlar ham
+        for order in Order.objects.filter(status=Order.Status.READY):
             IlishJarayon.objects.get_or_create(
                 order=order,
                 defaults={'created_by': request.user},
             )
 
         qs = IlishJarayon.objects.select_related(
-            'order', 'order__brujka', 'updated_by'
+            'order', 'order__brujka', 'updated_by', 'order__quyish_jarayon',
         )
         if q:
             qs = qs.filter(
@@ -64,12 +78,18 @@ class IlishJarayonListView(AttachManagerRequiredMixin, View):
         for s in IlishJarayon.Status:
             counts[s.value] = qs.filter(status=s.value).count()
 
+        hodimlar  = User.objects.all().order_by('name')
+        vishilkalar = Vishilka.objects.filter(is_active=True).order_by('quantity', 'nomi')
+
         return render(request, 'ilish/jarayon_list.html', {
             'active_nav': 'jarayonlar',
             'tab':        tab,
             'q':          q,
             'jarayonlar': jarayonlar,
             'counts':     counts,
+            'hodimlar':   hodimlar,
+            'vishilkalar': vishilkalar,
+            'today':      timezone.now().date().isoformat(),
         })
 
 
@@ -160,6 +180,68 @@ class IlishLogDeleteView(AttachManagerRequiredMixin, View):
         log = get_object_or_404(IlishJarayonLog, pk=log_pk, jarayon_id=pk)
         log.delete()
         messages.success(request, 'Log o\'chirildi.')
+        return redirect('ilish:jarayon_detail', pk=pk)
+
+
+class BulkLogCreateView(AttachManagerRequiredMixin, View):
+    """Bir necha hodim uchun bir vaqtda log kiritish."""
+    def post(self, request, pk):
+        jarayon       = get_object_or_404(IlishJarayon, pk=pk)
+        sana_str      = request.POST.get('sana', timezone.now().date().isoformat())
+        smena         = request.POST.get('smena', 'kun')
+        vishilka_id   = request.POST.get('vishilka', '')
+        izoh          = request.POST.get('izoh', '').strip()
+
+        try:
+            sana = datetime.date.fromisoformat(sana_str)
+        except ValueError:
+            sana = timezone.now().date()
+
+        vishilka = None
+        if vishilka_id:
+            try:
+                vishilka = Vishilka.objects.get(pk=vishilka_id, is_active=True)
+            except Vishilka.DoesNotExist:
+                pass
+
+        hodim_ids   = request.POST.getlist('hodim_ids')
+        vishilka_sonlar = request.POST.getlist('vishilka_sonlar')
+
+        saved = 0
+        for i, hodim_id in enumerate(hodim_ids):
+            if not hodim_id:
+                continue
+            try:
+                soni = int(vishilka_sonlar[i]) if i < len(vishilka_sonlar) else 1
+            except (ValueError, TypeError):
+                soni = 1
+            if soni < 1:
+                continue
+            try:
+                hodim = User.objects.get(pk=hodim_id)
+            except User.DoesNotExist:
+                continue
+            IlishJarayonLog.objects.create(
+                jarayon=jarayon,
+                hodim=hodim,
+                smena=smena,
+                vishilka=vishilka,
+                vishilka_soni=soni,
+                sana=sana,
+                izoh=izoh,
+                created_by=request.user,
+            )
+            saved += 1
+
+        if saved:
+            if jarayon.status == IlishJarayon.Status.QABUL_QILINDI:
+                jarayon.status     = IlishJarayon.Status.ILINMOQDA
+                jarayon.updated_by = request.user
+                jarayon.save()
+            messages.success(request, f'{saved} ta hodim uchun log saqlandi.')
+        else:
+            messages.error(request, 'Hech qanday log saqlanmadi. Hodim va vishilka soni kiriting.')
+
         return redirect('ilish:jarayon_detail', pk=pk)
 
 

@@ -4,6 +4,7 @@
 
 {% block extra_css %}
 <style>
+/* ── Tabs ── */
 .tab-bar{display:flex;gap:8px;margin-bottom:20px;flex-wrap:wrap;}
 .tab-btn{display:inline-flex;align-items:center;gap:7px;padding:9px 18px;border-radius:11px;font-size:13px;font-weight:700;cursor:pointer;border:1.5px solid var(--gray-200);background:var(--white);color:var(--gray-500);text-decoration:none;transition:all .18s;}
 .tab-btn:hover{border-color:var(--gray-300);color:var(--black);}
@@ -12,158 +13,242 @@
 .tab-btn.active-ilib_bolindi{background:linear-gradient(135deg,#F0FDF4,#DCFCE7);border-color:#4ADE80;color:#15803D;}
 .tab-btn.active-bekor_qilindi{background:linear-gradient(135deg,#FFF1F2,#FFE4E6);border-color:#FB7185;color:#BE123C;}
 .tab-badge{font-size:11px;font-weight:800;padding:2px 7px;border-radius:20px;background:rgba(0,0,0,.08);}
-.search-bar{display:flex;gap:8px;margin-bottom:20px;}
-.search-bar input{flex:1;padding:9px 14px;background:var(--white);border:1.5px solid var(--gray-200);border-radius:10px;font-size:13px;font-family:inherit;color:var(--black);outline:none;transition:border-color .18s;}
-.search-bar input:focus{border-color:#8B5CF6;}
-.search-bar input::placeholder{color:var(--gray-400);}
-.jgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px;}
-.jcard{background:var(--white);border:1.5px solid var(--gray-200);border-radius:16px;overflow:hidden;transition:box-shadow .2s,transform .18s;box-shadow:0 1px 4px rgba(0,0,0,.05);}
-.jcard:hover{box-shadow:0 8px 24px rgba(0,0,0,.09);transform:translateY(-2px);}
-.jcard-top{height:5px;}
-.jcard-top.blue{background:linear-gradient(90deg,#3B82F6,#60A5FA);}
-.jcard-top.orange{background:linear-gradient(90deg,#F97316,#FBBF24);}
-.jcard-top.green{background:linear-gradient(90deg,#22C55E,#4ADE80);}
-.jcard-top.red{background:linear-gradient(90deg,#EF4444,#FB7185);}
-.jcard-img{width:100%;height:140px;object-fit:cover;display:block;}
-.jcard-img-ph{width:100%;height:140px;background:linear-gradient(135deg,#F3F4F6,#E5E7EB);display:flex;align-items:center;justify-content:center;}
-.jcard-img-ph svg{width:36px;height:36px;color:var(--gray-300);}
-.jcard-body{padding:14px 16px 16px;}
-.jcard-brujka{font-size:17px;font-weight:900;color:var(--black);margin-bottom:4px;display:flex;align-items:center;gap:7px;}
-.brujka-swatch{width:11px;height:11px;border-radius:50%;flex-shrink:0;box-shadow:0 1px 3px rgba(0,0,0,.2);}
-.jcard-name{font-size:12px;font-weight:600;color:var(--gray-500);margin-bottom:2px;}
-.jcard-num{font-size:10px;color:var(--gray-300);font-family:monospace;margin-bottom:10px;}
-.jcard-qty{font-size:22px;font-weight:900;color:#8B5CF6;letter-spacing:-.5px;}
-.jcard-qty span{font-size:12px;font-weight:600;color:var(--gray-400);margin-left:2px;}
-.jcard-meta{font-size:11px;color:var(--gray-400);margin-top:6px;}
-.status-pill{display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border-radius:20px;font-size:11px;font-weight:700;margin-top:8px;}
-.sp-qabul_qilindi{background:#EFF6FF;color:#1D4ED8;border:1px solid #BFDBFE;}
-.sp-ilinmoqda{background:#FFF7ED;color:#C2410C;border:1px solid #FED7AA;}
-.sp-ilib_bolindi{background:#F0FDF4;color:#15803D;border:1px solid #BBF7D0;}
-.sp-bekor_qilindi{background:#FFF1F2;color:#BE123C;border:1px solid #FECDD3;}
-.sp-dot{width:7px;height:7px;border-radius:50%;}
-.sp-qabul_qilindi .sp-dot{background:#3B82F6;}
-.sp-ilinmoqda .sp-dot{background:#F97316;animation:blink 1.6s infinite;}
-.sp-ilib_bolindi .sp-dot{background:#22C55E;}
-.sp-bekor_qilindi .sp-dot{background:#EF4444;}
-.jcard-izoh{font-size:11.5px;color:var(--gray-500);font-style:italic;margin-top:6px;padding:7px 10px;background:var(--gray-50);border-radius:8px;border-left:3px solid var(--gray-200);}
-.jcard-actions{margin-top:12px;padding-top:12px;border-top:1px solid var(--gray-100);display:flex;flex-direction:column;gap:7px;}
-.status-form{display:flex;gap:5px;flex-wrap:wrap;}
-.btn-status{flex:1;min-width:80px;padding:6px 8px;border:none;border-radius:9px;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:4px;transition:all .15s;}
-.btn-qabul{background:#EFF6FF;color:#1D4ED8;border:1.5px solid #BFDBFE;}.btn-qabul:hover{background:#DBEAFE;}
-.btn-ilinmoqda{background:#FFF7ED;color:#C2410C;border:1.5px solid #FED7AA;}.btn-ilinmoqda:hover{background:#FFEDD5;}
-.btn-ilib{background:#F0FDF4;color:#15803D;border:1.5px solid #BBF7D0;}.btn-ilib:hover{background:#DCFCE7;}
-.btn-bekor{background:#FFF1F2;color:#BE123C;border:1.5px solid #FECDD3;}.btn-bekor:hover{background:#FFE4E6;}
-.izoh-row{display:flex;gap:6px;}
+
+/* ── Search ── */
+.toolbar{display:flex;gap:8px;margin-bottom:20px;flex-wrap:wrap;align-items:center;}
+.toolbar input{flex:1;min-width:180px;padding:9px 14px;background:var(--white);border:1.5px solid var(--gray-200);border-radius:10px;font-size:13px;font-family:inherit;color:var(--black);outline:none;transition:border-color .18s;}
+.toolbar input:focus{border-color:#8B5CF6;}
+
+/* ── Grid ── */
+.jgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:18px;}
+
+/* ── Card ── */
+.jcard{background:var(--white);border:1.5px solid var(--gray-200);border-radius:18px;overflow:hidden;transition:box-shadow .22s,transform .18s;box-shadow:0 2px 8px rgba(0,0,0,.05);}
+.jcard:hover{box-shadow:0 10px 32px rgba(0,0,0,.10);transform:translateY(-3px);}
+
+.jcard-accent{height:5px;}
+.jcard-accent.blue{background:linear-gradient(90deg,#3B82F6,#60A5FA);}
+.jcard-accent.orange{background:linear-gradient(90deg,#F97316,#FBBF24);}
+.jcard-accent.green{background:linear-gradient(90deg,#22C55E,#4ADE80);}
+.jcard-accent.red{background:linear-gradient(90deg,#EF4444,#FB7185);}
+
+/* Image area */
+.jcard-img-wrap{position:relative;height:180px;overflow:hidden;background:var(--gray-100);}
+.jcard-img-wrap img{width:100%;height:100%;object-fit:cover;display:block;}
+.jcard-img-ph{width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#F3F4F6,#E5E7EB);}
+.jcard-img-ph svg{width:48px;height:48px;color:var(--gray-300);}
+
+/* Quyish badge overlay */
+.quyish-badge{position:absolute;top:10px;left:10px;padding:4px 10px;border-radius:20px;font-size:11px;font-weight:800;backdrop-filter:blur(8px);}
+.qb-quyilmoqda{background:rgba(249,115,22,.9);color:#fff;}
+.qb-quyib{background:rgba(34,197,94,.9);color:#fff;}
+
+/* Card body */
+.jcard-body{padding:16px 18px 18px;}
+.jcard-brujka-row{display:flex;align-items:center;gap:8px;margin-bottom:5px;}
+.brujka-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;}
+.brujka-name{font-size:13px;font-weight:700;color:var(--gray-600);}
+.jcard-title{font-size:17px;font-weight:900;color:var(--black);margin-bottom:2px;line-height:1.3;}
+.jcard-num{font-size:10px;color:var(--gray-300);font-family:monospace;letter-spacing:.5px;margin-bottom:10px;}
+
+/* Qty + deadline row */
+.jcard-meta-row{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:10px;}
+.qty-big{font-size:26px;font-weight:900;color:#8B5CF6;line-height:1;}
+.qty-big span{font-size:12px;font-weight:600;color:var(--gray-400);margin-left:3px;}
+.deadline-chip{font-size:12px;font-weight:700;padding:4px 10px;border-radius:8px;background:var(--gray-100);color:var(--gray-600);}
+.deadline-chip.overdue{background:#FEF2F2;color:#DC2626;}
+
+/* Status pills */
+.pill-row{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px;}
+.pill{display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;}
+.pill-dot{width:6px;height:6px;border-radius:50%;}
+.p-qabul{background:#EFF6FF;color:#1D4ED8;border:1px solid #BFDBFE;}.p-qabul .pill-dot{background:#3B82F6;}
+.p-ilinmoqda{background:#FFF7ED;color:#C2410C;border:1px solid #FED7AA;}.p-ilinmoqda .pill-dot{background:#F97316;animation:blink 1.6s infinite;}
+.p-ilib{background:#F0FDF4;color:#15803D;border:1px solid #BBF7D0;}.p-ilib .pill-dot{background:#22C55E;}
+.p-bekor{background:#FFF1F2;color:#BE123C;border:1px solid #FECDD3;}.p-bekor .pill-dot{background:#EF4444;}
+.p-quyilmoqda{background:#FFF7ED;color:#C2410C;border:1px solid #FED7AA;}.p-quyilmoqda .pill-dot{background:#F97316;}
+.p-quyib{background:#F0FDF4;color:#15803D;border:1px solid #BBF7D0;}.p-quyib .pill-dot{background:#22C55E;}
+
+/* Actions */
+.jcard-actions{border-top:1px solid var(--gray-100);padding-top:12px;display:flex;gap:7px;flex-direction:column;}
+.status-row{display:flex;gap:5px;flex-wrap:wrap;}
+.btn-s{flex:1;min-width:70px;padding:6px 8px;border:none;border-radius:8px;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:3px;transition:all .15s;}
+.bs-qabul{background:#EFF6FF;color:#1D4ED8;border:1.5px solid #BFDBFE;}.bs-qabul:hover{background:#DBEAFE;}
+.bs-ilin{background:#FFF7ED;color:#C2410C;border:1.5px solid #FED7AA;}.bs-ilin:hover{background:#FFEDD5;}
+.bs-ilib{background:#F0FDF4;color:#15803D;border:1.5px solid #BBF7D0;}.bs-ilib:hover{background:#DCFCE7;}
+.bs-bekor{background:#FFF1F2;color:#BE123C;border:1.5px solid #FECDD3;}.bs-bekor:hover{background:#FFE4E6;}
 .izoh-inp{flex:1;padding:6px 10px;border:1.5px solid var(--gray-200);border-radius:8px;font-size:12px;font-family:inherit;color:var(--black);outline:none;transition:border-color .18s;}
 .izoh-inp:focus{border-color:#8B5CF6;}
+
+/* Bulk btn */
+.btn-bulk{background:linear-gradient(135deg,#8B5CF6,#7C3AED);color:#fff;border:none;border-radius:9px;padding:7px 14px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;display:flex;align-items:center;gap:5px;transition:all .18s;width:100%;justify-content:center;}
+.btn-bulk:hover{background:linear-gradient(135deg,#7C3AED,#6D28D9);box-shadow:0 4px 12px rgba(139,92,246,.3);}
+
+/* Empty */
 .empty-wrap{padding:60px 20px;text-align:center;color:var(--gray-400);}
-.empty-wrap svg{width:52px;height:52px;margin-bottom:14px;opacity:.2;}
-.empty-wrap p{font-size:14px;}
+.empty-wrap svg{width:52px;height:52px;margin:0 auto 14px;display:block;opacity:.2;}
+
 @keyframes blink{0%,100%{opacity:1;}50%{opacity:.3;}}
 @media(max-width:640px){.jgrid{grid-template-columns:1fr;}}
+
+/* ── Bulk Modal ── */
+.modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:200;backdrop-filter:blur(3px);align-items:center;justify-content:center;padding:16px;}
+.modal-bg.open{display:flex;}
+.modal{background:var(--white);border-radius:20px;width:100%;max-width:620px;max-height:90vh;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 24px 64px rgba(0,0,0,.18);}
+.modal-head{padding:20px 24px 16px;border-bottom:1px solid var(--gray-100);display:flex;align-items:center;justify-content:space-between;flex-shrink:0;}
+.modal-title{font-size:16px;font-weight:800;color:var(--black);}
+.modal-close{width:32px;height:32px;border-radius:8px;background:var(--gray-100);border:none;cursor:pointer;display:grid;place-items:center;color:var(--gray-500);transition:.15s;}
+.modal-close:hover{background:var(--gray-200);}
+.modal-body{padding:20px 24px;overflow-y:auto;flex:1;}
+.modal-foot{padding:14px 24px;border-top:1px solid var(--gray-100);display:flex;gap:8px;justify-content:flex-end;flex-shrink:0;}
+.f-inp{width:100%;padding:8px 12px;border:1.5px solid var(--gray-200);border-radius:9px;font-size:13px;font-family:inherit;color:var(--black);outline:none;transition:border-color .18s;background:var(--white);}
+.f-inp:focus{border-color:#8B5CF6;}
+.f-label{display:block;font-size:11px;font-weight:700;color:var(--gray-600);margin-bottom:5px;text-transform:uppercase;letter-spacing:.5px;}
+.f-row{margin-bottom:14px;}
+.f-grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+
+/* Hodim rows */
+.hodim-rows{display:flex;flex-direction:column;gap:8px;margin-bottom:14px;}
+.hodim-row{display:grid;grid-template-columns:1fr 80px 28px;gap:6px;align-items:center;}
+.hodim-row select,.hodim-row input{padding:7px 10px;border:1.5px solid var(--gray-200);border-radius:8px;font-size:13px;font-family:inherit;color:var(--black);outline:none;background:var(--white);width:100%;}
+.hodim-row select:focus,.hodim-row input:focus{border-color:#8B5CF6;}
+.rm-btn{width:28px;height:28px;border-radius:7px;background:#FEF2F2;border:1px solid #FECACA;color:#DC2626;cursor:pointer;display:grid;place-items:center;flex-shrink:0;}
+.rm-btn:hover{background:#FEE2E2;}
+.add-hodim-btn{display:inline-flex;align-items:center;gap:6px;padding:7px 14px;border-radius:9px;background:var(--gray-100);border:1.5px dashed var(--gray-300);color:var(--gray-600);font-size:12px;font-weight:700;cursor:pointer;transition:.15s;font-family:inherit;}
+.add-hodim-btn:hover{background:var(--gray-200);border-color:var(--gray-400);}
+
+/* Calc preview */
+.calc-row{background:rgba(139,92,246,.06);border:1.5px solid rgba(139,92,246,.15);border-radius:10px;padding:10px 14px;font-size:12px;color:#6D28D9;font-weight:600;margin-top:10px;display:none;}
+
+/* Order thumb in modal */
+.order-thumb{display:flex;align-items:center;gap:12px;padding:12px;background:var(--gray-50);border-radius:12px;margin-bottom:16px;}
+.order-thumb img,.order-thumb-ph{width:52px;height:52px;border-radius:10px;object-fit:cover;flex-shrink:0;}
+.order-thumb-ph{background:var(--gray-200);display:grid;place-items:center;}
+.order-thumb-ph svg{width:22px;height:22px;color:var(--gray-400);}
+.ot-name{font-size:14px;font-weight:800;color:var(--black);}
+.ot-sub{font-size:11px;color:var(--gray-400);margin-top:2px;}
 </style>
 {% endblock %}
 
 {% block content %}
+
+<!-- Tabs -->
 <div class="tab-bar">
   <a href="?tab=qabul_qilindi&q={{ q }}" class="tab-btn {% if tab == 'qabul_qilindi' %}active-qabul_qilindi{% endif %}">
     <span style="width:8px;height:8px;border-radius:50%;background:#3B82F6;flex-shrink:0;"></span>
-    Qabul qilindi
-    <span class="tab-badge">{{ counts.qabul_qilindi }}</span>
+    Qabul qilindi <span class="tab-badge">{{ counts.qabul_qilindi }}</span>
   </a>
   <a href="?tab=ilinmoqda&q={{ q }}" class="tab-btn {% if tab == 'ilinmoqda' %}active-ilinmoqda{% endif %}">
-    <span style="width:8px;height:8px;border-radius:50%;background:#F97316;flex-shrink:0;{% if tab == 'ilinmoqda' %}animation:blink 1.6s infinite;{% endif %}"></span>
-    Ilinmoqda
-    <span class="tab-badge">{{ counts.ilinmoqda }}</span>
+    <span style="width:8px;height:8px;border-radius:50%;background:#F97316;{% if tab == 'ilinmoqda' %}animation:blink 1.6s infinite;{% endif %}flex-shrink:0;"></span>
+    Ilinmoqda <span class="tab-badge">{{ counts.ilinmoqda }}</span>
   </a>
   <a href="?tab=ilib_bolindi&q={{ q }}" class="tab-btn {% if tab == 'ilib_bolindi' %}active-ilib_bolindi{% endif %}">
     <span style="width:8px;height:8px;border-radius:50%;background:#22C55E;flex-shrink:0;"></span>
-    Ilib bo'lindi
-    <span class="tab-badge">{{ counts.ilib_bolindi }}</span>
+    Ilib bo'lindi <span class="tab-badge">{{ counts.ilib_bolindi }}</span>
   </a>
   <a href="?tab=bekor_qilindi&q={{ q }}" class="tab-btn {% if tab == 'bekor_qilindi' %}active-bekor_qilindi{% endif %}">
     <span style="width:8px;height:8px;border-radius:50%;background:#EF4444;flex-shrink:0;"></span>
-    Bekor qilindi
-    <span class="tab-badge">{{ counts.bekor_qilindi }}</span>
+    Bekor qilindi <span class="tab-badge">{{ counts.bekor_qilindi }}</span>
   </a>
 </div>
 
-<form class="search-bar" method="get">
+<!-- Toolbar -->
+<form class="toolbar" method="get">
   <input type="hidden" name="tab" value="{{ tab }}">
-  <input type="text" name="q" value="{{ q }}" placeholder="Buyurtma nomi yoki raqami bo'yicha qidirish...">
+  <input type="text" name="q" value="{{ q }}" placeholder="Buyurtma nomi yoki raqami...">
   <button type="submit" class="btn btn-secondary btn-sm">
     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z"/></svg>
     Qidirish
   </button>
-  {% if q %}<a href="?tab={{ tab }}" class="btn btn-sm" style="background:#FEF2F2;color:#DC2626;border:1px solid #FECACA;">Tozalash</a>{% endif %}
+  {% if q %}<a href="?tab={{ tab }}" class="btn btn-sm" style="background:#FEF2F2;color:#DC2626;border:1px solid #FECACA;">✕ Tozalash</a>{% endif %}
 </form>
 
 {% if jarayonlar %}
 <div class="jgrid">
 {% for j in jarayonlar %}
 <div class="jcard">
-  <div class="jcard-top {{ j.status_color }}"></div>
-  {% if j.order.brujka and j.order.brujka.image %}
-  <img src="{{ j.order.brujka.image.url }}" class="jcard-img" alt="{{ j.order.brujka.name }}">
-  {% elif j.order.image %}
-  <img src="{{ j.order.image.url }}" class="jcard-img" alt="">
-  {% else %}
-  <div class="jcard-img-ph">
-    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m2.25 15.75 5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159m-1.5-1.5 1.409-1.409a2.25 2.25 0 0 1 3.182 0l2.909 2.909M3.75 21h16.5A2.25 2.25 0 0 0 22.5 18.75V5.25A2.25 2.25 0 0 0 20.25 3H3.75A2.25 2.25 0 0 0 1.5 5.25v13.5A2.25 2.25 0 0 0 3.75 21Z"/></svg>
+  <div class="jcard-accent {{ j.status_color }}"></div>
+
+  <!-- Rasm -->
+  <div class="jcard-img-wrap">
+    {% if j.order.brujka and j.order.brujka.image %}
+      <img src="{{ j.order.brujka.image.url }}" alt="{{ j.order.brujka.name }}" loading="lazy">
+    {% elif j.order.image %}
+      <img src="{{ j.order.image.url }}" alt="" loading="lazy">
+    {% else %}
+      <div class="jcard-img-ph">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m2.25 15.75 5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159m-1.5-1.5 1.409-1.409a2.25 2.25 0 0 1 3.182 0l2.909 2.909M3.75 21h16.5A2.25 2.25 0 0 0 22.5 18.75V5.25A2.25 2.25 0 0 0 20.25 3H3.75A2.25 2.25 0 0 0 1.5 5.25v13.5A2.25 2.25 0 0 0 3.75 21Z"/></svg>
+      </div>
+    {% endif %}
+    {% if j.order.quyish_jarayon %}
+      {% with qj=j.order.quyish_jarayon %}
+        {% if qj.status == 'quyilmoqda' %}
+          <div class="quyish-badge qb-quyilmoqda">🔥 Quyilmoqda</div>
+        {% elif qj.status == 'quyib_bolindi' %}
+          <div class="quyish-badge qb-quyib">✓ Quyib bo'lindi</div>
+        {% endif %}
+      {% endwith %}
+    {% endif %}
   </div>
-  {% endif %}
 
   <div class="jcard-body">
     {% if j.order.brujka %}
-    <div class="jcard-brujka">
-      <span class="brujka-swatch" style="background:{{ j.order.brujka.color }};"></span>
-      {{ j.order.brujka.name }}
+    <div class="jcard-brujka-row">
+      <span class="brujka-dot" style="background:{{ j.order.brujka.color }};"></span>
+      <span class="brujka-name">{{ j.order.brujka.name }}</span>
     </div>
     {% endif %}
-    <div class="jcard-name">{{ j.order.name }}</div>
+    <div class="jcard-title">{{ j.order.name }}</div>
     <div class="jcard-num">{{ j.order.order_number }}</div>
 
-    <div style="display:flex;align-items:baseline;justify-content:space-between;gap:8px;">
-      <span class="jcard-qty">{{ j.order.quantity }}<span>dona</span></span>
-      <span style="font-size:13px;font-weight:700;color:{% if j.order.is_overdue %}#DC2626{% else %}var(--gray-600){% endif %};">
-        {{ j.order.deadline|date:"d.m.Y" }}{% if j.order.is_overdue %} ⚠{% endif %}
+    <div class="jcard-meta-row">
+      <div class="qty-big">{{ j.order.quantity }}<span>dona</span></div>
+      <div class="deadline-chip {% if j.order.is_overdue %}overdue{% endif %}">
+        {% if j.order.is_overdue %}⚠ {% endif %}{{ j.order.deadline|date:"d.m.Y" }}
+      </div>
+    </div>
+
+    <div class="pill-row">
+      <span class="pill p-{% if j.status == 'qabul_qilindi' %}qabul{% elif j.status == 'ilinmoqda' %}ilinmoqda{% elif j.status == 'ilib_bolindi' %}ilib{% else %}bekor{% endif %}">
+        <span class="pill-dot"></span>{{ j.get_status_display }}
       </span>
+      {% if j.order.quyish_jarayon %}
+        {% with qj=j.order.quyish_jarayon %}
+          <span class="pill {% if qj.status == 'quyilmoqda' %}p-quyilmoqda{% elif qj.status == 'quyib_bolindi' %}p-quyib{% endif %}">
+            <span class="pill-dot"></span>{{ qj.get_status_display }}
+          </span>
+        {% endwith %}
+      {% endif %}
     </div>
 
-    <div class="status-pill sp-{{ j.status }}">
-      <span class="sp-dot"></span>
-      {{ j.get_status_display }}
-    </div>
-
-    {% if j.izoh %}<div class="jcard-izoh">{{ j.izoh }}</div>{% endif %}
-    <div class="jcard-meta">{% if j.updated_by %}{{ j.updated_by.name }} · {% endif %}{{ j.updated_at|date:"d.m.Y H:i" }}</div>
+    {% if j.izoh %}<div style="font-size:11.5px;color:var(--gray-500);font-style:italic;padding:7px 10px;background:var(--gray-50);border-radius:8px;border-left:3px solid var(--gray-200);margin-bottom:10px;">{{ j.izoh }}</div>{% endif %}
 
     <div class="jcard-actions">
-      <form method="post" action="{% url 'ilish:jarayon_set_status' j.pk %}" id="form-{{ j.pk }}">
+      <!-- Status o'zgartirish -->
+      <form method="post" action="{% url 'ilish:jarayon_set_status' j.pk %}" id="sf-{{ j.pk }}">
         {% csrf_token %}
         <input type="hidden" name="next_tab" value="{{ tab }}">
-        <input type="hidden" name="status" id="status-{{ j.pk }}" value="">
-        <div class="izoh-row" style="margin-bottom:6px;">
-          <input class="izoh-inp" type="text" name="izoh" placeholder="Izoh (ixtiyoriy)..." value="{{ j.izoh }}">
+        <input type="hidden" name="status" id="st-{{ j.pk }}" value="">
+        <div style="display:flex;gap:6px;margin-bottom:6px;">
+          <input class="izoh-inp" type="text" name="izoh" value="{{ j.izoh }}" placeholder="Izoh...">
         </div>
-        <div class="status-form">
-          {% if j.status != 'qabul_qilindi' %}
-          <button type="button" class="btn-status btn-qabul" onclick="setStatus('{{ j.pk }}','qabul_qilindi')">Qabul</button>
-          {% endif %}
-          {% if j.status != 'ilinmoqda' %}
-          <button type="button" class="btn-status btn-ilinmoqda" onclick="setStatus('{{ j.pk }}','ilinmoqda')">Ilinmoqda</button>
-          {% endif %}
-          {% if j.status != 'ilib_bolindi' %}
-          <button type="button" class="btn-status btn-ilib" onclick="setStatus('{{ j.pk }}','ilib_bolindi')">Ilib bo'lindi</button>
-          {% endif %}
-          {% if j.status != 'bekor_qilindi' %}
-          <button type="button" class="btn-status btn-bekor" onclick="setStatus('{{ j.pk }}','bekor_qilindi')">Bekor</button>
-          {% endif %}
+        <div class="status-row">
+          {% if j.status != 'qabul_qilindi' %}<button type="button" class="btn-s bs-qabul" onclick="setSt('{{ j.pk }}','qabul_qilindi')">Qabul</button>{% endif %}
+          {% if j.status != 'ilinmoqda' %}<button type="button" class="btn-s bs-ilin" onclick="setSt('{{ j.pk }}','ilinmoqda')">Ilinmoqda</button>{% endif %}
+          {% if j.status != 'ilib_bolindi' %}<button type="button" class="btn-s bs-ilib" onclick="setSt('{{ j.pk }}','ilib_bolindi')">Ilib bo'lindi</button>{% endif %}
+          {% if j.status != 'bekor_qilindi' %}<button type="button" class="btn-s bs-bekor" onclick="setSt('{{ j.pk }}','bekor_qilindi')">Bekor</button>{% endif %}
         </div>
       </form>
+
+      <!-- Tezkor bulk log -->
+      <button type="button" class="btn-bulk" onclick="openBulk({{ j.pk }}, '{{ j.order.name|escapejs }}', {{ j.order.quantity }}, '{% if j.order.brujka and j.order.brujka.image %}{{ j.order.brujka.image.url }}{% elif j.order.image %}{{ j.order.image.url }}{% endif %}')">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width:14px;height:14px;"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v6m3-3H9m12 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/></svg>
+        Tezkor log kiritish
+      </button>
+
       <a href="{% url 'ilish:jarayon_detail' j.pk %}" class="btn btn-secondary btn-sm" style="justify-content:center;">
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 12h16.5m-16.5 3.75h16.5M3.75 19.5h16.5M5.625 4.5h12.75a1.875 1.875 0 0 1 0 3.75H5.625a1.875 1.875 0 0 1 0-3.75Z"/></svg>
-        Loglar / Boshqarish
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M8.25 6.75h12M8.25 12h12m-12 5.25h12M3.75 6.75h.007v.008H3.75V6.75Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0ZM3.75 12h.007v.008H3.75V12Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm-.375 5.25h.007v.008H3.75v-.008Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Z"/></svg>
+        Loglar
       </a>
     </div>
   </div>
@@ -174,7 +259,7 @@
 {% else %}
 <div class="empty-wrap">
   <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1" stroke="currentColor">
-    <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 21v-7.5a.75.75 0 0 1 .75-.75h3a.75.75 0 0 1 .75.75V21m-4.5 0H2.36m11.14 0H18m0 0h3.64m-1.39 0V9.349M3.75 21V9.349m0 0a3.001 3.001 0 0 0 3.75-.615A2.993 2.993 0 0 0 9.75 9.75c.896 0 1.7-.393 2.25-1.016a2.993 2.993 0 0 0 2.25 1.016c.896 0 1.7-.393 2.25-1.015a3.001 3.001 0 0 0 3.75.614m-16.5 0a3.004 3.004 0 0 1-.621-4.72l1.189-1.19A1.5 1.5 0 0 1 5.378 3h13.243a1.5 1.5 0 0 1 1.06.44l1.19 1.189a3 3 0 0 1-.621 4.72"/>
+    <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 21v-7.5a.75.75 0 0 1 .75-.75h3a.75.75 0 0 1 .75.75V21m-4.5 0H2.36m11.14 0H18m0 0h3.64m-1.39 0V9.349M3.75 21V9.349"/>
   </svg>
   <p>
     {% if q %}Qidiruv bo'yicha topilmadi
@@ -185,20 +270,182 @@
   </p>
 </div>
 {% endif %}
+
+<!-- ── Bulk Log Modal ── -->
+<div class="modal-bg" id="bulkModal">
+  <div class="modal">
+    <div class="modal-head">
+      <div class="modal-title">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="#8B5CF6" style="width:18px;height:18px;display:inline;margin-right:6px;vertical-align:-3px;"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v6m3-3H9m12 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/></svg>
+        Tezkor log kiritish
+      </div>
+      <button class="modal-close" onclick="closeBulk()">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width:14px;height:14px;"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12"/></svg>
+      </button>
+    </div>
+    <form id="bulkForm" method="post" action="">
+      {% csrf_token %}
+      <div class="modal-body">
+        <!-- Order info -->
+        <div class="order-thumb" id="orderThumb">
+          <div class="order-thumb-ph" id="thumbPh">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m2.25 15.75 5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159m-1.5-1.5 1.409-1.409a2.25 2.25 0 0 1 3.182 0l2.909 2.909"/></svg>
+          </div>
+          <img id="thumbImg" src="" alt="" style="width:52px;height:52px;border-radius:10px;object-fit:cover;flex-shrink:0;display:none;">
+          <div>
+            <div class="ot-name" id="thumbName">—</div>
+            <div class="ot-sub" id="thumbQty">—</div>
+          </div>
+        </div>
+
+        <!-- Smena + Sana + Vishilka -->
+        <div class="f-grid2" style="margin-bottom:14px;">
+          <div class="f-row" style="margin:0;">
+            <label class="f-label">Smena</label>
+            <select name="smena" class="f-inp" id="bulkSmena">
+              <option value="kun">☀️ Kunduzgi</option>
+              <option value="tun">🌙 Tungi</option>
+            </select>
+          </div>
+          <div class="f-row" style="margin:0;">
+            <label class="f-label">Sana</label>
+            <input type="date" name="sana" class="f-inp" id="bulkSana" value="{{ today }}">
+          </div>
+        </div>
+        <div class="f-row">
+          <label class="f-label">Vishilka</label>
+          <select name="vishilka" class="f-inp" id="bulkVishilka" onchange="updateCalc()">
+            <option value="">— Tanlang —</option>
+            {% for v in vishilkalar %}
+            <option value="{{ v.pk }}" data-qty="{{ v.quantity }}" data-broshka="{{ v.broshka_per_vishilka }}">{{ v.nomi }} — {{ v.quantity }} parlik ({{ v.broshka_per_vishilka }} broshka)</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="f-row">
+          <label class="f-label">Izoh (ixtiyoriy)</label>
+          <input type="text" name="izoh" class="f-inp" placeholder="Izoh...">
+        </div>
+
+        <!-- Hodimlar -->
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+          <label class="f-label" style="margin:0;">Hodimlar va vishilka soni</label>
+          <button type="button" class="add-hodim-btn" onclick="addHodimRow()">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width:13px;height:13px;"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v6m3-3H9"/></svg>
+            Hodim qo'shish
+          </button>
+        </div>
+        <div class="hodim-rows" id="hodimRows">
+          <!-- Rows will be added here -->
+        </div>
+
+        <!-- Calc preview -->
+        <div class="calc-row" id="calcPreview"></div>
+      </div>
+      <div class="modal-foot">
+        <button type="button" class="btn btn-secondary" onclick="closeBulk()">Bekor</button>
+        <button type="submit" class="btn btn-primary">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5"/></svg>
+          Saqlash
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
 {% endblock %}
 
 {% block extra_js %}
 <script>
-function setStatus(pk, status) {
-  const labels = {
-    'qabul_qilindi': 'Qabul qilindi',
-    'ilinmoqda':     'Ilinmoqda',
-    'ilib_bolindi':  "Ilib bo'lindi",
-    'bekor_qilindi': 'Bekor qilindi',
-  };
+// Status change
+function setSt(pk, status) {
+  const labels = {qabul_qilindi:'Qabul qilindi',ilinmoqda:'Ilinmoqda',ilib_bolindi:"Ilib bo'lindi",bekor_qilindi:'Bekor qilindi'};
   if (!confirm(labels[status] + ' deb belgilaysizmi?')) return;
-  document.getElementById('status-' + pk).value = status;
-  document.getElementById('form-' + pk).submit();
+  document.getElementById('st-' + pk).value = status;
+  document.getElementById('sf-' + pk).submit();
 }
+
+// Hodim options HTML
+const hodimOptions = `<option value="">— Hodimni tanlang —</option>` +
+  [{% for h in hodimlar %}{"pk":"{{ h.pk }}","name":"{{ h.name|escapejs }}"},{% endfor %}]
+  .map(h => `<option value="${h.pk}">${h.name}</option>`).join('');
+
+let hodimRowCount = 0;
+function addHodimRow() {
+  hodimRowCount++;
+  const div = document.createElement('div');
+  div.className = 'hodim-row';
+  div.id = 'hr-' + hodimRowCount;
+  div.innerHTML = `
+    <select name="hodim_ids" class="hodim-sel" onchange="updateCalc()">${hodimOptions}</select>
+    <input type="number" name="vishilka_sonlar" value="1" min="1" class="hodim-soni" onchange="updateCalc()" oninput="updateCalc()">
+    <button type="button" class="rm-btn" onclick="removeHodimRow('hr-${hodimRowCount}')">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width:12px;height:12px;"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12"/></svg>
+    </button>`;
+  document.getElementById('hodimRows').appendChild(div);
+  updateCalc();
+}
+
+function removeHodimRow(id) {
+  const el = document.getElementById(id);
+  if (el) el.remove();
+  updateCalc();
+}
+
+function updateCalc() {
+  const vSel = document.getElementById('bulkVishilka');
+  const opt  = vSel.selectedOptions[0];
+  const qty  = opt ? parseInt(opt.dataset.qty) || 0 : 0;
+  const bro  = opt ? parseInt(opt.dataset.broshka) || 0 : 0;
+
+  const rows    = document.querySelectorAll('.hodim-row');
+  let totalPar  = 0, totalBro = 0, validRows = 0;
+  rows.forEach(r => {
+    const sel  = r.querySelector('.hodim-sel');
+    const soni = parseInt(r.querySelector('.hodim-soni').value) || 0;
+    if (sel && sel.value && soni > 0) {
+      totalPar += qty * soni;
+      totalBro += bro * soni;
+      validRows++;
+    }
+  });
+
+  const preview = document.getElementById('calcPreview');
+  if (qty && validRows) {
+    preview.style.display = 'block';
+    preview.innerHTML = `${validRows} hodim · Jami: <strong>${totalPar} par</strong> = <strong style="color:#8B5CF6;">${totalBro} broshka</strong>`;
+  } else {
+    preview.style.display = 'none';
+  }
+}
+
+// Modal open/close
+function openBulk(pk, name, qty, imgUrl) {
+  document.getElementById('bulkForm').action = `/ilish/${pk}/log/bulk/`;
+  document.getElementById('thumbName').textContent = name;
+  document.getElementById('thumbQty').textContent  = qty + ' dona buyurtma';
+  const img = document.getElementById('thumbImg');
+  const ph  = document.getElementById('thumbPh');
+  if (imgUrl) {
+    img.src = imgUrl; img.style.display = 'block'; ph.style.display = 'none';
+  } else {
+    img.style.display = 'none'; ph.style.display = 'grid';
+  }
+  // Reset hodim rows
+  document.getElementById('hodimRows').innerHTML = '';
+  hodimRowCount = 0;
+  addHodimRow(); // start with one row
+  document.getElementById('calcPreview').style.display = 'none';
+  document.getElementById('bulkModal').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeBulk() {
+  document.getElementById('bulkModal').classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+document.getElementById('bulkModal').addEventListener('click', function(e) {
+  if (e.target === this) closeBulk();
+});
 </script>
 {% endblock %}
