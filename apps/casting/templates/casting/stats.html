@@ -116,12 +116,12 @@
       <div class="hs-lbl">Hom bugun</div>
     </div>
     <div class="hs">
-      <div class="hs-val" style="color:#4ADE80;">{{ tayor_bugun }}</div>
-      <div class="hs-lbl">Tayor bugun</div>
+      <div class="hs-val" style="color:#60A5FA;">{{ hom_davr }}</div>
+      <div class="hs-lbl">Davr hom</div>
     </div>
     <div class="hs">
-      <div class="hs-val" style="color:#60A5FA;">{{ tayor_pct }}%</div>
-      <div class="hs-lbl">Bajarildi</div>
+      <div class="hs-val" style="color:#A78BFA;">{{ order_count }}</div>
+      <div class="hs-lbl">Aktiv order</div>
     </div>
   </div>
 </div>
@@ -144,28 +144,23 @@
 <div class="kpi-grid">
   <div class="kpi kpi-o">
     <div class="kpi-lbl">Bugun hom</div>
-    <div class="kpi-val">{{ hom_bugun }}<span class="kpi-unit">dona</span></div>
+    <div class="kpi-val">{{ hom_bugun }}<span class="kpi-unit">par</span></div>
     <div class="kpi-sub">O'rtacha: {{ avg_hom }}/kun</div>
-  </div>
-  <div class="kpi kpi-g">
-    <div class="kpi-lbl">Bugun tayor</div>
-    <div class="kpi-val">{{ tayor_bugun }}<span class="kpi-unit">dona</span></div>
-    <div class="kpi-sub">O'rtacha: {{ avg_tayor }}/kun</div>
   </div>
   <div class="kpi kpi-b">
     <div class="kpi-lbl">Davr — hom</div>
-    <div class="kpi-val">{{ hom_davr }}<span class="kpi-unit">dona</span></div>
+    <div class="kpi-val">{{ hom_davr }}<span class="kpi-unit">par</span></div>
     <div class="kpi-sub">{{ date_from|date:"d.m" }} – {{ date_to|date:"d.m" }}</div>
   </div>
   <div class="kpi kpi-p">
-    <div class="kpi-lbl">Davr — tayor</div>
-    <div class="kpi-val">{{ tayor_davr }}<span class="kpi-unit">dona</span></div>
-    <div class="kpi-sub">{{ date_from|date:"d.m" }} – {{ date_to|date:"d.m" }}</div>
+    <div class="kpi-lbl">Aktiv buyurtmalar</div>
+    <div class="kpi-val">{{ order_count }}<span class="kpi-unit">ta</span></div>
+    <div class="kpi-sub">ishlab chiqarilmoqda</div>
   </div>
   <div class="kpi kpi-g">
-    <div class="kpi-lbl">Jami bajarildi</div>
-    <div class="kpi-val">{{ tayor_pct }}<span class="kpi-unit">%</span></div>
-    <div class="kpi-sub">{{ tayor_jami_ip }}/{{ buyurtma_jami }} dona</div>
+    <div class="kpi-lbl">Jami hom (aktiv)</div>
+    <div class="kpi-val">{{ hom_jami_ip }}<span class="kpi-unit">par</span></div>
+    <div class="kpi-sub">/ {{ buyurtma_jami }} par buyurtma</div>
   </div>
 </div>
 

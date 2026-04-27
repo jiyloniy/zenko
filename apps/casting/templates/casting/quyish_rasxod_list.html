@@ -65,35 +65,32 @@
   <div class="stat-card">
     <div class="stat-label">Umumiy miqdor</div>
     <div class="stat-val">{{ jami_miqdor }}</div>
+    <div class="stat-sub">jami sarflangan</div>
   </div>
   <div class="stat-card">
-    <div class="stat-label">Umumiy kg</div>
-    <div class="stat-val">{{ jami_kg }} <span style="font-size:14px;font-weight:500;color:var(--gray-500);">kg</span></div>
+    <div class="stat-label">Oxirgi yozuv</div>
+    {% with last=rasxodlar.first %}
+    <div class="stat-val" style="font-size:15px;">{% if last %}{{ last.sana|date:"d.m.Y" }}{% else %}—{% endif %}</div>
+    {% endwith %}
   </div>
 </div>
 
 <!-- Table -->
 <div class="table-wrap">
   {% if rasxodlar %}
-  <div class="table-head">
+  <div class="table-head" style="grid-template-columns:2fr 1fr 1fr 110px;">
     <div>Nomi</div>
-    <div>Turi</div>
     <div>Miqdor</div>
-    <div>Kg</div>
     <div>Sana</div>
     <div style="text-align:right;">Amallar</div>
   </div>
   {% for rasxod in rasxodlar %}
-  <div class="table-row">
+  <div class="table-row" style="grid-template-columns:2fr 1fr 1fr 110px;">
     <div>
       <div class="tr-name">{{ rasxod.nomi }}</div>
-      {% if rasxod.izoh %}<div class="tr-meta">{{ rasxod.izoh|truncatechars:60 }}</div>{% endif %}
-    </div>
-    <div>
-      <span class="tr-badge {{ rasxod.rasxod_turi }}">{{ rasxod.get_rasxod_turi_display }}</span>
+      {% if rasxod.izoh %}<div class="tr-meta">{{ rasxod.izoh|truncatechars:70 }}</div>{% endif %}
     </div>
     <div class="tr-num">{{ rasxod.miqdor }}</div>
-    <div class="tr-num">{{ rasxod.kg }} <span style="font-size:11px;color:var(--gray-400);">kg</span></div>
     <div class="tr-date">{{ rasxod.sana|date:"d.m.Y" }}</div>
     <div class="tr-actions">
       <a href="{% url 'casting:quyish_rasxod_edit' rasxod.pk %}" class="btn-edit" title="Tahrirlash">
