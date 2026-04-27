@@ -36,30 +36,37 @@ class CastingOrderListView(CastingManagerRequiredMixin, View):
             order=OuterRef('pk')
         ).values('order').annotate(s=Sum('miqdor')).values('s')
 
-        # Quyish holati bo'yicha tablar — QuyishJarayon filtri
-        if status_tab in ('quyib_bolindi', 'quyilmadi'):
-            base_qs = Order.objects.select_related(
-                'brujka', 'created_by', 'quyish_jarayon'
-            ).filter(
+        # Tab bo'yicha filter:
+        # accepted      → Order.status=accepted  (QuyishJaryon yo'q)
+        # in_process    → Order.status=in_process + QuyishJarayon.status=quyilmoqda
+        # quyib_bolindi → Order.status=in_process + QuyishJarayon.status=quyib_bolindi
+        # quyilmadi     → Order.status=in_process + QuyishJarayon.status=quyilmadi
+        base_qs = Order.objects.select_related('brujka', 'created_by', 'quyish_jarayon')
+        if q:
+            base_qs = base_qs.filter(name__icontains=q)
+
+        if status_tab == 'accepted':
+            qs = base_qs.filter(status=Order.Status.ACCEPTED)
+        elif status_tab == 'in_process':
+            qs = base_qs.filter(
                 status=Order.Status.IN_PROCESS,
-                quyish_jarayon__status=status_tab,
+                quyish_jarayon__status=QuyishJarayon.Status.QUYILMOQDA,
             )
-            if q:
-                base_qs = base_qs.filter(name__icontains=q)
-            orders = base_qs.annotate(
-                hom_sum=Coalesce(Subquery(hom_sub), 0),
-                tayor_sum=Coalesce(Subquery(tayor_sub), 0),
-            ).order_by('-created_at')
-        else:
-            base_qs = Order.objects.select_related(
-                'brujka', 'created_by', 'quyish_jarayon'
-            ).filter(status__in=[Order.Status.ACCEPTED, Order.Status.IN_PROCESS])
-            if q:
-                base_qs = base_qs.filter(name__icontains=q)
-            orders = base_qs.filter(status=status_tab).annotate(
-                hom_sum=Coalesce(Subquery(hom_sub), 0),
-                tayor_sum=Coalesce(Subquery(tayor_sub), 0),
-            ).order_by('-created_at')
+        elif status_tab == 'quyib_bolindi':
+            qs = base_qs.filter(
+                status=Order.Status.IN_PROCESS,
+                quyish_jarayon__status=QuyishJarayon.Status.QUYIB_BOLINDI,
+            )
+        else:  # quyilmadi
+            qs = base_qs.filter(
+                status=Order.Status.IN_PROCESS,
+                quyish_jarayon__status=QuyishJarayon.Status.QUYILMADI,
+            )
+
+        orders = qs.annotate(
+            hom_sum=Coalesce(Subquery(hom_sub), 0),
+            tayor_sum=Coalesce(Subquery(tayor_sub), 0),
+        ).order_by('-created_at')
 
         today = timezone.localdate()
         all_ip = Order.objects.filter(status=Order.Status.IN_PROCESS)
