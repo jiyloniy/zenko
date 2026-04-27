@@ -31,6 +31,7 @@ urlpatterns = [
     path('order/', include('apps.order.urls')),
     path('users/', include('apps.users.urls')),
     path('casting/', include('apps.casting.urls')),
+    path('ilish/', include('apps.ilish.urls')),
     path('', include('apps.manage.urls')),
 ]
 

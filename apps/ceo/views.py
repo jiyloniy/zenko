@@ -68,6 +68,8 @@ class LoginView(View):
             return redirect('boss:dashboard')
         if role_name == 'CASTINGMANAGER':
             return redirect('casting:order_list')
+        if role_name == 'ATTACHMANAGER':
+            return redirect('ilish:jarayon_list')
         return redirect('ceo:dashboard')
 
 

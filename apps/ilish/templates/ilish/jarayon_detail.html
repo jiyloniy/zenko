@@ -1,0 +1,303 @@
+{% extends "ilish/base.html" %}
+{% block title %}{{ jarayon.order.name }} — Ilish{% endblock %}
+{% block page_title %}Ilish jarayoni{% endblock %}
+
+{% block topbar_actions %}
+<a href="{% url 'ilish:jarayon_list' %}" class="btn btn-secondary btn-sm">
+  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18"/></svg>
+  Orqaga
+</a>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.detail-grid{display:grid;grid-template-columns:1fr 340px;gap:20px;}
+@media(max-width:900px){.detail-grid{grid-template-columns:1fr;}}
+.card{background:var(--white);border:1.5px solid var(--gray-200);border-radius:16px;padding:20px;margin-bottom:16px;}
+.card-title{font-size:14px;font-weight:800;color:var(--black);margin-bottom:16px;display:flex;align-items:center;gap:8px;}
+.card-title svg{width:16px;height:16px;color:#8B5CF6;}
+.order-hero{display:flex;gap:16px;align-items:flex-start;}
+.order-img{width:90px;height:90px;border-radius:12px;object-fit:cover;flex-shrink:0;}
+.order-img-ph{width:90px;height:90px;border-radius:12px;background:var(--gray-100);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.order-img-ph svg{width:28px;height:28px;color:var(--gray-300);}
+.order-info h2{font-size:18px;font-weight:900;margin-bottom:4px;}
+.order-num{font-size:11px;color:var(--gray-400);font-family:monospace;}
+.order-qty{font-size:28px;font-weight:900;color:#8B5CF6;margin-top:6px;}
+.order-qty span{font-size:13px;font-weight:600;color:var(--gray-400);}
+.status-pill{display:inline-flex;align-items:center;gap:5px;padding:5px 12px;border-radius:20px;font-size:12px;font-weight:700;}
+.sp-qabul_qilindi{background:#EFF6FF;color:#1D4ED8;border:1px solid #BFDBFE;}
+.sp-ilinmoqda{background:#FFF7ED;color:#C2410C;border:1px solid #FED7AA;}
+.sp-ilib_bolindi{background:#F0FDF4;color:#15803D;border:1px solid #BBF7D0;}
+.sp-bekor_qilindi{background:#FFF1F2;color:#BE123C;border:1px solid #FECDD3;}
+.sp-dot{width:7px;height:7px;border-radius:50%;}
+.sp-ilinmoqda .sp-dot{background:#F97316;animation:blink 1.6s infinite;}
+.sp-qabul_qilindi .sp-dot{background:#3B82F6;}
+.sp-ilib_bolindi .sp-dot{background:#22C55E;}
+.sp-bekor_qilindi .sp-dot{background:#EF4444;}
+/* Smena tabs */
+.smena-tabs{display:flex;gap:8px;margin-bottom:16px;}
+.smena-tab{padding:7px 18px;border-radius:10px;font-size:12px;font-weight:700;cursor:pointer;border:1.5px solid var(--gray-200);background:var(--white);color:var(--gray-500);}
+.smena-tab.active{background:#8B5CF6;color:#fff;border-color:#8B5CF6;}
+/* Log table */
+.log-table{width:100%;border-collapse:collapse;}
+.log-table th{font-size:11px;font-weight:700;color:var(--gray-500);text-transform:uppercase;padding:8px 10px;border-bottom:1.5px solid var(--gray-200);text-align:left;}
+.log-table td{font-size:13px;padding:10px 10px;border-bottom:1px solid var(--gray-100);vertical-align:top;}
+.log-table tr:last-child td{border-bottom:none;}
+.log-table tr:hover td{background:var(--gray-50);}
+.smena-badge{display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:20px;font-size:11px;font-weight:700;}
+.smena-kun{background:#FFF7ED;color:#C2410C;border:1px solid #FED7AA;}
+.smena-tun{background:#EFF6FF;color:#1D4ED8;border:1px solid #BFDBFE;}
+.natija-badge{display:inline-flex;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:700;}
+.natija-ilib{background:#F0FDF4;color:#15803D;}
+.natija-bekor{background:#FFF1F2;color:#BE123C;}
+.del-btn{background:none;border:none;cursor:pointer;padding:4px;border-radius:6px;color:var(--gray-400);transition:.15s;}
+.del-btn:hover{background:#FEF2F2;color:#DC2626;}
+/* Stat cards */
+.stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px;}
+.stat-card{background:var(--gray-50);border:1.5px solid var(--gray-200);border-radius:12px;padding:14px;}
+.stat-label{font-size:10px;font-weight:700;color:var(--gray-500);text-transform:uppercase;letter-spacing:.8px;}
+.stat-val{font-size:24px;font-weight:900;color:var(--black);margin-top:4px;}
+.stat-val.purple{color:#8B5CF6;}
+.stat-sub{font-size:11px;color:var(--gray-400);margin-top:2px;}
+/* Form */
+.f-inp{width:100%;padding:8px 12px;border:1.5px solid var(--gray-200);border-radius:9px;font-size:13px;font-family:inherit;color:var(--black);outline:none;transition:border-color .18s;background:var(--white);}
+.f-inp:focus{border-color:#8B5CF6;}
+.f-inp::placeholder{color:var(--gray-400);}
+.form-row{margin-bottom:12px;}
+.form-row label{display:block;font-size:12px;font-weight:700;color:var(--gray-600);margin-bottom:5px;}
+.form-grid-2{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+@keyframes blink{0%,100%{opacity:1;}50%{opacity:.3;}}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="detail-grid">
+
+  <!-- LEFT: Ma'lumotlar va loglar -->
+  <div>
+    <!-- Order Info -->
+    <div class="card">
+      <div class="order-hero">
+        {% if jarayon.order.brujka and jarayon.order.brujka.image %}
+        <img src="{{ jarayon.order.brujka.image.url }}" class="order-img" alt="">
+        {% elif jarayon.order.image %}
+        <img src="{{ jarayon.order.image.url }}" class="order-img" alt="">
+        {% else %}
+        <div class="order-img-ph">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m2.25 15.75 5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159m-1.5-1.5 1.409-1.409a2.25 2.25 0 0 1 3.182 0l2.909 2.909M3.75 21h16.5A2.25 2.25 0 0 0 22.5 18.75V5.25A2.25 2.25 0 0 0 20.25 3H3.75A2.25 2.25 0 0 0 1.5 5.25v13.5A2.25 2.25 0 0 0 3.75 21Z"/></svg>
+        </div>
+        {% endif %}
+        <div class="order-info">
+          {% if jarayon.order.brujka %}
+          <div style="font-size:12px;font-weight:600;color:var(--gray-500);margin-bottom:3px;">{{ jarayon.order.brujka.name }}</div>
+          {% endif %}
+          <h2>{{ jarayon.order.name }}</h2>
+          <div class="order-num">{{ jarayon.order.order_number }}</div>
+          <div class="order-qty">{{ jarayon.order.quantity }}<span> dona</span></div>
+          <div style="margin-top:8px;">
+            <div class="status-pill sp-{{ jarayon.status }}">
+              <span class="sp-dot"></span>
+              {{ jarayon.get_status_display }}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Stat cards -->
+    <div class="stat-grid">
+      <div class="stat-card">
+        <div class="stat-label">☀️ Kunduz — par</div>
+        <div class="stat-val" style="color:#F97316;">{{ kun_par }}</div>
+        <div class="stat-sub">{{ kun_broshka }} broshka · {{ kun_count }} yozuv</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">🌙 Tun — par</div>
+        <div class="stat-val" style="color:#3B82F6;">{{ tun_par }}</div>
+        <div class="stat-sub">{{ tun_broshka }} broshka · {{ tun_count }} yozuv</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Jami par</div>
+        <div class="stat-val">{{ total_par }}</div>
+        <div class="stat-sub">kun + tun</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Jami broshka</div>
+        <div class="stat-val purple">{{ total_broshka }}</div>
+        <div class="stat-sub">par × 2</div>
+      </div>
+    </div>
+
+    <!-- Loglar -->
+    <div class="card">
+      <div class="card-title">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M8.25 6.75h12M8.25 12h12m-12 5.25h12M3.75 6.75h.007v.008H3.75V6.75Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0ZM3.75 12h.007v.008H3.75V12Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm-.375 5.25h.007v.008H3.75v-.008Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Z"/></svg>
+        Loglar
+      </div>
+
+      {% if loglar %}
+      <div style="overflow-x:auto;">
+      <table class="log-table">
+        <thead>
+          <tr>
+            <th>Sana</th>
+            <th>Hodim</th>
+            <th>Smena</th>
+            <th>Vishilka</th>
+            <th>Hisob</th>
+            <th>Par</th>
+            <th>Broshka</th>
+            <th>Izoh</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for log in loglar %}
+          <tr>
+            <td style="font-weight:600;white-space:nowrap;">{{ log.sana|date:"d.m.Y" }}</td>
+            <td style="font-weight:600;">{% if log.hodim %}{{ log.hodim.name }}{% else %}<span style="color:var(--gray-300);">—</span>{% endif %}</td>
+            <td>
+              <span class="smena-badge {% if log.smena == 'kun' %}smena-kun{% else %}smena-tun{% endif %}">
+                {% if log.smena == 'kun' %}☀️{% else %}🌙{% endif %} {{ log.get_smena_display }}
+              </span>
+            </td>
+            <td>
+              {% if log.vishilka %}
+              <span style="font-weight:600;">{{ log.vishilka.nomi }}</span><br>
+              <small style="color:var(--gray-400);">{{ log.vishilka.quantity }} parlik</small>
+              {% else %}<span style="color:var(--gray-300);">—</span>{% endif %}
+            </td>
+            <td style="color:var(--gray-500);font-size:12px;white-space:nowrap;">
+              {% if log.vishilka %}{{ log.vishilka_soni }} × {{ log.vishilka.quantity }}{% endif %}
+            </td>
+            <td>
+              <span style="font-size:18px;font-weight:900;color:var(--black);">{{ log.ilingan_par }}</span>
+            </td>
+            <td>
+              <span style="font-size:18px;font-weight:900;color:#8B5CF6;">{{ log.ilingan_broshka }}</span>
+            </td>
+            <td style="color:var(--gray-500);font-style:italic;font-size:12px;">{{ log.izoh|default:"—" }}</td>
+            <td>
+              <form method="post" action="{% url 'ilish:log_delete' jarayon.pk log.pk %}" style="display:inline;" onsubmit="return confirm('O\'chirilsinmi?')">
+                {% csrf_token %}
+                <button type="submit" class="del-btn" title="O'chirish">
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width:14px;height:14px;"><path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0"/></svg>
+                </button>
+              </form>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      </div>
+      {% else %}
+      <p style="color:var(--gray-400);font-size:13px;text-align:center;padding:20px 0;">Hali log yozuvlar yo'q.</p>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- RIGHT: Log qo'shish -->
+  <div>
+    <div class="card">
+      <div class="card-title">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v6m3-3H9m12 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/></svg>
+        Log qo'shish
+      </div>
+      <form method="post" action="{% url 'ilish:log_create' jarayon.pk %}">
+        {% csrf_token %}
+        <div class="form-row">
+          <label>Hodim</label>
+          {{ form.hodim }}
+        </div>
+        <div class="form-grid-2">
+          <div class="form-row">
+            <label>Smena</label>
+            {{ form.smena }}
+          </div>
+          <div class="form-row">
+            <label>Sana</label>
+            {{ form.sana }}
+          </div>
+        </div>
+        <div class="form-grid-2">
+          <div class="form-row">
+            <label>Vishilka</label>
+            {{ form.vishilka }}
+          </div>
+          <div class="form-row">
+            <label>Vishilka soni</label>
+            {{ form.vishilka_soni }}
+          </div>
+        </div>
+        <div class="form-row">
+          <label>Izoh</label>
+          {{ form.izoh }}
+        </div>
+
+        <!-- Live hisob -->
+        <div id="calc-block" style="background:var(--purple-dim);border:1.5px solid rgba(139,92,246,.2);border-radius:10px;padding:12px;margin-bottom:14px;display:none;">
+          <div style="font-size:11px;font-weight:700;color:#8B5CF6;margin-bottom:6px;">Hisob:</div>
+          <div style="display:flex;gap:16px;">
+            <div><div style="font-size:10px;color:var(--gray-500);">Par</div><div id="calc-par" style="font-size:20px;font-weight:900;color:var(--black);">0</div></div>
+            <div><div style="font-size:10px;color:var(--gray-500);">Broshka</div><div id="calc-broshka" style="font-size:20px;font-weight:900;color:#8B5CF6;">0</div></div>
+          </div>
+        </div>
+
+        <button type="submit" class="btn btn-primary" style="width:100%;justify-content:center;">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v6m3-3H9m12 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/></svg>
+          Log qo'shish
+        </button>
+      </form>
+    </div>
+
+    <!-- Vishilka ma'lumoti -->
+    <div class="card">
+      <div class="card-title">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M11.25 11.25l.041-.02a.75.75 0 0 1 1.063.852l-.708 2.836a.75.75 0 0 0 1.063.853l.041-.021M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9-3.75h.008v.008H12V8.25Z"/></svg>
+        Vishilka ma'lumoti
+      </div>
+      <div id="vishilka-info" style="font-size:13px;color:var(--gray-500);">Vishilkani tanlang...</div>
+    </div>
+  </div>
+
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+const vishilkaData = {
+  {% for v in form.vishilka.field.queryset %}
+  "{{ v.pk }}": {"quantity": {{ v.quantity }}, "broshka_per": {{ v.broshka_per_vishilka }}, "nomi": "{{ v.nomi }}"},
+  {% endfor %}
+};
+
+const vishilkaSelect = document.querySelector('[name="vishilka"]');
+const soniInput      = document.querySelector('[name="vishilka_soni"]');
+const calcBlock      = document.getElementById('calc-block');
+const calcPar        = document.getElementById('calc-par');
+const calcBroshka    = document.getElementById('calc-broshka');
+const vishilkaInfo   = document.getElementById('vishilka-info');
+
+function updateCalc() {
+  const vid  = vishilkaSelect.value;
+  const soni = parseInt(soniInput.value) || 0;
+  if (vid && vishilkaData[vid]) {
+    const v   = vishilkaData[vid];
+    const par = v.quantity * soni;
+    const bro = par * 2;
+    calcBlock.style.display = 'block';
+    calcPar.textContent     = par;
+    calcBroshka.textContent = bro;
+    vishilkaInfo.innerHTML  =
+      `<strong>${v.nomi}</strong> — ${v.quantity} parlik<br>` +
+      `<span style="font-size:12px;color:var(--gray-500);">${soni} × ${v.quantity} par = <strong>${par} par</strong> = <strong style="color:#8B5CF6;">${bro} broshka</strong></span>`;
+  } else {
+    calcBlock.style.display  = 'none';
+    vishilkaInfo.textContent = 'Vishilkani tanlang...';
+  }
+}
+vishilkaSelect.addEventListener('change', updateCalc);
+soniInput.addEventListener('input', updateCalc);
+updateCalc();
+</script>
+{% endblock %}

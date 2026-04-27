@@ -1,0 +1,105 @@
+{% extends "ilish/base.html" %}
+{% block title %}Vishilkalar — Zenko{% endblock %}
+{% block page_title %}Vishilkalar{% endblock %}
+
+{% block topbar_actions %}
+<a href="{% url 'ilish:vishilka_create' %}" class="btn btn-primary btn-sm">
+  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v6m3-3H9m12 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/></svg>
+  Yangi vishilka
+</a>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.stats-row{display:flex;gap:12px;margin-bottom:24px;flex-wrap:wrap;}
+.stat-mini{background:var(--white);border:1.5px solid var(--gray-200);border-radius:12px;padding:14px 20px;display:flex;align-items:center;gap:12px;}
+.stat-mini-icon{width:38px;height:38px;border-radius:10px;display:grid;place-items:center;flex-shrink:0;}
+.stat-mini-val{font-size:22px;font-weight:900;}
+.stat-mini-label{font-size:11px;color:var(--gray-500);font-weight:600;}
+.vgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:14px;}
+.vcard{background:var(--white);border:1.5px solid var(--gray-200);border-radius:14px;padding:18px;transition:box-shadow .2s,transform .18s;}
+.vcard:hover{box-shadow:0 6px 20px rgba(0,0,0,.08);transform:translateY(-2px);}
+.vcard-top{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:14px;}
+.vcard-icon{width:44px;height:44px;border-radius:12px;display:grid;place-items:center;}
+.vcard-icon.par50{background:rgba(139,92,246,.1);}
+.vcard-icon.par25{background:rgba(245,130,32,.1);}
+.vcard-icon svg{width:22px;height:22px;}
+.vcard-icon.par50 svg{color:#8B5CF6;}
+.vcard-icon.par25 svg{color:#F58220;}
+.badge-active{background:#F0FDF4;color:#15803D;border:1px solid #BBF7D0;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;}
+.badge-inactive{background:#F9FAFB;color:var(--gray-500);border:1px solid var(--gray-200);padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;}
+.vcard-name{font-size:16px;font-weight:800;margin-bottom:4px;}
+.vcard-turi{font-size:12px;font-weight:600;padding:3px 10px;border-radius:20px;display:inline-block;margin-bottom:10px;}
+.turi-50{background:rgba(139,92,246,.1);color:#8B5CF6;}
+.turi-25{background:rgba(245,130,32,.1);color:#F58220;}
+.vcard-stats{display:flex;gap:16px;margin-bottom:14px;}
+.vcard-stat{text-align:center;}
+.vcard-stat-val{font-size:20px;font-weight:900;}
+.vcard-stat-label{font-size:10px;color:var(--gray-400);font-weight:600;}
+.vcard-actions{display:flex;gap:6px;padding-top:12px;border-top:1px solid var(--gray-100);}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="stats-row">
+  <div class="stat-mini">
+    <div class="stat-mini-icon" style="background:rgba(139,92,246,.1);">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="#8B5CF6" style="width:20px;height:20px;"><path stroke-linecap="round" stroke-linejoin="round" d="M9.568 3H5.25A2.25 2.25 0 0 0 3 5.25v4.318c0 .597.237 1.17.659 1.591l9.581 9.581c.699.699 1.78.872 2.607.33a18.095 18.095 0 0 0 5.223-5.223c.542-.827.369-1.908-.33-2.607L11.16 3.66A2.25 2.25 0 0 0 9.568 3Z"/></svg>
+    </div>
+    <div><div class="stat-mini-val">{{ counts.jami }}</div><div class="stat-mini-label">Jami vishilka</div></div>
+  </div>
+  <div class="stat-mini">
+    <div class="stat-mini-icon" style="background:#F0FDF4;">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="#22C55E" style="width:20px;height:20px;"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5"/></svg>
+    </div>
+    <div><div class="stat-mini-val">{{ counts.faol }}</div><div class="stat-mini-label">Faol</div></div>
+  </div>
+</div>
+
+{% if vishilkalar %}
+<div class="vgrid">
+{% for v in vishilkalar %}
+<div class="vcard">
+  <div class="vcard-top">
+    <div class="vcard-icon par50">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9.568 3H5.25A2.25 2.25 0 0 0 3 5.25v4.318c0 .597.237 1.17.659 1.591l9.581 9.581c.699.699 1.78.872 2.607.33a18.095 18.095 0 0 0 5.223-5.223c.542-.827.369-1.908-.33-2.607L11.16 3.66A2.25 2.25 0 0 0 9.568 3Z"/><path stroke-linecap="round" stroke-linejoin="round" d="M6 6h.008v.008H6V6Z"/></svg>
+    </div>
+    {% if v.is_active %}<span class="badge-active">Faol</span>{% else %}<span class="badge-inactive">Faol emas</span>{% endif %}
+  </div>
+
+  <div class="vcard-name">{{ v.nomi }}</div>
+  <span class="vcard-turi turi-50">{{ v.quantity }} parlik</span>
+
+  <div class="vcard-stats">
+    <div class="vcard-stat">
+      <div class="vcard-stat-val" style="color:#8B5CF6;">{{ v.quantity }}</div>
+      <div class="vcard-stat-label">Par/vishilka</div>
+    </div>
+    <div class="vcard-stat">
+      <div class="vcard-stat-val">{{ v.broshka_per_vishilka }}</div>
+      <div class="vcard-stat-label">Broshka/vishilka</div>
+    </div>
+  </div>
+
+  <div class="vcard-actions">
+    <a href="{% url 'ilish:vishilka_update' v.pk %}" class="btn btn-secondary btn-sm" style="flex:1;justify-content:center;">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Z"/></svg>
+      Tahrirlash
+    </a>
+    <form method="post" action="{% url 'ilish:vishilka_delete' v.pk %}" style="display:contents;" onsubmit="return confirm('O\'chirilsinmi?')">
+      {% csrf_token %}
+      <button type="submit" class="btn btn-danger btn-sm">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0"/></svg>
+      </button>
+    </form>
+  </div>
+</div>
+{% endfor %}
+</div>
+{% else %}
+<div style="text-align:center;padding:60px 20px;color:var(--gray-400);">
+  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1" stroke="currentColor" style="width:52px;height:52px;margin:0 auto 14px;display:block;opacity:.2;"><path stroke-linecap="round" stroke-linejoin="round" d="M9.568 3H5.25A2.25 2.25 0 0 0 3 5.25v4.318c0 .597.237 1.17.659 1.591l9.581 9.581c.699.699 1.78.872 2.607.33a18.095 18.095 0 0 0 5.223-5.223c.542-.827.369-1.908-.33-2.607L11.16 3.66A2.25 2.25 0 0 0 9.568 3Z"/></svg>
+  <p>Hali vishilkalar yo'q. Yangi vishilka qo'shing.</p>
+</div>
+{% endif %}
+{% endblock %}

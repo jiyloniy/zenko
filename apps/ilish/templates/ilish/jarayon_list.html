@@ -1,0 +1,204 @@
+{% extends "ilish/base.html" %}
+{% block title %}Ilish jarayonlari — Zenko{% endblock %}
+{% block page_title %}Ilish jarayonlari{% endblock %}
+
+{% block extra_css %}
+<style>
+.tab-bar{display:flex;gap:8px;margin-bottom:20px;flex-wrap:wrap;}
+.tab-btn{display:inline-flex;align-items:center;gap:7px;padding:9px 18px;border-radius:11px;font-size:13px;font-weight:700;cursor:pointer;border:1.5px solid var(--gray-200);background:var(--white);color:var(--gray-500);text-decoration:none;transition:all .18s;}
+.tab-btn:hover{border-color:var(--gray-300);color:var(--black);}
+.tab-btn.active-qabul_qilindi{background:linear-gradient(135deg,#EFF6FF,#DBEAFE);border-color:#60A5FA;color:#1D4ED8;}
+.tab-btn.active-ilinmoqda{background:linear-gradient(135deg,#FFF7ED,#FFEDD5);border-color:#FB923C;color:#C2410C;}
+.tab-btn.active-ilib_bolindi{background:linear-gradient(135deg,#F0FDF4,#DCFCE7);border-color:#4ADE80;color:#15803D;}
+.tab-btn.active-bekor_qilindi{background:linear-gradient(135deg,#FFF1F2,#FFE4E6);border-color:#FB7185;color:#BE123C;}
+.tab-badge{font-size:11px;font-weight:800;padding:2px 7px;border-radius:20px;background:rgba(0,0,0,.08);}
+.search-bar{display:flex;gap:8px;margin-bottom:20px;}
+.search-bar input{flex:1;padding:9px 14px;background:var(--white);border:1.5px solid var(--gray-200);border-radius:10px;font-size:13px;font-family:inherit;color:var(--black);outline:none;transition:border-color .18s;}
+.search-bar input:focus{border-color:#8B5CF6;}
+.search-bar input::placeholder{color:var(--gray-400);}
+.jgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px;}
+.jcard{background:var(--white);border:1.5px solid var(--gray-200);border-radius:16px;overflow:hidden;transition:box-shadow .2s,transform .18s;box-shadow:0 1px 4px rgba(0,0,0,.05);}
+.jcard:hover{box-shadow:0 8px 24px rgba(0,0,0,.09);transform:translateY(-2px);}
+.jcard-top{height:5px;}
+.jcard-top.blue{background:linear-gradient(90deg,#3B82F6,#60A5FA);}
+.jcard-top.orange{background:linear-gradient(90deg,#F97316,#FBBF24);}
+.jcard-top.green{background:linear-gradient(90deg,#22C55E,#4ADE80);}
+.jcard-top.red{background:linear-gradient(90deg,#EF4444,#FB7185);}
+.jcard-img{width:100%;height:140px;object-fit:cover;display:block;}
+.jcard-img-ph{width:100%;height:140px;background:linear-gradient(135deg,#F3F4F6,#E5E7EB);display:flex;align-items:center;justify-content:center;}
+.jcard-img-ph svg{width:36px;height:36px;color:var(--gray-300);}
+.jcard-body{padding:14px 16px 16px;}
+.jcard-brujka{font-size:17px;font-weight:900;color:var(--black);margin-bottom:4px;display:flex;align-items:center;gap:7px;}
+.brujka-swatch{width:11px;height:11px;border-radius:50%;flex-shrink:0;box-shadow:0 1px 3px rgba(0,0,0,.2);}
+.jcard-name{font-size:12px;font-weight:600;color:var(--gray-500);margin-bottom:2px;}
+.jcard-num{font-size:10px;color:var(--gray-300);font-family:monospace;margin-bottom:10px;}
+.jcard-qty{font-size:22px;font-weight:900;color:#8B5CF6;letter-spacing:-.5px;}
+.jcard-qty span{font-size:12px;font-weight:600;color:var(--gray-400);margin-left:2px;}
+.jcard-meta{font-size:11px;color:var(--gray-400);margin-top:6px;}
+.status-pill{display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border-radius:20px;font-size:11px;font-weight:700;margin-top:8px;}
+.sp-qabul_qilindi{background:#EFF6FF;color:#1D4ED8;border:1px solid #BFDBFE;}
+.sp-ilinmoqda{background:#FFF7ED;color:#C2410C;border:1px solid #FED7AA;}
+.sp-ilib_bolindi{background:#F0FDF4;color:#15803D;border:1px solid #BBF7D0;}
+.sp-bekor_qilindi{background:#FFF1F2;color:#BE123C;border:1px solid #FECDD3;}
+.sp-dot{width:7px;height:7px;border-radius:50%;}
+.sp-qabul_qilindi .sp-dot{background:#3B82F6;}
+.sp-ilinmoqda .sp-dot{background:#F97316;animation:blink 1.6s infinite;}
+.sp-ilib_bolindi .sp-dot{background:#22C55E;}
+.sp-bekor_qilindi .sp-dot{background:#EF4444;}
+.jcard-izoh{font-size:11.5px;color:var(--gray-500);font-style:italic;margin-top:6px;padding:7px 10px;background:var(--gray-50);border-radius:8px;border-left:3px solid var(--gray-200);}
+.jcard-actions{margin-top:12px;padding-top:12px;border-top:1px solid var(--gray-100);display:flex;flex-direction:column;gap:7px;}
+.status-form{display:flex;gap:5px;flex-wrap:wrap;}
+.btn-status{flex:1;min-width:80px;padding:6px 8px;border:none;border-radius:9px;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:4px;transition:all .15s;}
+.btn-qabul{background:#EFF6FF;color:#1D4ED8;border:1.5px solid #BFDBFE;}.btn-qabul:hover{background:#DBEAFE;}
+.btn-ilinmoqda{background:#FFF7ED;color:#C2410C;border:1.5px solid #FED7AA;}.btn-ilinmoqda:hover{background:#FFEDD5;}
+.btn-ilib{background:#F0FDF4;color:#15803D;border:1.5px solid #BBF7D0;}.btn-ilib:hover{background:#DCFCE7;}
+.btn-bekor{background:#FFF1F2;color:#BE123C;border:1.5px solid #FECDD3;}.btn-bekor:hover{background:#FFE4E6;}
+.izoh-row{display:flex;gap:6px;}
+.izoh-inp{flex:1;padding:6px 10px;border:1.5px solid var(--gray-200);border-radius:8px;font-size:12px;font-family:inherit;color:var(--black);outline:none;transition:border-color .18s;}
+.izoh-inp:focus{border-color:#8B5CF6;}
+.empty-wrap{padding:60px 20px;text-align:center;color:var(--gray-400);}
+.empty-wrap svg{width:52px;height:52px;margin-bottom:14px;opacity:.2;}
+.empty-wrap p{font-size:14px;}
+@keyframes blink{0%,100%{opacity:1;}50%{opacity:.3;}}
+@media(max-width:640px){.jgrid{grid-template-columns:1fr;}}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="tab-bar">
+  <a href="?tab=qabul_qilindi&q={{ q }}" class="tab-btn {% if tab == 'qabul_qilindi' %}active-qabul_qilindi{% endif %}">
+    <span style="width:8px;height:8px;border-radius:50%;background:#3B82F6;flex-shrink:0;"></span>
+    Qabul qilindi
+    <span class="tab-badge">{{ counts.qabul_qilindi }}</span>
+  </a>
+  <a href="?tab=ilinmoqda&q={{ q }}" class="tab-btn {% if tab == 'ilinmoqda' %}active-ilinmoqda{% endif %}">
+    <span style="width:8px;height:8px;border-radius:50%;background:#F97316;flex-shrink:0;{% if tab == 'ilinmoqda' %}animation:blink 1.6s infinite;{% endif %}"></span>
+    Ilinmoqda
+    <span class="tab-badge">{{ counts.ilinmoqda }}</span>
+  </a>
+  <a href="?tab=ilib_bolindi&q={{ q }}" class="tab-btn {% if tab == 'ilib_bolindi' %}active-ilib_bolindi{% endif %}">
+    <span style="width:8px;height:8px;border-radius:50%;background:#22C55E;flex-shrink:0;"></span>
+    Ilib bo'lindi
+    <span class="tab-badge">{{ counts.ilib_bolindi }}</span>
+  </a>
+  <a href="?tab=bekor_qilindi&q={{ q }}" class="tab-btn {% if tab == 'bekor_qilindi' %}active-bekor_qilindi{% endif %}">
+    <span style="width:8px;height:8px;border-radius:50%;background:#EF4444;flex-shrink:0;"></span>
+    Bekor qilindi
+    <span class="tab-badge">{{ counts.bekor_qilindi }}</span>
+  </a>
+</div>
+
+<form class="search-bar" method="get">
+  <input type="hidden" name="tab" value="{{ tab }}">
+  <input type="text" name="q" value="{{ q }}" placeholder="Buyurtma nomi yoki raqami bo'yicha qidirish...">
+  <button type="submit" class="btn btn-secondary btn-sm">
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z"/></svg>
+    Qidirish
+  </button>
+  {% if q %}<a href="?tab={{ tab }}" class="btn btn-sm" style="background:#FEF2F2;color:#DC2626;border:1px solid #FECACA;">Tozalash</a>{% endif %}
+</form>
+
+{% if jarayonlar %}
+<div class="jgrid">
+{% for j in jarayonlar %}
+<div class="jcard">
+  <div class="jcard-top {{ j.status_color }}"></div>
+  {% if j.order.brujka and j.order.brujka.image %}
+  <img src="{{ j.order.brujka.image.url }}" class="jcard-img" alt="{{ j.order.brujka.name }}">
+  {% elif j.order.image %}
+  <img src="{{ j.order.image.url }}" class="jcard-img" alt="">
+  {% else %}
+  <div class="jcard-img-ph">
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m2.25 15.75 5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159m-1.5-1.5 1.409-1.409a2.25 2.25 0 0 1 3.182 0l2.909 2.909M3.75 21h16.5A2.25 2.25 0 0 0 22.5 18.75V5.25A2.25 2.25 0 0 0 20.25 3H3.75A2.25 2.25 0 0 0 1.5 5.25v13.5A2.25 2.25 0 0 0 3.75 21Z"/></svg>
+  </div>
+  {% endif %}
+
+  <div class="jcard-body">
+    {% if j.order.brujka %}
+    <div class="jcard-brujka">
+      <span class="brujka-swatch" style="background:{{ j.order.brujka.color }};"></span>
+      {{ j.order.brujka.name }}
+    </div>
+    {% endif %}
+    <div class="jcard-name">{{ j.order.name }}</div>
+    <div class="jcard-num">{{ j.order.order_number }}</div>
+
+    <div style="display:flex;align-items:baseline;justify-content:space-between;gap:8px;">
+      <span class="jcard-qty">{{ j.order.quantity }}<span>dona</span></span>
+      <span style="font-size:13px;font-weight:700;color:{% if j.order.is_overdue %}#DC2626{% else %}var(--gray-600){% endif %};">
+        {{ j.order.deadline|date:"d.m.Y" }}{% if j.order.is_overdue %} ⚠{% endif %}
+      </span>
+    </div>
+
+    <div class="status-pill sp-{{ j.status }}">
+      <span class="sp-dot"></span>
+      {{ j.get_status_display }}
+    </div>
+
+    {% if j.izoh %}<div class="jcard-izoh">{{ j.izoh }}</div>{% endif %}
+    <div class="jcard-meta">{% if j.updated_by %}{{ j.updated_by.name }} · {% endif %}{{ j.updated_at|date:"d.m.Y H:i" }}</div>
+
+    <div class="jcard-actions">
+      <form method="post" action="{% url 'ilish:jarayon_set_status' j.pk %}" id="form-{{ j.pk }}">
+        {% csrf_token %}
+        <input type="hidden" name="next_tab" value="{{ tab }}">
+        <input type="hidden" name="status" id="status-{{ j.pk }}" value="">
+        <div class="izoh-row" style="margin-bottom:6px;">
+          <input class="izoh-inp" type="text" name="izoh" placeholder="Izoh (ixtiyoriy)..." value="{{ j.izoh }}">
+        </div>
+        <div class="status-form">
+          {% if j.status != 'qabul_qilindi' %}
+          <button type="button" class="btn-status btn-qabul" onclick="setStatus('{{ j.pk }}','qabul_qilindi')">Qabul</button>
+          {% endif %}
+          {% if j.status != 'ilinmoqda' %}
+          <button type="button" class="btn-status btn-ilinmoqda" onclick="setStatus('{{ j.pk }}','ilinmoqda')">Ilinmoqda</button>
+          {% endif %}
+          {% if j.status != 'ilib_bolindi' %}
+          <button type="button" class="btn-status btn-ilib" onclick="setStatus('{{ j.pk }}','ilib_bolindi')">Ilib bo'lindi</button>
+          {% endif %}
+          {% if j.status != 'bekor_qilindi' %}
+          <button type="button" class="btn-status btn-bekor" onclick="setStatus('{{ j.pk }}','bekor_qilindi')">Bekor</button>
+          {% endif %}
+        </div>
+      </form>
+      <a href="{% url 'ilish:jarayon_detail' j.pk %}" class="btn btn-secondary btn-sm" style="justify-content:center;">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 12h16.5m-16.5 3.75h16.5M3.75 19.5h16.5M5.625 4.5h12.75a1.875 1.875 0 0 1 0 3.75H5.625a1.875 1.875 0 0 1 0-3.75Z"/></svg>
+        Loglar / Boshqarish
+      </a>
+    </div>
+  </div>
+</div>
+{% endfor %}
+</div>
+
+{% else %}
+<div class="empty-wrap">
+  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1" stroke="currentColor">
+    <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 21v-7.5a.75.75 0 0 1 .75-.75h3a.75.75 0 0 1 .75.75V21m-4.5 0H2.36m11.14 0H18m0 0h3.64m-1.39 0V9.349M3.75 21V9.349m0 0a3.001 3.001 0 0 0 3.75-.615A2.993 2.993 0 0 0 9.75 9.75c.896 0 1.7-.393 2.25-1.016a2.993 2.993 0 0 0 2.25 1.016c.896 0 1.7-.393 2.25-1.015a3.001 3.001 0 0 0 3.75.614m-16.5 0a3.004 3.004 0 0 1-.621-4.72l1.189-1.19A1.5 1.5 0 0 1 5.378 3h13.243a1.5 1.5 0 0 1 1.06.44l1.19 1.189a3 3 0 0 1-.621 4.72"/>
+  </svg>
+  <p>
+    {% if q %}Qidiruv bo'yicha topilmadi
+    {% elif tab == 'ilinmoqda' %}Hozirda ilinayotgan buyurtmalar yo'q
+    {% elif tab == 'ilib_bolindi' %}Ilib bo'lingan buyurtmalar yo'q
+    {% elif tab == 'bekor_qilindi' %}Bekor qilingan buyurtmalar yo'q
+    {% else %}Qabul qilingan buyurtmalar yo'q{% endif %}
+  </p>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function setStatus(pk, status) {
+  const labels = {
+    'qabul_qilindi': 'Qabul qilindi',
+    'ilinmoqda':     'Ilinmoqda',
+    'ilib_bolindi':  "Ilib bo'lindi",
+    'bekor_qilindi': 'Bekor qilindi',
+  };
+  if (!confirm(labels[status] + ' deb belgilaysizmi?')) return;
+  document.getElementById('status-' + pk).value = status;
+  document.getElementById('form-' + pk).submit();
+}
+</script>
+{% endblock %}

@@ -1,0 +1,59 @@
+{% extends "ilish/base.html" %}
+{% block title %}{{ title }} — Zenko{% endblock %}
+{% block page_title %}{{ title }}{% endblock %}
+
+{% block topbar_actions %}
+<a href="{% url 'ilish:vishilka_list' %}" class="btn btn-secondary btn-sm">
+  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18"/></svg>
+  Orqaga
+</a>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.form-wrap{max-width:500px;}
+.card{background:var(--white);border:1.5px solid var(--gray-200);border-radius:16px;padding:24px;}
+.form-row{margin-bottom:16px;}
+.form-row label{display:block;font-size:12px;font-weight:700;color:var(--gray-600);margin-bottom:6px;text-transform:uppercase;letter-spacing:.5px;}
+.f-inp{width:100%;padding:9px 13px;border:1.5px solid var(--gray-200);border-radius:9px;font-size:13px;font-family:inherit;color:var(--black);outline:none;transition:border-color .18s;background:var(--white);}
+.f-inp:focus{border-color:#8B5CF6;}
+.check-row{display:flex;align-items:center;gap:10px;padding:10px 13px;border:1.5px solid var(--gray-200);border-radius:9px;background:var(--gray-50);}
+.check-row input[type=checkbox]{width:16px;height:16px;accent-color:#8B5CF6;cursor:pointer;}
+.check-row label{font-size:13px;font-weight:600;color:var(--black);cursor:pointer;margin:0;}
+.error-list{margin-top:5px;}
+.error-list li{font-size:12px;color:#DC2626;list-style:none;padding:3px 0;}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="form-wrap">
+  <div class="card">
+    <form method="post">
+      {% csrf_token %}
+      <div class="form-row">
+        <label>Nomi</label>
+        {{ form.nomi }}
+        {% if form.nomi.errors %}<ul class="error-list">{% for e in form.nomi.errors %}<li>{{ e }}</li>{% endfor %}</ul>{% endif %}
+      </div>
+      <div class="form-row">
+        <label>Par soni (bir vishilkada)</label>
+        {{ form.quantity }}
+        <div style="font-size:11px;color:var(--gray-400);margin-top:4px;">
+          Masalan: 25 kiritsangiz → 25 par = 50 broshka/vishilka
+        </div>
+        {% if form.quantity.errors %}<ul class="error-list">{% for e in form.quantity.errors %}<li>{{ e }}</li>{% endfor %}</ul>{% endif %}
+      </div>
+      <div class="form-row">
+        <div class="check-row">
+          {{ form.is_active }}
+          <label for="{{ form.is_active.id_for_label }}">Faol (ishlatilmoqda)</label>
+        </div>
+      </div>
+      <button type="submit" class="btn btn-primary" style="width:100%;justify-content:center;">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5"/></svg>
+        Saqlash
+      </button>
+    </form>
+  </div>
+</div>
+{% endblock %}
