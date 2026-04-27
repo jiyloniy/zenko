@@ -312,24 +312,21 @@
       <!-- In process: quyish holati badge -->
       {% with j=order.quyish_jarayon %}
       {% if j %}
+      {% if j.status == 'quyib_bolindi' or j.status == 'quyilmadi' %}
       <div style="width:100%;margin-bottom:8px;">
-        {% if j.status == 'quyilmoqda' %}
-        <div style="display:flex;align-items:center;gap:6px;padding:6px 12px;border-radius:10px;background:#FFF7ED;border:1.5px solid #FED7AA;">
-          <span style="width:8px;height:8px;border-radius:50%;background:#F97316;flex-shrink:0;animation:blink 1.6s infinite;"></span>
-          <span style="font-size:12px;font-weight:700;color:#C2410C;">Quyilmoqda</span>
-        </div>
-        {% elif j.status == 'quyib_bolindi' %}
+        {% if j.status == 'quyib_bolindi' %}
         <div style="display:flex;align-items:center;gap:6px;padding:6px 12px;border-radius:10px;background:#F0FDF4;border:1.5px solid #BBF7D0;">
           <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="#16A34A" style="width:13px;height:13px;flex-shrink:0;"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/></svg>
           <span style="font-size:12px;font-weight:700;color:#15803D;">Quyib bo'lindi</span>
         </div>
-        {% elif j.status == 'quyilmadi' %}
+        {% else %}
         <div style="display:flex;align-items:center;gap:6px;padding:6px 12px;border-radius:10px;background:#FFF1F2;border:1.5px solid #FECDD3;">
           <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="#DC2626" style="width:13px;height:13px;flex-shrink:0;"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12"/></svg>
           <span style="font-size:12px;font-weight:700;color:#B91C1C;">Quyilmadi</span>
         </div>
         {% endif %}
       </div>
+      {% endif %}
       {% endif %}
       {% endwith %}
       <!-- In process: ko'rish + log -->
