@@ -107,7 +107,23 @@
 .empty-wrap svg{width:52px;height:52px;margin-bottom:14px;opacity:.2;}
 .empty-wrap p{font-size:14px;}
 
-@media(max-width:640px){.order-grid{grid-template-columns:1fr;}.stats-bar{grid-template-columns:1fr 1fr;}}
+/* ── Tabs ── */
+.ol-tabs{display:flex;gap:8px;margin-bottom:18px;flex-wrap:wrap;}
+.ol-tab{display:inline-flex;align-items:center;gap:7px;padding:9px 16px;border-radius:12px;font-size:13px;font-weight:700;cursor:pointer;text-decoration:none;border:1.5px solid var(--gray-200);background:var(--white);color:var(--gray-500);transition:all .18s;}
+.ol-tab:hover{border-color:var(--gray-300);color:var(--black);transform:translateY(-1px);box-shadow:0 3px 8px rgba(0,0,0,.07);}
+.ol-tab-label{}
+.ol-tab-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;display:inline-block;}
+.ol-tab-badge{font-size:11px;font-weight:800;padding:2px 8px;border-radius:20px;background:var(--gray-100);color:var(--gray-500);min-width:22px;text-align:center;}
+.ol-badge-active{background:rgba(255,255,255,.25);color:#fff;}
+
+/* Active states */
+.ol-tab-accepted-active{background:linear-gradient(135deg,#22C55E,#16A34A);border-color:#16A34A;color:#fff;box-shadow:0 4px 14px rgba(34,197,94,.35);}
+.ol-tab-process-active{background:linear-gradient(135deg,#F97316,#FBBF24);border-color:#F97316;color:#fff;box-shadow:0 4px 14px rgba(249,115,22,.35);}
+.ol-tab-done-active{background:linear-gradient(135deg,#10B981,#059669);border-color:#059669;color:#fff;box-shadow:0 4px 14px rgba(16,185,129,.35);}
+.ol-tab-fail-active{background:linear-gradient(135deg,#EF4444,#DC2626);border-color:#DC2626;color:#fff;box-shadow:0 4px 14px rgba(239,68,68,.35);}
+
+@keyframes blink{0%,100%{opacity:1;}50%{opacity:.3;}}
+@media(max-width:640px){.order-grid{grid-template-columns:1fr;}.stats-bar{grid-template-columns:1fr 1fr;}.ol-tabs{gap:6px;}.ol-tab{padding:8px 12px;font-size:12px;}}
 </style>
 {% endblock %}
 
@@ -154,17 +170,34 @@
 </div>
 {% endif %}
 
-<!-- Tabs: Qabul qilindi / Ishlab chiqarilmoqda -->
-<div style="display:flex;gap:8px;margin-bottom:16px;">
-  <a href="?tab=accepted&q={{ q }}" class="btn {% if tab == 'accepted' %}btn-primary{% else %}btn-secondary{% endif %}" style="gap:8px;">
-    <span style="width:8px;height:8px;border-radius:50%;background:{% if tab == 'accepted' %}#fff{% else %}#22C55E{% endif %};flex-shrink:0;"></span>
-    Qabul qilindi
-    <span style="background:rgba(255,255,255,.2);border-radius:10px;padding:1px 7px;font-size:11px;">{{ accepted_count }}</span>
+<!-- Tabs -->
+<div class="ol-tabs">
+  <!-- Qabul qilindi -->
+  <a href="?tab=accepted&q={{ q }}" class="ol-tab {% if tab == 'accepted' %}ol-tab-accepted-active{% endif %}">
+    <span class="ol-tab-dot" style="background:{% if tab == 'accepted' %}#fff{% else %}#22C55E{% endif %};"></span>
+    <span class="ol-tab-label">Qabul qilindi</span>
+    <span class="ol-tab-badge {% if tab == 'accepted' %}ol-badge-active{% endif %}">{{ accepted_count }}</span>
   </a>
-  <a href="?tab=in_process&q={{ q }}" class="btn {% if tab == 'in_process' %}btn-primary{% else %}btn-secondary{% endif %}" style="gap:8px;">
-    <span style="width:8px;height:8px;border-radius:50%;background:{% if tab == 'in_process' %}#fff{% else %}#F97316{% endif %};flex-shrink:0;{% if tab != 'in_process' %}animation:blink 2s infinite;{% endif %}"></span>
-    Ishlab chiqarilmoqda
-    <span style="background:rgba(255,255,255,.2);border-radius:10px;padding:1px 7px;font-size:11px;">{{ ip_count }}</span>
+
+  <!-- Ishlab chiqarilmoqda (quyilmoqda) -->
+  <a href="?tab=in_process&q={{ q }}" class="ol-tab {% if tab == 'in_process' %}ol-tab-process-active{% endif %}">
+    <span class="ol-tab-dot" style="background:{% if tab == 'in_process' %}#fff{% else %}#F97316{% endif %};{% if tab != 'in_process' %}animation:blink 1.8s infinite;{% endif %}"></span>
+    <span class="ol-tab-label">Quyilmoqda</span>
+    <span class="ol-tab-badge {% if tab == 'in_process' %}ol-badge-active{% endif %}">{{ quyilmoqda_count }}</span>
+  </a>
+
+  <!-- Quyib bo'lindi -->
+  <a href="?tab=quyib_bolindi&q={{ q }}" class="ol-tab {% if tab == 'quyib_bolindi' %}ol-tab-done-active{% endif %}">
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="{% if tab == 'quyib_bolindi' %}#fff{% else %}#16A34A{% endif %}" style="width:13px;height:13px;flex-shrink:0;"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/></svg>
+    <span class="ol-tab-label">Quyib bo'lindi</span>
+    <span class="ol-tab-badge {% if tab == 'quyib_bolindi' %}ol-badge-active{% endif %}">{{ quyib_count }}</span>
+  </a>
+
+  <!-- Quyilmadi -->
+  <a href="?tab=quyilmadi&q={{ q }}" class="ol-tab {% if tab == 'quyilmadi' %}ol-tab-fail-active{% endif %}">
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="{% if tab == 'quyilmadi' %}#fff{% else %}#DC2626{% endif %}" style="width:13px;height:13px;flex-shrink:0;"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12"/></svg>
+    <span class="ol-tab-label">Quyilmadi</span>
+    <span class="ol-tab-badge {% if tab == 'quyilmadi' %}ol-badge-active{% endif %}">{{ quyilmadi_count }}</span>
   </a>
 </div>
 

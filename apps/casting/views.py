@@ -21,31 +21,45 @@ from apps.order.views.mixins import CastingManagerRequiredMixin
 # ── Orders ────────────────────────────────────────────────────────────────────
 
 class CastingOrderListView(CastingManagerRequiredMixin, View):
+    VALID_TABS = ('accepted', 'in_process', 'quyib_bolindi', 'quyilmadi')
+
     def get(self, request):
         q          = request.GET.get('q', '').strip()
-        status_tab = request.GET.get('tab', 'accepted')  # 'accepted' | 'in_process'
-        if status_tab not in ('accepted', 'in_process'):
+        status_tab = request.GET.get('tab', 'accepted')
+        if status_tab not in self.VALID_TABS:
             status_tab = 'accepted'
-
-        # "Yangi" tab = accepted, "Ishlab chiqarilmoqda" = in_process
-        base_qs = Order.objects.select_related('brujka', 'created_by', 'quyish_jarayon').filter(
-            status__in=[Order.Status.ACCEPTED, Order.Status.IN_PROCESS]
-        )
-        if q:
-            base_qs = base_qs.filter(name__icontains=q)
 
         hom_sub = HomMahsulotLog.objects.filter(
             order=OuterRef('pk')
         ).values('order').annotate(s=Sum('miqdor')).values('s')
-
         tayor_sub = TayorMahsulotLog.objects.filter(
             order=OuterRef('pk')
         ).values('order').annotate(s=Sum('miqdor')).values('s')
 
-        orders = base_qs.filter(status=status_tab).annotate(
-            hom_sum=Coalesce(Subquery(hom_sub), 0),
-            tayor_sum=Coalesce(Subquery(tayor_sub), 0),
-        ).order_by('-created_at')
+        # Quyish holati bo'yicha tablar — QuyishJarayon filtri
+        if status_tab in ('quyib_bolindi', 'quyilmadi'):
+            base_qs = Order.objects.select_related(
+                'brujka', 'created_by', 'quyish_jarayon'
+            ).filter(
+                status=Order.Status.IN_PROCESS,
+                quyish_jarayon__status=status_tab,
+            )
+            if q:
+                base_qs = base_qs.filter(name__icontains=q)
+            orders = base_qs.annotate(
+                hom_sum=Coalesce(Subquery(hom_sub), 0),
+                tayor_sum=Coalesce(Subquery(tayor_sub), 0),
+            ).order_by('-created_at')
+        else:
+            base_qs = Order.objects.select_related(
+                'brujka', 'created_by', 'quyish_jarayon'
+            ).filter(status__in=[Order.Status.ACCEPTED, Order.Status.IN_PROCESS])
+            if q:
+                base_qs = base_qs.filter(name__icontains=q)
+            orders = base_qs.filter(status=status_tab).annotate(
+                hom_sum=Coalesce(Subquery(hom_sub), 0),
+                tayor_sum=Coalesce(Subquery(tayor_sub), 0),
+            ).order_by('-created_at')
 
         today = timezone.localdate()
         all_ip = Order.objects.filter(status=Order.Status.IN_PROCESS)
@@ -60,18 +74,33 @@ class CastingOrderListView(CastingManagerRequiredMixin, View):
             order__status=Order.Status.IN_PROCESS
         ).aggregate(j=Sum('miqdor'))['j'] or 0
 
-        accepted_count = Order.objects.filter(status=Order.Status.ACCEPTED).count()
-        ip_count       = Order.objects.filter(status=Order.Status.IN_PROCESS).count()
+        accepted_count     = Order.objects.filter(status=Order.Status.ACCEPTED).count()
+        ip_count           = Order.objects.filter(status=Order.Status.IN_PROCESS).count()
+        quyib_count        = QuyishJarayon.objects.filter(
+            order__status=Order.Status.IN_PROCESS,
+            status=QuyishJarayon.Status.QUYIB_BOLINDI,
+        ).count()
+        quyilmadi_count    = QuyishJarayon.objects.filter(
+            order__status=Order.Status.IN_PROCESS,
+            status=QuyishJarayon.Status.QUYILMADI,
+        ).count()
+        quyilmoqda_count   = QuyishJarayon.objects.filter(
+            order__status=Order.Status.IN_PROCESS,
+            status=QuyishJarayon.Status.QUYILMOQDA,
+        ).count()
 
         return render(request, 'casting/order_list.html', {
-            'orders':         orders,
-            'q':              q,
-            'tab':            status_tab,
-            'accepted_count': accepted_count,
-            'ip_count':       ip_count,
-            'active_nav':     'orders',
-            'status_filter':  status_tab,
-            'today':          today,
+            'orders':            orders,
+            'q':                 q,
+            'tab':               status_tab,
+            'accepted_count':    accepted_count,
+            'ip_count':          ip_count,
+            'quyib_count':       quyib_count,
+            'quyilmadi_count':   quyilmadi_count,
+            'quyilmoqda_count':  quyilmoqda_count,
+            'active_nav':        'orders',
+            'status_filter':     status_tab,
+            'today':             today,
             'stats': {
                 'hom_bugun':     hom_bugun,
                 'tayor_bugun':   tayor_bugun,
