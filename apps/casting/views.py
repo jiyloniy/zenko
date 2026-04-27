@@ -28,7 +28,7 @@ class CastingOrderListView(CastingManagerRequiredMixin, View):
             status_tab = 'accepted'
 
         # "Yangi" tab = accepted, "Ishlab chiqarilmoqda" = in_process
-        base_qs = Order.objects.select_related('brujka', 'created_by').filter(
+        base_qs = Order.objects.select_related('brujka', 'created_by', 'quyish_jarayon').filter(
             status__in=[Order.Status.ACCEPTED, Order.Status.IN_PROCESS]
         )
         if q:
@@ -320,10 +320,14 @@ class OrderLogView(CastingManagerRequiredMixin, View):
     """Buyurtma uchun hom va tayor mahsulot loglari."""
 
     def get(self, request, pk):
-        order = get_object_or_404(Order.objects.select_related('brujka'), pk=pk)
+        order = get_object_or_404(
+            Order.objects.select_related('brujka', 'quyish_jarayon'), pk=pk
+        )
+        quyish = getattr(order, 'quyish_jarayon', None)
         return render(request, 'casting/order_log.html', {
-            'order': order,
-            'active_nav': 'orders',
+            'order':   order,
+            'quyish':  quyish,
+            'active_nav':    'orders',
             'status_filter': order.status,
             **_log_ctx(order),
         })
@@ -403,7 +407,7 @@ class TayorLogDeleteView(CastingManagerRequiredMixin, View):
 # ── Order status o'zgartirish ─────────────────────────────────────────────────
 
 class OrderSetStatusView(CastingManagerRequiredMixin, View):
-    """Casting manager: accepted → in_process, in_process → ready (quyib bo'lindi)."""
+    """Casting manager: accepted → in_process, in_process → ready."""
     def post(self, request, pk):
         order = get_object_or_404(Order, pk=pk)
         new_status = request.POST.get('status', '')
@@ -411,9 +415,18 @@ class OrderSetStatusView(CastingManagerRequiredMixin, View):
         if new_status in allowed:
             order.status = new_status
             order.save(update_fields=['status', 'updated_at'])
+            # in_process ga o'tganda QuyishJarayon avtomatik yaratiladi
+            if new_status == Order.Status.IN_PROCESS:
+                QuyishJarayon.objects.get_or_create(
+                    order=order,
+                    defaults={
+                        'status':     QuyishJarayon.Status.QUYILMOQDA,
+                        'created_by': request.user,
+                    },
+                )
             labels = {
                 Order.Status.IN_PROCESS: 'Ishlab chiqarilmoqda',
-                Order.Status.READY:      "Quyib bo'lindi (Tayyor)",
+                Order.Status.READY:      "Tayyor",
             }
             messages.success(request, f'"{order.name}" — {labels.get(new_status, new_status)}')
         return redirect('casting:order_list')
