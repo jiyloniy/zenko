@@ -11,7 +11,7 @@ from django.views.generic import CreateView, DeleteView, ListView, UpdateView
 from apps.order.models import Order
 from apps.users.models import User
 from .forms import IlishLogForm, VishilkaForm
-from .models import IlishJarayon, Vishilka
+from .models import IlishJarayon, Vishilka,IlishJarayonLog
 
 
 class AttachManagerRequiredMixin(LoginRequiredMixin):
