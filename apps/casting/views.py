@@ -11,6 +11,7 @@ from apps.casting.forms import StanokForm, QuyishRasxodForm, OrderForm
 from apps.casting.models import (
     AdditionalHomLog, AdditionalOrder, AdditionalTayorLog,
     HomMahsulotLog, RasxodLog, Stanok, TayorMahsulotLog, Zamak, QuyishRasxod,
+    QuyishJarayon,
 )
 from apps.order.models import Order, Brujka
 from apps.order.views.mixins import CastingManagerRequiredMixin
@@ -393,7 +394,7 @@ class TayorLogDeleteView(CastingManagerRequiredMixin, View):
 # ── Order status o'zgartirish ─────────────────────────────────────────────────
 
 class OrderSetStatusView(CastingManagerRequiredMixin, View):
-    """Casting manager new → in_process ga o'tkazadi."""
+    """Casting manager: accepted → in_process. in_process ga o'tganda QuyishJarayon yaratiladi."""
     def post(self, request, pk):
         order = get_object_or_404(Order, pk=pk)
         new_status = request.POST.get('status', '')
@@ -401,8 +402,74 @@ class OrderSetStatusView(CastingManagerRequiredMixin, View):
         if new_status in allowed:
             order.status = new_status
             order.save(update_fields=['status'])
-            messages.success(request, f'"{order.name}" holati yangilandi.')
+            if new_status == Order.Status.IN_PROCESS:
+                QuyishJarayon.objects.get_or_create(
+                    order=order,
+                    defaults={'created_by': request.user, 'updated_by': request.user},
+                )
+            messages.success(request, f'"{order.name}" ishlab chiqarishga o\'tkazildi.')
         return redirect('casting:order_list')
+
+
+# ── Quyish jarayoni ───────────────────────────────────────────────────────────
+
+class QuyishJarayonListView(CastingManagerRequiredMixin, View):
+    """Quyish masteri uchun: quyilmoqda, quyib bo'lindi, quyilmadi."""
+    def get(self, request):
+        tab = request.GET.get('tab', 'quyilmoqda')
+        if tab not in ('quyilmoqda', 'quyib_bolindi', 'quyilmadi'):
+            tab = 'quyilmoqda'
+        q = request.GET.get('q', '').strip()
+
+        qs = QuyishJarayon.objects.select_related(
+            'order', 'order__brujka', 'updated_by'
+        )
+        if q:
+            qs = qs.filter(order__name__icontains=q)
+
+        jarayonlar = qs.filter(status=tab).order_by('-updated_at')
+
+        counts = {
+            s: QuyishJarayon.objects.filter(status=s).count()
+            for s in ('quyilmoqda', 'quyib_bolindi', 'quyilmadi')
+        }
+
+        return render(request, 'casting/quyish_jarayon_list.html', {
+            'jarayonlar': jarayonlar,
+            'tab':        tab,
+            'q':          q,
+            'counts':     counts,
+            'active_nav': 'quyish_jarayon',
+        })
+
+
+class QuyishJarayonSetStatusView(CastingManagerRequiredMixin, View):
+    """Quyish masteri jarayon statusini o'zgartiradi."""
+    def post(self, request, pk):
+        jarayon    = get_object_or_404(QuyishJarayon, pk=pk)
+        new_status = request.POST.get('status', '')
+        izoh       = request.POST.get('izoh', '').strip()
+        allowed    = set(QuyishJarayon.Status.values)
+
+        if new_status in allowed:
+            jarayon.status     = new_status
+            jarayon.izoh       = izoh
+            jarayon.updated_by = request.user
+            jarayon.save(update_fields=['status', 'izoh', 'updated_by', 'updated_at'])
+
+            labels = {
+                QuyishJarayon.Status.QUYILMOQDA:    'Quyilmoqda',
+                QuyishJarayon.Status.QUYIB_BOLINDI: "Quyib bo'lindi",
+                QuyishJarayon.Status.QUYILMADI:     "Quyilmadi",
+            }
+            messages.success(
+                request,
+                f'"{jarayon.order.name}" → {labels.get(new_status, new_status)}'
+            )
+
+        from django.urls import reverse
+        next_tab = request.POST.get('next_tab', 'quyilmoqda')
+        return redirect(reverse('casting:quyish_jarayon_list') + f'?tab={next_tab}')
 
 
 # ── Rasxod ────────────────────────────────────────────────────────────────────

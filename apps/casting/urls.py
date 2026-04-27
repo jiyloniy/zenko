@@ -15,6 +15,10 @@ urlpatterns = [
     path('orders/<int:pk>/tayor/add/', views.TayorLogCreateView.as_view(), name='tayor_log_add'),
     path('orders/<int:pk>/tayor/<int:log_pk>/delete/', views.TayorLogDeleteView.as_view(), name='tayor_log_delete'),
     
+    # Quyish jarayoni
+    path('quyish-jarayon/', views.QuyishJarayonListView.as_view(), name='quyish_jarayon_list'),
+    path('quyish-jarayon/<int:pk>/set-status/', views.QuyishJarayonSetStatusView.as_view(), name='quyish_jarayon_set_status'),
+
     # Quyish rasxodlari
     path('quyish-rasxod/', views.QuyishRasxodListView.as_view(), name='quyish_rasxod_list'),
     path('quyish-rasxod/create/', views.QuyishRasxodCreateView.as_view(), name='quyish_rasxod_create'),

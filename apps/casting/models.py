@@ -246,6 +246,64 @@ class TayorMahsulotLog(models.Model):
         return f'{self.order} | {self.miqdor} dona tayyor ({self.sana})'
 
 
+class QuyishJarayon(models.Model):
+    """
+    Har bir order uchun quyish bo'limining jarayon holati.
+    Order 'in_process' ga o'tganda avtomatik yaratiladi yoki master o'zi yaratadi.
+    """
+
+    class Status(models.TextChoices):
+        QUYILMOQDA   = 'quyilmoqda',   'Quyilmoqda'
+        QUYIB_BOLINDI = 'quyib_bolindi', "Quyib bo'lindi"
+        QUYILMADI    = 'quyilmadi',    "Quyilmadi"
+
+    order      = models.OneToOneField(
+        'order.Order',
+        on_delete=models.CASCADE,
+        related_name='quyish_jarayon',
+        verbose_name='Buyurtma',
+    )
+    status     = models.CharField(
+        'Quyish holati',
+        max_length=20,
+        choices=Status.choices,
+        default=Status.QUYILMOQDA,
+    )
+    izoh       = models.TextField("Izoh / sabab", blank=True)
+    created_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True, blank=True,
+        related_name='quyish_jarayonlar',
+        verbose_name='Yaratgan',
+    )
+    updated_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True, blank=True,
+        related_name='quyish_jarayon_updates',
+        verbose_name='Oxirgi o\'zgartirgan',
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering            = ['-updated_at']
+        verbose_name        = 'Quyish jarayoni'
+        verbose_name_plural = 'Quyish jarayonlari'
+
+    def __str__(self):
+        return f'{self.order} — {self.get_status_display()}'
+
+    @property
+    def status_color(self):
+        return {
+            self.Status.QUYILMOQDA:    'orange',
+            self.Status.QUYIB_BOLINDI: 'green',
+            self.Status.QUYILMADI:     'red',
+        }.get(self.status, 'gray')
+
+
 class QuyishRasxod(models.Model):
     """Quyish bo'limi uchun mustaqil rasxod yozuvi."""
 
