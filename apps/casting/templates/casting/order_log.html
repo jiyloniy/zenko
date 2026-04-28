@@ -104,6 +104,52 @@
 .log-empty svg{width:36px;height:36px;margin-bottom:10px;opacity:.2;}
 .log-empty p{font-size:13px;}
 
+/* Smena tanlash tugmalari */
+.smena-btn{display:flex;align-items:center;gap:6px;padding:8px 16px;border-radius:10px;border:2px solid var(--gray-200);background:var(--white);cursor:pointer;font-family:inherit;transition:all .18s;user-select:none;flex:1;justify-content:center;}
+.smena-btn:hover{border-color:var(--orange);background:#FFF7ED;}
+.smena-btn.active-kun{border-color:#F59E0B;background:#FFFBEB;box-shadow:0 2px 8px rgba(245,158,11,.18);}
+.smena-btn.active-tun{border-color:#6366F1;background:#EEF2FF;box-shadow:0 2px 8px rgba(99,102,241,.18);}
+.smena-icon{font-size:16px;line-height:1;}
+.smena-text{font-size:12.5px;font-weight:700;color:var(--gray-700);}
+.smena-btn.active-kun .smena-text{color:#B45309;}
+.smena-btn.active-tun .smena-text{color:#4338CA;}
+
+/* Smena badge (log listda) */
+.smena-badge{display:inline-flex;align-items:center;gap:3px;padding:2px 9px;border-radius:20px;font-size:10.5px;font-weight:700;}
+.smena-badge-kun{background:#FFFBEB;color:#B45309;border:1px solid #FDE68A;}
+.smena-badge-tun{background:#EEF2FF;color:#4338CA;border:1px solid #C7D2FE;}
+
+/* Qo'sh tugmasi smena rangiga qarab o'zgaradi */
+.btn-add-hom.tun-mode{background:#4F46E5;}
+.btn-add-hom.tun-mode:hover{background:#4338CA;}
+
+/* Inline edit panel */
+.log-edit-panel{display:none;margin-top:10px;padding:14px 16px;background:var(--gray-50);border:1.5px solid var(--gray-200);border-radius:12px;animation:fadeSlide .18s ease-out;}
+.log-edit-panel.open{display:block;}
+@keyframes fadeSlide{from{opacity:0;transform:translateY(-6px);}to{opacity:1;transform:translateY(0);}}
+.ep-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px;}
+.ep-grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:8px;}
+.ep-group{display:flex;flex-direction:column;gap:3px;}
+.ep-label{font-size:10px;font-weight:700;color:var(--gray-500);text-transform:uppercase;letter-spacing:.5px;}
+.ep-inp{padding:7px 10px;border:1.5px solid var(--gray-200);border-radius:8px;font-size:12.5px;font-family:inherit;color:var(--black);background:var(--white);outline:none;transition:border-color .15s;width:100%;box-sizing:border-box;}
+.ep-inp:focus{border-color:var(--orange);}
+.ep-smena{display:flex;gap:6px;}
+.ep-smena-opt{flex:1;display:flex;align-items:center;justify-content:center;gap:5px;padding:6px 10px;border-radius:8px;border:1.5px solid var(--gray-200);background:var(--white);cursor:pointer;font-size:11.5px;font-weight:700;transition:all .15s;font-family:inherit;}
+.ep-smena-opt:hover{border-color:var(--orange);}
+.ep-smena-opt.sel-kun{border-color:#F59E0B;background:#FFFBEB;color:#B45309;}
+.ep-smena-opt.sel-tun{border-color:#6366F1;background:#EEF2FF;color:#4338CA;}
+.ep-actions{display:flex;gap:6px;margin-top:10px;}
+.ep-save{padding:7px 18px;border-radius:8px;font-size:12.5px;font-weight:700;border:none;background:var(--orange);color:#fff;cursor:pointer;font-family:inherit;display:flex;align-items:center;gap:5px;transition:background .15s;}
+.ep-save:hover{background:#EA580C;}
+.ep-cancel{padding:7px 14px;border-radius:8px;font-size:12.5px;font-weight:600;border:1.5px solid var(--gray-200);background:var(--white);color:var(--gray-600);cursor:pointer;font-family:inherit;transition:all .15s;}
+.ep-cancel:hover{border-color:var(--gray-400);}
+.btn-edit-log{width:26px;height:26px;border-radius:7px;border:1px solid #93C5FD;background:#EFF6FF;color:#2563EB;cursor:pointer;display:grid;place-items:center;transition:all .18s;}
+.btn-edit-log:hover{background:#DBEAFE;}
+.btn-edit-log svg{width:12px;height:12px;}
+.mine-only-hint{font-size:10px;color:var(--gray-400);font-style:italic;margin-top:2px;}
+
+@media(max-width:560px){.ep-grid-3{grid-template-columns:1fr 1fr;}.ep-grid{grid-template-columns:1fr;}}
+
 @media(max-width:900px){.log-grid{grid-template-columns:1fr;}.progress-bars{grid-template-columns:1fr;}}
 @media(max-width:560px){.form-row,.form-row-3{grid-template-columns:1fr;}.order-info-card{flex-direction:column;align-items:flex-start;}}
 </style>
@@ -250,6 +296,19 @@
     <div class="add-form">
       <form method="post" action="{% url 'casting:hom_log_add' order.pk %}">
         {% csrf_token %}
+        <!-- Smena tanlash -->
+        <div style="display:flex;gap:8px;margin-bottom:10px;">
+          <label class="smena-btn" id="smena-kun-lbl">
+            <input type="radio" name="smena" value="kun" checked style="display:none;" onchange="updateSmena(this)">
+            <span class="smena-icon">☀️</span>
+            <span class="smena-text">Kunduzgi</span>
+          </label>
+          <label class="smena-btn" id="smena-tun-lbl">
+            <input type="radio" name="smena" value="tun" style="display:none;" onchange="updateSmena(this)">
+            <span class="smena-icon">🌙</span>
+            <span class="smena-text">Tungi</span>
+          </label>
+        </div>
         <div class="form-row-3">
           <div class="f-group-sm">
             <label class="f-label">Par *</label>
@@ -272,7 +331,7 @@
             <label class="f-label">Izoh</label>
             <input class="f-inp" type="text" name="izoh" placeholder="ixtiyoriy...">
           </div>
-          <button type="submit" class="btn-add-hom">
+          <button type="submit" class="btn-add-hom" id="btnAddHom">
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width:13px;height:13px"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>
             Qo'sh
           </button>
@@ -283,33 +342,100 @@
     <!-- List -->
     <div class="log-list">
       {% for log in hom_loglar %}
-      <div class="log-item">
+      {% with is_mine=log.created_by_id|stringformat:"s" == request.user.pk|stringformat:"s" %}
+      <div class="log-item" id="log-wrap-{{ log.pk }}">
         <div class="log-dot hom">
           <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m21 7.5-9-5.25L3 7.5m18 0-9 5.25m9-5.25v9l-9 5.25M3 7.5l9 5.25M3 7.5v9l9 5.25m0-9v9"/></svg>
         </div>
-        <div class="log-body">
+        <div class="log-body" style="flex:1;">
           <div class="log-top">
             <span class="log-qty">{{ log.miqdor }} <span>par</span></span>
             <span class="log-date">{{ log.sana|date:"d.m.Y" }}</span>
           </div>
-          {% if log.stanok %}
-          <div class="log-stanok">
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width:11px;height:11px"><path stroke-linecap="round" stroke-linejoin="round" d="M11.42 15.17 17.25 21A2.652 2.652 0 0 0 21 17.25l-5.877-5.877"/></svg>
-            {{ log.stanok.name }}
+          <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-top:4px;">
+            <span class="smena-badge {% if log.smena == 'kun' %}smena-badge-kun{% else %}smena-badge-tun{% endif %}">
+              {% if log.smena == 'kun' %}☀️ Kunduzgi{% else %}🌙 Tungi{% endif %}
+            </span>
+            {% if log.stanok %}
+            <span class="log-stanok" style="margin-top:0;">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width:11px;height:11px"><path stroke-linecap="round" stroke-linejoin="round" d="M11.42 15.17 17.25 21A2.652 2.652 0 0 0 21 17.25l-5.877-5.877"/></svg>
+              {{ log.stanok.name }}
+            </span>
+            {% endif %}
+          </div>
+          {% if log.izoh %}<div class="log-note">{{ log.izoh }}</div>{% endif %}
+          <div class="log-meta">
+            {% if log.created_by %}{{ log.created_by.name }} · {% endif %}{{ log.created_at|date:"d.m H:i" }}
+            {% if not is_mine %}<span class="mine-only-hint"> · Tahrirlash huquqi yo'q</span>{% endif %}
+          </div>
+
+          <!-- Inline edit panel — faqat o'zi kiritganlar uchun -->
+          {% if is_mine %}
+          <div class="log-edit-panel" id="ep-{{ log.pk }}">
+            <form method="post" action="{% url 'casting:hom_log_update' order.pk log.pk %}">
+              {% csrf_token %}
+              <!-- Smena -->
+              <div style="margin-bottom:10px;">
+                <div class="ep-label" style="margin-bottom:5px;">Smena</div>
+                <div class="ep-smena">
+                  <button type="button" class="ep-smena-opt {% if log.smena == 'kun' %}sel-kun{% endif %}" id="ep-kun-{{ log.pk }}"
+                          onclick="epSmena('{{ log.pk }}','kun')">☀️ Kunduzgi</button>
+                  <button type="button" class="ep-smena-opt {% if log.smena == 'tun' %}sel-tun{% endif %}" id="ep-tun-{{ log.pk }}"
+                          onclick="epSmena('{{ log.pk }}','tun')">🌙 Tungi</button>
+                  <input type="hidden" name="smena" id="ep-smena-val-{{ log.pk }}" value="{{ log.smena }}">
+                </div>
+              </div>
+              <div class="ep-grid-3">
+                <div class="ep-group">
+                  <label class="ep-label">Par *</label>
+                  <input class="ep-inp" type="number" name="miqdor" value="{{ log.miqdor }}" min="1" required>
+                </div>
+                <div class="ep-group">
+                  <label class="ep-label">Sana *</label>
+                  <input class="ep-inp" type="date" name="sana" value="{{ log.sana|date:'Y-m-d' }}" required>
+                </div>
+                <div class="ep-group">
+                  <label class="ep-label">Stanok</label>
+                  <select class="ep-inp" name="stanok">
+                    <option value="">— tanlang —</option>
+                    {% for st in stanoklar %}
+                    <option value="{{ st.pk }}" {% if log.stanok and log.stanok.pk == st.pk %}selected{% endif %}>{{ st.name }}</option>
+                    {% endfor %}
+                  </select>
+                </div>
+              </div>
+              <div class="ep-group" style="margin-bottom:0;">
+                <label class="ep-label">Izoh</label>
+                <input class="ep-inp" type="text" name="izoh" value="{{ log.izoh }}" placeholder="ixtiyoriy...">
+              </div>
+              <div class="ep-actions">
+                <button type="submit" class="ep-save">
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" style="width:13px;height:13px;"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/></svg>
+                  Saqlash
+                </button>
+                <button type="button" class="ep-cancel" onclick="toggleEditPanel('ep-{{ log.pk }}')">Bekor</button>
+              </div>
+            </form>
           </div>
           {% endif %}
-          {% if log.izoh %}<div class="log-note">{{ log.izoh }}</div>{% endif %}
-          <div class="log-meta">{% if log.created_by %}{{ log.created_by.name }} · {% endif %}{{ log.created_at|date:"d.m H:i" }}</div>
         </div>
-        <div class="log-del">
+
+        <!-- Tugmalar -->
+        <div class="log-del" style="display:flex;flex-direction:column;gap:5px;align-items:flex-end;">
+          {% if is_mine %}
+          <button type="button" class="btn-edit-log" onclick="toggleEditPanel('ep-{{ log.pk }}')" title="Tahrirlash">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Z"/></svg>
+          </button>
           <form method="post" action="{% url 'casting:hom_log_delete' order.pk log.pk %}" onsubmit="return confirm('O\'chirishni tasdiqlaysizmi?')">
             {% csrf_token %}
-            <button type="submit" class="btn-del-log">
+            <button type="submit" class="btn-del-log" title="O'chirish">
               <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0"/></svg>
             </button>
           </form>
+          {% endif %}
         </div>
       </div>
+      {% endwith %}
       {% empty %}
       <div class="log-empty">
         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m21 7.5-9-5.25L3 7.5m18 0-9 5.25m9-5.25v9l-9 5.25M3 7.5l9 5.25M3 7.5v9l9 5.25m0-9v9"/></svg>
@@ -330,6 +456,48 @@
 </div>
 
 <script>
+// Inline edit panel
+function toggleEditPanel(id) {
+  var panel = document.getElementById(id);
+  if (!panel) return;
+  panel.classList.toggle('open');
+}
+
+// Edit panel ichidagi smena tanlash
+function epSmena(logPk, val) {
+  var kunBtn = document.getElementById('ep-kun-' + logPk);
+  var tunBtn = document.getElementById('ep-tun-' + logPk);
+  var hidden = document.getElementById('ep-smena-val-' + logPk);
+  if (!kunBtn || !tunBtn || !hidden) return;
+  kunBtn.classList.remove('sel-kun');
+  tunBtn.classList.remove('sel-tun');
+  if (val === 'kun') kunBtn.classList.add('sel-kun');
+  else               tunBtn.classList.add('sel-tun');
+  hidden.value = val;
+}
+
+// Smena toggle
+function updateSmena(radio) {
+  var kunLbl = document.getElementById('smena-kun-lbl');
+  var tunLbl = document.getElementById('smena-tun-lbl');
+  var btn    = document.getElementById('btnAddHom');
+  if (!kunLbl || !tunLbl) return;
+  kunLbl.classList.remove('active-kun');
+  tunLbl.classList.remove('active-tun');
+  if (radio.value === 'kun') {
+    kunLbl.classList.add('active-kun');
+    if (btn) { btn.classList.remove('tun-mode'); btn.style.background = ''; }
+  } else {
+    tunLbl.classList.add('active-tun');
+    if (btn) btn.classList.add('tun-mode');
+  }
+}
+// Sahifa yuklanganda default kun aktiv
+document.addEventListener('DOMContentLoaded', function(){
+  var kunRadio = document.querySelector('input[name="smena"][value="kun"]');
+  if (kunRadio) updateSmena(kunRadio);
+});
+
 function setQJStatus(status) {
   const labels = {'quyilmoqda':'Quyilmoqda','quyib_bolindi':"Quyib bo'lindi",'quyilmadi':'Quyilmadi'};
   if (!confirm(labels[status] + ' deb belgilaysizmi?')) return;

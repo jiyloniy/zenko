@@ -185,6 +185,11 @@ class AdditionalTayorLog(models.Model):
 
 class HomMahsulotLog(models.Model):
     """Stankka kiritilgan hom mahsulot yozuvi."""
+
+    class Smena(models.TextChoices):
+        KUN = 'kun', 'Kunduzgi smena'
+        TUN = 'tun', 'Tungi smena'
+
     order      = models.ForeignKey(
         'order.Order',
         on_delete=models.CASCADE,
@@ -199,6 +204,7 @@ class HomMahsulotLog(models.Model):
         verbose_name='Stanok',
     )
     miqdor     = models.PositiveIntegerField('Miqdor (dona)')
+    smena      = models.CharField('Smena', max_length=10, choices=Smena.choices, default=Smena.KUN)
     sana       = models.DateField('Sana')
     izoh       = models.TextField('Izoh', blank=True)
     created_by = models.ForeignKey(

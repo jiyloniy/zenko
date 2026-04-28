@@ -93,6 +93,11 @@
 
 .log-empty{padding:28px;text-align:center;color:var(--gray-400);font-size:13px;}
 
+.ceo-smena-btn{display:flex;align-items:center;gap:6px;padding:7px 16px;border-radius:10px;border:2px solid var(--gray-200);background:var(--white);cursor:pointer;font-family:inherit;transition:all .18s;flex:1;justify-content:center;}
+.ceo-smena-btn:hover{border-color:var(--orange);background:#FFF7ED;}
+.ceo-smena-active-kun{border-color:#F59E0B!important;background:#FFFBEB!important;box-shadow:0 2px 8px rgba(245,158,11,.2);}
+.ceo-smena-active-tun{border-color:#6366F1!important;background:#EEF2FF!important;box-shadow:0 2px 8px rgba(99,102,241,.2);}
+
 @media(max-width:900px){.log-grid{grid-template-columns:1fr;}.af-row-3{grid-template-columns:1fr 1fr;}}
 @media(max-width:560px){.af-row,.af-row-3{grid-template-columns:1fr;}.order-info{flex-direction:column;align-items:flex-start;}}
 </style>
@@ -138,8 +143,8 @@
 <!-- Progress -->
 <div class="progress-wrap">
   <div class="pw-title">
-    <span>Bajarilish holati</span>
-    <span class="pw-pct">{% if order.quantity %}{% widthratio tayor_jami order.quantity 100 %}{% else %}0{% endif %}%</span>
+    <span>Hom mahsulot holati</span>
+    <span class="pw-pct">{% if order.quantity %}{% widthratio hom_jami order.quantity 100 %}{% else %}0{% endif %}%</span>
   </div>
   <div class="pb-item">
     <div class="pb-head">
@@ -147,13 +152,6 @@
       <span class="pb-val" style="color:#F97316;">{{ hom_jami }} / {{ order.quantity }}</span>
     </div>
     <div class="pb-bar"><div class="pb-fill pb-hom" style="width:{% if order.quantity %}{% if hom_jami >= order.quantity %}100{% else %}{% widthratio hom_jami order.quantity 100 %}{% endif %}{% else %}0{% endif %}%"></div></div>
-  </div>
-  <div class="pb-item">
-    <div class="pb-head">
-      <span class="pb-lbl">🟢 Tayor mahsulot</span>
-      <span class="pb-val" style="color:#16A34A;">{{ tayor_jami }} / {{ order.quantity }}</span>
-    </div>
-    <div class="pb-bar"><div class="pb-fill pb-tayor" style="width:{% if order.quantity %}{% if tayor_jami >= order.quantity %}100{% else %}{% widthratio tayor_jami order.quantity 100 %}{% endif %}{% else %}0{% endif %}%"></div></div>
   </div>
 </div>
 
@@ -174,6 +172,17 @@
     <div class="add-form">
       <form method="post" action="{% url 'ceo:hom_log_add' order.pk %}">
         {% csrf_token %}
+        <!-- Smena -->
+        <div style="display:flex;gap:8px;margin-bottom:10px;">
+          <label class="ceo-smena-btn ceo-smena-active-kun" id="ceo-smena-kun">
+            <input type="radio" name="smena" value="kun" checked style="display:none;" onchange="ceoSmena(this)">
+            ☀️ <span style="font-size:12px;font-weight:700;">Kunduzgi</span>
+          </label>
+          <label class="ceo-smena-btn" id="ceo-smena-tun">
+            <input type="radio" name="smena" value="tun" style="display:none;" onchange="ceoSmena(this)">
+            🌙 <span style="font-size:12px;font-weight:700;">Tungi</span>
+          </label>
+        </div>
         <div class="af-row af-row-3" style="margin-bottom:8px;">
           <div class="af-group"><label class="af-label">Miqdor *</label><input class="af-inp" type="number" name="miqdor" min="1" placeholder="dona" required></div>
           <div class="af-group"><label class="af-label">Sana *</label><input class="af-inp" type="date" name="sana" value="{{ today|date:'Y-m-d' }}" required></div>
@@ -186,7 +195,7 @@
         </div>
         <div style="display:flex;gap:8px;align-items:flex-end;">
           <div class="af-group" style="flex:1;"><label class="af-label">Izoh</label><input class="af-inp" type="text" name="izoh" placeholder="ixtiyoriy..."></div>
-          <button type="submit" class="btn-add-hom">
+          <button type="submit" class="btn-add-hom" id="ceoAddBtn">
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width:13px;height:13px;"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>
             Qo'sh
           </button>
@@ -199,16 +208,31 @@
     <div style="overflow-x:auto;">
       <table class="log-table">
         <thead><tr>
-          <th>Miqdor</th><th>Sana</th><th>Stanok</th><th>Izoh</th><th style="text-align:right;">Amal</th>
+          <th>Miqdor</th><th>Smena</th><th>Sana</th><th>Stanok</th><th>Izoh</th><th style="text-align:right;">Amal</th>
         </tr></thead>
         <tbody>
         {% for log in hom_loglar %}
-        <tr id="hom-row-{{ log.pk }}">
-          <td><span class="log-qty">{{ log.miqdor }}</span> <span style="font-size:11px;color:var(--gray-400);">dona</span></td>
+        {% with is_mine=log.created_by_id|stringformat:"s" == request.user.pk|stringformat:"s" %}
+        <tr id="hom-row-{{ log.pk }}" {% if not is_mine %}style="opacity:.85;"{% endif %}>
+          <td>
+            <span class="log-qty">{{ log.miqdor }}</span>
+            <span style="font-size:11px;color:var(--gray-400);">dona</span>
+            {% if not is_mine %}
+            <div style="font-size:9.5px;color:var(--gray-400);font-style:italic;margin-top:1px;">Tahrirlash huquqi yo'q</div>
+            {% endif %}
+          </td>
+          <td>
+            {% if log.smena == 'kun' %}
+            <span style="display:inline-flex;align-items:center;gap:3px;padding:2px 8px;border-radius:20px;font-size:10.5px;font-weight:700;background:#FFFBEB;color:#B45309;border:1px solid #FDE68A;">☀️ Kunduzgi</span>
+            {% else %}
+            <span style="display:inline-flex;align-items:center;gap:3px;padding:2px 8px;border-radius:20px;font-size:10.5px;font-weight:700;background:#EEF2FF;color:#4338CA;border:1px solid #C7D2FE;">🌙 Tungi</span>
+            {% endif %}
+          </td>
           <td style="font-size:12.5px;font-weight:600;">{{ log.sana|date:"d.m.Y" }}</td>
           <td>{% if log.stanok %}<span class="log-stanok">{{ log.stanok.name }}</span>{% else %}—{% endif %}</td>
           <td style="font-size:12px;color:var(--gray-500);">{{ log.izoh|default:"—" }}</td>
           <td>
+            {% if is_mine %}
             <div class="log-actions">
               <button onclick="toggleEdit('hom-edit-{{ log.pk }}')" class="btn btn-sm" style="background:var(--orange-light);color:var(--orange);padding:4px 9px;" title="Tahrirlash">
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width:12px;height:12px;"><path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Z"/></svg>
@@ -220,12 +244,20 @@
                 </button>
               </form>
             </div>
+            {% endif %}
           </td>
         </tr>
+        {% if is_mine %}
         <tr class="edit-row" id="hom-edit-{{ log.pk }}">
-          <td colspan="5">
+          <td colspan="6">
             <form method="post" action="{% url 'ceo:hom_log_edit' order.pk log.pk %}" class="edit-form">
               {% csrf_token %}
+              <div class="ef-g"><span class="ef-lbl">Smena</span>
+                <select class="ef-inp" name="smena" style="width:110px;">
+                  <option value="kun" {% if log.smena == 'kun' %}selected{% endif %}>☀️ Kunduzgi</option>
+                  <option value="tun" {% if log.smena == 'tun' %}selected{% endif %}>🌙 Tungi</option>
+                </select>
+              </div>
               <div class="ef-g"><span class="ef-lbl">Miqdor</span><input class="ef-inp" type="number" name="miqdor" value="{{ log.miqdor }}" min="1" style="width:80px;"></div>
               <div class="ef-g"><span class="ef-lbl">Sana</span><input class="ef-inp" type="date" name="sana" value="{{ log.sana|date:'Y-m-d' }}" style="width:130px;"></div>
               <div class="ef-g"><span class="ef-lbl">Stanok</span>
@@ -240,6 +272,8 @@
             </form>
           </td>
         </tr>
+        {% endif %}
+        {% endwith %}
         {% endfor %}
         </tbody>
       </table>
@@ -260,5 +294,25 @@ function toggleEdit(id){
   if(!row) return;
   row.classList.toggle('open');
 }
+
+function ceoSmena(radio){
+  var k = document.getElementById('ceo-smena-kun');
+  var t = document.getElementById('ceo-smena-tun');
+  var b = document.getElementById('ceoAddBtn');
+  if(!k || !t) return;
+  k.classList.remove('ceo-smena-active-kun');
+  t.classList.remove('ceo-smena-active-tun');
+  if(radio.value === 'kun'){
+    k.classList.add('ceo-smena-active-kun');
+    if(b){ b.style.background=''; b.style.boxShadow=''; }
+  } else {
+    t.classList.add('ceo-smena-active-tun');
+    if(b){ b.style.background='#4F46E5'; b.style.boxShadow='0 2px 8px rgba(79,70,229,.3)'; }
+  }
+}
+document.addEventListener('DOMContentLoaded', function(){
+  var r = document.querySelector('input[name="smena"][value="kun"]');
+  if(r) ceoSmena(r);
+});
 </script>
 {% endblock %}

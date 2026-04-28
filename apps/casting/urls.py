@@ -11,6 +11,7 @@ urlpatterns = [
     path('stats/', views.CastingStatsView.as_view(), name='stats'),
     path('orders/<int:pk>/log/', views.OrderLogView.as_view(), name='order_log'),
     path('orders/<int:pk>/hom/add/', views.HomLogCreateView.as_view(), name='hom_log_add'),
+    path('orders/<int:pk>/hom/<int:log_pk>/update/', views.HomLogUpdateView.as_view(), name='hom_log_update'),
     path('orders/<int:pk>/hom/<int:log_pk>/delete/', views.HomLogDeleteView.as_view(), name='hom_log_delete'),
     # Quyish rasxodlari
     path('quyish-rasxod/', views.QuyishRasxodListView.as_view(), name='quyish_rasxod_list'),

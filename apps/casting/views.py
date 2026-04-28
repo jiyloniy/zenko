@@ -132,9 +132,22 @@ class CastingStatsView(CastingManagerRequiredMixin, View):
             for r in HomMahsulotLog.objects.filter(sana__in=days)
                 .values('sana').annotate(j=Sum('miqdor'))
         }
+        # Smena bo'yicha kunlik
+        kun_by_day = {
+            r['sana']: r['j']
+            for r in HomMahsulotLog.objects.filter(sana__in=days, smena='kun')
+                .values('sana').annotate(j=Sum('miqdor'))
+        }
+        tun_by_day = {
+            r['sana']: r['j']
+            for r in HomMahsulotLog.objects.filter(sana__in=days, smena='tun')
+                .values('sana').annotate(j=Sum('miqdor'))
+        }
 
         chart_labels = [d.strftime('%d.%m') for d in days]
         chart_hom    = [hom_by_day.get(d, 0) for d in days]
+        chart_kun    = [kun_by_day.get(d, 0) for d in days]
+        chart_tun    = [tun_by_day.get(d, 0) for d in days]
 
         stanok_stats = list(
             HomMahsulotLog.objects.filter(sana__range=(date_from, date_to))
@@ -148,10 +161,24 @@ class CastingStatsView(CastingManagerRequiredMixin, View):
                 .annotate(j=Sum('miqdor')).order_by('-j')[:10]
         )
 
-        ndays    = len(days) or 1
-        hom_davr = sum(chart_hom)
-        avg_hom  = round(hom_davr / ndays, 1)
+        ndays     = len(days) or 1
+        hom_davr  = sum(chart_hom)
+        kun_davr  = sum(chart_kun)
+        tun_davr  = sum(chart_tun)
+        avg_hom   = round(hom_davr / ndays, 1)
         hom_bugun = hom_by_day.get(today, 0)
+        kun_bugun = kun_by_day.get(today, 0)
+        tun_bugun = tun_by_day.get(today, 0)
+
+        # Smena bo'yicha umumiy statistika
+        smena_stats = {
+            'kun_davr': kun_davr,
+            'tun_davr': tun_davr,
+            'kun_bugun': kun_bugun,
+            'tun_bugun': tun_bugun,
+            'kun_pct': round(kun_davr / hom_davr * 100) if hom_davr else 0,
+            'tun_pct': round(tun_davr / hom_davr * 100) if hom_davr else 0,
+        }
 
         in_process    = Order.objects.filter(status=Order.Status.IN_PROCESS)
         order_count   = in_process.count()
@@ -190,7 +217,10 @@ class CastingStatsView(CastingManagerRequiredMixin, View):
             'hom_pct':       hom_pct,
             'stanok_stats':  stanok_stats,
             'brujka_stats':  brujka_stats,
+            'smena_stats':   smena_stats,
             'chart_labels':  chart_labels,
+            'chart_kun':     chart_kun,
+            'chart_tun':     chart_tun,
             'chart_hom':     chart_hom,
             'order_progress': order_progress,
             'quyish_stats':  quyish_stats,
@@ -363,18 +393,57 @@ class HomLogCreateView(CastingManagerRequiredMixin, View):
         if stanok_id:
             stanok = Stanok.objects.filter(pk=stanok_id).first()
 
+        from apps.casting.models import HomMahsulotLog as HML
+        smena = request.POST.get('smena', HML.Smena.KUN)
+        if smena not in dict(HML.Smena.choices):
+            smena = HML.Smena.KUN
+
         HomMahsulotLog.objects.create(
-            order=order, stanok=stanok, miqdor=miqdor,
+            order=order, stanok=stanok, miqdor=miqdor, smena=smena,
             sana=sana, izoh=request.POST.get('izoh', '').strip(),
             created_by=request.user,
         )
-        messages.success(request, f'{miqdor} dona hom mahsulot qo\'shildi.')
+        messages.success(request, f'{miqdor} dona hom mahsulot qo\'shildi ({smena} smenasi).')
+        return redirect('casting:order_log', pk=pk)
+
+
+class HomLogUpdateView(CastingManagerRequiredMixin, View):
+    """Faqat o'zi kiritgan logni yangilash."""
+    def post(self, request, pk, log_pk):
+        log = get_object_or_404(HomMahsulotLog, pk=log_pk, order_id=pk)
+        if log.created_by_id != request.user.pk:
+            messages.error(request, 'Faqat o\'zingiz kiritgan logni tahrirlashingiz mumkin.')
+            return redirect('casting:order_log', pk=pk)
+        try:
+            miqdor = int(request.POST.get('miqdor', 0))
+            assert miqdor > 0
+        except (ValueError, AssertionError):
+            messages.error(request, 'Miqdor musbat son bo\'lishi kerak.')
+            return redirect('casting:order_log', pk=pk)
+        try:
+            sana = datetime.date.fromisoformat(request.POST.get('sana', ''))
+        except ValueError:
+            sana = log.sana
+        stanok_id = request.POST.get('stanok', '').strip()
+        smena = request.POST.get('smena', log.smena)
+        if smena not in dict(HomMahsulotLog.Smena.choices):
+            smena = log.smena
+        log.miqdor = miqdor
+        log.smena  = smena
+        log.sana   = sana
+        log.stanok = Stanok.objects.filter(pk=stanok_id).first() if stanok_id else None
+        log.izoh   = request.POST.get('izoh', '').strip()
+        log.save()
+        messages.success(request, 'Log yangilandi.')
         return redirect('casting:order_log', pk=pk)
 
 
 class HomLogDeleteView(CastingManagerRequiredMixin, View):
     def post(self, request, pk, log_pk):
         log = get_object_or_404(HomMahsulotLog, pk=log_pk, order_id=pk)
+        if log.created_by_id != request.user.pk:
+            messages.error(request, 'Faqat o\'zingiz kiritgan logni o\'chirishingiz mumkin.')
+            return redirect('casting:order_log', pk=pk)
         log.delete()
         messages.success(request, 'Log o\'chirildi.')
         return redirect('casting:order_log', pk=pk)

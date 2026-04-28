@@ -2011,17 +2011,23 @@ class HomLogCreateView(CEORequiredMixin, View):
             sana = timezone.localdate()
         stanok_id = request.POST.get('stanok', '').strip()
         stanok = Stanok.objects.filter(pk=stanok_id).first() if stanok_id else None
+        smena = request.POST.get('smena', HomMahsulotLog.Smena.KUN)
+        if smena not in dict(HomMahsulotLog.Smena.choices):
+            smena = HomMahsulotLog.Smena.KUN
         HomMahsulotLog.objects.create(
-            order=order, stanok=stanok, miqdor=miqdor, sana=sana,
+            order=order, stanok=stanok, miqdor=miqdor, smena=smena, sana=sana,
             izoh=request.POST.get('izoh', '').strip(), created_by=request.user,
         )
-        messages.success(request, f'{miqdor} dona hom mahsulot qo\'shildi.')
+        messages.success(request, f'{miqdor} dona hom mahsulot qo\'shildi ({smena} smenasi).')
         return redirect('ceo:order_log', pk=pk)
 
 
 class HomLogEditView(CEORequiredMixin, View):
     def post(self, request, pk, log_pk):
         log = get_object_or_404(HomMahsulotLog, pk=log_pk, order_id=pk)
+        if log.created_by_id != request.user.pk:
+            messages.error(request, 'Faqat o\'zingiz kiritgan logni tahrirlashingiz mumkin.')
+            return redirect('ceo:order_log', pk=pk)
         import datetime as _dt
         try:
             miqdor = int(request.POST.get('miqdor', 0))
@@ -2034,10 +2040,14 @@ class HomLogEditView(CEORequiredMixin, View):
         except ValueError:
             sana = log.sana
         stanok_id = request.POST.get('stanok', '').strip()
+        smena = request.POST.get('smena', log.smena)
+        if smena not in dict(HomMahsulotLog.Smena.choices):
+            smena = log.smena
         log.stanok = Stanok.objects.filter(pk=stanok_id).first() if stanok_id else None
         log.miqdor = miqdor
-        log.sana = sana
-        log.izoh = request.POST.get('izoh', '').strip()
+        log.smena  = smena
+        log.sana   = sana
+        log.izoh   = request.POST.get('izoh', '').strip()
         log.save()
         messages.success(request, 'Log yangilandi.')
         return redirect('ceo:order_log', pk=pk)
@@ -2046,6 +2056,9 @@ class HomLogEditView(CEORequiredMixin, View):
 class HomLogDeleteView(CEORequiredMixin, View):
     def post(self, request, pk, log_pk):
         log = get_object_or_404(HomMahsulotLog, pk=log_pk, order_id=pk)
+        if log.created_by_id != request.user.pk:
+            messages.error(request, 'Faqat o\'zingiz kiritgan logni o\'chirishingiz mumkin.')
+            return redirect('ceo:order_log', pk=pk)
         log.delete()
         messages.success(request, 'Log o\'chirildi.')
         return redirect('ceo:order_log', pk=pk)
