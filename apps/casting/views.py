@@ -11,7 +11,7 @@ from django.views import View
 from apps.casting.forms import StanokForm, QuyishRasxodForm, OrderForm
 from apps.casting.models import (
     AdditionalHomLog, AdditionalOrder, AdditionalTayorLog,
-    HomMahsulotLog, RasxodLog, Stanok, TayorMahsulotLog, Zamak, QuyishRasxod,
+    HomMahsulotLog, RasxodLog, Stanok, Zamak, QuyishRasxod,
     QuyishJarayon, QuyishJarayonLog,
 )
 from apps.order.models import Order, Brujka
@@ -32,15 +32,7 @@ class CastingOrderListView(CastingManagerRequiredMixin, View):
         hom_sub = HomMahsulotLog.objects.filter(
             order=OuterRef('pk')
         ).values('order').annotate(s=Sum('miqdor')).values('s')
-        tayor_sub = TayorMahsulotLog.objects.filter(
-            order=OuterRef('pk')
-        ).values('order').annotate(s=Sum('miqdor')).values('s')
 
-        # Tab bo'yicha filter:
-        # accepted      → Order.status=accepted  (QuyishJaryon yo'q)
-        # in_process    → Order.status=in_process + QuyishJarayon.status=quyilmoqda
-        # quyib_bolindi → Order.status=in_process + QuyishJarayon.status=quyib_bolindi
-        # quyilmadi     → Order.status=in_process + QuyishJarayon.status=quyilmadi
         base_qs = Order.objects.select_related('brujka', 'created_by', 'quyish_jarayon')
         if q:
             base_qs = base_qs.filter(name__icontains=q)
@@ -65,33 +57,28 @@ class CastingOrderListView(CastingManagerRequiredMixin, View):
 
         orders = qs.annotate(
             hom_sum=Coalesce(Subquery(hom_sub), 0),
-            tayor_sum=Coalesce(Subquery(tayor_sub), 0),
         ).order_by('-created_at')
 
         today = timezone.localdate()
         all_ip = Order.objects.filter(status=Order.Status.IN_PROCESS)
         buyurtma_jami = all_ip.aggregate(j=Sum('quantity'))['j'] or 0
 
-        hom_bugun   = HomMahsulotLog.objects.filter(sana=today).aggregate(j=Sum('miqdor'))['j'] or 0
-        tayor_bugun = TayorMahsulotLog.objects.filter(sana=today).aggregate(j=Sum('miqdor'))['j'] or 0
-        tayor_jami  = TayorMahsulotLog.objects.filter(
-            order__status=Order.Status.IN_PROCESS
-        ).aggregate(j=Sum('miqdor'))['j'] or 0
-        hom_jami    = HomMahsulotLog.objects.filter(
+        hom_bugun = HomMahsulotLog.objects.filter(sana=today).aggregate(j=Sum('miqdor'))['j'] or 0
+        hom_jami  = HomMahsulotLog.objects.filter(
             order__status=Order.Status.IN_PROCESS
         ).aggregate(j=Sum('miqdor'))['j'] or 0
 
-        accepted_count     = Order.objects.filter(status=Order.Status.ACCEPTED).count()
-        ip_count           = Order.objects.filter(status=Order.Status.IN_PROCESS).count()
-        quyib_count        = QuyishJarayon.objects.filter(
+        accepted_count   = Order.objects.filter(status=Order.Status.ACCEPTED).count()
+        ip_count         = Order.objects.filter(status=Order.Status.IN_PROCESS).count()
+        quyib_count      = QuyishJarayon.objects.filter(
             order__status=Order.Status.IN_PROCESS,
             status=QuyishJarayon.Status.QUYIB_BOLINDI,
         ).count()
-        quyilmadi_count    = QuyishJarayon.objects.filter(
+        quyilmadi_count  = QuyishJarayon.objects.filter(
             order__status=Order.Status.IN_PROCESS,
             status=QuyishJarayon.Status.QUYILMADI,
         ).count()
-        quyilmoqda_count   = QuyishJarayon.objects.filter(
+        quyilmoqda_count = QuyishJarayon.objects.filter(
             order__status=Order.Status.IN_PROCESS,
             status=QuyishJarayon.Status.QUYILMOQDA,
         ).count()
@@ -110,12 +97,10 @@ class CastingOrderListView(CastingManagerRequiredMixin, View):
             'today':             today,
             'stats': {
                 'hom_bugun':     hom_bugun,
-                'tayor_bugun':   tayor_bugun,
                 'hom_jami':      hom_jami,
-                'tayor_jami':    tayor_jami,
                 'buyurtma_jami': buyurtma_jami,
                 'order_count':   all_ip.count(),
-                'tayor_pct':     round(tayor_jami / buyurtma_jami * 100) if buyurtma_jami else 0,
+                'hom_pct':       round(hom_jami / buyurtma_jami * 100) if buyurtma_jami else 0,
             },
         })
 
@@ -147,69 +132,68 @@ class CastingStatsView(CastingManagerRequiredMixin, View):
             for r in HomMahsulotLog.objects.filter(sana__in=days)
                 .values('sana').annotate(j=Sum('miqdor'))
         }
-        tayor_by_day = {
-            r['sana']: r['j']
-            for r in TayorMahsulotLog.objects.filter(sana__in=days)
-                .values('sana').annotate(j=Sum('miqdor'))
-        }
 
         chart_labels = [d.strftime('%d.%m') for d in days]
         chart_hom    = [hom_by_day.get(d, 0) for d in days]
-        chart_tayor  = [tayor_by_day.get(d, 0) for d in days]
 
         stanok_stats = list(
             HomMahsulotLog.objects.filter(sana__range=(date_from, date_to))
                 .values('stanok__name').annotate(j=Sum('miqdor')).order_by('-j')[:8]
         )
 
-        ndays     = len(days) or 1
-        hom_davr  = sum(chart_hom)
-        tayor_davr = sum(chart_tayor)
-        avg_hom   = round(hom_davr  / ndays, 1)
-        avg_tayor = round(tayor_davr / ndays, 1)
-        hom_bugun   = hom_by_day.get(today, 0)
-        tayor_bugun = tayor_by_day.get(today, 0)
+        # Broshka turlari bo'yicha statistika
+        brujka_stats = list(
+            HomMahsulotLog.objects.filter(sana__range=(date_from, date_to))
+                .values('order__brujka__name', 'order__brujka__color')
+                .annotate(j=Sum('miqdor')).order_by('-j')[:10]
+        )
+
+        ndays    = len(days) or 1
+        hom_davr = sum(chart_hom)
+        avg_hom  = round(hom_davr / ndays, 1)
+        hom_bugun = hom_by_day.get(today, 0)
 
         in_process    = Order.objects.filter(status=Order.Status.IN_PROCESS)
         order_count   = in_process.count()
         buyurtma_jami = in_process.aggregate(j=Sum('quantity'))['j'] or 0
-        tayor_jami_ip = TayorMahsulotLog.objects.filter(
-            order__status=Order.Status.IN_PROCESS
-        ).aggregate(j=Sum('miqdor'))['j'] or 0
         hom_jami_ip   = HomMahsulotLog.objects.filter(
             order__status=Order.Status.IN_PROCESS
         ).aggregate(j=Sum('miqdor'))['j'] or 0
-        tayor_pct = round(tayor_jami_ip / buyurtma_jami * 100) if buyurtma_jami else 0
+        hom_pct = round(hom_jami_ip / buyurtma_jami * 100) if buyurtma_jami else 0
 
         order_progress = list(
             in_process.annotate(
-                t_sum=Sum('tayor_loglar__miqdor'),
                 h_sum=Sum('hom_loglar__miqdor'),
-            ).values('id', 'name', 'quantity', 't_sum', 'h_sum', 'deadline')
+            ).values('id', 'name', 'quantity', 'h_sum', 'deadline',
+                     'brujka__name', 'brujka__color')
             .order_by('deadline')
         )
 
+        # Quyish jarayon holati bo'yicha taqsimot
+        quyish_stats = {
+            'quyilmoqda':    QuyishJarayon.objects.filter(order__status=Order.Status.IN_PROCESS, status='quyilmoqda').count(),
+            'quyib_bolindi': QuyishJarayon.objects.filter(order__status=Order.Status.IN_PROCESS, status='quyib_bolindi').count(),
+            'quyilmadi':     QuyishJarayon.objects.filter(order__status=Order.Status.IN_PROCESS, status='quyilmadi').count(),
+        }
+
         return render(request, 'casting/stats.html', {
-            'active_nav': 'stats',
-            'today': today,
-            'date_from': date_from,
-            'date_to': date_to,
-            'hom_bugun': hom_bugun,
-            'tayor_bugun': tayor_bugun,
-            'hom_davr': hom_davr,
-            'tayor_davr': tayor_davr,
-            'avg_hom': avg_hom,
-            'avg_tayor': avg_tayor,
-            'order_count': order_count,
+            'active_nav':    'stats',
+            'today':         today,
+            'date_from':     date_from,
+            'date_to':       date_to,
+            'hom_bugun':     hom_bugun,
+            'hom_davr':      hom_davr,
+            'avg_hom':       avg_hom,
+            'order_count':   order_count,
             'buyurtma_jami': buyurtma_jami,
-            'tayor_jami_ip': tayor_jami_ip,
-            'hom_jami_ip': hom_jami_ip,
-            'tayor_pct': tayor_pct,
-            'stanok_stats': stanok_stats,
-            'chart_labels': chart_labels,
-            'chart_hom': chart_hom,
-            'chart_tayor': chart_tayor,
+            'hom_jami_ip':   hom_jami_ip,
+            'hom_pct':       hom_pct,
+            'stanok_stats':  stanok_stats,
+            'brujka_stats':  brujka_stats,
+            'chart_labels':  chart_labels,
+            'chart_hom':     chart_hom,
             'order_progress': order_progress,
+            'quyish_stats':  quyish_stats,
         })
 
 
@@ -217,29 +201,22 @@ class CastingOrderDetailView(CastingManagerRequiredMixin, View):
     def get(self, request, pk):
         order = get_object_or_404(Order.objects.select_related('brujka', 'created_by'), pk=pk)
 
-        hom_loglar   = order.hom_loglar.select_related('stanok', 'created_by').order_by('-sana', '-created_at')
-        tayor_loglar = order.tayor_loglar.select_related('created_by').order_by('-sana', '-created_at')
-        hom_jami     = hom_loglar.aggregate(j=Sum('miqdor'))['j'] or 0
-        tayor_jami   = tayor_loglar.aggregate(j=Sum('miqdor'))['j'] or 0
+        hom_loglar = order.hom_loglar.select_related('stanok', 'created_by').order_by('-sana', '-created_at')
+        hom_jami   = hom_loglar.aggregate(j=Sum('miqdor'))['j'] or 0
 
-        # Kunlik loglar (so'nggi 7 kun)
         today = timezone.localdate()
         days  = [(today - datetime.timedelta(days=i)) for i in range(6, -1, -1)]
-        hom_by_day   = {r['sana']: r['j'] for r in hom_loglar.filter(sana__in=days).values('sana').annotate(j=Sum('miqdor'))}
-        tayor_by_day = {r['sana']: r['j'] for r in tayor_loglar.filter(sana__in=days).values('sana').annotate(j=Sum('miqdor'))}
+        hom_by_day = {r['sana']: r['j'] for r in hom_loglar.filter(sana__in=days).values('sana').annotate(j=Sum('miqdor'))}
 
         return render(request, 'casting/order_detail.html', {
-            'order': order,
-            'active_nav': 'orders',
+            'order':        order,
+            'active_nav':   'orders',
             'status_filter': order.status,
             'hom_loglar':   hom_loglar,
-            'tayor_loglar': tayor_loglar,
             'hom_jami':     hom_jami,
-            'tayor_jami':   tayor_jami,
             'today':        today,
             'chart_labels': [d.strftime('%d.%m') for d in days],
-            'chart_hom':    [hom_by_day.get(d, 0)   for d in days],
-            'chart_tayor':  [tayor_by_day.get(d, 0)  for d in days],
+            'chart_hom':    [hom_by_day.get(d, 0) for d in days],
             'stanoklar':    Stanok.objects.filter(status=Stanok.Status.ACTIVE),
         })
 
@@ -337,18 +314,14 @@ class StanokDeleteView(CastingManagerRequiredMixin, View):
 # ── Loglar ────────────────────────────────────────────────────────────────────
 
 def _log_ctx(order):
-    """Order uchun umumiy log konteksti."""
-    hom_loglar  = order.hom_loglar.select_related('stanok', 'created_by').order_by('-sana', '-created_at')
-    tayor_loglar = order.tayor_loglar.select_related('created_by').order_by('-sana', '-created_at')
+    """Order uchun hom mahsulot log konteksti."""
+    hom_loglar = order.hom_loglar.select_related('stanok', 'created_by').order_by('-sana', '-created_at')
     hom_jami   = hom_loglar.aggregate(j=Sum('miqdor'))['j'] or 0
-    tayor_jami = tayor_loglar.aggregate(j=Sum('miqdor'))['j'] or 0
     return {
-        'hom_loglar':   hom_loglar,
-        'tayor_loglar': tayor_loglar,
-        'hom_jami':     hom_jami,
-        'tayor_jami':   tayor_jami,
-        'stanoklar':    Stanok.objects.filter(status=Stanok.Status.ACTIVE),
-        'today':        timezone.localdate(),
+        'hom_loglar': hom_loglar,
+        'hom_jami':   hom_jami,
+        'stanoklar':  Stanok.objects.filter(status=Stanok.Status.ACTIVE),
+        'today':      timezone.localdate(),
     }
 
 
@@ -402,39 +375,6 @@ class HomLogCreateView(CastingManagerRequiredMixin, View):
 class HomLogDeleteView(CastingManagerRequiredMixin, View):
     def post(self, request, pk, log_pk):
         log = get_object_or_404(HomMahsulotLog, pk=log_pk, order_id=pk)
-        log.delete()
-        messages.success(request, 'Log o\'chirildi.')
-        return redirect('casting:order_log', pk=pk)
-
-
-class TayorLogCreateView(CastingManagerRequiredMixin, View):
-    def post(self, request, pk):
-        order = get_object_or_404(Order, pk=pk)
-        try:
-            miqdor = int(request.POST.get('miqdor', 0))
-            assert miqdor > 0
-        except (ValueError, AssertionError):
-            messages.error(request, 'Miqdor musbat son bo\'lishi kerak.')
-            return redirect('casting:order_log', pk=pk)
-
-        sana_str = request.POST.get('sana', '').strip()
-        try:
-            sana = datetime.date.fromisoformat(sana_str)
-        except ValueError:
-            sana = timezone.localdate()
-
-        TayorMahsulotLog.objects.create(
-            order=order, miqdor=miqdor, sana=sana,
-            izoh=request.POST.get('izoh', '').strip(),
-            created_by=request.user,
-        )
-        messages.success(request, f'{miqdor} dona tayor mahsulot qo\'shildi.')
-        return redirect('casting:order_log', pk=pk)
-
-
-class TayorLogDeleteView(CastingManagerRequiredMixin, View):
-    def post(self, request, pk, log_pk):
-        log = get_object_or_404(TayorMahsulotLog, pk=log_pk, order_id=pk)
         log.delete()
         messages.success(request, 'Log o\'chirildi.')
         return redirect('casting:order_log', pk=pk)
@@ -651,18 +591,14 @@ class AdditionalOrderCreateView(CastingManagerRequiredMixin, View):
 class AdditionalOrderDetailView(CastingManagerRequiredMixin, View):
     def get(self, request, pk):
         order = get_object_or_404(AdditionalOrder, pk=pk)
-        hom_loglar   = order.hom_loglar.select_related('stanok', 'created_by').order_by('-sana', '-created_at')
-        tayor_loglar = order.tayor_loglar.select_related('created_by').order_by('-sana', '-created_at')
-        hom_jami     = hom_loglar.aggregate(j=Sum('miqdor'))['j'] or 0
-        tayor_jami   = tayor_loglar.aggregate(j=Sum('miqdor'))['j'] or 0
+        hom_loglar = order.hom_loglar.select_related('stanok', 'created_by').order_by('-sana', '-created_at')
+        hom_jami   = hom_loglar.aggregate(j=Sum('miqdor'))['j'] or 0
         return render(request, 'casting/additional_order_detail.html', {
-            'order': order,
+            'order':     order,
             'hom_loglar': hom_loglar,
-            'tayor_loglar': tayor_loglar,
-            'hom_jami': hom_jami,
-            'tayor_jami': tayor_jami,
+            'hom_jami':  hom_jami,
             'stanoklar': Stanok.objects.filter(status=Stanok.Status.ACTIVE),
-            'today': timezone.localdate(),
+            'today':     timezone.localdate(),
             'active_nav': 'additional',
         })
 

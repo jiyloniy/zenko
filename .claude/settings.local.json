@@ -22,7 +22,8 @@
       "Bash(python manage.py makemigrations casting --name quyishjarayon)",
       "Bash(python manage.py makemigrations casting --name remove_quyishjarayon)",
       "Bash(python manage.py makemigrations ilish)",
-      "Bash(python manage.py setup_attachmanager)"
+      "Bash(python manage.py setup_attachmanager)",
+      "Bash(python manage.py makemigrations casting --name=\"remove_tayormahsulotlog\")"
     ]
   }
 }

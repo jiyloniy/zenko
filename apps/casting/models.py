@@ -218,35 +218,6 @@ class HomMahsulotLog(models.Model):
         return f'{self.order} → {self.stanok} | {self.miqdor} dona ({self.sana})'
 
 
-class TayorMahsulotLog(models.Model):
-    """Tayyor bo'lgan mahsulot yozuvi (stanoksiz)."""
-    order      = models.ForeignKey(
-        'order.Order',
-        on_delete=models.CASCADE,
-        related_name='tayor_loglar',
-        verbose_name='Buyurtma',
-    )
-    miqdor     = models.PositiveIntegerField('Miqdor (dona)')
-    sana       = models.DateField('Sana')
-    izoh       = models.TextField('Izoh', blank=True)
-    created_by = models.ForeignKey(
-        settings.AUTH_USER_MODEL,
-        on_delete=models.SET_NULL,
-        null=True, blank=True,
-        verbose_name="Qo'shgan",
-    )
-    created_at = models.DateTimeField(auto_now_add=True)
-
-    class Meta:
-        ordering            = ['-sana', '-created_at']
-        verbose_name        = 'Tayor mahsulot log'
-        verbose_name_plural = 'Tayor mahsulot loglar'
-
-    def __str__(self):
-        return f'{self.order} | {self.miqdor} dona tayyor ({self.sana})'
-
-
-
 class QuyishJarayon(models.Model):
     """Quyish masteri tomonidan boshqariladigan quyish jarayoni."""
 

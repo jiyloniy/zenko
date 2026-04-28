@@ -1,7 +1,7 @@
 from django.contrib import admin
 from apps.casting.models import (
     Stanok, Zamak, RasxodLog, AdditionalOrder, AdditionalHomLog,
-    AdditionalTayorLog, HomMahsulotLog, TayorMahsulotLog, QuyishRasxod
+    AdditionalTayorLog, HomMahsulotLog, QuyishRasxod
 )
 
 
@@ -67,9 +67,3 @@ class HomMahsulotLogAdmin(admin.ModelAdmin):
     readonly_fields = ('created_at',)
 
 
-@admin.register(TayorMahsulotLog)
-class TayorMahsulotLogAdmin(admin.ModelAdmin):
-    list_display = ('order', 'miqdor', 'sana', 'created_by')
-    list_filter = ('sana',)
-    search_fields = ('order__name',)
-    readonly_fields = ('created_at',)

@@ -59,10 +59,6 @@ urlpatterns = [
     path('orders/<int:pk>/hom/add/', views.HomLogCreateView.as_view(), name='hom_log_add'),
     path('orders/<int:pk>/hom/<int:log_pk>/edit/', views.HomLogEditView.as_view(), name='hom_log_edit'),
     path('orders/<int:pk>/hom/<int:log_pk>/delete/', views.HomLogDeleteView.as_view(), name='hom_log_delete'),
-    path('orders/<int:pk>/tayor/add/', views.TayorLogCreateView.as_view(), name='tayor_log_add'),
-    path('orders/<int:pk>/tayor/<int:log_pk>/edit/', views.TayorLogEditView.as_view(), name='tayor_log_edit'),
-    path('orders/<int:pk>/tayor/<int:log_pk>/delete/', views.TayorLogDeleteView.as_view(), name='tayor_log_delete'),
-
     # Additional Orders
     path('additional/', views.CeoAdditionalOrderListView.as_view(), name='additional_order_list'),
     path('additional/create/', views.CeoAdditionalOrderCreateView.as_view(), name='additional_order_create'),
