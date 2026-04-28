@@ -364,10 +364,11 @@ class OrderLogView(CastingManagerRequiredMixin, View):
         )
         quyish = getattr(order, 'quyish_jarayon', None)
         return render(request, 'casting/order_log.html', {
-            'order':   order,
-            'quyish':  quyish,
-            'active_nav':    'orders',
+            'order':        order,
+            'quyish':       quyish,
+            'active_nav':   'orders',
             'status_filter': order.status,
+            'current_user_pk': request.user.pk,
             **_log_ctx(order),
         })
 

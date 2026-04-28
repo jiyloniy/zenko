@@ -1991,7 +1991,9 @@ class OrderLogView(CEORequiredMixin, View):
     def get(self, request, pk):
         order = get_object_or_404(_Order.objects.select_related('brujka', 'created_by'), pk=pk)
         return render(request, 'ceo/order_log.html', {
-            'order': order, 'active_nav': 'orders', **_log_ctx(order),
+            'order': order, 'active_nav': 'orders',
+            'current_user_pk': request.user.pk,
+            **_log_ctx(order),
         })
 
 
