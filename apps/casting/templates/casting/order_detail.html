@@ -203,10 +203,8 @@
     <!-- Progress card -->
     <div class="progress-card">
       <div class="pc-title">
-        <span>Bajarilish holati</span>
-        {% with tayor_pct=tayor_jami|default:0 %}
-        <span class="pc-pct">{% if order.quantity %}{% widthratio tayor_jami order.quantity 100 %}{% else %}0{% endif %}%</span>
-        {% endwith %}
+        <span>Hom mahsulot holati</span>
+        <span class="pc-pct">{% if order.quantity %}{% widthratio hom_jami order.quantity 100 %}{% else %}0{% endif %}%</span>
       </div>
 
       <!-- Hom progress -->
@@ -224,36 +222,18 @@
         <div class="prog-sub">{% if order.quantity %}{% widthratio hom_jami order.quantity 100 %}{% else %}0{% endif %}% to'ldirildi</div>
       </div>
 
-      <!-- Tayor progress -->
-      <div class="prog-item">
-        <div class="prog-head">
-          <span class="prog-lbl">
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width:14px;height:14px;color:#22C55E;"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/></svg>
-            Tayyor mahsulot
-          </span>
-          <span class="prog-val" style="color:#22C55E;">{{ tayor_jami }} / {{ order.quantity }}</span>
-        </div>
-        <div class="prog-bar">
-          <div class="prog-fill pf-tayor" style="width:{% if order.quantity %}{% if tayor_jami >= order.quantity %}100{% else %}{% widthratio tayor_jami order.quantity 100 %}{% endif %}{% else %}0{% endif %}%"></div>
-        </div>
-        <div class="prog-sub">{% if order.quantity %}{% widthratio tayor_jami order.quantity 100 %}{% else %}0{% endif %}% tayyor</div>
-      </div>
-
-      <!-- Qoldi -->
-      {% with qoldi=order.quantity|add:"-"|add:tayor_jami %}
+      <!-- Qoldi (hom asosida) -->
       <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0 0;border-top:1px solid var(--gray-100);margin-top:4px;">
-        <span style="font-size:12px;color:var(--gray-600);font-weight:600;">Qoldi ishlab chiqarish:</span>
-        <span style="font-size:16px;font-weight:900;color:var(--orange);">{{ order.quantity|add:"-0" }} - {{ tayor_jami }} = <span id="qoldi"></span> dona</span>
+        <span style="font-size:12px;color:var(--gray-600);font-weight:600;">Qoldi kiritish:</span>
+        <span style="font-size:16px;font-weight:900;color:var(--orange);">{{ order.quantity }} - {{ hom_jami }} = <span id="qoldi"></span> dona</span>
       </div>
-      {% endwith %}
 
       <!-- Mini bar chart (7 kun) -->
       <div style="margin-top:14px;padding-top:12px;border-top:1px solid var(--gray-100);">
         <div style="font-size:11px;font-weight:700;color:var(--gray-500);margin-bottom:8px;display:flex;justify-content:space-between;">
-          <span>So'nggi 7 kunlik faoliyat</span>
-          <span style="display:flex;gap:10px;">
-            <span style="display:flex;align-items:center;gap:4px;"><span style="width:8px;height:8px;border-radius:2px;background:#FDBA74;display:inline-block;"></span>Hom</span>
-            <span style="display:flex;align-items:center;gap:4px;"><span style="width:8px;height:8px;border-radius:2px;background:#4ADE80;display:inline-block;"></span>Tayor</span>
+          <span>So'nggi 7 kunlik hom kiritish</span>
+          <span style="display:flex;align-items:center;gap:4px;font-size:11px;font-weight:600;color:var(--gray-500);">
+            <span style="width:8px;height:8px;border-radius:2px;background:#FDBA74;display:inline-block;"></span>Hom par
           </span>
         </div>
         <div class="mini-chart" id="miniChart"></div>
@@ -319,41 +299,23 @@
     <!-- Log mini list -->
     <div class="side-card">
       <div class="ss">
-        <div class="ss-title">So'nggi loglar</div>
-        <div class="log-tabs">
-          <button class="lt active-h" onclick="showTab('hom',this)">🔶 Hom ({{ hom_loglar|length }})</button>
-          <button class="lt" onclick="showTab('tayor',this)">🟢 Tayor ({{ tayor_loglar|length }})</button>
-        </div>
+        <div class="ss-title">So'nggi hom loglar <span style="font-size:11px;font-weight:600;color:var(--orange);">({{ hom_loglar|length }} ta)</span></div>
 
-        <!-- Hom logs -->
-        <div id="tab-hom" class="log-mini">
+        <div class="log-mini">
           {% for log in hom_loglar|slice:":10" %}
           <div class="lm-item">
             <div class="lm-dot lm-dot-h"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m21 7.5-9-5.25L3 7.5m18 0-9 5.25m9-5.25v9l-9 5.25M3 7.5l9 5.25M3 7.5v9l9 5.25m0-9v9"/></svg></div>
             <div class="lm-body">
               <div class="lm-qty">{{ log.miqdor }}<span>dona</span></div>
-              <div class="lm-meta">{% if log.stanok %}{{ log.stanok.name }} · {% endif %}{% if log.izoh %}{{ log.izoh }}{% endif %}</div>
+              <div class="lm-meta">
+                {% if log.smena == 'tun' %}🌙{% else %}☀️{% endif %}
+                {% if log.stanok %}{{ log.stanok.name }} · {% endif %}{{ log.izoh|default:"" }}
+              </div>
             </div>
             <div class="lm-date">{{ log.sana|date:"d.m" }}</div>
           </div>
           {% empty %}
           <div class="log-empty">Hom mahsulot yozuvi yo'q</div>
-          {% endfor %}
-        </div>
-
-        <!-- Tayor logs -->
-        <div id="tab-tayor" class="log-mini" style="display:none;">
-          {% for log in tayor_loglar|slice:":10" %}
-          <div class="lm-item">
-            <div class="lm-dot lm-dot-t"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/></svg></div>
-            <div class="lm-body">
-              <div class="lm-qty">{{ log.miqdor }}<span>dona</span></div>
-              <div class="lm-meta">{% if log.izoh %}{{ log.izoh }}{% endif %}</div>
-            </div>
-            <div class="lm-date">{{ log.sana|date:"d.m" }}</div>
-          </div>
-          {% empty %}
-          <div class="log-empty">Tayor mahsulot yozuvi yo'q</div>
           {% endfor %}
         </div>
       </div>
@@ -384,36 +346,26 @@ document.addEventListener('keydown',e=>{if(e.key==='Escape')closeLb();});
 
 // Qoldi
 (function(){
-  var q = {{ order.quantity }}, t = {{ tayor_jami }};
-  document.getElementById('qoldi').textContent = Math.max(0, q - t);
+  var q = {{ order.quantity }}, h = {{ hom_jami }};
+  var el = document.getElementById('qoldi');
+  if (el) el.textContent = Math.max(0, q - h);
 })();
-
-// Log tabs
-function showTab(name, btn){
-  document.getElementById('tab-hom').style.display  = name==='hom'  ? '' : 'none';
-  document.getElementById('tab-tayor').style.display = name==='tayor'? '' : 'none';
-  document.querySelectorAll('.lt').forEach(b=>b.classList.remove('active-h','active-t'));
-  btn.classList.add(name==='hom'?'active-h':'active-t');
-}
 
 // Mini bar chart
 (function(){
   var labels = {{ chart_labels|safe }};
   var homs   = {{ chart_hom|safe }};
-  var tayors = {{ chart_tayor|safe }};
-  var maxV   = Math.max(...homs, ...tayors, 1);
+  var maxV   = Math.max.apply(null, homs.concat([1]));
   var ch     = document.getElementById('miniChart');
   var H      = 48;
   labels.forEach(function(l,i){
-    var hPx = Math.max(Math.round(homs[i]/maxV*H), homs[i]>0?2:0);
-    var tPx = Math.max(Math.round(tayors[i]/maxV*H), tayors[i]>0?2:0);
+    var hPx = homs[i] > 0 ? Math.max(Math.round(homs[i]/maxV*H), 2) : 0;
     var g = document.createElement('div');
     g.className = 'mc-group';
-    g.title = l+': hom='+homs[i]+', tayor='+tayors[i];
+    g.title = l+': '+homs[i]+' par';
     g.innerHTML =
       '<div class="mc-bars">'+
         '<div class="mc-bar mc-bar-h" style="height:'+hPx+'px"></div>'+
-        '<div class="mc-bar mc-bar-t" style="height:'+tPx+'px"></div>'+
       '</div>'+
       '<div class="mc-lbl">'+l+'</div>';
     ch.appendChild(g);
