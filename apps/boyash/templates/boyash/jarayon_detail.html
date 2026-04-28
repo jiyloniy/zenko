@@ -1,0 +1,422 @@
+{% extends 'boyash/base.html' %}
+{% block title %}{{ jarayon.order.name }} — Bo'yash{% endblock %}
+{% block page_title %}{{ jarayon.order.name }}{% endblock %}
+
+{% block topbar_actions %}
+<a href="{% url 'boyash:jarayon_list' %}" class="btn btn-secondary btn-sm">
+  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18"/></svg>
+  Orqaga
+</a>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.detail-grid{display:grid;grid-template-columns:1fr 340px;gap:20px;align-items:start;}
+@media(max-width:900px){.detail-grid{grid-template-columns:1fr;}}
+
+/* ── Order hero ── */
+.order-hero{background:#fff;border-radius:14px;border:1px solid var(--gray-200);overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,.04);}
+.hero-img{width:100%;height:200px;object-fit:cover;}
+.hero-img-placeholder{width:100%;height:200px;background:linear-gradient(135deg,#FFF7ED,#FFEDD5);display:flex;align-items:center;justify-content:center;}
+.hero-img-placeholder svg{width:56px;height:56px;color:#FB923C;opacity:.5;}
+.hero-body{padding:18px 20px;}
+.hero-meta{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:10px;}
+.hero-title{font-size:18px;font-weight:800;margin-bottom:4px;}
+.hero-number{font-size:13px;color:var(--gray-400);font-weight:500;}
+.brujka-chip{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;background:var(--gray-100);border-radius:20px;font-size:12px;font-weight:600;color:var(--gray-700);}
+.brujka-color{width:10px;height:10px;border-radius:50%;}
+.status-pill{display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border-radius:20px;font-size:11px;font-weight:700;}
+.status-pill.blue{background:#EFF6FF;color:#2563EB;}
+.status-pill.orange{background:#FFF7ED;color:#EA580C;}
+.status-pill.green{background:#F0FDF4;color:#16A34A;}
+.status-pill.red{background:#FEF2F2;color:#DC2626;}
+.status-dot{width:6px;height:6px;border-radius:50%;background:currentColor;}
+
+/* ── Progress card ── */
+.progress-card{background:linear-gradient(135deg,#F97316,#EA580C);border-radius:14px;padding:20px;color:#fff;margin-top:16px;}
+.progress-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;}
+.progress-title{font-size:13px;font-weight:600;opacity:.85;}
+.progress-pct{font-size:28px;font-weight:900;}
+.progress-bar-wrap{background:rgba(255,255,255,.2);border-radius:6px;height:8px;margin-bottom:14px;}
+.progress-bar-fill{height:100%;background:#fff;border-radius:6px;transition:width .4s ease;}
+.progress-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;}
+.progress-stat{background:rgba(255,255,255,.15);border-radius:8px;padding:8px 10px;text-align:center;}
+.progress-stat-val{font-size:16px;font-weight:800;}
+.progress-stat-lbl{font-size:10px;opacity:.7;margin-top:1px;}
+
+/* ── Smena cards ── */
+.smena-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:16px;}
+.smena-card{background:#fff;border-radius:12px;border:1px solid var(--gray-200);padding:14px 16px;}
+.smena-header{display:flex;align-items:center;gap:8px;margin-bottom:10px;}
+.smena-icon{width:32px;height:32px;border-radius:9px;display:grid;place-items:center;}
+.smena-icon.kun{background:#FFF7ED;}
+.smena-icon.tun{background:#EFF6FF;}
+.smena-icon svg{width:16px;height:16px;}
+.smena-icon.kun svg{color:#EA580C;}
+.smena-icon.tun svg{color:#2563EB;}
+.smena-name{font-size:12px;font-weight:700;color:var(--gray-700);}
+.smena-count{font-size:11px;color:var(--gray-400);}
+.smena-stat{display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--gray-100);}
+.smena-stat:last-child{border-bottom:none;}
+.smena-stat-lbl{font-size:12px;color:var(--gray-500);}
+.smena-stat-val{font-size:12px;font-weight:700;color:var(--black);}
+
+/* ── Log table ── */
+.section-title{font-size:14px;font-weight:700;color:var(--black);margin-bottom:12px;display:flex;align-items:center;gap:8px;}
+.section-title span{background:var(--gray-100);color:var(--gray-600);font-size:11px;font-weight:700;padding:2px 8px;border-radius:20px;}
+.table-wrap{background:#fff;border-radius:14px;border:1px solid var(--gray-200);overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,.04);}
+table{width:100%;border-collapse:collapse;}
+thead tr{background:var(--gray-50);border-bottom:1px solid var(--gray-200);}
+th{padding:10px 14px;text-align:left;font-size:11px;font-weight:700;color:var(--gray-500);text-transform:uppercase;letter-spacing:.5px;}
+td{padding:11px 14px;font-size:13px;border-bottom:1px solid var(--gray-100);}
+tbody tr:last-child td{border-bottom:none;}
+tbody tr:hover{background:var(--gray-50);}
+.smena-badge{display:inline-flex;align-items:center;gap:4px;padding:3px 8px;border-radius:6px;font-size:11px;font-weight:700;}
+.smena-badge.kun{background:#FFF7ED;color:#EA580C;}
+.smena-badge.tun{background:#EFF6FF;color:#2563EB;}
+.formula{font-size:11px;color:var(--gray-400);}
+.par-count{font-weight:700;color:var(--black);}
+
+/* ── Sidebar ── */
+.sidebar-section{background:#fff;border-radius:14px;border:1px solid var(--gray-200);overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,.04);margin-bottom:16px;}
+.ss-header{padding:14px 16px;border-bottom:1px solid var(--gray-100);font-size:13px;font-weight:700;display:flex;align-items:center;gap:8px;}
+.ss-header svg{width:15px;height:15px;color:#F97316;}
+.ss-body{padding:16px;}
+.f-group{margin-bottom:12px;}
+.f-label{display:block;font-size:12px;font-weight:600;color:var(--gray-600);margin-bottom:5px;}
+.f-inp{width:100%;padding:8px 12px;border:1px solid var(--gray-200);border-radius:8px;font-size:13px;font-family:inherit;outline:none;transition:border-color .18s;background:#fff;}
+.f-inp:focus{border-color:#F97316;box-shadow:0 0 0 3px rgba(249,115,22,.1);}
+.f-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.calc-preview{background:linear-gradient(135deg,#FFF7ED,#FFEDD5);border:1px solid #FED7AA;border-radius:10px;padding:12px 14px;margin-bottom:12px;}
+.calc-title{font-size:11px;font-weight:700;color:#C2410C;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px;}
+.calc-row{display:flex;justify-content:space-between;align-items:center;padding:3px 0;}
+.calc-lbl{font-size:12px;color:#92400E;}
+.calc-val{font-size:13px;font-weight:700;color:#EA580C;}
+
+/* ── Status change sidebar ── */
+.status-change-form{}
+.status-opts-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:12px;}
+.s-opt{padding:8px;border-radius:8px;border:2px solid var(--gray-200);cursor:pointer;transition:all .18s;text-align:center;}
+.s-opt:hover{border-color:#F97316;}
+.s-opt input{display:none;}
+.s-opt.selected{border-color:#F97316;background:#FFF7ED;}
+.s-opt-pill{font-size:11px;font-weight:700;padding:3px 8px;border-radius:20px;}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="detail-grid">
+
+  <!-- Left column -->
+  <div>
+    <!-- Order hero -->
+    <div class="order-hero">
+      {% if jarayon.order.image %}
+        <img src="{{ jarayon.order.image.url }}" alt="{{ jarayon.order.name }}" class="hero-img">
+      {% else %}
+        <div class="hero-img-placeholder">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9.53 16.122a3 3 0 0 0-5.78 1.128 2.25 2.25 0 0 1-2.4 2.245 4.5 4.5 0 0 0 8.4-2.245c0-.399-.078-.78-.22-1.128Zm0 0a15.998 15.998 0 0 0 3.388-1.62m-5.043-.025a15.994 15.994 0 0 1 1.622-3.395m3.42 3.42a15.995 15.995 0 0 0 4.764-4.648l3.876-5.814a1.151 1.151 0 0 0-1.597-1.597L14.146 6.32a15.996 15.996 0 0 0-4.649 4.763m3.42 3.42a6.776 6.776 0 0 0-3.42-3.42"/></svg>
+        </div>
+      {% endif %}
+      <div class="hero-body">
+        <div class="hero-meta">
+          {% if jarayon.order.brujka %}
+          <span class="brujka-chip">
+            <span class="brujka-color" style="background:{{ jarayon.order.brujka.color }};"></span>
+            {{ jarayon.order.brujka.name }}
+          </span>
+          <span style="font-size:11px;color:var(--gray-400);">{{ jarayon.order.brujka.get_coating_type_display }}</span>
+          {% endif %}
+          <span class="status-pill {{ jarayon.status_color }}" style="margin-left:auto;">
+            <span class="status-dot"></span>
+            {{ jarayon.get_status_display }}
+          </span>
+        </div>
+        <div class="hero-title">{{ jarayon.order.name }}</div>
+        <div class="hero-number">{{ jarayon.order.order_number }} · Maqsad: {{ jarayon.order.quantity }} dona</div>
+      </div>
+    </div>
+
+    <!-- Progress -->
+    <div class="progress-card">
+      <div class="progress-header">
+        <span class="progress-title">Umumiy progress</span>
+        <span class="progress-pct">{{ progress_pct }}%</span>
+      </div>
+      <div class="progress-bar-wrap">
+        <div class="progress-bar-fill" style="width:{{ progress_pct }}%;"></div>
+      </div>
+      <div class="progress-stats">
+        <div class="progress-stat">
+          <div class="progress-stat-val">{{ total_vishilka }}</div>
+          <div class="progress-stat-lbl">Bo'yalgan vishilka</div>
+        </div>
+        <div class="progress-stat">
+          <div class="progress-stat-val">{{ total_par }}</div>
+          <div class="progress-stat-lbl">Bo'yalgan par</div>
+        </div>
+        <div class="progress-stat">
+          <div class="progress-stat-val">{{ qoldiq_par }}</div>
+          <div class="progress-stat-lbl">Qolgan par</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Smena cards -->
+    <div class="smena-grid">
+      <div class="smena-card">
+        <div class="smena-header">
+          <div class="smena-icon kun">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 3v2.25m6.364.386-1.591 1.591M21 12h-2.25m-.386 6.364-1.591-1.591M12 18.75V21m-4.773-4.227-1.591 1.591M5.25 12H3m4.227-4.773L5.636 5.636M15.75 12a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0Z"/></svg>
+          </div>
+          <div>
+            <div class="smena-name">Kunduzgi smena</div>
+            <div class="smena-count">{{ kun_count }} ta log</div>
+          </div>
+        </div>
+        <div class="smena-stat">
+          <span class="smena-stat-lbl">Vishilka</span>
+          <span class="smena-stat-val">{{ kun_vishilka }} ta</span>
+        </div>
+        <div class="smena-stat">
+          <span class="smena-stat-lbl">Bo'yalgan par</span>
+          <span class="smena-stat-val">{{ kun_par }} ta</span>
+        </div>
+      </div>
+      <div class="smena-card">
+        <div class="smena-header">
+          <div class="smena-icon tun">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M21.752 15.002A9.72 9.72 0 0 1 18 15.75c-5.385 0-9.75-4.365-9.75-9.75 0-1.33.266-2.597.748-3.752A9.753 9.753 0 0 0 3 11.25C3 16.635 7.365 21 12.75 21a9.753 9.753 0 0 0 9.002-5.998Z"/></svg>
+          </div>
+          <div>
+            <div class="smena-name">Tungi smena</div>
+            <div class="smena-count">{{ tun_count }} ta log</div>
+          </div>
+        </div>
+        <div class="smena-stat">
+          <span class="smena-stat-lbl">Vishilka</span>
+          <span class="smena-stat-val">{{ tun_vishilka }} ta</span>
+        </div>
+        <div class="smena-stat">
+          <span class="smena-stat-lbl">Bo'yalgan par</span>
+          <span class="smena-stat-val">{{ tun_par }} ta</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Log table -->
+    <div style="margin-top:20px;">
+      <div class="section-title">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width:15px;height:15px;color:#F97316"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h3.75M9 15h3.75M9 18h3.75m3 .75H18a2.25 2.25 0 0 0 2.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.424 48.424 0 0 0-1.123-.08m-5.801 0c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 0 0 .75-.75 2.25 2.25 0 0 0-.1-.664m-5.8 0A2.251 2.251 0 0 1 13.5 2.25H15c1.012 0 1.867.668 2.15 1.586m-5.8 0c-.376.023-.75.05-1.124.08C9.095 4.01 8.25 4.973 8.25 6.108V8.25m0 0H4.875c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V9.375c0-.621-.504-1.125-1.125-1.125H8.25ZM6.75 12h.008v.008H6.75V12Zm0 3h.008v.008H6.75V15Zm0 3h.008v.008H6.75V18Z"/></svg>
+        Log yozuvlar <span>{{ loglar|length }}</span>
+      </div>
+
+      {% if loglar %}
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Sana</th>
+              <th>Smena</th>
+              <th>Vishilka soni</th>
+              <th>Par soni</th>
+              <th>Jami par</th>
+              <th>Izoh</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for log in loglar %}
+            <tr>
+              <td><span style="font-weight:600;">{{ log.sana|date:"d.m.Y" }}</span></td>
+              <td>
+                <span class="smena-badge {{ log.smena }}">
+                  {% if log.smena == 'kun' %}☀{% else %}🌙{% endif %}
+                  {{ log.get_smena_display }}
+                </span>
+              </td>
+              <td><span class="par-count">{{ log.vishilka_soni }}</span> <span class="formula">ta vishilka</span></td>
+              <td><span class="formula">× {{ log.par_soni }} par</span></td>
+              <td><span class="par-count" style="color:#F97316;">= {{ log.boyalgan_par }} par</span></td>
+              <td style="color:var(--gray-400);font-size:12px;">{{ log.izoh|default:"—" }}</td>
+              <td>
+                <form method="post" action="{% url 'boyash:log_delete' jarayon.pk log.pk %}"
+                      onsubmit="return confirm('Logni o\'chirasizmi?')">
+                  {% csrf_token %}
+                  <button type="submit" class="btn btn-danger btn-sm">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0"/></svg>
+                  </button>
+                </form>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% else %}
+      <div style="background:#fff;border-radius:14px;border:1px solid var(--gray-200);padding:40px;text-align:center;">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width:36px;height:36px;color:var(--gray-300);margin-bottom:10px;"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h3.75M9 15h3.75M9 18h3.75m3 .75H18a2.25 2.25 0 0 0 2.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.424 48.424 0 0 0-1.123-.08m-5.801 0c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 0 0 .75-.75 2.25 2.25 0 0 0-.1-.664m-5.8 0A2.251 2.251 0 0 1 13.5 2.25H15c1.012 0 1.867.668 2.15 1.586m-5.8 0c-.376.023-.75.05-1.124.08C9.095 4.01 8.25 4.973 8.25 6.108V8.25m0 0H4.875c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V9.375c0-.621-.504-1.125-1.125-1.125H8.25Z"/></svg>
+        <div style="font-size:13px;color:var(--gray-400);">Hali log yozilmagan</div>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Right sidebar -->
+  <div>
+    <!-- Log qo'shish -->
+    <div class="sidebar-section">
+      <div class="ss-header">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>
+        Log qo'shish
+      </div>
+      <div class="ss-body">
+        <div class="calc-preview" id="calcPreview">
+          <div class="calc-title">Hisoblash</div>
+          <div class="calc-row">
+            <span class="calc-lbl">Vishilka soni</span>
+            <span class="calc-val" id="previewVish">0</span>
+          </div>
+          <div class="calc-row">
+            <span class="calc-lbl">Par / vishilka</span>
+            <span class="calc-val" id="previewPar">25</span>
+          </div>
+          <div style="border-top:1px solid #FED7AA;margin:6px 0;"></div>
+          <div class="calc-row">
+            <span class="calc-lbl" style="font-weight:700;">Jami par</span>
+            <span class="calc-val" style="font-size:16px;" id="previewTotal">0</span>
+          </div>
+        </div>
+
+        <form method="post" action="{% url 'boyash:log_create' jarayon.pk %}">
+          {% csrf_token %}
+          <div class="f-group">
+            <label class="f-label">Smena</label>
+            {{ form.smena }}
+          </div>
+          <div class="f-row">
+            <div class="f-group">
+              <label class="f-label">Vishilka soni</label>
+              {{ form.vishilka_soni }}
+            </div>
+            <div class="f-group">
+              <label class="f-label">Par / vishilka</label>
+              {{ form.par_soni }}
+            </div>
+          </div>
+          <div class="f-group">
+            <label class="f-label">Sana</label>
+            {{ form.sana }}
+          </div>
+          <div class="f-group">
+            <label class="f-label">Izoh (ixtiyoriy)</label>
+            {{ form.izoh }}
+          </div>
+          <button type="submit" class="btn btn-primary" style="width:100%;">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>
+            Log saqlash
+          </button>
+        </form>
+      </div>
+    </div>
+
+    <!-- Holat o'zgartirish -->
+    <div class="sidebar-section">
+      <div class="ss-header">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99"/></svg>
+        Holatni o'zgartirish
+      </div>
+      <div class="ss-body">
+        <form method="post" action="{% url 'boyash:jarayon_set_status' jarayon.pk %}">
+          {% csrf_token %}
+          <div class="status-opts-grid">
+            <label class="s-opt {% if jarayon.status == 'qabul_qilindi' %}selected{% endif %}">
+              <input type="radio" name="status" value="qabul_qilindi" {% if jarayon.status == 'qabul_qilindi' %}checked{% endif %}>
+              <span class="status-pill blue s-opt-pill">Qabul qilindi</span>
+            </label>
+            <label class="s-opt {% if jarayon.status == 'boyalmoqda' %}selected{% endif %}">
+              <input type="radio" name="status" value="boyalmoqda" {% if jarayon.status == 'boyalmoqda' %}checked{% endif %}>
+              <span class="status-pill orange s-opt-pill">Bo'yalmoqda</span>
+            </label>
+            <label class="s-opt {% if jarayon.status == 'boyaldi' %}selected{% endif %}">
+              <input type="radio" name="status" value="boyaldi" {% if jarayon.status == 'boyaldi' %}checked{% endif %}>
+              <span class="status-pill green s-opt-pill">Bo'yaldi</span>
+            </label>
+            <label class="s-opt {% if jarayon.status == 'boyalmadi' %}selected{% endif %}">
+              <input type="radio" name="status" value="boyalmadi" {% if jarayon.status == 'boyalmadi' %}checked{% endif %}>
+              <span class="status-pill red s-opt-pill">Bo'yalmadi</span>
+            </label>
+          </div>
+          <div class="f-group">
+            <label class="f-label">Izoh (ixtiyoriy)</label>
+            <textarea name="izoh" class="f-inp" rows="2" placeholder="Sabab yoki izoh...">{{ jarayon.izoh }}</textarea>
+          </div>
+          <input type="hidden" name="next_tab" value="{{ jarayon.status }}">
+          <button type="submit" class="btn btn-secondary" style="width:100%;">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/></svg>
+            Holatni saqlash
+          </button>
+        </form>
+      </div>
+    </div>
+
+    <!-- Buyurtma ma'lumotlari -->
+    <div class="sidebar-section">
+      <div class="ss-header">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m11.25 11.25.041-.02a.75.75 0 0 1 1.063.852l-.708 2.836a.75.75 0 0 0 1.063.853l.041-.021M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9-3.75h.008v.008H12V8.25Z"/></svg>
+        Buyurtma ma'lumoti
+      </div>
+      <div class="ss-body" style="padding:14px 16px;">
+        <div class="smena-stat">
+          <span class="smena-stat-lbl">Raqam</span>
+          <span class="smena-stat-val">{{ jarayon.order.order_number }}</span>
+        </div>
+        <div class="smena-stat">
+          <span class="smena-stat-lbl">Miqdor</span>
+          <span class="smena-stat-val">{{ jarayon.order.quantity }} dona</span>
+        </div>
+        <div class="smena-stat">
+          <span class="smena-stat-lbl">Muddat</span>
+          <span class="smena-stat-val {% if jarayon.order.is_overdue %}style="color:#DC2626;"{% endif %}">{{ jarayon.order.deadline|date:"d.m.Y" }}</span>
+        </div>
+        {% if jarayon.order.brujka %}
+        <div class="smena-stat">
+          <span class="smena-stat-lbl">Brujka</span>
+          <span class="smena-stat-val">{{ jarayon.order.brujka.name }}</span>
+        </div>
+        <div class="smena-stat" style="border-bottom:none;">
+          <span class="smena-stat-lbl">Qoplama</span>
+          <span class="smena-stat-val">{{ jarayon.order.brujka.get_coating_type_display }}</span>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+const vishInput = document.querySelector('input[name="vishilka_soni"]');
+const parInput  = document.querySelector('input[name="par_soni"]');
+
+function updateCalc() {
+  const v = parseInt(vishInput?.value) || 0;
+  const p = parseInt(parInput?.value)  || 0;
+  document.getElementById('previewVish').textContent  = v;
+  document.getElementById('previewPar').textContent   = p;
+  document.getElementById('previewTotal').textContent = v * p;
+}
+
+vishInput?.addEventListener('input', updateCalc);
+parInput?.addEventListener('input', updateCalc);
+updateCalc();
+
+document.querySelectorAll('.s-opt').forEach(opt => {
+  opt.addEventListener('click', function() {
+    document.querySelectorAll('.s-opt').forEach(o => o.classList.remove('selected'));
+    this.classList.add('selected');
+  });
+});
+</script>
+{% endblock %}
