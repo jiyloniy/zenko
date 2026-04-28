@@ -70,6 +70,8 @@ class LoginView(View):
             return redirect('casting:order_list')
         if role_name == 'ATTACHMANAGER':
             return redirect('ilish:jarayon_list')
+        if role_name == 'BOYASHMANAGER':
+            return redirect('boyash:jarayon_list')
         return redirect('ceo:dashboard')
 
 
