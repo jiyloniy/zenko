@@ -1,7 +1,8 @@
 import datetime
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.db.models import Q, Sum
+from django.db.models import Q, Sum, Subquery, OuterRef, IntegerField, Value
+from django.db.models.functions import Coalesce
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse_lazy
 from django.utils import timezone
@@ -75,7 +76,17 @@ class SepishJarayonListView(SprayManagerRequiredMixin, View):
         if tab not in valid_tabs:
             tab = 'qabul_qilindi'
 
-        jarayonlar = qs.filter(status=tab)
+        # Har bir jarayon uchun sepilgan par sonini annotate qilish
+        log_sum_sub = Subquery(
+            SepishJarayonLog.objects.filter(jarayon=OuterRef('pk'))
+            .values('jarayon')
+            .annotate(s=Sum('par_soni'))
+            .values('s'),
+            output_field=IntegerField(),
+        )
+        jarayonlar = qs.filter(status=tab).annotate(
+            sepilgan_par=Coalesce(log_sum_sub, Value(0))
+        )
         counts     = {s.value: qs.filter(status=s.value).count() for s in SepishJarayon.Status}
         kraskalar  = Kraska.objects.filter(is_active=True)
 
