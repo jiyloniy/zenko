@@ -4,7 +4,6 @@
 
 {% block topbar_actions %}
 <div style="display:flex;gap:6px;">
-  {% for d in '7 14 30'|split:' ' %}{% endfor %}
   <a href="?days=7" class="btn btn-sm {% if days == 7 %}btn-primary{% else %}btn-secondary{% endif %}">7 kun</a>
   <a href="?days=14" class="btn btn-sm {% if days == 14 %}btn-primary{% else %}btn-secondary{% endif %}">14 kun</a>
   <a href="?days=30" class="btn btn-sm {% if days == 30 %}btn-primary{% else %}btn-secondary{% endif %}">30 kun</a>

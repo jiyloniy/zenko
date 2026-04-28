@@ -14,11 +14,10 @@
 .detail-grid{display:grid;grid-template-columns:1fr 340px;gap:20px;align-items:start;}
 @media(max-width:900px){.detail-grid{grid-template-columns:1fr;}}
 
-/* ── Order hero ── */
 .order-hero{background:#fff;border-radius:14px;border:1px solid var(--gray-200);overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,.04);}
 .hero-img{width:100%;height:200px;object-fit:cover;}
-.hero-img-placeholder{width:100%;height:200px;background:linear-gradient(135deg,#FFF7ED,#FFEDD5);display:flex;align-items:center;justify-content:center;}
-.hero-img-placeholder svg{width:56px;height:56px;color:#FB923C;opacity:.5;}
+.hero-img-placeholder{width:100%;height:200px;background:linear-gradient(135deg,#ECFDF5,#D1FAE5);display:flex;align-items:center;justify-content:center;}
+.hero-img-placeholder svg{width:56px;height:56px;color:#34D399;opacity:.5;}
 .hero-body{padding:18px 20px;}
 .hero-meta{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:10px;}
 .hero-title{font-size:18px;font-weight:800;margin-bottom:4px;}
@@ -26,14 +25,13 @@
 .brujka-chip{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;background:var(--gray-100);border-radius:20px;font-size:12px;font-weight:600;color:var(--gray-700);}
 .brujka-color{width:10px;height:10px;border-radius:50%;}
 .status-pill{display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border-radius:20px;font-size:11px;font-weight:700;}
-.status-pill.blue{background:#EFF6FF;color:#2563EB;}
-.status-pill.orange{background:#FFF7ED;color:#EA580C;}
-.status-pill.green{background:#F0FDF4;color:#16A34A;}
-.status-pill.red{background:#FEF2F2;color:#DC2626;}
+.status-pill.blue   {background:#EFF6FF;color:#2563EB;}
+.status-pill.green  {background:#F0FDF4;color:#16A34A;}
+.status-pill.emerald{background:#ECFDF5;color:#059669;}
+.status-pill.red    {background:#FEF2F2;color:#DC2626;}
 .status-dot{width:6px;height:6px;border-radius:50%;background:currentColor;}
 
-/* ── Progress card ── */
-.progress-card{background:linear-gradient(135deg,#F97316,#EA580C);border-radius:14px;padding:20px;color:#fff;margin-top:16px;}
+.progress-card{background:linear-gradient(135deg,#10B981,#059669);border-radius:14px;padding:20px;color:#fff;margin-top:16px;}
 .progress-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;}
 .progress-title{font-size:13px;font-weight:600;opacity:.85;}
 .progress-pct{font-size:28px;font-weight:900;}
@@ -44,7 +42,6 @@
 .progress-stat-val{font-size:16px;font-weight:800;}
 .progress-stat-lbl{font-size:10px;opacity:.7;margin-top:1px;}
 
-/* ── Smena cards ── */
 .smena-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:16px;}
 .smena-card{background:#fff;border-radius:12px;border:1px solid var(--gray-200);padding:14px 16px;}
 .smena-header{display:flex;align-items:center;gap:8px;margin-bottom:10px;}
@@ -61,7 +58,6 @@
 .smena-stat-lbl{font-size:12px;color:var(--gray-500);}
 .smena-stat-val{font-size:12px;font-weight:700;color:var(--black);}
 
-/* ── Log table ── */
 .section-title{font-size:14px;font-weight:700;color:var(--black);margin-bottom:12px;display:flex;align-items:center;gap:8px;}
 .section-title span{background:var(--gray-100);color:var(--gray-600);font-size:11px;font-weight:700;padding:2px 8px;border-radius:20px;}
 .table-wrap{background:#fff;border-radius:14px;border:1px solid var(--gray-200);overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,.04);}
@@ -77,29 +73,26 @@ tbody tr:hover{background:var(--gray-50);}
 .formula{font-size:11px;color:var(--gray-400);}
 .par-count{font-weight:700;color:var(--black);}
 
-/* ── Sidebar ── */
 .sidebar-section{background:#fff;border-radius:14px;border:1px solid var(--gray-200);overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,.04);margin-bottom:16px;}
 .ss-header{padding:14px 16px;border-bottom:1px solid var(--gray-100);font-size:13px;font-weight:700;display:flex;align-items:center;gap:8px;}
-.ss-header svg{width:15px;height:15px;color:#F97316;}
+.ss-header svg{width:15px;height:15px;color:#10B981;}
 .ss-body{padding:16px;}
 .f-group{margin-bottom:12px;}
 .f-label{display:block;font-size:12px;font-weight:600;color:var(--gray-600);margin-bottom:5px;}
 .f-inp{width:100%;padding:8px 12px;border:1px solid var(--gray-200);border-radius:8px;font-size:13px;font-family:inherit;outline:none;transition:border-color .18s;background:#fff;}
-.f-inp:focus{border-color:#F97316;box-shadow:0 0 0 3px rgba(249,115,22,.1);}
+.f-inp:focus{border-color:#10B981;box-shadow:0 0 0 3px rgba(16,185,129,.1);}
 .f-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
-.calc-preview{background:linear-gradient(135deg,#FFF7ED,#FFEDD5);border:1px solid #FED7AA;border-radius:10px;padding:12px 14px;margin-bottom:12px;}
-.calc-title{font-size:11px;font-weight:700;color:#C2410C;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px;}
+.calc-preview{background:linear-gradient(135deg,#ECFDF5,#D1FAE5);border:1px solid #A7F3D0;border-radius:10px;padding:12px 14px;margin-bottom:12px;}
+.calc-title{font-size:11px;font-weight:700;color:#047857;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px;}
 .calc-row{display:flex;justify-content:space-between;align-items:center;padding:3px 0;}
-.calc-lbl{font-size:12px;color:#92400E;}
-.calc-val{font-size:13px;font-weight:700;color:#EA580C;}
+.calc-lbl{font-size:12px;color:#065F46;}
+.calc-val{font-size:13px;font-weight:700;color:#059669;}
 
-/* ── Status change sidebar ── */
-.status-change-form{}
-.status-opts-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:12px;}
 .s-opt{padding:8px;border-radius:8px;border:2px solid var(--gray-200);cursor:pointer;transition:all .18s;text-align:center;}
-.s-opt:hover{border-color:#F97316;}
+.s-opt:hover{border-color:#10B981;}
 .s-opt input{display:none;}
-.s-opt.selected{border-color:#F97316;background:#FFF7ED;}
+.s-opt.selected{border-color:#10B981;background:#ECFDF5;}
+.status-opts-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:12px;}
 .s-opt-pill{font-size:11px;font-weight:700;padding:3px 8px;border-radius:20px;}
 </style>
 {% endblock %}
@@ -207,7 +200,7 @@ tbody tr:hover{background:var(--gray-50);}
     <!-- Log table -->
     <div style="margin-top:20px;">
       <div class="section-title">
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width:15px;height:15px;color:#F97316"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h3.75M9 15h3.75M9 18h3.75m3 .75H18a2.25 2.25 0 0 0 2.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.424 48.424 0 0 0-1.123-.08m-5.801 0c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 0 0 .75-.75 2.25 2.25 0 0 0-.1-.664m-5.8 0A2.251 2.251 0 0 1 13.5 2.25H15c1.012 0 1.867.668 2.15 1.586m-5.8 0c-.376.023-.75.05-1.124.08C9.095 4.01 8.25 4.973 8.25 6.108V8.25m0 0H4.875c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V9.375c0-.621-.504-1.125-1.125-1.125H8.25ZM6.75 12h.008v.008H6.75V12Zm0 3h.008v.008H6.75V15Zm0 3h.008v.008H6.75V18Z"/></svg>
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width:15px;height:15px;color:#10B981"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h3.75M9 15h3.75M9 18h3.75m3 .75H18a2.25 2.25 0 0 0 2.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.424 48.424 0 0 0-1.123-.08m-5.801 0c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 0 0 .75-.75 2.25 2.25 0 0 0-.1-.664m-5.8 0A2.251 2.251 0 0 1 13.5 2.25H15c1.012 0 1.867.668 2.15 1.586m-5.8 0c-.376.023-.75.05-1.124.08C9.095 4.01 8.25 4.973 8.25 6.108V8.25m0 0H4.875c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V9.375c0-.621-.504-1.125-1.125-1.125H8.25Z"/></svg>
         Log yozuvlar <span>{{ loglar|length }}</span>
       </div>
 
@@ -218,8 +211,8 @@ tbody tr:hover{background:var(--gray-50);}
             <tr>
               <th>Sana</th>
               <th>Smena</th>
-              <th>Vishilka soni</th>
-              <th>Par soni</th>
+              <th>Vishilka</th>
+              <th>Soni</th>
               <th>Jami par</th>
               <th>Izoh</th>
               <th></th>
@@ -235,9 +228,19 @@ tbody tr:hover{background:var(--gray-50);}
                   {{ log.get_smena_display }}
                 </span>
               </td>
+              <td>
+                {% if log.vishilka %}
+                  <span style="font-weight:600;">{{ log.vishilka.nomi }}</span>
+                  <span class="formula">({{ log.vishilka.quantity }} par)</span>
+                {% else %}<span class="formula">—</span>{% endif %}
+              </td>
               <td><span class="par-count">{{ log.vishilka_soni }}</span> <span class="formula">ta vishilka</span></td>
-              <td><span class="formula">× {{ log.par_soni }} par</span></td>
-              <td><span class="par-count" style="color:#F97316;">= {{ log.boyalgan_par }} par</span></td>
+              <td>
+                {% if log.vishilka %}
+                  <span class="formula">{{ log.vishilka_soni }} × {{ log.vishilka.quantity }} =</span>
+                  <span class="par-count" style="color:#10B981;">{{ log.boyalgan_par }} par</span>
+                {% else %}<span class="formula">—</span>{% endif %}
+              </td>
               <td style="color:var(--gray-400);font-size:12px;">{{ log.izoh|default:"—" }}</td>
               <td>
                 <form method="post" action="{% url 'boyash:log_delete' jarayon.pk log.pk %}"
@@ -274,14 +277,18 @@ tbody tr:hover{background:var(--gray-50);}
         <div class="calc-preview" id="calcPreview">
           <div class="calc-title">Hisoblash</div>
           <div class="calc-row">
-            <span class="calc-lbl">Vishilka soni</span>
-            <span class="calc-val" id="previewVish">0</span>
+            <span class="calc-lbl">Vishilka</span>
+            <span class="calc-val" id="previewVishName">—</span>
           </div>
           <div class="calc-row">
             <span class="calc-lbl">Par / vishilka</span>
-            <span class="calc-val" id="previewPar">25</span>
+            <span class="calc-val" id="previewParPerVish">—</span>
           </div>
-          <div style="border-top:1px solid #FED7AA;margin:6px 0;"></div>
+          <div class="calc-row">
+            <span class="calc-lbl">Soni</span>
+            <span class="calc-val" id="previewVish">0</span>
+          </div>
+          <div style="border-top:1px solid #A7F3D0;margin:6px 0;"></div>
           <div class="calc-row">
             <span class="calc-lbl" style="font-weight:700;">Jami par</span>
             <span class="calc-val" style="font-size:16px;" id="previewTotal">0</span>
@@ -294,15 +301,13 @@ tbody tr:hover{background:var(--gray-50);}
             <label class="f-label">Smena</label>
             {{ form.smena }}
           </div>
-          <div class="f-row">
-            <div class="f-group">
-              <label class="f-label">Vishilka soni</label>
-              {{ form.vishilka_soni }}
-            </div>
-            <div class="f-group">
-              <label class="f-label">Par / vishilka</label>
-              {{ form.par_soni }}
-            </div>
+          <div class="f-group">
+            <label class="f-label">Vishilka</label>
+            {{ form.vishilka }}
+          </div>
+          <div class="f-group">
+            <label class="f-label">Vishilka soni</label>
+            {{ form.vishilka_soni }}
           </div>
           <div class="f-group">
             <label class="f-label">Sana</label>
@@ -336,7 +341,7 @@ tbody tr:hover{background:var(--gray-50);}
             </label>
             <label class="s-opt {% if jarayon.status == 'boyalmoqda' %}selected{% endif %}">
               <input type="radio" name="status" value="boyalmoqda" {% if jarayon.status == 'boyalmoqda' %}checked{% endif %}>
-              <span class="status-pill orange s-opt-pill">Bo'yalmoqda</span>
+              <span class="status-pill emerald s-opt-pill">Bo'yalmoqda</span>
             </label>
             <label class="s-opt {% if jarayon.status == 'boyaldi' %}selected{% endif %}">
               <input type="radio" name="status" value="boyaldi" {% if jarayon.status == 'boyaldi' %}checked{% endif %}>
@@ -397,19 +402,35 @@ tbody tr:hover{background:var(--gray-50);}
 
 {% block extra_js %}
 <script>
-const vishInput = document.querySelector('input[name="vishilka_soni"]');
-const parInput  = document.querySelector('input[name="par_soni"]');
+// Vishilka ma'lumotlari JSON
+const vishilkaData = {
+  {% for v in form.vishilka.field.queryset %}
+  "{{ v.pk }}": {"nomi": "{{ v.nomi }}", "quantity": {{ v.quantity }}},
+  {% endfor %}
+};
+
+const vishilkaSelect = document.querySelector('select[name="vishilka"]');
+const vishilkaSoni   = document.querySelector('input[name="vishilka_soni"]');
 
 function updateCalc() {
-  const v = parseInt(vishInput?.value) || 0;
-  const p = parseInt(parInput?.value)  || 0;
-  document.getElementById('previewVish').textContent  = v;
-  document.getElementById('previewPar').textContent   = p;
-  document.getElementById('previewTotal').textContent = v * p;
+  const selectedId = vishilkaSelect?.value;
+  const soni = parseInt(vishilkaSoni?.value) || 0;
+  if (selectedId && vishilkaData[selectedId]) {
+    const v = vishilkaData[selectedId];
+    document.getElementById('previewVishName').textContent  = v.nomi;
+    document.getElementById('previewParPerVish').textContent = v.quantity + ' par';
+    document.getElementById('previewVish').textContent       = soni;
+    document.getElementById('previewTotal').textContent      = soni * v.quantity;
+  } else {
+    document.getElementById('previewVishName').textContent   = '—';
+    document.getElementById('previewParPerVish').textContent = '—';
+    document.getElementById('previewVish').textContent       = soni;
+    document.getElementById('previewTotal').textContent      = 0;
+  }
 }
 
-vishInput?.addEventListener('input', updateCalc);
-parInput?.addEventListener('input', updateCalc);
+vishilkaSelect?.addEventListener('change', updateCalc);
+vishilkaSoni?.addEventListener('input', updateCalc);
 updateCalc();
 
 document.querySelectorAll('.s-opt').forEach(opt => {

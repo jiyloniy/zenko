@@ -6,11 +6,11 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse_lazy
 from django.utils import timezone
 from django.views import View
-from django.views.generic import ListView
+from django.views.generic import CreateView, ListView, UpdateView
 
 from apps.order.models import Order
-from .forms import BoyashLogForm
-from .models import BoyashJarayon, BoyashJarayonLog
+from .forms import BoyashLogForm, BoyashVishilkaForm
+from .models import BoyashJarayon, BoyashJarayonLog, BoyashVishilka
 
 
 class BoyashManagerRequiredMixin(LoginRequiredMixin):
@@ -29,6 +29,8 @@ class BoyashManagerRequiredMixin(LoginRequiredMixin):
         return super().dispatch(request, *args, **kwargs)
 
 
+# ── Jarayon list ──
+
 class BoyashJarayonListView(BoyashManagerRequiredMixin, View):
     def get(self, request):
         tab = request.GET.get('tab', 'boyalmoqda')
@@ -37,64 +39,50 @@ class BoyashJarayonListView(BoyashManagerRequiredMixin, View):
         # Ilish jarayoni tugagan orderlar uchun BoyashJarayon avtomatik yaratish
         try:
             from apps.ilish.models import IlishJarayon
-            ilib_bolgan_orders = Order.objects.filter(
-                ilish_jarayon__status=IlishJarayon.Status.ILIB_BOLINDI,
-            )
-            for order in ilib_bolgan_orders:
-                BoyashJarayon.objects.get_or_create(
-                    order=order,
-                    defaults={'created_by': request.user},
-                )
+            for order in Order.objects.filter(ilish_jarayon__status=IlishJarayon.Status.ILIB_BOLINDI):
+                BoyashJarayon.objects.get_or_create(order=order, defaults={'created_by': request.user})
         except Exception:
             pass
 
-        # READY statusli orderlar ham
         for order in Order.objects.filter(status=Order.Status.READY):
-            BoyashJarayon.objects.get_or_create(
-                order=order,
-                defaults={'created_by': request.user},
-            )
+            BoyashJarayon.objects.get_or_create(order=order, defaults={'created_by': request.user})
 
-        qs = BoyashJarayon.objects.select_related(
-            'order', 'order__brujka', 'updated_by',
-        )
+        qs = BoyashJarayon.objects.select_related('order', 'order__brujka', 'updated_by')
         if q:
-            qs = qs.filter(
-                Q(order__name__icontains=q) |
-                Q(order__order_number__icontains=q)
-            )
+            qs = qs.filter(Q(order__name__icontains=q) | Q(order__order_number__icontains=q))
 
         valid_tabs = {s.value for s in BoyashJarayon.Status}
         if tab not in valid_tabs:
             tab = 'boyalmoqda'
 
         jarayonlar = qs.filter(status=tab)
+        counts = {s.value: qs.filter(status=s.value).count() for s in BoyashJarayon.Status}
 
-        counts = {}
-        for s in BoyashJarayon.Status:
-            counts[s.value] = qs.filter(status=s.value).count()
+        vishilkalar = BoyashVishilka.objects.filter(is_active=True).order_by('quantity', 'nomi')
 
         return render(request, 'boyash/jarayon_list.html', {
-            'active_nav': 'jarayonlar',
-            'tab':        tab,
-            'q':          q,
-            'jarayonlar': jarayonlar,
-            'counts':     counts,
-            'today':      timezone.now().date().isoformat(),
+            'active_nav':  'jarayonlar',
+            'tab':         tab,
+            'q':           q,
+            'jarayonlar':  jarayonlar,
+            'counts':      counts,
+            'vishilkalar': vishilkalar,
+            'today':       timezone.now().date().isoformat(),
         })
 
+
+# ── Jarayon detail ──
 
 class BoyashJarayonDetailView(BoyashManagerRequiredMixin, View):
     def get(self, request, pk):
         jarayon = get_object_or_404(
-            BoyashJarayon.objects.select_related('order', 'order__brujka'),
-            pk=pk,
+            BoyashJarayon.objects.select_related('order', 'order__brujka'), pk=pk
         )
-        loglar = jarayon.loglar.select_related('created_by').order_by('-sana', '-created_at')
+        loglar = jarayon.loglar.select_related('vishilka', 'created_by').order_by('-sana', '-created_at')
 
-        loglar_list = list(loglar)
-        kun_loglar  = [l for l in loglar_list if l.smena == 'kun']
-        tun_loglar  = [l for l in loglar_list if l.smena == 'tun']
+        loglar_list  = list(loglar)
+        kun_loglar   = [l for l in loglar_list if l.smena == 'kun']
+        tun_loglar   = [l for l in loglar_list if l.smena == 'tun']
 
         kun_vishilka  = sum(l.vishilka_soni for l in kun_loglar)
         tun_vishilka  = sum(l.vishilka_soni for l in tun_loglar)
@@ -103,11 +91,11 @@ class BoyashJarayonDetailView(BoyashManagerRequiredMixin, View):
         total_vishilka = kun_vishilka + tun_vishilka
         total_par      = kun_par + tun_par
 
-        target_par    = jarayon.order.quantity
-        qoldiq_par    = max(0, target_par - total_par)
-        progress_pct  = min(100, round(total_par / target_par * 100)) if target_par else 0
+        target_par   = jarayon.order.quantity
+        qoldiq_par   = max(0, target_par - total_par)
+        progress_pct = min(100, round(total_par / target_par * 100)) if target_par else 0
 
-        form = BoyashLogForm(initial={'sana': timezone.now().date(), 'par_soni': 25})
+        form = BoyashLogForm(initial={'sana': timezone.now().date()})
 
         return render(request, 'boyash/jarayon_detail.html', {
             'active_nav':     'jarayonlar',
@@ -128,6 +116,8 @@ class BoyashJarayonDetailView(BoyashManagerRequiredMixin, View):
         })
 
 
+# ── Status o'zgartirish ──
+
 class BoyashJarayonSetStatusView(BoyashManagerRequiredMixin, View):
     def post(self, request, pk):
         jarayon  = get_object_or_404(BoyashJarayon, pk=pk)
@@ -147,6 +137,8 @@ class BoyashJarayonSetStatusView(BoyashManagerRequiredMixin, View):
 
         return redirect(f'{reverse_lazy("boyash:jarayon_list")}?tab={next_tab}')
 
+
+# ── Log create / delete ──
 
 class BoyashLogCreateView(BoyashManagerRequiredMixin, View):
     def post(self, request, pk):
@@ -178,6 +170,70 @@ class BoyashLogDeleteView(BoyashManagerRequiredMixin, View):
         return redirect('boyash:jarayon_detail', pk=pk)
 
 
+# ── Vishilkalar CRUD ──
+
+class BoyashVishilkaListView(BoyashManagerRequiredMixin, ListView):
+    model               = BoyashVishilka
+    template_name       = 'boyash/vishilka_list.html'
+    context_object_name = 'vishilkalar'
+
+    def get_queryset(self):
+        return BoyashVishilka.objects.all()
+
+    def get_context_data(self, **kwargs):
+        ctx = super().get_context_data(**kwargs)
+        ctx['active_nav'] = 'vishilkalar'
+        ctx['counts'] = {
+            'jami': BoyashVishilka.objects.count(),
+            'faol': BoyashVishilka.objects.filter(is_active=True).count(),
+        }
+        return ctx
+
+
+class BoyashVishilkaCreateView(BoyashManagerRequiredMixin, CreateView):
+    model         = BoyashVishilka
+    form_class    = BoyashVishilkaForm
+    template_name = 'boyash/vishilka_form.html'
+    success_url   = reverse_lazy('boyash:vishilka_list')
+
+    def form_valid(self, form):
+        messages.success(self.request, "Vishilka qo'shildi.")
+        return super().form_valid(form)
+
+    def get_context_data(self, **kwargs):
+        ctx = super().get_context_data(**kwargs)
+        ctx['active_nav'] = 'vishilkalar'
+        ctx['title']      = 'Yangi vishilka'
+        return ctx
+
+
+class BoyashVishilkaUpdateView(BoyashManagerRequiredMixin, UpdateView):
+    model         = BoyashVishilka
+    form_class    = BoyashVishilkaForm
+    template_name = 'boyash/vishilka_form.html'
+    success_url   = reverse_lazy('boyash:vishilka_list')
+
+    def form_valid(self, form):
+        messages.success(self.request, 'Vishilka yangilandi.')
+        return super().form_valid(form)
+
+    def get_context_data(self, **kwargs):
+        ctx = super().get_context_data(**kwargs)
+        ctx['active_nav'] = 'vishilkalar'
+        ctx['title']      = 'Vishilkani tahrirlash'
+        return ctx
+
+
+class BoyashVishilkaDeleteView(BoyashManagerRequiredMixin, View):
+    def post(self, request, pk):
+        vishilka = get_object_or_404(BoyashVishilka, pk=pk)
+        vishilka.delete()
+        messages.success(request, "Vishilka o'chirildi.")
+        return redirect('boyash:vishilka_list')
+
+
+# ── Statistika ──
+
 class BoyashStatsView(BoyashManagerRequiredMixin, View):
     def get(self, request):
         today     = timezone.now().date()
@@ -186,7 +242,7 @@ class BoyashStatsView(BoyashManagerRequiredMixin, View):
 
         loglar = BoyashJarayonLog.objects.filter(
             sana__gte=date_from, sana__lte=today
-        ).select_related('created_by', 'jarayon__order')
+        ).select_related('created_by', 'vishilka', 'jarayon__order')
 
         kun_loglar = loglar.filter(smena='kun')
         tun_loglar = loglar.filter(smena='tun')
@@ -200,49 +256,38 @@ class BoyashStatsView(BoyashManagerRequiredMixin, View):
 
         date_range   = [date_from + datetime.timedelta(days=i) for i in range(days)]
         chart_labels = [d.strftime('%d.%m') for d in date_range]
+        kun_by_day   = [sum(l.boyalgan_par for l in kun_loglar if l.sana == d) for d in date_range]
+        tun_by_day   = [sum(l.boyalgan_par for l in tun_loglar if l.sana == d) for d in date_range]
 
-        kun_by_day = []
-        tun_by_day = []
-        for d in date_range:
-            day_kun = [l for l in kun_loglar if l.sana == d]
-            day_tun = [l for l in tun_loglar if l.sana == d]
-            kun_by_day.append(sum(l.boyalgan_par for l in day_kun))
-            tun_by_day.append(sum(l.boyalgan_par for l in day_tun))
+        status_counts = {s.value: BoyashJarayon.objects.filter(status=s.value).count() for s in BoyashJarayon.Status}
 
-        status_counts = {}
-        for s in BoyashJarayon.Status:
-            status_counts[s.value] = BoyashJarayon.objects.filter(status=s.value).count()
-
-        # Orderlar bo'yicha statistika
         order_stats = []
         jarayonlar = BoyashJarayon.objects.filter(
             loglar__sana__gte=date_from
         ).distinct().select_related('order', 'order__brujka')
         for j in jarayonlar:
             j_logs = loglar.filter(jarayon=j)
-            j_vish = sum(l.vishilka_soni for l in j_logs)
-            j_par  = sum(l.boyalgan_par for l in j_logs)
             order_stats.append({
                 'jarayon': j,
-                'vishilka': j_vish,
-                'par':     j_par,
+                'vishilka': sum(l.vishilka_soni for l in j_logs),
+                'par':      sum(l.boyalgan_par for l in j_logs),
             })
         order_stats.sort(key=lambda x: x['par'], reverse=True)
 
         return render(request, 'boyash/stats.html', {
-            'active_nav':       'stats',
-            'days':             days,
-            'date_from':        date_from,
-            'today':            today,
-            'kun_vishilka':     kun_vishilka,
-            'tun_vishilka':     tun_vishilka,
-            'kun_par':          kun_par,
-            'tun_par':          tun_par,
-            'umumiy_vishilka':  umumiy_vishilka,
-            'umumiy_par':       umumiy_par,
-            'chart_labels':     chart_labels,
-            'kun_by_day':       kun_by_day,
-            'tun_by_day':       tun_by_day,
-            'status_counts':    status_counts,
-            'order_stats':      order_stats,
+            'active_nav':      'stats',
+            'days':            days,
+            'date_from':       date_from,
+            'today':           today,
+            'kun_vishilka':    kun_vishilka,
+            'tun_vishilka':    tun_vishilka,
+            'kun_par':         kun_par,
+            'tun_par':         tun_par,
+            'umumiy_vishilka': umumiy_vishilka,
+            'umumiy_par':      umumiy_par,
+            'chart_labels':    chart_labels,
+            'kun_by_day':      kun_by_day,
+            'tun_by_day':      tun_by_day,
+            'status_counts':   status_counts,
+            'order_stats':     order_stats,
         })

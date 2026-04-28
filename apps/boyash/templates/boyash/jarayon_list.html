@@ -4,90 +4,74 @@
 
 {% block extra_css %}
 <style>
-/* ── Tabs ── */
-.tabs-wrap{display:flex;align-items:center;gap:6px;background:#fff;padding:6px;border-radius:12px;border:1px solid var(--gray-200);box-shadow:0 1px 3px rgba(0,0,0,.04);}
+.tabs-wrap{display:flex;align-items:center;gap:6px;background:#fff;padding:6px;border-radius:12px;border:1px solid var(--gray-200);box-shadow:0 1px 3px rgba(0,0,0,.04);flex-wrap:wrap;}
 .tab-btn{display:flex;align-items:center;gap:7px;padding:8px 16px;border-radius:8px;border:none;background:transparent;font-size:13px;font-weight:600;color:var(--gray-500);cursor:pointer;transition:all .18s;font-family:inherit;}
 .tab-btn:hover{background:var(--gray-100);color:var(--gray-700);}
-.tab-btn.active-blue{background:#EFF6FF;color:#2563EB;}
-.tab-btn.active-orange{background:#FFF7ED;color:#EA580C;}
-.tab-btn.active-green{background:#F0FDF4;color:#16A34A;}
-.tab-btn.active-red{background:#FEF2F2;color:#DC2626;}
+.tab-btn.active-blue  {background:#EFF6FF;color:#2563EB;}
+.tab-btn.active-green {background:#F0FDF4;color:#16A34A;}
+.tab-btn.active-emerald{background:#ECFDF5;color:#059669;}
+.tab-btn.active-red   {background:#FEF2F2;color:#DC2626;}
 .tab-badge{min-width:20px;height:20px;border-radius:20px;font-size:11px;font-weight:700;display:inline-flex;align-items:center;justify-content:center;padding:0 5px;}
-.tab-btn.active-blue .tab-badge{background:#DBEAFE;color:#1D4ED8;}
-.tab-btn.active-orange .tab-badge{background:#FFEDD5;color:#C2410C;}
-.tab-btn.active-green .tab-badge{background:#DCFCE7;color:#15803D;}
-.tab-btn.active-red .tab-badge{background:#FEE2E2;color:#B91C1C;}
+.tab-btn.active-blue    .tab-badge{background:#DBEAFE;color:#1D4ED8;}
+.tab-btn.active-green   .tab-badge{background:#DCFCE7;color:#15803D;}
+.tab-btn.active-emerald .tab-badge{background:#D1FAE5;color:#047857;}
+.tab-btn.active-red     .tab-badge{background:#FEE2E2;color:#B91C1C;}
 .tab-btn:not([class*="active"]) .tab-badge{background:var(--gray-100);color:var(--gray-500);}
 
-/* ── Search ── */
 .search-wrap{position:relative;flex:1;max-width:320px;}
 .search-wrap svg{position:absolute;left:10px;top:50%;transform:translateY(-50%);width:15px;height:15px;color:var(--gray-400);}
 .search-inp{width:100%;padding:8px 12px 8px 34px;border:1px solid var(--gray-200);border-radius:9px;font-size:13px;font-family:inherit;background:#fff;color:var(--black);outline:none;transition:border-color .18s;}
-.search-inp:focus{border-color:#F97316;box-shadow:0 0 0 3px rgba(249,115,22,.1);}
+.search-inp:focus{border-color:#10B981;box-shadow:0 0 0 3px rgba(16,185,129,.1);}
 
-/* ── Cards grid ── */
 .cards-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px;margin-top:20px;}
 .order-card{background:#fff;border-radius:14px;border:1px solid var(--gray-200);overflow:hidden;transition:all .2s;box-shadow:0 1px 3px rgba(0,0,0,.04);}
 .order-card:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(0,0,0,.09);border-color:var(--gray-300);}
-.card-img{width:100%;height:140px;object-fit:cover;background:var(--gray-100);}
-.card-img-placeholder{width:100%;height:140px;background:linear-gradient(135deg,#FFF7ED,#FFEDD5);display:flex;align-items:center;justify-content:center;}
-.card-img-placeholder svg{width:40px;height:40px;color:#FB923C;opacity:.6;}
+.card-img{width:100%;height:140px;object-fit:cover;}
+.card-img-placeholder{width:100%;height:140px;background:linear-gradient(135deg,#ECFDF5,#D1FAE5);display:flex;align-items:center;justify-content:center;}
+.card-img-placeholder svg{width:40px;height:40px;color:#34D399;opacity:.6;}
 .card-body{padding:14px 16px;}
 .card-meta{display:flex;align-items:center;gap:8px;margin-bottom:10px;}
 .brujka-dot{width:12px;height:12px;border-radius:50%;flex-shrink:0;border:2px solid rgba(0,0,0,.08);}
 .brujka-name{font-size:11px;font-weight:600;color:var(--gray-500);text-transform:uppercase;letter-spacing:.5px;}
 .card-title{font-size:14px;font-weight:700;color:var(--black);margin-bottom:4px;line-height:1.3;}
 .card-number{font-size:12px;color:var(--gray-400);font-weight:500;margin-bottom:10px;}
-.card-qty{display:flex;align-items:center;gap:6px;margin-bottom:12px;}
 .qty-badge{background:var(--gray-100);color:var(--gray-700);font-size:12px;font-weight:600;padding:3px 10px;border-radius:6px;}
 .status-pill{display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border-radius:20px;font-size:11px;font-weight:700;letter-spacing:.3px;}
-.status-pill.blue{background:#EFF6FF;color:#2563EB;}
-.status-pill.orange{background:#FFF7ED;color:#EA580C;}
-.status-pill.green{background:#F0FDF4;color:#16A34A;}
-.status-pill.red{background:#FEF2F2;color:#DC2626;}
+.status-pill.blue   {background:#EFF6FF;color:#2563EB;}
+.status-pill.green  {background:#ECFDF5;color:#059669;}
+.status-pill.emerald{background:#F0FDF4;color:#16A34A;}
+.status-pill.red    {background:#FEF2F2;color:#DC2626;}
 .status-dot{width:6px;height:6px;border-radius:50%;background:currentColor;}
 .card-footer{display:flex;align-items:center;gap:8px;padding:10px 16px;border-top:1px solid var(--gray-100);}
-.card-stats{display:flex;gap:10px;flex:1;}
-.stat-item{display:flex;flex-direction:column;}
-.stat-val{font-size:13px;font-weight:700;color:var(--black);}
-.stat-lbl{font-size:10px;color:var(--gray-400);font-weight:500;}
+.log-count{font-size:11px;color:var(--gray-400);margin-left:2px;}
 
-/* ── Modal ── */
 .modal-backdrop{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:200;backdrop-filter:blur(3px);align-items:center;justify-content:center;}
 .modal-backdrop.show{display:flex;}
-.modal{background:#fff;border-radius:16px;width:100%;max-width:480px;overflow:hidden;box-shadow:0 24px 48px rgba(0,0,0,.15);}
+.modal{background:#fff;border-radius:16px;width:100%;max-width:460px;overflow:hidden;box-shadow:0 24px 48px rgba(0,0,0,.15);}
 .modal-header{padding:18px 22px;border-bottom:1px solid var(--gray-100);display:flex;align-items:center;justify-content:space-between;}
 .modal-title{font-size:15px;font-weight:700;}
-.modal-close{width:30px;height:30px;border-radius:8px;border:1px solid var(--gray-200);background:transparent;cursor:pointer;display:grid;place-items:center;color:var(--gray-500);font-size:16px;transition:all .18s;}
+.modal-close{width:30px;height:30px;border-radius:8px;border:1px solid var(--gray-200);background:transparent;cursor:pointer;display:grid;place-items:center;color:var(--gray-500);font-size:18px;line-height:1;transition:all .18s;}
 .modal-close:hover{background:var(--gray-100);}
 .modal-body{padding:20px 22px;}
 .modal-footer{padding:14px 22px;border-top:1px solid var(--gray-100);display:flex;justify-content:flex-end;gap:8px;}
 .f-group{margin-bottom:14px;}
 .f-label{display:block;font-size:12px;font-weight:600;color:var(--gray-600);margin-bottom:5px;}
 .f-inp{width:100%;padding:8px 12px;border:1px solid var(--gray-200);border-radius:8px;font-size:13px;font-family:inherit;outline:none;transition:border-color .18s;background:#fff;}
-.f-inp:focus{border-color:#F97316;box-shadow:0 0 0 3px rgba(249,115,22,.1);}
+.f-inp:focus{border-color:#10B981;box-shadow:0 0 0 3px rgba(16,185,129,.1);}
 .f-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
-.calc-preview{background:linear-gradient(135deg,#FFF7ED,#FFEDD5);border:1px solid #FED7AA;border-radius:10px;padding:12px 14px;margin-top:12px;}
-.calc-preview-title{font-size:11px;font-weight:700;color:#C2410C;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px;}
-.calc-row{display:flex;justify-content:space-between;align-items:center;font-size:13px;}
-.calc-val{font-weight:700;color:#EA580C;}
 
-/* ── Status change modal ── */
 .status-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px;}
 .status-opt{padding:10px 14px;border-radius:10px;border:2px solid var(--gray-200);cursor:pointer;transition:all .18s;text-align:center;}
-.status-opt:hover{border-color:#F97316;}
-.status-opt.selected{border-color:#F97316;background:#FFF7ED;}
+.status-opt:hover{border-color:#10B981;}
+.status-opt.selected{border-color:#10B981;background:#ECFDF5;}
 .status-opt input{display:none;}
-.status-opt-label{font-size:12px;font-weight:700;}
 
-/* ── Empty state ── */
 .empty-state{text-align:center;padding:60px 20px;}
 .empty-icon{width:64px;height:64px;background:var(--gray-100);border-radius:50%;display:grid;place-items:center;margin:0 auto 16px;}
 .empty-icon svg{width:28px;height:28px;color:var(--gray-400);}
 .empty-title{font-size:15px;font-weight:700;color:var(--gray-700);margin-bottom:6px;}
 .empty-desc{font-size:13px;color:var(--gray-400);}
 
-/* ── Top bar ── */
 .list-toolbar{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:20px;}
 </style>
 {% endblock %}
@@ -99,7 +83,7 @@
             onclick="location.href='?tab=qabul_qilindi{% if q %}&q={{ q }}{% endif %}'">
       Qabul qilindi <span class="tab-badge">{{ counts.qabul_qilindi }}</span>
     </button>
-    <button class="tab-btn {% if tab == 'boyalmoqda' %}active-orange{% endif %}"
+    <button class="tab-btn {% if tab == 'boyalmoqda' %}active-emerald{% endif %}"
             onclick="location.href='?tab=boyalmoqda{% if q %}&q={{ q }}{% endif %}'">
       Bo'yalmoqda <span class="tab-badge">{{ counts.boyalmoqda }}</span>
     </button>
@@ -153,23 +137,18 @@
       <div class="card-title">{{ jarayon.order.name }}</div>
       <div class="card-number">{{ jarayon.order.order_number }}</div>
 
-      <div class="card-qty">
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width:13px;height:13px;color:var(--gray-400)"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 12h16.5m-16.5 3.75h16.5M3.75 19.5h16.5M5.625 4.5h12.75a1.875 1.875 0 0 1 0 3.75H5.625a1.875 1.875 0 0 1 0-3.75Z"/></svg>
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;flex-wrap:wrap;">
         <span class="qty-badge">{{ jarayon.order.quantity }} dona maqsad</span>
         {% if jarayon.order.brujka %}
-        <span style="font-size:11px;color:var(--gray-400);">· {{ jarayon.order.brujka.get_coating_type_display }}</span>
+        <span style="font-size:11px;color:var(--gray-400);">{{ jarayon.order.brujka.get_coating_type_display }}</span>
         {% endif %}
       </div>
 
-      {% with total=jarayon.loglar.all %}
-      {% if total %}
-      <div style="margin-bottom:10px;">
-        {% with done=0 %}
-        <div style="background:var(--gray-100);border-radius:4px;height:5px;overflow:hidden;">
-          <div style="height:100%;background:#F97316;border-radius:4px;width:{% widthratio jarayon.loglar.count 1 100 %}%;max-width:100%;"></div>
-        </div>
-        <div style="font-size:11px;color:var(--gray-400);margin-top:4px;">{{ jarayon.loglar.count }} ta log yozilgan</div>
-        {% endwith %}
+      {% with log_count=jarayon.loglar.count %}
+      {% if log_count %}
+      <div style="display:flex;align-items:center;gap:6px;">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width:12px;height:12px;color:#10B981;"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/></svg>
+        <span class="log-count">{{ log_count }} ta log yozilgan</span>
       </div>
       {% endif %}
       {% endwith %}
@@ -194,14 +173,11 @@
     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9.53 16.122a3 3 0 0 0-5.78 1.128 2.25 2.25 0 0 1-2.4 2.245 4.5 4.5 0 0 0 8.4-2.245c0-.399-.078-.78-.22-1.128Zm0 0a15.998 15.998 0 0 0 3.388-1.62m-5.043-.025a15.994 15.994 0 0 1 1.622-3.395m3.42 3.42a15.995 15.995 0 0 0 4.764-4.648l3.876-5.814a1.151 1.151 0 0 0-1.597-1.597L14.146 6.32a15.996 15.996 0 0 0-4.649 4.763m3.42 3.42a6.776 6.776 0 0 0-3.42-3.42"/></svg>
   </div>
   <div class="empty-title">
-    {% if q %}
-      "{{ q }}" bo'yicha natija topilmadi
-    {% else %}
-      Bu tabda buyurtma yo'q
-    {% endif %}
+    {% if q %}"{{ q }}" bo'yicha natija topilmadi{% else %}Bu tabda buyurtma yo'q{% endif %}
   </div>
   <div class="empty-desc">
-    {% if q %}<a href="?tab={{ tab }}" style="color:#F97316;text-decoration:none;">Filtrni tozalash</a>{% else %}Buyurtmalar ilish bo'limidan avtomatik keladi{% endif %}
+    {% if q %}<a href="?tab={{ tab }}" style="color:#10B981;text-decoration:none;">Filtrni tozalash</a>
+    {% else %}Buyurtmalar ilish bo'limidan avtomatik keladi{% endif %}
   </div>
 </div>
 {% endif %}
@@ -219,27 +195,19 @@
         <div class="status-grid">
           <label class="status-opt" id="opt-qabul_qilindi">
             <input type="radio" name="status" value="qabul_qilindi" onchange="selectStatus(this)">
-            <div class="status-pill blue" style="margin-bottom:4px;justify-content:center;">
-              <span class="status-dot"></span> Qabul qilindi
-            </div>
+            <span class="status-pill blue" style="justify-content:center;margin-bottom:2px;"><span class="status-dot"></span>Qabul qilindi</span>
           </label>
           <label class="status-opt" id="opt-boyalmoqda">
             <input type="radio" name="status" value="boyalmoqda" onchange="selectStatus(this)">
-            <div class="status-pill orange" style="margin-bottom:4px;justify-content:center;">
-              <span class="status-dot"></span> Bo'yalmoqda
-            </div>
+            <span class="status-pill emerald" style="justify-content:center;margin-bottom:2px;"><span class="status-dot"></span>Bo'yalmoqda</span>
           </label>
           <label class="status-opt" id="opt-boyaldi">
             <input type="radio" name="status" value="boyaldi" onchange="selectStatus(this)">
-            <div class="status-pill green" style="margin-bottom:4px;justify-content:center;">
-              <span class="status-dot"></span> Bo'yaldi
-            </div>
+            <span class="status-pill green" style="justify-content:center;margin-bottom:2px;"><span class="status-dot"></span>Bo'yaldi</span>
           </label>
           <label class="status-opt" id="opt-boyalmadi">
             <input type="radio" name="status" value="boyalmadi" onchange="selectStatus(this)">
-            <div class="status-pill red" style="margin-bottom:4px;justify-content:center;">
-              <span class="status-dot"></span> Bo'yalmadi
-            </div>
+            <span class="status-pill red" style="justify-content:center;margin-bottom:2px;"><span class="status-dot"></span>Bo'yalmadi</span>
           </label>
         </div>
         <div class="f-group">
@@ -263,21 +231,14 @@ function openStatusModal(pk, currentStatus, tab) {
   document.getElementById('statusForm').action = '/boyash/' + pk + '/set-status/';
   document.querySelectorAll('.status-opt').forEach(el => el.classList.remove('selected'));
   const opt = document.getElementById('opt-' + currentStatus);
-  if (opt) {
-    opt.classList.add('selected');
-    opt.querySelector('input').checked = true;
-  }
+  if (opt) { opt.classList.add('selected'); opt.querySelector('input').checked = true; }
   document.getElementById('statusModal').classList.add('show');
 }
-function closeStatusModal() {
-  document.getElementById('statusModal').classList.remove('show');
-}
+function closeStatusModal() { document.getElementById('statusModal').classList.remove('show'); }
 function selectStatus(radio) {
-  document.querySelectorAll('.status-opt').forEach(el => el.classList.remove('selected'));
+  document.querySelectorAll('.status-opt').forEach(o => o.classList.remove('selected'));
   radio.closest('.status-opt').classList.add('selected');
 }
-document.getElementById('statusModal').addEventListener('click', function(e){
-  if(e.target === this) closeStatusModal();
-});
+document.getElementById('statusModal').addEventListener('click', function(e){ if(e.target===this) closeStatusModal(); });
 </script>
 {% endblock %}

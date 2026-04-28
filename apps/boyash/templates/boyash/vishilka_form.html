@@ -1,0 +1,104 @@
+{% extends 'boyash/base.html' %}
+{% block title %}{{ title }} — Bo'yash{% endblock %}
+{% block page_title %}{{ title }}{% endblock %}
+
+{% block topbar_actions %}
+<a href="{% url 'boyash:vishilka_list' %}" class="btn btn-secondary btn-sm">
+  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18"/></svg>
+  Orqaga
+</a>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.form-card{background:#fff;border-radius:14px;border:1px solid var(--gray-200);max-width:480px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,.04);}
+.form-card-header{padding:18px 22px;border-bottom:1px solid var(--gray-100);display:flex;align-items:center;gap:10px;}
+.form-card-header svg{width:18px;height:18px;color:#10B981;}
+.form-card-title{font-size:14px;font-weight:700;}
+.form-card-body{padding:22px;}
+.f-group{margin-bottom:16px;}
+.f-label{display:block;font-size:12px;font-weight:600;color:var(--gray-600);margin-bottom:6px;}
+.f-hint{font-size:11px;color:var(--gray-400);margin-top:4px;}
+.f-inp{width:100%;padding:9px 12px;border:1px solid var(--gray-200);border-radius:9px;font-size:13px;font-family:inherit;outline:none;transition:border-color .18s;background:#fff;color:var(--black);}
+.f-inp:focus{border-color:#10B981;box-shadow:0 0 0 3px rgba(16,185,129,.1);}
+.checkbox-row{display:flex;align-items:center;gap:10px;padding:10px 12px;border:1px solid var(--gray-200);border-radius:9px;cursor:pointer;transition:border-color .18s;}
+.checkbox-row:hover{border-color:#10B981;}
+.checkbox-row input[type="checkbox"]{width:16px;height:16px;accent-color:#10B981;cursor:pointer;}
+.checkbox-label{font-size:13px;font-weight:500;color:var(--gray-700);}
+
+.calc-preview{background:linear-gradient(135deg,#ECFDF5,#D1FAE5);border:1px solid #A7F3D0;border-radius:10px;padding:14px 16px;margin-bottom:16px;}
+.calc-title{font-size:11px;font-weight:700;color:#047857;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px;}
+.calc-row{display:flex;justify-content:space-between;padding:4px 0;font-size:13px;}
+.calc-lbl{color:#065F46;}
+.calc-val{font-weight:700;color:#059669;}
+
+.form-actions{display:flex;gap:10px;padding-top:4px;}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="form-card">
+  <div class="form-card-header">
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9.568 3H5.25A2.25 2.25 0 0 0 3 5.25v4.318c0 .597.237 1.17.659 1.591l9.581 9.581c.699.699 1.78.872 2.607.33a18.095 18.095 0 0 0 5.223-5.223c.542-.827.369-1.908-.33-2.607L11.16 3.66A2.25 2.25 0 0 0 9.568 3Z"/><path stroke-linecap="round" stroke-linejoin="round" d="M6 6h.008v.008H6V6Z"/></svg>
+    <span class="form-card-title">{{ title }}</span>
+  </div>
+  <div class="form-card-body">
+    <div class="calc-preview" id="calcPreview">
+      <div class="calc-title">Hisoblash natijasi</div>
+      <div class="calc-row">
+        <span class="calc-lbl">Par soni (bir vishilkada)</span>
+        <span class="calc-val" id="previewQty">—</span>
+      </div>
+    </div>
+
+    <form method="post">
+      {% csrf_token %}
+      {% if form.non_field_errors %}
+      <div style="background:#FEF2F2;border:1px solid #FECACA;border-radius:8px;padding:10px 14px;margin-bottom:14px;font-size:13px;color:#DC2626;">
+        {{ form.non_field_errors }}
+      </div>
+      {% endif %}
+
+      <div class="f-group">
+        <label class="f-label">Vishilka nomi</label>
+        {{ form.nomi }}
+        {% if form.nomi.errors %}<div style="color:#DC2626;font-size:12px;margin-top:4px;">{{ form.nomi.errors.0 }}</div>{% endif %}
+      </div>
+
+      <div class="f-group">
+        <label class="f-label">Par soni (bir vishilkada)</label>
+        {{ form.quantity }}
+        <div class="f-hint">Masalan: 25 parlik vishilka uchun 25 kiriting</div>
+        {% if form.quantity.errors %}<div style="color:#DC2626;font-size:12px;margin-top:4px;">{{ form.quantity.errors.0 }}</div>{% endif %}
+      </div>
+
+      <div class="f-group">
+        <label class="checkbox-row">
+          {{ form.is_active }}
+          <span class="checkbox-label">Faol (bo'yash loglarida ko'rinsin)</span>
+        </label>
+      </div>
+
+      <div class="form-actions">
+        <button type="submit" class="btn btn-primary" style="flex:1;justify-content:center;">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/></svg>
+          Saqlash
+        </button>
+        <a href="{% url 'boyash:vishilka_list' %}" class="btn btn-secondary">Bekor</a>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+const qtyInput = document.querySelector('input[name="quantity"]');
+function updatePreview() {
+  const q = parseInt(qtyInput?.value) || 0;
+  document.getElementById('previewQty').textContent = q ? q + ' par' : '—';
+}
+qtyInput?.addEventListener('input', updatePreview);
+updatePreview();
+</script>
+{% endblock %}
