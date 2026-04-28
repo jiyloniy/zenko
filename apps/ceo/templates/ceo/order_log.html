@@ -212,7 +212,7 @@
         </tr></thead>
         <tbody>
         {% for log in hom_loglar %}
-        {% with is_mine=log.created_by_id == current_user_pk %}
+        {% with is_mine=log.is_mine %}
         <tr id="hom-row-{{ log.pk }}" {% if not is_mine %}style="opacity:.85;"{% endif %}>
           <td>
             <span class="log-qty">{{ log.miqdor }}</span>

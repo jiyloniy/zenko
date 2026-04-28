@@ -1977,11 +1977,15 @@ from apps.order.models import Order as _Order  # noqa: E402
 from django.db.models import Sum as _Sum  # noqa: E402
 
 
-def _log_ctx(order):
-    hom_loglar = order.hom_loglar.select_related('stanok', 'created_by').order_by('-sana', '-created_at')
+def _log_ctx(order, user_pk=None):
+    qs       = order.hom_loglar.select_related('stanok', 'created_by').order_by('-sana', '-created_at')
+    hom_jami = qs.aggregate(j=_Sum('miqdor'))['j'] or 0
+    hom_loglar = list(qs)
+    for log in hom_loglar:
+        log.is_mine = (user_pk is not None and log.created_by_id == user_pk)
     return {
         'hom_loglar': hom_loglar,
-        'hom_jami':   hom_loglar.aggregate(j=_Sum('miqdor'))['j'] or 0,
+        'hom_jami':   hom_jami,
         'stanoklar':  Stanok.objects.filter(status=Stanok.Status.ACTIVE),
         'today':      timezone.localdate(),
     }
@@ -1992,8 +1996,7 @@ class OrderLogView(CEORequiredMixin, View):
         order = get_object_or_404(_Order.objects.select_related('brujka', 'created_by'), pk=pk)
         return render(request, 'ceo/order_log.html', {
             'order': order, 'active_nav': 'orders',
-            'current_user_pk': request.user.pk,
-            **_log_ctx(order),
+            **_log_ctx(order, user_pk=request.user.pk),
         })
 
 

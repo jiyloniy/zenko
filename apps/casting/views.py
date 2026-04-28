@@ -343,10 +343,14 @@ class StanokDeleteView(CastingManagerRequiredMixin, View):
 
 # ── Loglar ────────────────────────────────────────────────────────────────────
 
-def _log_ctx(order):
+def _log_ctx(order, user_pk=None):
     """Order uchun hom mahsulot log konteksti."""
-    hom_loglar = order.hom_loglar.select_related('stanok', 'created_by').order_by('-sana', '-created_at')
-    hom_jami   = hom_loglar.aggregate(j=Sum('miqdor'))['j'] or 0
+    qs       = order.hom_loglar.select_related('stanok', 'created_by').order_by('-sana', '-created_at')
+    hom_jami = qs.aggregate(j=Sum('miqdor'))['j'] or 0
+    # Har bir logga is_mine attribute qo'shamiz
+    hom_loglar = list(qs)
+    for log in hom_loglar:
+        log.is_mine = (user_pk is not None and log.created_by_id == user_pk)
     return {
         'hom_loglar': hom_loglar,
         'hom_jami':   hom_jami,
@@ -364,12 +368,11 @@ class OrderLogView(CastingManagerRequiredMixin, View):
         )
         quyish = getattr(order, 'quyish_jarayon', None)
         return render(request, 'casting/order_log.html', {
-            'order':        order,
-            'quyish':       quyish,
-            'active_nav':   'orders',
+            'order':         order,
+            'quyish':        quyish,
+            'active_nav':    'orders',
             'status_filter': order.status,
-            'current_user_pk': request.user.pk,
-            **_log_ctx(order),
+            **_log_ctx(order, user_pk=request.user.pk),
         })
 
 
