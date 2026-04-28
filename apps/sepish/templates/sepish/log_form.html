@@ -1,0 +1,94 @@
+{% extends 'sepish/base.html' %}
+{% block title %}Log tahrirlash — Sepish{% endblock %}
+{% block page_title %}Log tahrirlash{% endblock %}
+
+{% block topbar_actions %}
+<a href="{% url 'sepish:jarayon_detail' jarayon.pk %}" class="btn btn-secondary btn-sm">
+  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18"/></svg>
+  Orqaga
+</a>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.form-card{background:#fff;border-radius:14px;border:1px solid var(--gray-200);max-width:520px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,.04);}
+.fc-head{padding:18px 22px;border-bottom:1px solid var(--gray-100);display:flex;align-items:center;gap:10px;}
+.fc-head svg{width:18px;height:18px;color:#8B5CF6;}
+.fc-title{font-size:14px;font-weight:700;}
+.fc-body{padding:22px;}
+.f-group{margin-bottom:14px;}
+.f-label{display:block;font-size:12px;font-weight:600;color:var(--gray-600);margin-bottom:5px;}
+.f-inp{width:100%;padding:9px 12px;border:1px solid var(--gray-200);border-radius:9px;font-size:13px;font-family:inherit;outline:none;transition:border-color .18s;background:#fff;color:var(--black);}
+.f-inp:focus{border-color:#8B5CF6;box-shadow:0 0 0 3px rgba(139,92,246,.1);}
+.f-row2{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.smena-toggle{display:grid;grid-template-columns:1fr 1fr;border-radius:10px;overflow:hidden;border:1.5px solid var(--gray-200);}
+.smena-toggle label{cursor:pointer;}
+.smena-toggle input{display:none;}
+.smena-lbl{display:flex;align-items:center;justify-content:center;gap:6px;padding:10px;font-size:13px;font-weight:700;color:var(--gray-500);background:#fff;transition:all .18s;}
+.smena-toggle input:checked + .smena-lbl.kun{background:#FFF7ED;color:#C2410C;}
+.smena-toggle input:checked + .smena-lbl.tun{background:#EFF6FF;color:#1D4ED8;}
+.info-row{display:flex;align-items:center;gap:8px;padding:10px 12px;background:var(--gray-50);border-radius:8px;margin-bottom:16px;font-size:12px;color:var(--gray-600);}
+.info-row svg{width:14px;height:14px;color:#8B5CF6;flex-shrink:0;}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="form-card">
+  <div class="fc-head">
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Z"/></svg>
+    <span class="fc-title">Log tahrirlash — {{ jarayon.order.name }}</span>
+  </div>
+  <div class="fc-body">
+    <div class="info-row">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m11.25 11.25.041-.02a.75.75 0 0 1 1.063.852l-.708 2.836a.75.75 0 0 0 1.063.853l.041-.021M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9-3.75h.008v.008H12V8.25Z"/></svg>
+      Siz faqat o'z loginzni tahrirlashingiz mumkin. Saqlanganda kim tahrirlangani yozib qo'yiladi.
+    </div>
+    <form method="post">
+      {% csrf_token %}
+      {% if form.non_field_errors %}
+      <div style="background:#FEF2F2;border:1px solid #FECACA;border-radius:8px;padding:10px 14px;margin-bottom:14px;font-size:13px;color:#DC2626;">{{ form.non_field_errors }}</div>
+      {% endif %}
+
+      <div class="f-group">
+        <label class="f-label">Smena</label>
+        <div class="smena-toggle">
+          <label><input type="radio" name="smena" value="kun" {% if form.instance.smena == 'kun' %}checked{% endif %}><div class="smena-lbl kun">☀️ Kunduzgi</div></label>
+          <label><input type="radio" name="smena" value="tun" {% if form.instance.smena == 'tun' %}checked{% endif %}><div class="smena-lbl tun">🌙 Tungi</div></label>
+        </div>
+      </div>
+      <div class="f-row2">
+        <div class="f-group" style="margin:0;">
+          <label class="f-label">Par soni</label>
+          {{ form.par_soni }}
+          {% if form.par_soni.errors %}<div style="color:#DC2626;font-size:12px;margin-top:3px;">{{ form.par_soni.errors.0 }}</div>{% endif %}
+        </div>
+        <div class="f-group" style="margin:0;">
+          <label class="f-label">Sana</label>
+          {{ form.sana }}
+        </div>
+      </div>
+      <div class="f-row2" style="margin-top:14px;">
+        <div class="f-group" style="margin:0;">
+          <label class="f-label">Kraska</label>
+          {{ form.kraska }}
+        </div>
+        <div class="f-group" style="margin:0;">
+          <label class="f-label">Kraska (gramm)</label>
+          {{ form.kraska_gramm }}
+        </div>
+      </div>
+      <div class="f-group" style="margin-top:14px;">
+        <label class="f-label">Izoh</label>
+        {{ form.izoh }}
+      </div>
+      <div style="display:flex;gap:10px;margin-top:4px;">
+        <button type="submit" class="btn btn-primary" style="flex:1;justify-content:center;">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/></svg>
+          Saqlash
+        </button>
+        <a href="{% url 'sepish:jarayon_detail' jarayon.pk %}" class="btn btn-secondary">Bekor</a>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

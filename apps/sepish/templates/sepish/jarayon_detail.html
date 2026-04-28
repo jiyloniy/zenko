@@ -1,0 +1,442 @@
+{% extends 'sepish/base.html' %}
+{% block title %}{{ jarayon.order.name }} — Sepish{% endblock %}
+{% block page_title %}{{ jarayon.order.name }}{% endblock %}
+
+{% block topbar_actions %}
+<a href="{% url 'sepish:jarayon_list' %}" class="btn btn-secondary btn-sm">
+  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18"/></svg>
+  Orqaga
+</a>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.detail-grid{display:grid;grid-template-columns:1fr 340px;gap:20px;align-items:start;}
+@media(max-width:960px){.detail-grid{grid-template-columns:1fr;}}
+
+/* Hero */
+.order-hero{background:#fff;border-radius:14px;border:1px solid var(--gray-200);overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,.04);}
+.hero-img{width:100%;height:200px;object-fit:cover;}
+.hero-img-ph{width:100%;height:200px;background:linear-gradient(135deg,#F5F3FF,#EDE9FE);display:flex;align-items:center;justify-content:center;}
+.hero-img-ph svg{width:56px;height:56px;color:#A78BFA;opacity:.5;}
+.hero-body{padding:18px 20px;}
+.hero-meta{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:10px;}
+.hero-title{font-size:18px;font-weight:800;margin-bottom:4px;}
+.hero-num{font-size:13px;color:var(--gray-400);font-weight:500;}
+.brujka-chip{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;background:var(--gray-100);border-radius:20px;font-size:12px;font-weight:600;color:var(--gray-700);}
+.pill{display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border-radius:20px;font-size:11px;font-weight:700;}
+.pill-dot{width:6px;height:6px;border-radius:50%;background:currentColor;}
+.pill.blue   {background:#EFF6FF;color:#2563EB;}
+.pill.violet {background:#F5F3FF;color:#5B21B6;}
+.pill.green  {background:#F0FDF4;color:#15803D;}
+.pill.red    {background:#FEF2F2;color:#DC2626;}
+
+/* Progress */
+.progress-card{background:linear-gradient(135deg,#8B5CF6,#7C3AED);border-radius:14px;padding:20px;color:#fff;margin-top:16px;}
+.progress-header{display:flex;justify-content:space-between;margin-bottom:14px;}
+.progress-title{font-size:13px;font-weight:600;opacity:.85;}
+.progress-pct{font-size:28px;font-weight:900;}
+.progress-bar-wrap{background:rgba(255,255,255,.2);border-radius:6px;height:8px;margin-bottom:14px;}
+.progress-bar-fill{height:100%;background:#fff;border-radius:6px;transition:width .4s;}
+.progress-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;}
+.ps{background:rgba(255,255,255,.15);border-radius:8px;padding:8px 10px;text-align:center;}
+.ps-val{font-size:16px;font-weight:800;}
+.ps-lbl{font-size:10px;opacity:.7;margin-top:1px;}
+
+/* Smena cards */
+.smena-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:16px;}
+.smena-card{background:#fff;border-radius:12px;border:1px solid var(--gray-200);padding:14px 16px;}
+.smena-head{display:flex;align-items:center;gap:8px;margin-bottom:10px;}
+.smena-icon{width:32px;height:32px;border-radius:9px;display:grid;place-items:center;}
+.smena-icon.kun{background:#FFF7ED;} .smena-icon.kun svg{color:#EA580C;}
+.smena-icon.tun{background:#EFF6FF;} .smena-icon.tun svg{color:#2563EB;}
+.smena-icon svg{width:16px;height:16px;}
+.smena-name{font-size:12px;font-weight:700;color:var(--gray-700);}
+.smena-cnt{font-size:11px;color:var(--gray-400);}
+.s-stat{display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--gray-100);}
+.s-stat:last-child{border-bottom:none;}
+.s-stat-lbl{font-size:12px;color:var(--gray-500);}
+.s-stat-val{font-size:12px;font-weight:700;}
+
+/* Kraska sarfi */
+.kraska-sarfi-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:10px;margin-top:16px;}
+.ks-card{background:#fff;border-radius:10px;border:1px solid var(--gray-200);padding:12px 14px;}
+.ks-top{display:flex;align-items:center;gap:8px;margin-bottom:8px;}
+.ks-dot{width:12px;height:12px;border-radius:50%;flex-shrink:0;border:2px solid rgba(0,0,0,.1);}
+.ks-name{font-size:12px;font-weight:700;}
+.ks-code{font-size:10px;color:var(--gray-400);}
+.ks-stat{display:flex;justify-content:space-between;font-size:12px;padding:2px 0;}
+.ks-stat-val{font-weight:700;color:#7C3AED;}
+
+/* Section title */
+.sec-title{font-size:14px;font-weight:700;margin-bottom:12px;display:flex;align-items:center;gap:8px;}
+.sec-title svg{width:15px;height:15px;color:#8B5CF6;}
+.sec-badge{background:var(--gray-100);color:var(--gray-600);font-size:11px;font-weight:700;padding:2px 8px;border-radius:20px;}
+
+/* Table */
+.table-wrap{background:#fff;border-radius:14px;border:1px solid var(--gray-200);overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,.04);}
+table{width:100%;border-collapse:collapse;}
+thead tr{background:var(--gray-50);border-bottom:1px solid var(--gray-200);}
+th{padding:10px 14px;text-align:left;font-size:11px;font-weight:700;color:var(--gray-500);text-transform:uppercase;letter-spacing:.5px;white-space:nowrap;}
+td{padding:11px 14px;font-size:13px;border-bottom:1px solid var(--gray-100);vertical-align:middle;}
+tbody tr:last-child td{border-bottom:none;}
+tbody tr:hover{background:var(--gray-50);}
+.smena-badge{display:inline-flex;align-items:center;gap:4px;padding:3px 8px;border-radius:6px;font-size:11px;font-weight:700;}
+.smena-badge.kun{background:#FFF7ED;color:#EA580C;}
+.smena-badge.tun{background:#EFF6FF;color:#2563EB;}
+
+/* Author chip */
+.author-chip{display:inline-flex;align-items:center;gap:5px;padding:2px 8px;border-radius:20px;background:var(--gray-100);font-size:11px;font-weight:600;color:var(--gray-600);}
+.author-avatar{width:18px;height:18px;border-radius:50%;background:#8B5CF6;color:#fff;font-size:9px;font-weight:800;display:grid;place-items:center;flex-shrink:0;}
+.mine-badge{background:#EDE9FE;color:#5B21B6;}
+
+/* Action btns in table */
+.tbl-actions{display:flex;gap:5px;align-items:center;}
+
+/* Sidebar */
+.ss{background:#fff;border-radius:14px;border:1px solid var(--gray-200);overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,.04);margin-bottom:16px;}
+.ss-head{padding:14px 16px;border-bottom:1px solid var(--gray-100);font-size:13px;font-weight:700;display:flex;align-items:center;gap:8px;}
+.ss-head svg{width:15px;height:15px;color:#8B5CF6;}
+.ss-body{padding:16px;}
+.f-group{margin-bottom:12px;}
+.f-label{display:block;font-size:12px;font-weight:600;color:var(--gray-600);margin-bottom:5px;}
+.f-inp{width:100%;padding:8px 12px;border:1px solid var(--gray-200);border-radius:8px;font-size:13px;font-family:inherit;outline:none;transition:border-color .18s;background:#fff;}
+.f-inp:focus{border-color:#8B5CF6;box-shadow:0 0 0 3px rgba(139,92,246,.1);}
+.f-row2{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+
+/* Smena toggle */
+.smena-toggle{display:grid;grid-template-columns:1fr 1fr;border-radius:9px;overflow:hidden;border:1.5px solid var(--gray-200);}
+.smena-toggle label{cursor:pointer;}
+.smena-toggle input{display:none;}
+.smena-lbl{display:flex;align-items:center;justify-content:center;gap:5px;padding:8px;font-size:12px;font-weight:700;color:var(--gray-500);background:#fff;transition:all .18s;}
+.smena-toggle input:checked + .smena-lbl.kun{background:#FFF7ED;color:#C2410C;}
+.smena-toggle input:checked + .smena-lbl.tun{background:#EFF6FF;color:#1D4ED8;}
+
+/* Status opts */
+.s-opts{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:12px;}
+.s-opt{padding:8px;border-radius:8px;border:2px solid var(--gray-200);cursor:pointer;transition:all .18s;text-align:center;}
+.s-opt:hover{border-color:#8B5CF6;}
+.s-opt input{display:none;}
+.s-opt.sel{border-color:#8B5CF6;background:#F5F3FF;}
+
+/* Calc mini */
+.calc-mini{background:linear-gradient(135deg,#F5F3FF,#EDE9FE);border:1px solid #DDD6FE;border-radius:9px;padding:10px 12px;margin-bottom:10px;font-size:12px;color:#5B21B6;font-weight:600;}
+.calc-mini strong{font-size:15px;font-weight:800;color:#6D28D9;}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="detail-grid">
+
+  <!-- LEFT -->
+  <div>
+    <!-- Order hero -->
+    <div class="order-hero">
+      {% if jarayon.order.brujka and jarayon.order.brujka.image %}
+        <img src="{{ jarayon.order.brujka.image.url }}" alt="{{ jarayon.order.brujka.name }}" class="hero-img">
+      {% elif jarayon.order.image %}
+        <img src="{{ jarayon.order.image.url }}" alt="{{ jarayon.order.name }}" class="hero-img">
+      {% else %}
+        <div class="hero-img-ph">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 18v-5.25m0 0a6.01 6.01 0 0 0 1.5-.189m-1.5.189a6.01 6.01 0 0 1-1.5-.189m3.75 7.478a12.06 12.06 0 0 1-4.5 0m3.75 2.383a14.406 14.406 0 0 1-3 0M14.25 18v-.192c0-.983.658-1.823 1.508-2.316a7.5 7.5 0 1 0-7.517 0c.85.493 1.509 1.333 1.509 2.316V18"/></svg>
+        </div>
+      {% endif %}
+      <div class="hero-body">
+        <div class="hero-meta">
+          {% if jarayon.order.brujka %}
+          <span class="brujka-chip">
+            <span style="width:8px;height:8px;border-radius:50%;background:{{ jarayon.order.brujka.color }};"></span>
+            {{ jarayon.order.brujka.name }}
+          </span>
+          <span style="font-size:11px;color:var(--gray-400);">{{ jarayon.order.brujka.get_coating_type_display }}</span>
+          {% endif %}
+          <span class="pill {{ jarayon.status_color }}" style="margin-left:auto;">
+            <span class="pill-dot"></span>{{ jarayon.get_status_display }}
+          </span>
+        </div>
+        <div class="hero-title">{{ jarayon.order.name }}</div>
+        <div class="hero-num">{{ jarayon.order.order_number }} · Maqsad: {{ jarayon.order.quantity }} dona</div>
+      </div>
+    </div>
+
+    <!-- Progress -->
+    <div class="progress-card">
+      <div class="progress-header">
+        <span class="progress-title">Umumiy progress</span>
+        <span class="progress-pct">{{ progress_pct }}%</span>
+      </div>
+      <div class="progress-bar-wrap"><div class="progress-bar-fill" style="width:{{ progress_pct }}%;"></div></div>
+      <div class="progress-stats">
+        <div class="ps"><div class="ps-val">{{ total_par }}</div><div class="ps-lbl">Sepilgan par</div></div>
+        <div class="ps"><div class="ps-val">{{ total_gramm }}g</div><div class="ps-lbl">Kraska sarfi</div></div>
+        <div class="ps"><div class="ps-val">{{ qoldiq_par }}</div><div class="ps-lbl">Qolgan par</div></div>
+      </div>
+    </div>
+
+    <!-- Smena cards -->
+    <div class="smena-grid">
+      <div class="smena-card">
+        <div class="smena-head">
+          <div class="smena-icon kun"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 3v2.25m6.364.386-1.591 1.591M21 12h-2.25m-.386 6.364-1.591-1.591M12 18.75V21m-4.773-4.227-1.591 1.591M5.25 12H3m4.227-4.773L5.636 5.636M15.75 12a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0Z"/></svg></div>
+          <div><div class="smena-name">Kunduzgi smena</div><div class="smena-cnt">{{ kun_count }} ta log</div></div>
+        </div>
+        <div class="s-stat"><span class="s-stat-lbl">Sepilgan par</span><span class="s-stat-val">{{ kun_par }} ta</span></div>
+        <div class="s-stat"><span class="s-stat-lbl">Kraska sarfi</span><span class="s-stat-val">{{ kun_gramm }} g</span></div>
+      </div>
+      <div class="smena-card">
+        <div class="smena-head">
+          <div class="smena-icon tun"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M21.752 15.002A9.72 9.72 0 0 1 18 15.75c-5.385 0-9.75-4.365-9.75-9.75 0-1.33.266-2.597.748-3.752A9.753 9.753 0 0 0 3 11.25C3 16.635 7.365 21 12.75 21a9.753 9.753 0 0 0 9.002-5.998Z"/></svg></div>
+          <div><div class="smena-name">Tungi smena</div><div class="smena-cnt">{{ tun_count }} ta log</div></div>
+        </div>
+        <div class="s-stat"><span class="s-stat-lbl">Sepilgan par</span><span class="s-stat-val">{{ tun_par }} ta</span></div>
+        <div class="s-stat"><span class="s-stat-lbl">Kraska sarfi</span><span class="s-stat-val">{{ tun_gramm }} g</span></div>
+      </div>
+    </div>
+
+    <!-- Kraska sarfi -->
+    {% if kraska_sarfi %}
+    <div style="margin-top:20px;">
+      <div class="sec-title">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M4.098 19.902a3.75 3.75 0 0 0 5.304 0l6.401-6.402M6.75 21A3.75 3.75 0 0 1 3 17.25V4.125C3 3.504 3.504 3 4.125 3h5.25c.621 0 1.125.504 1.125 1.125v4.072M6.75 21a3.75 3.75 0 0 0 3.75-3.75V8.197M6.75 21h13.125c.621 0 1.125-.504 1.125-1.125v-5.25c0-.621-.504-1.125-1.125-1.125h-4.072M10.5 8.197l2.88-2.88c.438-.439 1.15-.439 1.59 0l3.712 3.713c.44.44.44 1.152 0 1.59l-2.879 2.88M6.75 17.25h.008v.008H6.75v-.008Z"/></svg>
+        Kraska sarfi
+      </div>
+      <div class="kraska-sarfi-grid">
+        {% for ks in kraska_sarfi %}
+        <div class="ks-card">
+          <div class="ks-top">
+            <span class="ks-dot" style="background:{{ ks.kraska.color_hex }};"></span>
+            <div><div class="ks-name">{{ ks.kraska.name }}</div><div class="ks-code">{{ ks.kraska.code }}</div></div>
+          </div>
+          <div class="ks-stat"><span>Gramm</span><span class="ks-stat-val">{{ ks.gramm }} g</span></div>
+          <div class="ks-stat"><span>Par</span><span class="ks-stat-val">{{ ks.par }} ta</span></div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+    {% endif %}
+
+    <!-- Log jadvali -->
+    <div style="margin-top:20px;">
+      <div class="sec-title">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h3.75M9 15h3.75M9 18h3.75m3 .75H18a2.25 2.25 0 0 0 2.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.424 48.424 0 0 0-1.123-.08m-5.801 0c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 0 0 .75-.75 2.25 2.25 0 0 0-.1-.664m-5.8 0A2.251 2.251 0 0 1 13.5 2.25H15c1.012 0 1.867.668 2.15 1.586m-5.8 0c-.376.023-.75.05-1.124.08C9.095 4.01 8.25 4.973 8.25 6.108V8.25m0 0H4.875c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V9.375c0-.621-.504-1.125-1.125-1.125H8.25Z"/></svg>
+        Log yozuvlar <span class="sec-badge">{{ loglar|length }}</span>
+      </div>
+
+      {% if loglar %}
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Sana</th>
+              <th>Smena</th>
+              <th>Par</th>
+              <th>Kraska</th>
+              <th>Gramm</th>
+              <th>Izoh</th>
+              <th>Kim yozdi</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for log in loglar %}
+            <tr>
+              <td><strong>{{ log.sana|date:"d.m.Y" }}</strong></td>
+              <td>
+                <span class="smena-badge {{ log.smena }}">
+                  {% if log.smena == 'kun' %}☀{% else %}🌙{% endif %}
+                  {{ log.get_smena_display }}
+                </span>
+              </td>
+              <td><strong style="color:#7C3AED;">{{ log.par_soni }}</strong> <span style="font-size:11px;color:var(--gray-400);">par</span></td>
+              <td>
+                {% if log.kraska %}
+                <span style="display:inline-flex;align-items:center;gap:5px;">
+                  <span style="width:8px;height:8px;border-radius:50%;background:{{ log.kraska.color_hex }};flex-shrink:0;border:1px solid rgba(0,0,0,.1);"></span>
+                  <span style="font-size:12px;font-weight:600;">{{ log.kraska.code }}</span>
+                </span>
+                {% else %}<span style="color:var(--gray-300);font-size:12px;">—</span>{% endif %}
+              </td>
+              <td>
+                {% if log.kraska_gramm %}<strong>{{ log.kraska_gramm }}</strong> <span style="font-size:11px;color:var(--gray-400);">g</span>
+                {% else %}<span style="color:var(--gray-300);">—</span>{% endif %}
+              </td>
+              <td style="font-size:12px;color:var(--gray-500);max-width:120px;">{{ log.izoh|default:"—"|truncatechars:30 }}</td>
+              <td>
+                <div style="display:flex;flex-direction:column;gap:2px;">
+                  {% if log.created_by %}
+                  <span class="author-chip {% if log.created_by == request.user %}mine-badge{% endif %}">
+                    <span class="author-avatar">{{ log.created_by.name|slice:":1"|upper }}</span>
+                    {{ log.created_by.name|truncatechars:12 }}
+                  </span>
+                  {% endif %}
+                  {% if log.updated_by and log.updated_by != log.created_by %}
+                  <span style="font-size:10px;color:var(--gray-400);">✎ {{ log.updated_by.name|truncatechars:12 }}</span>
+                  {% endif %}
+                  <span style="font-size:10px;color:var(--gray-300);">{{ log.created_at|date:"d.m H:i" }}</span>
+                </div>
+              </td>
+              <td>
+                <div class="tbl-actions">
+                  {% if request.user.is_superuser or log.created_by == request.user %}
+                  <a href="{% url 'sepish:log_update' jarayon.pk log.pk %}" class="btn btn-secondary btn-sm" title="Tahrirlash">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Z"/></svg>
+                  </a>
+                  <form method="post" action="{% url 'sepish:log_delete' jarayon.pk log.pk %}" onsubmit="return confirm('Logni o\'chirasizmi?')">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-danger btn-sm" title="O'chirish">
+                      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0"/></svg>
+                    </button>
+                  </form>
+                  {% else %}
+                  <span style="font-size:10px;color:var(--gray-300);">—</span>
+                  {% endif %}
+                </div>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% else %}
+      <div style="background:#fff;border-radius:14px;border:1px solid var(--gray-200);padding:40px;text-align:center;">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width:36px;height:36px;color:var(--gray-300);margin-bottom:10px;"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h3.75M9 15h3.75m-7.5 6h15a2.25 2.25 0 0 0 2.25-2.25V6.108"/></svg>
+        <div style="font-size:13px;color:var(--gray-400);">Hali log yozilmagan. Birinchi logni qo'shing!</div>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- RIGHT sidebar -->
+  <div>
+    <!-- Log qo'shish -->
+    <div class="ss">
+      <div class="ss-head">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>
+        Log qo'shish
+      </div>
+      <div class="ss-body">
+        <div id="sideCalc" style="display:none;" class="calc-mini">
+          <strong id="scPar">0</strong> par · <strong id="scGramm">0</strong> g kraska
+        </div>
+        <form method="post" action="{% url 'sepish:log_create' jarayon.pk %}">
+          {% csrf_token %}
+          <div class="f-group">
+            <label class="f-label">Smena</label>
+            <div class="smena-toggle">
+              <label><input type="radio" name="smena" value="kun" checked><div class="smena-lbl kun">☀️ Kun</div></label>
+              <label><input type="radio" name="smena" value="tun"><div class="smena-lbl tun">🌙 Tun</div></label>
+            </div>
+          </div>
+          <div class="f-row2">
+            <div class="f-group" style="margin:0;">
+              <label class="f-label">Par soni</label>
+              <input type="number" name="par_soni" id="sPar" value="1" min="1" class="f-inp" oninput="updateSideCalc()">
+            </div>
+            <div class="f-group" style="margin:0;">
+              <label class="f-label">Sana</label>
+              <input type="date" name="sana" class="f-inp" value="{{ jarayon.updated_at|date:'Y-m-d' }}">
+            </div>
+          </div>
+          <div class="f-group">
+            <label class="f-label">Kraska</label>
+            <select name="kraska" class="f-inp" onchange="updateSideCalc()">
+              <option value="">— Tanlang —</option>
+              {% for k in form.kraska.field.queryset %}
+              <option value="{{ k.pk }}">{{ k.code }} — {{ k.name }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="f-group">
+            <label class="f-label">Kraska (gramm)</label>
+            <input type="number" name="kraska_gramm" id="sGramm" value="0" min="0" class="f-inp" oninput="updateSideCalc()">
+          </div>
+          <div class="f-group">
+            <label class="f-label">Izoh</label>
+            <textarea name="izoh" class="f-inp" rows="2" placeholder="Masalan: 2-smena, qizil..."></textarea>
+          </div>
+          <button type="submit" class="btn btn-primary" style="width:100%;">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>
+            Log saqlash
+          </button>
+        </form>
+      </div>
+    </div>
+
+    <!-- Holat o'zgartirish -->
+    <div class="ss">
+      <div class="ss-head">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99"/></svg>
+        Holatni o'zgartirish
+      </div>
+      <div class="ss-body">
+        <form method="post" action="{% url 'sepish:jarayon_set_status' jarayon.pk %}">
+          {% csrf_token %}
+          <div class="s-opts">
+            <label class="s-opt {% if jarayon.status == 'qabul_qilindi' %}sel{% endif %}">
+              <input type="radio" name="status" value="qabul_qilindi" {% if jarayon.status == 'qabul_qilindi' %}checked{% endif %}>
+              <span class="pill blue" style="justify-content:center;font-size:10px;">Qabul qilindi</span>
+            </label>
+            <label class="s-opt {% if jarayon.status == 'sepilmoqda' %}sel{% endif %}">
+              <input type="radio" name="status" value="sepilmoqda" {% if jarayon.status == 'sepilmoqda' %}checked{% endif %}>
+              <span class="pill violet" style="justify-content:center;font-size:10px;">Sepilmoqda</span>
+            </label>
+            <label class="s-opt {% if jarayon.status == 'sepildi' %}sel{% endif %}">
+              <input type="radio" name="status" value="sepildi" {% if jarayon.status == 'sepildi' %}checked{% endif %}>
+              <span class="pill green" style="justify-content:center;font-size:10px;">Sepildi</span>
+            </label>
+            <label class="s-opt {% if jarayon.status == 'sepilmadi' %}sel{% endif %}">
+              <input type="radio" name="status" value="sepilmadi" {% if jarayon.status == 'sepilmadi' %}checked{% endif %}>
+              <span class="pill red" style="justify-content:center;font-size:10px;">Sepilmadi</span>
+            </label>
+          </div>
+          <div class="f-group">
+            <label class="f-label">Izoh</label>
+            <textarea name="izoh" class="f-inp" rows="2" placeholder="Sabab...">{{ jarayon.izoh }}</textarea>
+          </div>
+          <input type="hidden" name="next_tab" value="{{ jarayon.status }}">
+          <button type="submit" class="btn btn-secondary" style="width:100%;">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/></svg>
+            Saqlash
+          </button>
+        </form>
+      </div>
+    </div>
+
+    <!-- Buyurtma info -->
+    <div class="ss">
+      <div class="ss-head">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m11.25 11.25.041-.02a.75.75 0 0 1 1.063.852l-.708 2.836a.75.75 0 0 0 1.063.853l.041-.021M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9-3.75h.008v.008H12V8.25Z"/></svg>
+        Buyurtma
+      </div>
+      <div style="padding:14px 16px;">
+        <div class="s-stat"><span class="s-stat-lbl">Raqam</span><span class="s-stat-val">{{ jarayon.order.order_number }}</span></div>
+        <div class="s-stat"><span class="s-stat-lbl">Miqdor</span><span class="s-stat-val">{{ jarayon.order.quantity }} dona</span></div>
+        <div class="s-stat"><span class="s-stat-lbl">Muddat</span><span class="s-stat-val">{{ jarayon.order.deadline|date:"d.m.Y" }}</span></div>
+        {% if jarayon.order.brujka %}
+        <div class="s-stat"><span class="s-stat-lbl">Brujka</span><span class="s-stat-val">{{ jarayon.order.brujka.name }}</span></div>
+        <div class="s-stat" style="border:none;"><span class="s-stat-lbl">Qoplama</span><span class="s-stat-val">{{ jarayon.order.brujka.get_coating_type_display }}</span></div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function updateSideCalc() {
+  const par   = parseInt(document.getElementById('sPar').value)   || 0;
+  const gramm = parseInt(document.getElementById('sGramm').value) || 0;
+  const calc  = document.getElementById('sideCalc');
+  document.getElementById('scPar').textContent   = par;
+  document.getElementById('scGramm').textContent = gramm;
+  calc.style.display = (par > 0 || gramm > 0) ? 'block' : 'none';
+}
+document.querySelectorAll('.s-opt').forEach(opt => {
+  opt.addEventListener('click', function() {
+    document.querySelectorAll('.s-opt').forEach(o => o.classList.remove('sel'));
+    this.classList.add('sel');
+  });
+});
+</script>
+{% endblock %}

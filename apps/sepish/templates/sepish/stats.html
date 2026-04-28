@@ -1,0 +1,187 @@
+{% extends 'sepish/base.html' %}
+{% block title %}Statistika — Sepish{% endblock %}
+{% block page_title %}Statistika{% endblock %}
+
+{% block topbar_actions %}
+<div style="display:flex;gap:6px;">
+  <a href="?days=7" class="btn btn-sm {% if days == 7 %}btn-primary{% else %}btn-secondary{% endif %}">7 kun</a>
+  <a href="?days=14" class="btn btn-sm {% if days == 14 %}btn-primary{% else %}btn-secondary{% endif %}">14 kun</a>
+  <a href="?days=30" class="btn btn-sm {% if days == 30 %}btn-primary{% else %}btn-secondary{% endif %}">30 kun</a>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.stat-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px;margin-bottom:20px;}
+.sc{background:#fff;border-radius:14px;border:1px solid var(--gray-200);padding:18px 20px;box-shadow:0 1px 3px rgba(0,0,0,.04);}
+.sc-icon{width:40px;height:40px;border-radius:10px;display:grid;place-items:center;margin-bottom:12px;}
+.sc-icon svg{width:20px;height:20px;}
+.sc-val{font-size:26px;font-weight:900;color:var(--black);}
+.sc-lbl{font-size:12px;color:var(--gray-500);}
+.sc-sub{font-size:11px;color:var(--gray-400);margin-top:4px;}
+
+.sec-title{font-size:14px;font-weight:700;margin-bottom:14px;display:flex;align-items:center;gap:8px;}
+.sec-title svg{width:15px;height:15px;color:#8B5CF6;}
+
+.smena-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:20px;}
+.smena-card{background:#fff;border-radius:14px;border:1px solid var(--gray-200);padding:20px;box-shadow:0 1px 3px rgba(0,0,0,.04);}
+.smena-head{display:flex;align-items:center;gap:10px;margin-bottom:14px;}
+.smena-icon{width:40px;height:40px;border-radius:10px;display:grid;place-items:center;}
+.smena-icon.kun{background:#FFF7ED;} .smena-icon.kun svg{color:#EA580C;}
+.smena-icon.tun{background:#EFF6FF;} .smena-icon.tun svg{color:#2563EB;}
+.smena-icon svg{width:20px;height:20px;}
+.s-stat{display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--gray-100);}
+.s-stat:last-child{border-bottom:none;}
+.s-stat-lbl{font-size:12px;color:var(--gray-500);}
+.s-stat-val{font-size:13px;font-weight:700;}
+
+.status-row{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:20px;}
+.status-chip{display:flex;align-items:center;gap:8px;background:#fff;border:1px solid var(--gray-200);border-radius:10px;padding:10px 16px;box-shadow:0 1px 3px rgba(0,0,0,.04);}
+.pill{display:inline-flex;align-items:center;gap:5px;padding:3px 9px;border-radius:20px;font-size:11px;font-weight:700;}
+.pill.blue  {background:#EFF6FF;color:#2563EB;}
+.pill.violet{background:#F5F3FF;color:#5B21B6;}
+.pill.green {background:#F0FDF4;color:#15803D;}
+.pill.red   {background:#FEF2F2;color:#DC2626;}
+.pill-dot{width:5px;height:5px;border-radius:50%;background:currentColor;}
+.status-cnt{font-size:18px;font-weight:800;color:var(--black);}
+
+.chart-card{background:#fff;border-radius:14px;border:1px solid var(--gray-200);padding:20px;margin-bottom:20px;box-shadow:0 1px 3px rgba(0,0,0,.04);}
+
+/* Kraska table */
+.table-wrap{background:#fff;border-radius:14px;border:1px solid var(--gray-200);overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,.04);margin-bottom:20px;}
+table{width:100%;border-collapse:collapse;}
+thead tr{background:var(--gray-50);border-bottom:1px solid var(--gray-200);}
+th{padding:10px 14px;text-align:left;font-size:11px;font-weight:700;color:var(--gray-500);text-transform:uppercase;letter-spacing:.5px;}
+td{padding:12px 14px;font-size:13px;border-bottom:1px solid var(--gray-100);}
+tbody tr:last-child td{border-bottom:none;}
+tbody tr:hover{background:var(--gray-50);}
+.rank-badge{width:24px;height:24px;border-radius:50%;display:grid;place-items:center;font-size:11px;font-weight:800;}
+.rank-1{background:linear-gradient(135deg,#F59E0B,#D97706);color:#fff;}
+.rank-2{background:var(--gray-200);color:var(--gray-700);}
+.rank-3{background:#EDE9FE;color:#5B21B6;}
+.rank-other{background:var(--gray-100);color:var(--gray-500);}
+</style>
+{% endblock %}
+
+{% block content %}
+
+<!-- Stat cards -->
+<div class="stat-cards">
+  <div class="sc">
+    <div class="sc-icon" style="background:#F5F3FF;"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="color:#7C3AED;"><path stroke-linecap="round" stroke-linejoin="round" d="M12 18v-5.25m0 0a6.01 6.01 0 0 0 1.5-.189m-1.5.189a6.01 6.01 0 0 1-1.5-.189m3.75 7.478a12.06 12.06 0 0 1-4.5 0m3.75 2.383a14.406 14.406 0 0 1-3 0M14.25 18v-.192c0-.983.658-1.823 1.508-2.316a7.5 7.5 0 1 0-7.517 0c.85.493 1.509 1.333 1.509 2.316V18"/></svg></div>
+    <div class="sc-val">{{ umumiy_par }}</div>
+    <div class="sc-lbl">Jami sepilgan par</div>
+    <div class="sc-sub">So'nggi {{ days }} kun</div>
+  </div>
+  <div class="sc">
+    <div class="sc-icon" style="background:#FFF7ED;"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="color:#C2410C;"><path stroke-linecap="round" stroke-linejoin="round" d="M4.098 19.902a3.75 3.75 0 0 0 5.304 0l6.401-6.402M6.75 21A3.75 3.75 0 0 1 3 17.25V4.125C3 3.504 3.504 3 4.125 3h5.25c.621 0 1.125.504 1.125 1.125v4.072M6.75 21h13.125c.621 0 1.125-.504 1.125-1.125v-5.25"/></svg></div>
+    <div class="sc-val">{{ umumiy_gramm }}g</div>
+    <div class="sc-lbl">Jami kraska sarfi</div>
+    <div class="sc-sub">So'nggi {{ days }} kun</div>
+  </div>
+  <div class="sc">
+    <div class="sc-icon" style="background:#FFF7ED;"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="color:#EA580C;"><path stroke-linecap="round" stroke-linejoin="round" d="M12 3v2.25m6.364.386-1.591 1.591M21 12h-2.25m-.386 6.364-1.591-1.591M12 18.75V21m-4.773-4.227-1.591 1.591M5.25 12H3m4.227-4.773L5.636 5.636M15.75 12a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0Z"/></svg></div>
+    <div class="sc-val">{{ kun_par }}</div>
+    <div class="sc-lbl">Kunduzgi par</div>
+    <div class="sc-sub">{{ kun_gramm }}g kraska</div>
+  </div>
+  <div class="sc">
+    <div class="sc-icon" style="background:#EFF6FF;"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="color:#2563EB;"><path stroke-linecap="round" stroke-linejoin="round" d="M21.752 15.002A9.72 9.72 0 0 1 18 15.75c-5.385 0-9.75-4.365-9.75-9.75 0-1.33.266-2.597.748-3.752A9.753 9.753 0 0 0 3 11.25C3 16.635 7.365 21 12.75 21a9.753 9.753 0 0 0 9.002-5.998Z"/></svg></div>
+    <div class="sc-val">{{ tun_par }}</div>
+    <div class="sc-lbl">Tungi par</div>
+    <div class="sc-sub">{{ tun_gramm }}g kraska</div>
+  </div>
+</div>
+
+<!-- Status -->
+<div class="sec-title"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/></svg>Holat bo'yicha</div>
+<div class="status-row">
+  <div class="status-chip"><span class="pill blue"><span class="pill-dot"></span>Qabul qilindi</span><span class="status-cnt">{{ status_counts.qabul_qilindi }}</span></div>
+  <div class="status-chip"><span class="pill violet"><span class="pill-dot"></span>Sepilmoqda</span><span class="status-cnt">{{ status_counts.sepilmoqda }}</span></div>
+  <div class="status-chip"><span class="pill green"><span class="pill-dot"></span>Sepildi</span><span class="status-cnt">{{ status_counts.sepildi }}</span></div>
+  <div class="status-chip"><span class="pill red"><span class="pill-dot"></span>Sepilmadi</span><span class="status-cnt">{{ status_counts.sepilmadi }}</span></div>
+</div>
+
+<!-- Smena summary -->
+<div class="smena-grid">
+  <div class="smena-card">
+    <div class="smena-head"><div class="smena-icon kun"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 3v2.25m6.364.386-1.591 1.591M21 12h-2.25m-.386 6.364-1.591-1.591M12 18.75V21m-4.773-4.227-1.591 1.591M5.25 12H3m4.227-4.773L5.636 5.636M15.75 12a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0Z"/></svg></div><strong>Kunduzgi smena</strong></div>
+    <div class="s-stat"><span class="s-stat-lbl">Sepilgan par</span><span class="s-stat-val">{{ kun_par }} ta</span></div>
+    <div class="s-stat" style="border:none;"><span class="s-stat-lbl">Kraska sarfi</span><span class="s-stat-val">{{ kun_gramm }} g</span></div>
+  </div>
+  <div class="smena-card">
+    <div class="smena-head"><div class="smena-icon tun"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M21.752 15.002A9.72 9.72 0 0 1 18 15.75c-5.385 0-9.75-4.365-9.75-9.75 0-1.33.266-2.597.748-3.752A9.753 9.753 0 0 0 3 11.25C3 16.635 7.365 21 12.75 21a9.753 9.753 0 0 0 9.002-5.998Z"/></svg></div><strong>Tungi smena</strong></div>
+    <div class="s-stat"><span class="s-stat-lbl">Sepilgan par</span><span class="s-stat-val">{{ tun_par }} ta</span></div>
+    <div class="s-stat" style="border:none;"><span class="s-stat-lbl">Kraska sarfi</span><span class="s-stat-val">{{ tun_gramm }} g</span></div>
+  </div>
+</div>
+
+<!-- Chart -->
+<div class="chart-card">
+  <div class="sec-title"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 0 1 3 19.875v-6.75Z"/></svg>Kunlik sepish (par)</div>
+  <canvas id="dailyChart" height="90"></canvas>
+</div>
+
+<!-- Kraska sarfi -->
+{% if kraska_sarfi %}
+<div class="sec-title"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M4.098 19.902a3.75 3.75 0 0 0 5.304 0l6.401-6.402"/></svg>Kraska sarfi reytingi</div>
+<div class="table-wrap">
+  <table>
+    <thead><tr><th>#</th><th>Kraska</th><th>Sarflangan (gramm)</th><th>Sepilgan par</th></tr></thead>
+    <tbody>
+      {% for ks in kraska_sarfi %}
+      <tr>
+        <td><span class="rank-badge {% if forloop.counter == 1 %}rank-1{% elif forloop.counter == 2 %}rank-2{% elif forloop.counter == 3 %}rank-3{% else %}rank-other{% endif %}">{{ forloop.counter }}</span></td>
+        <td><span style="display:inline-flex;align-items:center;gap:8px;"><span style="width:14px;height:14px;border-radius:50%;background:{{ ks.kraska.color_hex }};flex-shrink:0;border:1.5px solid rgba(0,0,0,.1);"></span><strong>{{ ks.kraska.code }}</strong> — {{ ks.kraska.name }}</span></td>
+        <td><strong>{{ ks.gramm }}</strong> g</td>
+        <td><strong style="color:#7C3AED;">{{ ks.par }}</strong> ta</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endif %}
+
+<!-- Order reytingi -->
+{% if order_stats %}
+<div class="sec-title"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M16.5 18.75h-9m9 0a3 3 0 0 1 3 3h-15a3 3 0 0 1 3-3m9 0v-3.375"/></svg>Buyurtmalar reytingi</div>
+<div class="table-wrap">
+  <table>
+    <thead><tr><th>#</th><th>Buyurtma</th><th>Sepilgan par</th><th>Kraska sarfi</th><th>Holat</th></tr></thead>
+    <tbody>
+      {% for item in order_stats %}
+      <tr>
+        <td><span class="rank-badge {% if forloop.counter == 1 %}rank-1{% elif forloop.counter == 2 %}rank-2{% elif forloop.counter == 3 %}rank-3{% else %}rank-other{% endif %}">{{ forloop.counter }}</span></td>
+        <td><div style="font-weight:600;">{{ item.jarayon.order.name }}</div><div style="font-size:11px;color:var(--gray-400);">{{ item.jarayon.order.order_number }}</div></td>
+        <td><strong style="color:#7C3AED;">{{ item.par }}</strong> ta</td>
+        <td><strong>{{ item.gramm }}</strong> g</td>
+        <td><span class="pill {{ item.jarayon.status_color }}"><span class="pill-dot"></span>{{ item.jarayon.get_status_display }}</span></td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script>
+new Chart(document.getElementById('dailyChart').getContext('2d'), {
+  type: 'bar',
+  data: {
+    labels: {{ chart_labels|safe }},
+    datasets: [
+      {label:'Kunduzgi', data:{{ kun_by_day|safe }}, backgroundColor:'rgba(139,92,246,0.8)', borderRadius:5, borderSkipped:false},
+      {label:'Tungi',    data:{{ tun_by_day|safe }}, backgroundColor:'rgba(59,130,246,0.8)',  borderRadius:5, borderSkipped:false},
+    ]
+  },
+  options:{
+    responsive:true,
+    plugins:{legend:{position:'top',labels:{font:{size:12,family:'Inter'}}},
+      tooltip:{callbacks:{label:c=>c.dataset.label+': '+c.parsed.y+' par'}}},
+    scales:{x:{grid:{display:false},ticks:{font:{size:11}}},y:{grid:{color:'rgba(0,0,0,.05)'},ticks:{font:{size:11}}}}
+  }
+});
+</script>
+{% endblock %}

@@ -33,6 +33,7 @@ urlpatterns = [
     path('casting/', include('apps.casting.urls')),
     path('ilish/', include('apps.ilish.urls')),
     path('boyash/', include('apps.boyash.urls')),
+    path('sepish/', include('apps.sepish.urls')),
     path('', include('apps.manage.urls')),
 ]
 
