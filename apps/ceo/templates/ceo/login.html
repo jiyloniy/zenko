@@ -19,208 +19,361 @@
             overflow: hidden;
         }
 
-        /* Animated gradient background */
-        body::before {
+        /* Animated blobs */
+        .blob {
+            position: fixed;
+            border-radius: 50%;
+            filter: blur(80px);
+            pointer-events: none;
+            animation: float 8s ease-in-out infinite;
+        }
+        .blob-1 {
+            width: 500px; height: 500px;
+            background: radial-gradient(circle, rgba(249,115,22,.09) 0%, transparent 70%);
+            top: -120px; left: -100px;
+            animation-delay: 0s;
+        }
+        .blob-2 {
+            width: 400px; height: 400px;
+            background: radial-gradient(circle, rgba(139,92,246,.06) 0%, transparent 70%);
+            bottom: -80px; right: -80px;
+            animation-delay: -4s;
+        }
+        .blob-3 {
+            width: 300px; height: 300px;
+            background: radial-gradient(circle, rgba(249,115,22,.05) 0%, transparent 70%);
+            top: 40%; left: 60%;
+            animation-delay: -2s;
+        }
+        @keyframes float {
+            0%, 100% { transform: translateY(0) scale(1); }
+            50%       { transform: translateY(-30px) scale(1.04); }
+        }
+
+        /* Grid dots background */
+        body::after {
             content: '';
             position: fixed;
             inset: 0;
-            background:
-                radial-gradient(ellipse 600px 400px at 20% 80%, rgba(245,130,32,.06) 0%, transparent 70%),
-                radial-gradient(ellipse 500px 500px at 80% 20%, rgba(245,130,32,.04) 0%, transparent 70%);
+            background-image: radial-gradient(rgba(255,255,255,.03) 1px, transparent 1px);
+            background-size: 32px 32px;
             pointer-events: none;
         }
 
         .card {
-            width: 380px;
-            padding: 44px 36px 40px;
-            background: rgba(255,255,255,.03);
-            border: 1px solid rgba(255,255,255,.06);
-            border-radius: 24px;
-            backdrop-filter: blur(20px);
+            width: 400px;
+            padding: 48px 40px 44px;
+            background: rgba(255,255,255,.025);
+            border: 1px solid rgba(255,255,255,.07);
+            border-radius: 28px;
+            backdrop-filter: blur(24px);
             position: relative;
+            z-index: 1;
+            box-shadow: 0 32px 80px rgba(0,0,0,.4), 0 0 0 1px rgba(255,255,255,.03);
         }
 
-        /* Top accent line */
+        /* Top glow line */
         .card::before {
             content: '';
             position: absolute;
             top: 0; left: 50%;
             transform: translateX(-50%);
-            width: 60px;
-            height: 3px;
-            background: #F58220;
+            width: 80px;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, #F97316, transparent);
             border-radius: 0 0 4px 4px;
         }
 
         /* Brand */
         .brand {
             text-align: center;
-            margin-bottom: 36px;
+            margin-bottom: 40px;
         }
 
-        .brand-mark {
-            width: 48px;
-            height: 48px;
-            background: linear-gradient(135deg, #F58220, #E06A10);
-            border-radius: 14px;
+        .brand-logo {
+            width: 56px;
+            height: 56px;
+            background: linear-gradient(135deg, #F97316, #EA580C);
+            border-radius: 16px;
             display: inline-grid;
             place-items: center;
-            font-weight: 900;
-            font-size: 20px;
-            color: #fff;
-            margin-bottom: 14px;
-            box-shadow: 0 8px 24px rgba(245,130,32,.25);
+            margin-bottom: 16px;
+            box-shadow: 0 8px 28px rgba(249,115,22,.3), 0 0 0 1px rgba(249,115,22,.2);
+            position: relative;
         }
+        .brand-logo svg { width: 26px; height: 26px; color: #fff; }
 
         .brand-name {
-            font-size: 20px;
-            font-weight: 800;
-            letter-spacing: 5px;
+            font-size: 22px;
+            font-weight: 900;
+            letter-spacing: 6px;
             color: #FAFAFA;
+            line-height: 1;
         }
 
-        .brand-label {
-            font-size: 9px;
+        .brand-sub {
+            font-size: 10px;
             font-weight: 700;
-            letter-spacing: 5px;
-            color: #F58220;
+            letter-spacing: 4px;
+            color: #F97316;
             text-transform: uppercase;
-            margin-top: 3px;
+            margin-top: 5px;
+            opacity: .85;
+        }
+
+        /* Divider */
+        .divider {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 28px;
+        }
+        .divider-line {
+            flex: 1;
+            height: 1px;
+            background: rgba(255,255,255,.06);
+        }
+        .divider-text {
+            font-size: 11px;
+            color: #52525B;
+            font-weight: 600;
+            letter-spacing: .5px;
         }
 
         /* Error */
         .error-msg {
+            display: flex;
+            align-items: center;
+            gap: 8px;
             background: rgba(239,68,68,.06);
             border: 1px solid rgba(239,68,68,.15);
             border-radius: 12px;
-            padding: 10px 16px;
-            margin-bottom: 20px;
+            padding: 11px 14px;
+            margin-bottom: 22px;
             color: #f87171;
             font-size: 13px;
-            text-align: center;
             font-weight: 500;
         }
+        .error-msg svg { width: 15px; height: 15px; flex-shrink: 0; }
 
-        /* Fields */
+        /* Field */
         .field {
             position: relative;
             margin-bottom: 14px;
         }
 
+        .field-label {
+            display: block;
+            font-size: 11px;
+            font-weight: 700;
+            color: #71717A;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 7px;
+        }
+
         .field input {
             width: 100%;
-            padding: 13px 16px 13px 44px;
-            background: rgba(255,255,255,.04);
-            border: 1.5px solid rgba(255,255,255,.08);
+            padding: 13px 16px 13px 46px;
+            background: rgba(255,255,255,.035);
+            border: 1.5px solid rgba(255,255,255,.07);
             border-radius: 14px;
             color: #FAFAFA;
             font-family: inherit;
             font-size: 14px;
             font-weight: 500;
             outline: none;
-            transition: border-color .25s, box-shadow .25s, background .25s;
+            transition: border-color .2s, box-shadow .2s, background .2s;
         }
 
         .field input:hover {
-            border-color: rgba(255,255,255,.14);
+            border-color: rgba(255,255,255,.12);
             background: rgba(255,255,255,.05);
         }
 
         .field input:focus {
-            border-color: #F58220;
-            background: rgba(245,130,32,.04);
-            box-shadow: 0 0 0 3px rgba(245,130,32,.1);
+            border-color: #F97316;
+            background: rgba(249,115,22,.04);
+            box-shadow: 0 0 0 3px rgba(249,115,22,.1);
         }
 
         .field input::placeholder {
-            color: #52525B;
+            color: #3F3F46;
             font-weight: 400;
         }
 
-        .ico {
+        .field-icon {
             position: absolute;
             left: 15px;
-            top: 50%;
-            transform: translateY(-50%);
+            bottom: 13px;
             color: #52525B;
             pointer-events: none;
-            transition: color .25s;
+            transition: color .2s;
         }
-
-        .field input:focus ~ .ico { color: #F58220; }
-
-        .ico svg { width: 17px; height: 17px; display: block; }
+        .field input:focus ~ .field-icon { color: #F97316; }
+        .field-icon svg { width: 17px; height: 17px; display: block; }
 
         /* Submit */
         .submit {
             width: 100%;
-            padding: 13px;
-            margin-top: 10px;
-            background: linear-gradient(135deg, #F58220, #E06A10);
+            padding: 14px;
+            margin-top: 8px;
+            background: linear-gradient(135deg, #F97316, #EA580C);
             color: #fff;
             border: none;
             border-radius: 14px;
             font-family: inherit;
             font-size: 14px;
             font-weight: 700;
-            letter-spacing: .5px;
+            letter-spacing: .3px;
             cursor: pointer;
-            transition: transform .15s, box-shadow .25s;
-            box-shadow: 0 4px 16px rgba(245,130,32,.25);
+            transition: transform .15s, box-shadow .2s, opacity .2s;
+            box-shadow: 0 4px 20px rgba(249,115,22,.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
         }
-
+        .submit svg { width: 16px; height: 16px; }
         .submit:hover {
-            box-shadow: 0 6px 24px rgba(245,130,32,.35);
+            box-shadow: 0 8px 28px rgba(249,115,22,.4);
             transform: translateY(-1px);
         }
+        .submit:active { transform: scale(.98); opacity: .9; }
 
-        .submit:active { transform: scale(.98) translateY(0); }
+        /* Roles hint */
+        .roles-wrap {
+            margin-top: 28px;
+            padding: 14px 16px;
+            background: rgba(255,255,255,.02);
+            border: 1px solid rgba(255,255,255,.05);
+            border-radius: 14px;
+        }
+        .roles-title {
+            font-size: 10px;
+            font-weight: 700;
+            color: #52525B;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .roles-title svg { width: 12px; height: 12px; }
+        .roles-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+        .role-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: .3px;
+        }
+        .role-chip-dot { width: 5px; height: 5px; border-radius: 50%; }
+        .chip-ceo      { background: rgba(249,115,22,.1);  color: #F97316; }
+        .chip-ceo .role-chip-dot      { background: #F97316; }
+        .chip-boss     { background: rgba(139,92,246,.1);  color: #A78BFA; }
+        .chip-boss .role-chip-dot     { background: #A78BFA; }
+        .chip-casting  { background: rgba(59,130,246,.1);  color: #60A5FA; }
+        .chip-casting .role-chip-dot  { background: #60A5FA; }
+        .chip-ilish    { background: rgba(139,92,246,.08); color: #C4B5FD; }
+        .chip-ilish .role-chip-dot    { background: #C4B5FD; }
+        .chip-boyash   { background: rgba(249,115,22,.12); color: #FB923C; }
+        .chip-boyash .role-chip-dot   { background: #FB923C; }
 
         /* Footer */
         .footer {
             text-align: center;
-            margin-top: 24px;
+            margin-top: 20px;
             font-size: 11px;
             color: #3F3F46;
             font-weight: 500;
         }
 
-        @media (max-width: 420px) {
-            .card {
-                width: calc(100vw - 32px);
-                padding: 36px 24px 32px;
-                border-radius: 20px;
-            }
+        @media (max-width: 440px) {
+            .card { width: calc(100vw - 28px); padding: 38px 24px 34px; border-radius: 22px; }
         }
     </style>
 </head>
 <body>
+    <div class="blob blob-1"></div>
+    <div class="blob blob-2"></div>
+    <div class="blob blob-3"></div>
+
     <div class="card">
         <div class="brand">
+            <div class="brand-logo">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9.53 16.122a3 3 0 0 0-5.78 1.128 2.25 2.25 0 0 1-2.4 2.245 4.5 4.5 0 0 0 8.4-2.245c0-.399-.078-.78-.22-1.128Zm0 0a15.998 15.998 0 0 0 3.388-1.62m-5.043-.025a15.994 15.994 0 0 1 1.622-3.395m3.42 3.42a15.995 15.995 0 0 0 4.764-4.648l3.876-5.814a1.151 1.151 0 0 0-1.597-1.597L14.146 6.32a15.996 15.996 0 0 0-4.649 4.763m3.42 3.42a6.776 6.776 0 0 0-3.42-3.42"/></svg>
+            </div>
             <div class="brand-name">ZENKO</div>
-            <div class="brand-label">CRM</div>
+            <div class="brand-sub">Ishlab chiqarish CRM</div>
+        </div>
+
+        <div class="divider">
+            <span class="divider-line"></span>
+            <span class="divider-text">Tizimga kirish</span>
+            <span class="divider-line"></span>
         </div>
 
         {% if error %}
-        <div class="error-msg">{{ error }}</div>
+        <div class="error-msg">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 3.75h.008v.008H12v-.008Z"/></svg>
+            {{ error }}
+        </div>
         {% endif %}
 
         <form method="post">
             {% csrf_token %}
             <div class="field">
-                <input type="text" name="username" placeholder="Username" autofocus required>
-                <span class="ico">
+                <label class="field-label">Foydalanuvchi nomi</label>
+                <input type="text" name="username" placeholder="username kiriting" autofocus required autocomplete="username">
+                <span class="field-icon">
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z"/></svg>
                 </span>
             </div>
             <div class="field">
-                <input type="password" name="password" placeholder="Parol" required>
-                <span class="ico">
+                <label class="field-label">Parol</label>
+                <input type="password" name="password" placeholder="••••••••" required autocomplete="current-password">
+                <span class="field-icon">
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 1 0-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 0 0 2.25-2.25v-6.75a2.25 2.25 0 0 0-2.25-2.25H6.75a2.25 2.25 0 0 0-2.25 2.25v6.75a2.25 2.25 0 0 0 2.25 2.25Z"/></svg>
                 </span>
             </div>
-            <button type="submit" class="submit">Kirish</button>
+            <button type="submit" class="submit">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0 0 13.5 3h-6a2.25 2.25 0 0 0-2.25 2.25v13.5A2.25 2.25 0 0 0 7.5 21h6a2.25 2.25 0 0 0 2.25-2.25V15M12 9l-3 3m0 0 3 3m-3-3h12.75"/></svg>
+                Tizimga kirish
+            </button>
         </form>
+
+        <div class="roles-wrap">
+            <div class="roles-title">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9.568 3H5.25A2.25 2.25 0 0 0 3 5.25v4.318c0 .597.237 1.17.659 1.591l9.581 9.581c.699.699 1.78.872 2.607.33a18.095 18.095 0 0 0 5.223-5.223c.542-.827.369-1.908-.33-2.607L11.16 3.66A2.25 2.25 0 0 0 9.568 3Z"/><path stroke-linecap="round" stroke-linejoin="round" d="M6 6h.008v.008H6V6Z"/></svg>
+                Bo'limlar
+            </div>
+            <div class="roles-grid">
+                <span class="role-chip chip-ceo">
+                    <span class="role-chip-dot"></span> CEO
+                </span>
+                <span class="role-chip chip-boss">
+                    <span class="role-chip-dot"></span> BOSS
+                </span>
+                <span class="role-chip chip-casting">
+                    <span class="role-chip-dot"></span> CASTING
+                </span>
+                <span class="role-chip chip-ilish">
+                    <span class="role-chip-dot"></span> ILISH
+                </span>
+                <span class="role-chip chip-boyash">
+                    <span class="role-chip-dot"></span> BO'YASH
+                </span>
+            </div>
+        </div>
 
         <div class="footer">Zenko CRM &copy; 2026</div>
     </div>
