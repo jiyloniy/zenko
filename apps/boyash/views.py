@@ -33,18 +33,33 @@ class BoyashManagerRequiredMixin(LoginRequiredMixin):
 
 class BoyashJarayonListView(BoyashManagerRequiredMixin, View):
     def get(self, request):
-        tab = request.GET.get('tab', 'boyalmoqda')
+        tab = request.GET.get('tab', 'qabul_qilindi')
         q   = request.GET.get('q', '').strip()
 
-        # Ilish jarayoni tugagan orderlar uchun BoyashJarayon avtomatik yaratish
+        # Ilish jarayoni ILINMOQDA yoki ILIB_BOLINDI bo'lgan orderlar uchun BoyashJarayon yaratish
         try:
             from apps.ilish.models import IlishJarayon
-            for order in Order.objects.filter(ilish_jarayon__status=IlishJarayon.Status.ILIB_BOLINDI):
+            ilish_orders = Order.objects.filter(
+                ilish_jarayon__status__in=[
+                    IlishJarayon.Status.ILINMOQDA,
+                    IlishJarayon.Status.ILIB_BOLINDI,
+                ]
+            )
+            for order in ilish_orders:
                 BoyashJarayon.objects.get_or_create(order=order, defaults={'created_by': request.user})
         except Exception:
             pass
 
-        for order in Order.objects.filter(status=Order.Status.READY):
+        # Ilish jarayoni bo'lmagan barcha active orderlar uchun ham yaratish
+        active_orders = Order.objects.filter(
+            status__in=[Order.Status.IN_PROCESS, Order.Status.READY]
+        ).exclude(boyash_jarayon__isnull=False)
+        for order in active_orders:
+            BoyashJarayon.objects.get_or_create(order=order, defaults={'created_by': request.user})
+
+        # Ilish jarayoni yo'q, lekin accepted statusli orderlar ham
+        accepted_orders = Order.objects.filter(status=Order.Status.ACCEPTED)
+        for order in accepted_orders:
             BoyashJarayon.objects.get_or_create(order=order, defaults={'created_by': request.user})
 
         qs = BoyashJarayon.objects.select_related('order', 'order__brujka', 'updated_by')
