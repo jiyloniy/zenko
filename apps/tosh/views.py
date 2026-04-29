@@ -45,7 +45,8 @@ class ToshJarayonListView(ToshManagerRequiredMixin, View):
 
         quyilgan_orders = Order.objects.filter(
             status__in=[Order.Status.IN_PROCESS, Order.Status.READY],
-            quyish_jarayon__status__in=[QuyishJarayon.Status.QUYIB_BOLINDI],
+            quyish_jarayon__status__in=[QuyishJarayon.Status.QUYIB_BOLINDI, QuyishJarayon.Status.QUYILMOQDA],
+            
         )
         for order in quyilgan_orders:
             ToshQadashJarayon.objects.get_or_create(
