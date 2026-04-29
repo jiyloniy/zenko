@@ -37,4 +37,7 @@ urlpatterns = [
 
     # ── Statistika ──
     path('stats/', views.ToshStatsView.as_view(), name='stats'),
+        # ── Kley rasxod — alohida bo'lim ──
+    path('kley/add/', views.KleyRasxodCreateView.as_view(), name='kley_create'),
+    path('kley/<int:pk>/add/', views.KleyRasxodCreateView.as_view(), name='kley_create_with_pk'),
 ]
