@@ -110,13 +110,13 @@
 
 {% if jarayonlar %}
 <div class="jgrid">
-{% for j in jarayonlar %}
+{% for qabul in jarayonlar %}
 <div class="jcard">
-  <div class="jcard-accent {{ j.status_color }}"></div>
+  <div class="jcard-accent {{ qabul.status_color }}"></div>
 
   <!-- Rasm -->
   <div class="jcard-img-wrap">
-    {% with order=j.tosh_jarayon.order %}
+    {% with order=qabul.tosh_jarayon.order %}
     {% if order.brujka and order.brujka.image %}
       <img src="{{ order.brujka.image.url }}" alt="{{ order.brujka.name }}" loading="lazy">
     {% elif order.image %}
@@ -126,16 +126,16 @@
         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M20.25 6.375c0 2.278-3.694 4.125-8.25 4.125S3.75 8.653 3.75 6.375"/></svg>
       </div>
     {% endif %}
-    {% if j.status == 'ilinmoqda' %}
+    {% if qabul.status == 'ilinmoqda' %}
     <div class="status-overlay so-ilinmoqda">⚡ Ilinmoqda</div>
-    {% elif j.status == 'ilib_bolindi' %}
+    {% elif qabul.status == 'ilib_bolindi' %}
     <div class="status-overlay so-ilib">✓ Ilib bo'lindi</div>
     {% endif %}
     {% endwith %}
   </div>
 
   <div class="jcard-body">
-    {% with order=j.tosh_jarayon.order %}
+    {% with order=qabul.tosh_jarayon.order %}
     <div class="jcard-title">{{ order.name }}</div>
     <div class="jcard-num">{{ order.order_number }}</div>
     <div class="jcard-meta">
@@ -147,21 +147,21 @@
     {% endwith %}
 
     <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px;">
-      <span class="pill {% if j.status == 'kutilmoqda' %}p-kutilmoqda{% elif j.status == 'ilinmoqda' %}p-ilinmoqda{% elif j.status == 'ilib_bolindi' %}p-ilib{% else %}p-bekor{% endif %}">
-        <span class="pill-dot"></span>{{ j.get_status_display }}
+      <span class="pill {% if qabul.status == 'kutilmoqda' %}p-kutilmoqda{% elif qabul.status == 'ilinmoqda' %}p-ilinmoqda{% elif qabul.status == 'ilib_bolindi' %}p-ilib{% else %}p-bekor{% endif %}">
+        <span class="pill-dot"></span>{{ qabul.get_status_display }}
       </span>
       <span class="pill p-tosh">
-        <span class="pill-dot" style="background:#14B8A6;"></span>{{ j.tosh_jarayon.get_status_display }}
+        <span class="pill-dot" style="background:#14B8A6;"></span>{{ qabul.tosh_jarayon.get_status_display }}
       </span>
     </div>
 
-    {% if j.izoh %}
-    <div style="font-size:11.5px;color:var(--gray-500);font-style:italic;padding:7px 10px;background:var(--gray-50);border-radius:8px;border-left:3px solid var(--gray-200);margin-bottom:10px;">{{ j.izoh }}</div>
+    {% if qabul.izoh %}
+    <div style="font-size:11.5px;color:var(--gray-500);font-style:italic;padding:7px 10px;background:var(--gray-50);border-radius:8px;border-left:3px solid var(--gray-200);margin-bottom:10px;">{{ qabul.izoh }}</div>
     {% endif %}
 
     <div class="jcard-actions">
-      {% if j.status == 'kutilmoqda' %}
-      <form method="post" action="{% url 'tosh:qabul_set_status' j.pk %}" id="qsf-{{ j.pk }}">
+      {% if qabul.status == 'kutilmoqda' %}
+      <form method="post" action="{% url 'tosh:qabul_set_status' qabul.pk %}" id="qsf-{{ qabul.pk }}">
         {% csrf_token %}
         <input type="hidden" name="next_tab" value="{{ tab }}">
         <input type="hidden" name="status" value="ilinmoqda">
@@ -171,15 +171,15 @@
         </button>
       </form>
       {% else %}
-      <form method="post" action="{% url 'tosh:qabul_set_status' j.pk %}" id="qsf-{{ j.pk }}">
+      <form method="post" action="{% url 'tosh:qabul_set_status' qabul.pk %}" id="qsf-{{ qabul.pk }}">
         {% csrf_token %}
         <input type="hidden" name="next_tab" value="{{ tab }}">
-        <input type="hidden" name="status" id="qst-{{ j.pk }}" value="">
-        <input class="izoh-inp" type="text" name="izoh" value="{{ j.izoh }}" placeholder="Izoh...">
+        <input type="hidden" name="status" id="qst-{{ qabul.pk }}" value="">
+        <input class="izoh-inp" type="text" name="izoh" value="{{ qabul.izoh }}" placeholder="Izoh...">
         <div class="status-row">
-          {% if j.status != 'ilinmoqda' %}<button type="button" class="btn-s bs-ilin" onclick="setQSt('{{ j.pk }}','ilinmoqda')">Ilinmoqda</button>{% endif %}
-          {% if j.status != 'ilib_bolindi' %}<button type="button" class="btn-s bs-ilib" onclick="setQSt('{{ j.pk }}','ilib_bolindi')">Ilib bo'lindi</button>{% endif %}
-          {% if j.status != 'bekor_qilindi' %}<button type="button" class="btn-s bs-bekor" onclick="setQSt('{{ j.pk }}','bekor_qilindi')">Bekor</button>{% endif %}
+          {% if qabul.status != 'ilinmoqda' %}<button type="button" class="btn-s bs-ilin" onclick="setQSt('{{ qabul.pk }}','ilinmoqda')">Ilinmoqda</button>{% endif %}
+          {% if qabul.status != 'ilib_bolindi' %}<button type="button" class="btn-s bs-ilib" onclick="setQSt('{{ qabul.pk }}','ilib_bolindi')">Ilib bo'lindi</button>{% endif %}
+          {% if qabul.status != 'bekor_qilindi' %}<button type="button" class="btn-s bs-bekor" onclick="setQSt('{{ qabul.pk }}','bekor_qilindi')">Bekor</button>{% endif %}
         </div>
       </form>
       {% endif %}

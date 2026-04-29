@@ -1,0 +1,188 @@
+{% extends "tosh/base.html" %}
+{% block title %}{{ qabul.tosh_jarayon.order.name }} — Qabul{% endblock %}
+{% block page_title %}{{ qabul.tosh_jarayon.order.name }}{% endblock %}
+
+{% block extra_css %}
+<style>
+.detail-grid{display:grid;grid-template-columns:1fr 320px;gap:18px;align-items:start;}
+@media(max-width:900px){.detail-grid{grid-template-columns:1fr;}}
+.card{background:var(--white);border:1.5px solid var(--gray-200);border-radius:14px;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.04);}
+.card-head{padding:16px 18px;border-bottom:1px solid var(--gray-100);display:flex;align-items:center;justify-content:space-between;}
+.card-title{font-size:13px;font-weight:700;}
+.card-body{padding:16px 18px;}
+.info-row{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--gray-50);}
+.info-row:last-child{border-bottom:none;}
+.info-label{font-size:12px;color:var(--gray-500);text-transform:uppercase;font-weight:700;}
+.info-val{font-size:13px;font-weight:600;color:var(--black);}
+.status-badge{display:inline-flex;align-items:center;gap:6px;padding:6px 12px;border-radius:8px;font-size:12px;font-weight:700;}
+.sb-kutilmoqda{background:#EFF6FF;color:#1D4ED8;}
+.sb-ilinmoqda{background:#FFF7ED;color:#C2410C;}
+.sb-ilib_bolindi{background:#F0FDF4;color:#15803D;}
+.sb-bekor_qilindi{background:#FEF2F2;color:#DC2626;}
+.status-color-dot{width:8px;height:8px;border-radius:50%;}
+.action-form{display:flex;flex-direction:column;gap:8px;}
+.form-field{display:flex;flex-direction:column;gap:4px;}
+.form-label{font-size:11px;font-weight:700;color:var(--gray-500);text-transform:uppercase;}
+.form-input{padding:9px 12px;border:1.5px solid var(--gray-200);border-radius:8px;font-size:13px;font-family:inherit;outline:none;}
+.form-input:focus{border-color:#14B8A6;}
+.btn-status{width:100%;padding:9px 14px;border:none;border-radius:8px;font-weight:700;font-size:12px;cursor:pointer;font-family:inherit;transition:.15s;}
+.btn-status.primary{background:linear-gradient(135deg,#14B8A6,#0D9488);color:#fff;}
+.btn-status:hover{transform:translateY(-1px);}
+</style>
+{% endblock %}
+
+{% block topbar_actions %}
+<a href="{% url 'tosh:qabul_list' %}" class="btn btn-secondary btn-sm">
+  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5"/></svg>
+  Qabul jarayonlari
+</a>
+{% endblock %}
+
+{% block content %}
+
+<div class="detail-grid">
+
+  <!-- Chap: Buyurtma ma'lumotlari -->
+  <div>
+    <div class="card" style="margin-bottom:18px;">
+      <div class="card-head">
+        <span class="card-title">Buyurtma Ma'lumotlari</span>
+      </div>
+      <div class="card-body">
+        {% with order=qabul.tosh_jarayon.order %}
+        <div class="info-row">
+          <span class="info-label">Nomi</span>
+          <span class="info-val">{{ order.name }}</span>
+        </div>
+        <div class="info-row">
+          <span class="info-label">Raqami</span>
+          <span class="info-val" style="font-family:monospace;">{{ order.order_number }}</span>
+        </div>
+        <div class="info-row">
+          <span class="info-label">Miqdori</span>
+          <span class="info-val">{{ order.quantity }} dona</span>
+        </div>
+        {% if order.deadline %}
+        <div class="info-row">
+          <span class="info-label">Termin</span>
+          <span class="info-val" style="{% if order.is_overdue %}color:#DC2626;{% endif %}">
+            {% if order.is_overdue %}⚠{% endif %} {{ order.deadline|date:"d.m.Y" }}
+          </span>
+        </div>
+        {% endif %}
+        {% if order.brujka %}
+        <div class="info-row">
+          <span class="info-label">Brujka</span>
+          <span class="info-val">{{ order.brujka.name }}</span>
+        </div>
+        {% endif %}
+        {% endwith %}
+      </div>
+    </div>
+
+    <!-- Tosh qadash jarayoni -->
+    <div class="card">
+      <div class="card-head">
+        <span class="card-title">Tosh Qadash Jarayoni</span>
+      </div>
+      <div class="card-body">
+        <div class="info-row">
+          <span class="info-label">Holat</span>
+          <span class="info-val">
+            {% if qabul.tosh_jarayon.status == 'qabul_qilindi' %}
+              <span class="status-badge sb-kutilmoqda"><span class="status-color-dot"></span>Qabul qilindi</span>
+            {% elif qabul.tosh_jarayon.status == 'tosh_qadalmoqda' %}
+              <span class="status-badge sb-ilinmoqda"><span class="status-color-dot"></span>Tosh qadalmoqda</span>
+            {% elif qabul.tosh_jarayon.status == 'tosh_qadaldi' %}
+              <span class="status-badge sb-ilib_bolindi"><span class="status-color-dot"></span>Tosh qadaldi</span>
+            {% else %}
+              <span class="status-badge sb-bekor_qilindi"><span class="status-color-dot"></span>Tosh qadalmadi</span>
+            {% endif %}
+          </span>
+        </div>
+        <div class="info-row">
+          <span class="info-label">Ya'zuvlar</span>
+          <span class="info-val">{{ qabul.tosh_jarayon.loglar.count }} ta</span>
+        </div>
+        {% if qabul.tosh_jarayon.izoh %}
+        <div class="info-row" style="flex-direction:column;align-items:flex-start;">
+          <span class="info-label">Izoh</span>
+          <span class="info-val" style="color:var(--gray-600);font-size:12px;margin-top:4px;">{{ qabul.tosh_jarayon.izoh }}</span>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <!-- O'ng: Qabul holatini o'zgartirish -->
+  <div class="card">
+    <div class="card-head">
+      <span class="card-title">Qabul Holati</span>
+    </div>
+    <div class="card-body">
+      <div style="margin-bottom:12px;">
+        <span class="status-badge {{ qabul.status }}">
+          <span class="status-color-dot"></span>
+          {{ qabul.get_status_display }}
+        </span>
+      </div>
+
+      {% if qabul.status == 'kutilmoqda' %}
+      <!-- Kutilmoqda bo'lsa, faqat "Ilinmoqda" tugmasi ko'rinadi -->
+      <form method="post" action="{% url 'tosh:qabul_set_status' qabul.pk %}">
+        {% csrf_token %}
+        <input type="hidden" name="next_tab" value="kutilmoqda">
+        <input type="hidden" name="status" value="ilinmoqda">
+        <button type="submit" class="btn-status primary">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width:14px;height:14px;display:inline;margin-right:4px;"><path stroke-linecap="round" stroke-linejoin="round" d="M5.25 5.653c0-.856.917-1.398 1.667-.986l11.54 6.347a1.125 1.125 0 0 1 0 1.972l-11.54 6.347a1.125 1.125 0 0 1-1.667-.986V5.653Z"/></svg>
+          Ilinmoqdaga o'tkazish
+        </button>
+      </form>
+      {% else %}
+      <!-- Boshqa holatlarda status o'zgartirishni boshqarish -->
+      <div class="action-form">
+        <div class="form-field">
+          <label class="form-label">Izoh</label>
+          <textarea id="izoh-input" class="form-input" rows="2" placeholder="Izoh yozing...">{{ qabul.izoh }}</textarea>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;">
+          {% if qabul.status != 'ilinmoqda' %}
+          <button type="button" class="btn-status" style="background:#FFF7ED;color:#C2410C;border:1.5px solid #FED7AA;" onclick="submitStatus('ilinmoqda')">Ilinmoqda</button>
+          {% endif %}
+          {% if qabul.status != 'ilib_bolindi' %}
+          <button type="button" class="btn-status" style="background:#F0FDF4;color:#15803D;border:1.5px solid #BBF7D0;" onclick="submitStatus('ilib_bolindi')">Ilib bo'lindi</button>
+          {% endif %}
+        </div>
+        {% if qabul.status != 'bekor_qilindi' %}
+        <button type="button" class="btn-status" style="background:#FFF1F2;color:#BE123C;border:1.5px solid #FECDD3;" onclick="submitStatus('bekor_qilindi')">Bekor qilish</button>
+        {% endif %}
+        <form id="status-form" method="post" action="{% url 'tosh:qabul_set_status' qabul.pk %}" style="display:none;">
+          {% csrf_token %}
+          <input type="hidden" name="next_tab" value="ilinmoqda">
+          <input type="hidden" name="status" id="status-input" value="">
+          <input type="hidden" name="izoh" id="izoh-hidden" value="">
+        </form>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function submitStatus(status) {
+  const statusLabels = {
+    ilinmoqda: "Ilinmoqdaga o'tkazilsinmi?",
+    ilib_bolindi: "Ilib bo'lindimi?",
+    bekor_qilindi: "Bekor qilinsinmi?"
+  };
+  if (!confirm(statusLabels[status] || status)) return;
+  document.getElementById('status-input').value = status;
+  document.getElementById('izoh-hidden').value = document.getElementById('izoh-input').value;
+  document.getElementById('status-form').submit();
+}
+</script>
+{% endblock %}

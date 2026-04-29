@@ -13,7 +13,7 @@ from apps.users.models import User
 from .forms import ToshForm, ToshLogForm, KleyRasxodForm, ToshRasxodForm
 from .models import (
     Tosh, ToshQadashJarayon, ToshQadashLog,
-    KleyRasxod, ToshRasxod,
+    KleyRasxod, ToshRasxod, QabulJarayon,
 )
 
 
@@ -218,6 +218,84 @@ class ToshBulkLogCreateView(ToshManagerRequiredMixin, View):
         else:
             messages.error(request, 'Hech qanday log saqlanmadi.')
         return redirect('tosh:jarayon_detail', pk=pk)
+
+
+# ─────────────────────────────────────────────
+# Qabul jarayonlari
+# ─────────────────────────────────────────────
+
+class QabulJarayonListView(ToshManagerRequiredMixin, View):
+    def get(self, request):
+        tab = request.GET.get('tab', 'kutilmoqda')
+        q   = request.GET.get('q', '').strip()
+
+        # Auto-create QabulJarayon for completed tosh process
+        tosh_completed = ToshQadashJarayon.objects.filter(
+            status__in=[ToshQadashJarayon.Status.TOSH_QADALDI]
+        )
+        for tosh_j in tosh_completed:
+            QabulJarayon.objects.get_or_create(
+                tosh_jarayon=tosh_j,
+                defaults={'updated_by': request.user},
+            )
+
+        qs = QabulJarayon.objects.select_related(
+            'tosh_jarayon', 'tosh_jarayon__order', 'tosh_jarayon__order__brujka', 'updated_by',
+        ).order_by('-tosh_jarayon__order__deadline', '-updated_at')
+
+        if q:
+            qs = qs.filter(
+                Q(tosh_jarayon__order__name__icontains=q) |
+                Q(tosh_jarayon__order__order_number__icontains=q)
+            )
+
+        valid_tabs = {s.value for s in QabulJarayon.Status}
+        if tab not in valid_tabs:
+            tab = 'kutilmoqda'
+
+        jarayonlar = qs.filter(status=tab)
+        counts     = {s.value: qs.filter(status=s.value).count() for s in QabulJarayon.Status}
+
+        return render(request, 'tosh/qabul_list.html', {
+            'active_nav': 'qabul',
+            'tab': tab,
+            'q': q,
+            'jarayonlar': jarayonlar,
+            'counts': counts,
+            'today': timezone.now().date().isoformat(),
+        })
+
+
+class QabulJarayonDetailView(ToshManagerRequiredMixin, View):
+    def get(self, request, pk):
+        qabul = get_object_or_404(
+            QabulJarayon.objects.select_related('tosh_jarayon', 'tosh_jarayon__order', 'tosh_jarayon__order__brujka'),
+            pk=pk,
+        )
+        return render(request, 'tosh/qabul_detail.html', {
+            'active_nav': 'qabul',
+            'qabul': qabul,
+            'today': timezone.now().date().isoformat(),
+        })
+
+
+class QabulJarayonSetStatusView(ToshManagerRequiredMixin, View):
+    def post(self, request, pk):
+        qabul  = get_object_or_404(QabulJarayon, pk=pk)
+        status = request.POST.get('status', '').strip()
+        izoh   = request.POST.get('izoh', '').strip()
+        next_tab = request.POST.get('next_tab', 'kutilmoqda')
+
+        valid = {s.value for s in QabulJarayon.Status}
+        if status in valid:
+            qabul.status     = status
+            qabul.izoh       = izoh
+            qabul.updated_by = request.user
+            qabul.save()
+            messages.success(request, f'Qabul holati yangilandi.')
+        else:
+            messages.error(request, 'Noto\'g\'ri holat.')
+        return redirect(f'{reverse_lazy("tosh:qabul_list")}?tab={next_tab}')
 
 
 # ─────────────────────────────────────────────

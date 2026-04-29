@@ -14,6 +14,11 @@ urlpatterns = [
     path('<int:pk>/log/bulk/', views.ToshBulkLogCreateView.as_view(), name='log_bulk'),
     path('<int:pk>/log/<int:log_pk>/delete/', views.ToshLogDeleteView.as_view(), name='log_delete'),
 
+    # ── Qabul jarayonlari ──
+    path('qabul/', views.QabulJarayonListView.as_view(), name='qabul_list'),
+    path('qabul/<int:pk>/', views.QabulJarayonDetailView.as_view(), name='qabul_detail'),
+    path('qabul/<int:pk>/set-status/', views.QabulJarayonSetStatusView.as_view(), name='qabul_set_status'),
+
     # ── Kley rasxod — alohida bo'lim ──
     path('kley/', views.KleyRasxodListView.as_view(), name='kley_list'),
     path('kley/<int:pk>/add/', views.KleyRasxodCreateView.as_view(), name='kley_create'),
