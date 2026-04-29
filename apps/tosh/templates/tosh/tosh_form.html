@@ -1,0 +1,76 @@
+{% extends "tosh/base.html" %}
+{% block title %}{{ title }} — Zenko{% endblock %}
+{% block page_title %}{{ title }}{% endblock %}
+
+{% block extra_css %}
+<style>
+.form-card{background:var(--white);border:1.5px solid var(--gray-200);border-radius:18px;overflow:hidden;max-width:500px;box-shadow:0 2px 8px rgba(0,0,0,.04);}
+.form-head{padding:20px 24px;border-bottom:1px solid var(--gray-100);}
+.form-head-title{font-size:15px;font-weight:800;color:var(--black);display:flex;align-items:center;gap:8px;}
+.form-head-title svg{width:17px;height:17px;color:#14B8A6;}
+.form-body{padding:24px;}
+.form-foot{padding:16px 24px;border-top:1px solid var(--gray-100);display:flex;gap:8px;justify-content:flex-end;}
+.checkbox-row{display:flex;align-items:center;gap:10px;padding:10px 0;}
+.checkbox-row input[type="checkbox"]{width:16px;height:16px;accent-color:#14B8A6;}
+.checkbox-row label{font-size:13px;font-weight:600;color:var(--gray-700);}
+.error-list{margin-top:4px;}
+.error-list li{font-size:11px;color:#DC2626;list-style:none;}
+</style>
+{% endblock %}
+
+{% block topbar_actions %}
+<a href="{% url 'tosh:tosh_list' %}" class="btn btn-secondary btn-sm">
+  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5"/></svg>
+  Orqaga
+</a>
+{% endblock %}
+
+{% block content %}
+<div class="form-card">
+  <div class="form-head">
+    <div class="form-head-title">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M20.25 6.375c0 2.278-3.694 4.125-8.25 4.125S3.75 8.653 3.75 6.375m16.5 0c0-2.278-3.694-4.125-8.25-4.125S3.75 4.097 3.75 6.375m16.5 0v11.25c0 2.278-3.694 4.125-8.25 4.125s-8.25-1.847-8.25-4.125V6.375"/></svg>
+      {{ title }}
+    </div>
+  </div>
+  <form method="post">
+    {% csrf_token %}
+    <div class="form-body">
+
+      <div class="f-row">
+        <label class="f-label">Tosh nomi</label>
+        <input type="text" name="name" class="f-inp" value="{{ form.name.value|default:'' }}" placeholder="Masalan: Olmaz tosh, Yoqut...">
+        {% if form.name.errors %}<ul class="error-list">{% for e in form.name.errors %}<li>{{ e }}</li>{% endfor %}</ul>{% endif %}
+      </div>
+
+      <div class="f-row">
+        <label class="f-label">Tosh kodi</label>
+        <input type="text" name="code" class="f-inp" value="{{ form.code.value|default:'' }}" placeholder="Masalan: OLM-01, YQT-A..." style="text-transform:uppercase;">
+        <div style="font-size:11px;color:var(--gray-400);margin-top:4px;">Kod unikal bo'lishi kerak. Avtomatik katta harfga o'tkaziladi.</div>
+        {% if form.code.errors %}<ul class="error-list">{% for e in form.code.errors %}<li>{{ e }}</li>{% endfor %}</ul>{% endif %}
+      </div>
+
+      <div class="checkbox-row">
+        <input type="checkbox" name="is_active" id="is_active" {% if form.is_active.value %}checked{% endif %}>
+        <label for="is_active">Faol (logda tanlanishi uchun)</label>
+      </div>
+
+    </div>
+    <div class="form-foot">
+      <a href="{% url 'tosh:tosh_list' %}" class="btn btn-secondary">Bekor qilish</a>
+      <button type="submit" class="btn btn-primary">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5"/></svg>
+        Saqlash
+      </button>
+    </div>
+  </form>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.querySelector('[name="code"]').addEventListener('input', function(){
+  this.value = this.value.toUpperCase();
+});
+</script>
+{% endblock %}

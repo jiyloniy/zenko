@@ -26,7 +26,9 @@
       "Bash(python manage.py makemigrations casting --name=\"remove_tayormahsulotlog\")",
       "Bash(python manage.py makemigrations casting --name=\"add_smena_to_hommahsulotlog\")",
       "Bash(python manage.py migrate boyash)",
-      "Bash(python manage.py setup_boyashmanager)"
+      "Bash(python manage.py setup_boyashmanager)",
+      "Bash(python manage.py makemigrations tosh)",
+      "Bash(python manage.py migrate tosh)"
     ]
   }
 }
