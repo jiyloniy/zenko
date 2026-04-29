@@ -74,6 +74,8 @@ class LoginView(View):
             return redirect('boyash:jarayon_list')
         if role_name == 'SPRAYMANAGER':
             return redirect('sepish:jarayon_list')
+        if role_name == 'TOSHMANAGER':
+            return redirect('tosh:jarayon_list')
         return redirect('ceo:dashboard')
 
 
