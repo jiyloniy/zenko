@@ -40,6 +40,7 @@ urlpatterns = [
         # ── Kley rasxod — alohida bo'lim ──
     path('kley/add/', views.KleyRasxodCreateView.as_view(), name='kley_create'),
     path('kley/<int:pk>/add/', views.KleyRasxodCreateView.as_view(), name='kley_create_with_pk'),
-    path('tosh-rasxod/<int:pk>/add/', views.ToshRasxodCreateView.as_view(), name='tosh_rasxod_create'),
-    path('tosh-rasxod/<int:pk>/delete/', views.ToshRasxodDeleteView.as_view(), name='tosh_rasxod_delete')
+    
+    path('tosh-rasxod/add/', views.ToshRasxodCreateView.as_view(), name='tosh_rasxod_create'),
+    path('tosh-rasxod/<int:pk>/add/', views.ToshRasxodCreateView.as_view(), name='tosh_rasxod_create_with_pk'),
 ]
