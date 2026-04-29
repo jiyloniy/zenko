@@ -1,0 +1,244 @@
+{% extends "tosh/base.html" %}
+{% block title %}Tosh rasxodi — Zenko{% endblock %}
+{% block page_title %}Tosh rasxodi{% endblock %}
+
+{% block extra_css %}
+<style>
+.page-grid{display:grid;grid-template-columns:1fr 340px;gap:22px;align-items:start;}
+@media(max-width:1050px){.page-grid{grid-template-columns:1fr;}}
+.card{background:var(--white);border:1.5px solid var(--gray-200);border-radius:18px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,.04);}
+.card-head{padding:16px 20px;border-bottom:1px solid var(--gray-100);display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;}
+.card-title{font-size:14px;font-weight:800;color:var(--black);display:flex;align-items:center;gap:8px;}
+.card-title svg{width:16px;height:16px;color:#14B8A6;}
+.card-body{padding:18px 20px;}
+.stats-row{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:22px;}
+.stat-card{background:var(--white);border:1.5px solid var(--gray-200);border-radius:14px;padding:14px 16px;box-shadow:0 1px 4px rgba(0,0,0,.04);}
+.sv{font-size:26px;font-weight:900;color:var(--black);}
+.sv.teal{color:#14B8A6;}
+.sl{font-size:10px;font-weight:700;color:var(--gray-400);text-transform:uppercase;letter-spacing:.5px;margin-top:2px;}
+.ss{font-size:11px;color:var(--gray-500);margin-top:3px;}
+.chart-wrap{height:200px;position:relative;}
+.rasxod-table{width:100%;border-collapse:collapse;}
+.rasxod-table th{font-size:10.5px;font-weight:700;color:var(--gray-500);text-transform:uppercase;letter-spacing:.5px;padding:9px 12px;text-align:left;border-bottom:2px solid var(--gray-100);}
+.rasxod-table td{padding:10px 12px;border-bottom:1px solid var(--gray-50);font-size:13px;vertical-align:middle;}
+.rasxod-table tr:last-child td{border-bottom:none;}
+.rasxod-table tr:hover td{background:rgba(20,184,166,.02);}
+.sb{display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:6px;font-size:11px;font-weight:700;}
+.sb-kun{background:#FFF7ED;color:#C2410C;}
+.sb-tun{background:#EFF6FF;color:#1D4ED8;}
+.gramm-val{font-size:15px;font-weight:900;color:#14B8A6;}
+.del-btn{width:26px;height:26px;border-radius:7px;background:#FEF2F2;border:1px solid #FECACA;color:#DC2626;cursor:pointer;display:grid;place-items:center;transition:.12s;}
+.del-btn:hover{background:#FEE2E2;}
+.del-btn svg{width:12px;height:12px;}
+.empty-wrap{padding:40px 20px;text-align:center;color:var(--gray-400);font-size:13px;}
+.add-card{background:var(--white);border:1.5px solid var(--gray-200);border-radius:18px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,.04);position:sticky;top:80px;}
+/* Breakdown */
+.breakdown-list{display:flex;flex-direction:column;gap:8px;}
+.bk-item{display:flex;align-items:center;gap:10px;}
+.bk-name{flex:1;font-size:13px;font-weight:600;color:var(--gray-700);}
+.bk-val{font-size:13px;font-weight:800;color:#14B8A6;}
+.bk-bar{height:4px;border-radius:2px;background:#14B8A6;margin-top:3px;transition:width .4s;}
+</style>
+{% endblock %}
+
+{% block content %}
+
+<!-- Stats -->
+<div class="stats-row">
+  <div class="stat-card">
+    <div class="sv teal">{{ total|floatformat:1 }}g</div>
+    <div class="sl">Jami tosh sarfi</div>
+    <div class="ss">{{ date_from|date:"d.m" }} — {{ date_to|date:"d.m.Y" }}</div>
+  </div>
+  <div class="stat-card">
+    <div class="sv">{{ kun_jami|floatformat:1 }}g</div>
+    <div class="sl">☀️ Kunduzgi smena</div>
+    <div class="ss">gramm</div>
+  </div>
+  <div class="stat-card">
+    <div class="sv">{{ tun_jami|floatformat:1 }}g</div>
+    <div class="sl">🌙 Tungi smena</div>
+    <div class="ss">gramm</div>
+  </div>
+</div>
+
+<div class="page-grid">
+
+  <!-- Chap -->
+  <div style="display:flex;flex-direction:column;gap:18px;">
+
+    <!-- Chart + filter -->
+    <div class="card">
+      <div class="card-head">
+        <div class="card-title">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25"/></svg>
+          Kunlik tosh rasxodi (gramm)
+        </div>
+        <form method="get" style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;">
+          <select name="smena" onchange="this.form.submit()" style="padding:5px 10px;border:1.5px solid var(--gray-200);border-radius:8px;font-size:12px;font-family:inherit;outline:none;background:var(--white);">
+            <option value="" {% if not smena %}selected{% endif %}>Barcha smena</option>
+            <option value="kun" {% if smena == 'kun' %}selected{% endif %}>☀️ Kun</option>
+            <option value="tun" {% if smena == 'tun' %}selected{% endif %}>🌙 Tun</option>
+          </select>
+          <select name="tosh" onchange="this.form.submit()" style="padding:5px 10px;border:1.5px solid var(--gray-200);border-radius:8px;font-size:12px;font-family:inherit;outline:none;background:var(--white);">
+            <option value="" {% if not tosh_id %}selected{% endif %}>Barcha tosh</option>
+            {% for t in toshlar %}<option value="{{ t.pk }}" {% if tosh_id == t.pk|stringformat:"s" %}selected{% endif %}>{{ t.name }}</option>{% endfor %}
+          </select>
+          <input type="date" name="date_from" value="{{ date_from|date:'Y-m-d' }}" onchange="this.form.submit()" style="padding:5px 10px;border:1.5px solid var(--gray-200);border-radius:8px;font-size:12px;font-family:inherit;outline:none;background:var(--white);">
+          <span style="font-size:12px;color:var(--gray-400);">—</span>
+          <input type="date" name="date_to" value="{{ date_to|date:'Y-m-d' }}" onchange="this.form.submit()" style="padding:5px 10px;border:1.5px solid var(--gray-200);border-radius:8px;font-size:12px;font-family:inherit;outline:none;background:var(--white);">
+        </form>
+      </div>
+      <div class="card-body">
+        <div class="chart-wrap">
+          <canvas id="trChart"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tosh turi bo'yicha breakdown -->
+    {% if tosh_breakdown %}
+    <div class="card">
+      <div class="card-head">
+        <div class="card-title">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M20.25 6.375c0 2.278-3.694 4.125-8.25 4.125S3.75 8.653 3.75 6.375"/></svg>
+          Tosh turi bo'yicha
+        </div>
+      </div>
+      <div class="card-body">
+        {% with max_val=tosh_breakdown.0.1 %}
+        <div class="breakdown-list">
+          {% for name, val in tosh_breakdown %}
+          <div class="bk-item">
+            <div style="flex:1;">
+              <div style="display:flex;justify-content:space-between;margin-bottom:3px;">
+                <span class="bk-name">{{ name }}</span>
+                <span class="bk-val">{{ val|floatformat:1 }}g</span>
+              </div>
+              {% if max_val %}
+              <div style="height:5px;background:var(--gray-100);border-radius:3px;overflow:hidden;">
+                <div style="height:100%;background:#14B8A6;border-radius:3px;width:{% widthratio val max_val 100 %}%;"></div>
+              </div>
+              {% endif %}
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+        {% endwith %}
+      </div>
+    </div>
+    {% endif %}
+
+    <!-- Jadval -->
+    <div class="card">
+      <div class="card-head">
+        <div class="card-title">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M8.25 6.75h12M8.25 12h12m-12 5.25h12"/></svg>
+          Tosh rasxodlari ro'yhati
+        </div>
+        <span style="font-size:12px;color:var(--gray-500);">{{ rasxodlar|length }} ta yozuv</span>
+      </div>
+      {% if rasxodlar %}
+      <div style="overflow-x:auto;">
+        <table class="rasxod-table">
+          <thead>
+            <tr>
+              <th>Tosh turi</th><th>Smena</th><th>Gramm</th><th>Sana</th><th></th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for r in rasxodlar %}
+            <tr>
+              <td>
+                {% if r.tosh %}
+                <span style="font-weight:700;">{{ r.tosh.name }}</span>
+                <span style="font-size:10px;color:var(--gray-400);">[{{ r.tosh.code }}]</span>
+                {% else %}—{% endif %}
+              </td>
+              <td><span class="sb {% if r.smena == 'kun' %}sb-kun{% else %}sb-tun{% endif %}">{% if r.smena == 'kun' %}☀️{% else %}🌙{% endif %} {{ r.get_smena_display }}</span></td>
+              <td><span class="gramm-val">{{ r.tosh_gramm|floatformat:1 }}</span><span style="font-size:11px;color:var(--gray-400);">g</span></td>
+              <td style="color:var(--gray-500);font-size:12px;">{{ r.sana|date:"d.m.Y" }}</td>
+              <td>
+                <form method="post" action="{% url 'tosh:tosh_rasxod_delete' r.pk %}" onsubmit="return confirm('O\'chirilsinmi?')">
+                  {% csrf_token %}
+                  <input type="hidden" name="next" value="{{ request.get_full_path }}">
+                  <button type="submit" class="del-btn"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12"/></svg></button>
+                </form>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% else %}
+      <div class="empty-wrap">Tanlangan davr uchun tosh rasxodi yo'q</div>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- O'ng: Qo'shish formasi -->
+  <div class="add-card">
+    <div class="card-head">
+      <div class="card-title">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v6m3-3H9"/></svg>
+        Tosh rasxodi qo'shish
+      </div>
+    </div>
+    <div class="card-body">
+      <form method="post" action="{% url 'tosh:tosh_rasxod_create' %}">
+        {% csrf_token %}
+        <input type="hidden" name="next" value="{{ request.get_full_path }}">
+        <div class="f-row">
+          <label class="f-label">Tosh turi</label>
+          <select name="tosh" class="f-inp" required>
+            <option value="">— Tanlang —</option>
+            {% for t in toshlar %}<option value="{{ t.pk }}">{{ t.name }} [{{ t.code }}]</option>{% endfor %}
+          </select>
+        </div>
+        <div class="f-row">
+          <label class="f-label">Smena</label>
+          <select name="smena" class="f-inp">
+            <option value="kun">☀️ Kunduzgi smena</option>
+            <option value="tun">🌙 Tungi smena</option>
+          </select>
+        </div>
+        <div class="f-row">
+          <label class="f-label">Tosh miqdori (gramm)</label>
+          <input type="number" name="tosh_gramm" step="0.01" min="0.01" placeholder="0.00" class="f-inp" required>
+        </div>
+        <div class="f-row">
+          <label class="f-label">Sana</label>
+          <input type="date" name="sana" value="{{ today }}" class="f-inp" required>
+        </div>
+        <div class="f-row">
+          <label class="f-label">Izoh (ixtiyoriy)</label>
+          <textarea name="izoh" class="f-inp" rows="2" placeholder="Izoh..."></textarea>
+        </div>
+        <button type="submit" class="btn btn-primary" style="width:100%;">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5"/></svg>
+          Saqlash
+        </button>
+      </form>
+    </div>
+  </div>
+
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script>
+Chart.defaults.font.family="'Inter',system-ui,sans-serif";Chart.defaults.font.size=12;
+new Chart(document.getElementById('trChart'),{
+  type:'bar',
+  data:{
+    labels:{{ chart_labels|safe }},
+    datasets:[
+      {label:'☀️ Kun',data:{{ kun_chart|safe }},backgroundColor:'rgba(249,115,22,.7)',borderRadius:4},
+      {label:'🌙 Tun',data:{{ tun_chart|safe }},backgroundColor:'rgba(59,130,246,.7)',borderRadius:4},
+    ]
+  },
+  options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'top'}},scales:{x:{stacked:true,grid:{display:false}},y:{stacked:true,beginAtZero:true}}}
+});
+</script>
+{% endblock %}

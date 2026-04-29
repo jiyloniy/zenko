@@ -98,3 +98,5 @@ class ToshRasxodForm(forms.ModelForm):
         if val <= 0:
             raise forms.ValidationError('Tosh miqdori 0 dan katta bo\'lishi kerak.')
         return val
+
+    # jarayon yo'q — model darajasida ham FK yo'q

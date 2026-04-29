@@ -138,18 +138,12 @@ class ToshQadashLog(models.Model):
 
 
 class KleyRasxod(models.Model):
-    """Kunlik kley rasxodi — tun/kun uchun alohida, gramda."""
+    """Kunlik kley rasxodi — tun/kun uchun alohida, gramda. Jarayonga bog'liq emas."""
 
     class Smena(models.TextChoices):
         KUN = 'kun', 'Kunduzgi smena'
         TUN = 'tun', 'Tungi smena'
 
-    jarayon    = models.ForeignKey(
-        ToshQadashJarayon,
-        on_delete=models.CASCADE,
-        related_name='kley_rasxodlar',
-        verbose_name='Tosh qadash jarayoni',
-    )
     smena      = models.CharField(
         'Smena', max_length=5,
         choices=Smena.choices, default=Smena.KUN,
@@ -175,25 +169,19 @@ class KleyRasxod(models.Model):
         verbose_name_plural = 'Kley rasxodlari'
 
     def __str__(self):
-        return f'{self.jarayon} | {self.get_smena_display()} — {self.kley_gramm}g ({self.sana})'
+        return f'{self.smena} — {self.kley_gramm}g ({self.sana})'
 
 
 class ToshRasxod(models.Model):
-    """Kunlik tosh rasxodi — tun/kun uchun alohida, gramda."""
+    """Kunlik tosh rasxodi — tun/kun uchun alohida, gramda. Jarayonga bog'liq emas."""
 
     class Smena(models.TextChoices):
         KUN = 'kun', 'Kunduzgi smena'
         TUN = 'tun', 'Tungi smena'
 
-    jarayon    = models.ForeignKey(
-        ToshQadashJarayon,
-        on_delete=models.CASCADE,
-        related_name='tosh_rasxodlar',
-        verbose_name='Tosh qadash jarayoni',
-    )
     tosh       = models.ForeignKey(
         Tosh,
-        on_delete=models.SET_NULL,
+        on_delete=models.PROTECT,
         null=True, blank=True,
         related_name='rasxodlar',
         verbose_name='Tosh',
