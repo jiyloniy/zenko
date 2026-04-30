@@ -399,7 +399,7 @@ class UpakovkaListView(AttachManagerRequiredMixin, View):
         q   = request.GET.get('q', '').strip()
 
         # ilib_bolindi statusli IlishJarayon lar uchun avtomatik QadoqlashJarayon yaratish
-        ilinib_jarayonlar = IlishJarayon.objects.filter(status=IlishJarayon.Status.ILIB_BOLINDI)
+        ilinib_jarayonlar = IlishJarayon.objects.filter(status_in=[IlishJarayon.Status.ILIB_BOLINDI, IlishJarayon.Status.ILIB_BOLINDI])
         for ij in ilinib_jarayonlar:
             QadoqlashJarayon.objects.get_or_create(
                 ilish_jarayon=ij, defaults={'created_by': request.user},
