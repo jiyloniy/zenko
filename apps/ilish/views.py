@@ -391,7 +391,6 @@ class IlishStatsView(AttachManagerRequiredMixin, View):
 # ─────────────────────────────────────────────
 # Upakovka (Qadoqlash) jarayonlari
 # ─────────────────────────────────────────────
-
 class UpakovkaListView(AttachManagerRequiredMixin, View):
     def get(self, request):
         today = timezone.now().date()
@@ -399,10 +398,15 @@ class UpakovkaListView(AttachManagerRequiredMixin, View):
         q   = request.GET.get('q', '').strip()
 
         # ilib_bolindi statusli IlishJarayon lar uchun avtomatik QadoqlashJarayon yaratish
-        ilinib_jarayonlar = IlishJarayon.objects.filter(status__in=[IlishJarayon.Status.ILIB_BOLINDI, IlishJarayon.Status.ILIB_BOLINDI])
+        # Model: QadoqlashJarayon.order = OneToOneField('order.Order')
+        # Shuning uchun ilish_jarayon orqali emas, order orqali bog'laymiz
+        ilinib_jarayonlar = IlishJarayon.objects.filter(
+            status=IlishJarayon.Status.ILIB_BOLINDI
+        )
         for ij in ilinib_jarayonlar:
             QadoqlashJarayon.objects.get_or_create(
-                ilish_jarayon=ij, defaults={'created_by': request.user},
+                order=ij.order,
+                defaults={'created_by': request.user},
             )
 
         qs = QadoqlashJarayon.objects.select_related(
@@ -419,15 +423,20 @@ class UpakovkaListView(AttachManagerRequiredMixin, View):
 
         valid_tabs = {s.value for s in QadoqlashJarayon.Status}
         if tab not in valid_tabs:
-            tab = 'qabul_qilindi'
+            tab = QadoqlashJarayon.Status.QABUL_QILINDI.value
 
         jarayonlar = qs.filter(status=tab)
         counts     = {s.value: qs.filter(status=s.value).count() for s in QadoqlashJarayon.Status}
 
         # Bugungi kun/tun mini statistika
+        # QadoqlashLog modelida: smena, par_soni, sana fieldlari mavjud
         bugungi_loglar = QadoqlashLog.objects.filter(sana=today)
-        bugun_kun_par  = sum(l.par_soni for l in bugungi_loglar if l.smena == 'kun')
-        bugun_tun_par  = sum(l.par_soni for l in bugungi_loglar if l.smena == 'tun')
+        bugun_kun_par  = bugungi_loglar.filter(smena=QadoqlashLog.Smena.KUN).aggregate(
+            total=models.Sum('par_soni')
+        )['total'] or 0
+        bugun_tun_par  = bugungi_loglar.filter(smena=QadoqlashLog.Smena.TUN).aggregate(
+            total=models.Sum('par_soni')
+        )['total'] or 0
 
         return render(request, 'ilish/upakovka_list.html', {
             'active_nav':    'upakovka',
@@ -446,7 +455,8 @@ class UpakovkaSetStatusView(AttachManagerRequiredMixin, View):
         jarayon  = get_object_or_404(QadoqlashJarayon, pk=pk)
         status   = request.POST.get('status', '').strip()
         izoh     = request.POST.get('izoh', '').strip()
-        next_tab = request.POST.get('next_tab', 'qabul_qilindi')
+        next_tab = request.POST.get('next_tab', QadoqlashJarayon.Status.QABUL_QILINDI.value)
+
         valid = {s.value for s in QadoqlashJarayon.Status}
         if status in valid:
             jarayon.status     = status
@@ -461,30 +471,31 @@ class UpakovkaSetStatusView(AttachManagerRequiredMixin, View):
 
 class UpakovkaLogCreateView(AttachManagerRequiredMixin, View):
     def post(self, request, pk):
-        jarayon  = get_object_or_404(QadoqlashJarayon, pk=pk)
+        jarayon = get_object_or_404(QadoqlashJarayon, pk=pk)
         form = QadoqlashLogForm(request.POST)
         if form.is_valid():
             log = form.save(commit=False)
-            log.jarayon = jarayon
+            log.jarayon    = jarayon
             log.created_by = request.user
             log.save()
-            
+
+            # Agar jarayon hali qabul_qilindi bo'lsa — qadoqlanmoqda ga o'tkazamiz
             if jarayon.status == QadoqlashJarayon.Status.QABUL_QILINDI:
                 jarayon.status     = QadoqlashJarayon.Status.QADOQLANMOQDA
                 jarayon.updated_by = request.user
                 jarayon.save()
-            
+
             messages.success(request, f'{log.par_soni} par qadoqlash logi saqlandi.')
         else:
             messages.error(request, f'Xato: {form.errors}')
-        
+
         return redirect('ilish:upakovka_detail', pk=pk)
 
 
 class UpakovkaLogDeleteView(AttachManagerRequiredMixin, View):
     def post(self, request, log_pk):
         log = get_object_or_404(QadoqlashLog, pk=log_pk)
-        jarayon_pk = log.jarayon_id
+        jarayon_pk = log.jarayon_id  # ForeignKey → jarayon_id mavjud
         log.delete()
         messages.success(request, "Log o'chirildi.")
         return redirect('ilish:upakovka_detail', pk=jarayon_pk)
@@ -493,67 +504,82 @@ class UpakovkaLogDeleteView(AttachManagerRequiredMixin, View):
 class UpakovkaLogUpdateView(AttachManagerRequiredMixin, View):
     def get(self, request, log_pk):
         log = get_object_or_404(
-            QadoqlashLog.objects.select_related('jarayon__ilish_jarayon__order'),
-            pk=log_pk
+            QadoqlashLog.objects.select_related(
+                'jarayon__order',          # QadoqlashJarayon → order
+                'jarayon__order__brujka',
+            ),
+            pk=log_pk,
         )
         form = QadoqlashLogForm(instance=log)
         return render(request, 'ilish/upakovka_log_form.html', {
             'active_nav': 'upakovka',
-            'form': form,
-            'log': log,
-            'jarayon': log.jarayon,
+            'form':       form,
+            'log':        log,
+            'jarayon':    log.jarayon,
         })
-    
+
     def post(self, request, log_pk):
-        log = get_object_or_404(QadoqlashLog, pk=log_pk)
+        log  = get_object_or_404(QadoqlashLog, pk=log_pk)
         form = QadoqlashLogForm(request.POST, instance=log)
         if form.is_valid():
             form.save()
             messages.success(request, 'Log yangilandi.')
             return redirect('ilish:upakovka_detail', pk=log.jarayon_id)
-        else:
-            messages.error(request, f'Xato: {form.errors}')
-            return render(request, 'ilish/upakovka_log_form.html', {
-                'active_nav': 'upakovka',
-                'form': form,
-                'log': log,
-                'jarayon': log.jarayon,
-            })
+        messages.error(request, f'Xato: {form.errors}')
+        return render(request, 'ilish/upakovka_log_form.html', {
+            'active_nav': 'upakovka',
+            'form':       form,
+            'log':        log,
+            'jarayon':    log.jarayon,
+        })
 
 
 class UpakovkaDetailView(AttachManagerRequiredMixin, View):
     def get(self, request, pk):
         jarayon = get_object_or_404(
             QadoqlashJarayon.objects.select_related(
-                'order', 'order__brujka',
-                'created_by', 'updated_by',
-            ), pk=pk,
+                'order',
+                'order__brujka',
+                'created_by',
+                'updated_by',
+            ),
+            pk=pk,
         )
-        loglar     = QadoqlashLog.objects.filter(jarayon=jarayon).select_related('created_by').order_by('-sana', '-created_at')
+
+        # QadoqlashLog: jarayon (FK), smena, par_soni, sana, created_by
+        loglar      = (
+            QadoqlashLog.objects
+            .filter(jarayon=jarayon)
+            .select_related('created_by')
+            .order_by('-sana', '-created_at')
+        )
         loglar_list = list(loglar)
-        kun_loglar  = [l for l in loglar_list if l.smena == 'kun']
-        tun_loglar  = [l for l in loglar_list if l.smena == 'tun']
-        kun_par     = sum(l.par_soni for l in kun_loglar)
-        tun_par     = sum(l.par_soni for l in tun_loglar)
-        total_par   = kun_par + tun_par
-        target_par  = jarayon.order.quantity
+
+        kun_loglar = [l for l in loglar_list if l.smena == QadoqlashLog.Smena.KUN]
+        tun_loglar = [l for l in loglar_list if l.smena == QadoqlashLog.Smena.TUN]
+        kun_par    = sum(l.par_soni for l in kun_loglar)
+        tun_par    = sum(l.par_soni for l in tun_loglar)
+        total_par  = kun_par + tun_par
+
+        # order.quantity — Order modelidagi field
+        target_par   = jarayon.order.quantity if jarayon.order else 0
         progress_pct = min(100, round(total_par / target_par * 100)) if target_par else 0
         qoldiq_par   = max(0, target_par - total_par)
-        
+
         form = QadoqlashLogForm(initial={'sana': timezone.now().date()})
 
         return render(request, 'ilish/upakovka_detail.html', {
-            'active_nav':    'upakovka',
-            'jarayon':       jarayon,
-            'loglar':        loglar_list,
-            'kun_par':       kun_par,
-            'tun_par':       tun_par,
-            'total_par':     total_par,
-            'target_par':    target_par,
-            'progress_pct':  progress_pct,
-            'qoldiq_par':    qoldiq_par,
-            'today':         timezone.now().date().isoformat(),
-            'form':          form,
+            'active_nav':   'upakovka',
+            'jarayon':      jarayon,
+            'loglar':       loglar_list,
+            'kun_par':      kun_par,
+            'tun_par':      tun_par,
+            'total_par':    total_par,
+            'target_par':   target_par,
+            'progress_pct': progress_pct,
+            'qoldiq_par':   qoldiq_par,
+            'today':        timezone.now().date().isoformat(),
+            'form':         form,
         })
 
 
@@ -563,40 +589,61 @@ class UpakovkaStatsView(AttachManagerRequiredMixin, View):
         days      = int(request.GET.get('days', 14))
         date_from = today - datetime.timedelta(days=days - 1)
 
-        loglar     = QadoqlashLog.objects.filter(
-            sana__gte=date_from, sana__lte=today
-        ).select_related('jarayon__order__brujka')
+        # QadoqlashLog → jarayon → order → brujka
+        loglar = (
+            QadoqlashLog.objects
+            .filter(sana__gte=date_from, sana__lte=today)
+            .select_related('jarayon__order__brujka')
+        )
         all_loglar = list(loglar)
-        kun_loglar = [l for l in all_loglar if l.smena == 'kun']
-        tun_loglar = [l for l in all_loglar if l.smena == 'tun']
-        kun_par    = sum(l.par_soni for l in kun_loglar)
-        tun_par    = sum(l.par_soni for l in tun_loglar)
+
+        # aggregate DB-da hisoblash (samaraliroq)
+        agg = QadoqlashLog.objects.filter(
+            sana__gte=date_from, sana__lte=today
+        ).aggregate(
+            kun_par=models.Sum('par_soni', filter=Q(smena=QadoqlashLog.Smena.KUN)),
+            tun_par=models.Sum('par_soni', filter=Q(smena=QadoqlashLog.Smena.TUN)),
+        )
+        kun_par    = agg['kun_par'] or 0
+        tun_par    = agg['tun_par'] or 0
         umumiy_par = kun_par + tun_par
 
         date_range   = [date_from + datetime.timedelta(days=i) for i in range(days)]
         chart_labels = [d.strftime('%d.%m') for d in date_range]
-        kun_by_day   = [sum(l.par_soni for l in all_loglar if l.sana == d and l.smena == 'kun') for d in date_range]
-        tun_by_day   = [sum(l.par_soni for l in all_loglar if l.sana == d and l.smena == 'tun') for d in date_range]
+        kun_by_day   = [
+            sum(l.par_soni for l in all_loglar if l.sana == d and l.smena == QadoqlashLog.Smena.KUN)
+            for d in date_range
+        ]
+        tun_by_day   = [
+            sum(l.par_soni for l in all_loglar if l.sana == d and l.smena == QadoqlashLog.Smena.TUN)
+            for d in date_range
+        ]
 
-        status_counts = {s.value: QadoqlashJarayon.objects.filter(status=s.value).count() for s in QadoqlashJarayon.Status}
+        status_counts = {
+            s.value: QadoqlashJarayon.objects.filter(status=s.value).count()
+            for s in QadoqlashJarayon.Status
+        }
 
         daily_totals = [k + t for k, t in zip(kun_by_day, tun_by_day)]
         max_day_val  = max(daily_totals) if daily_totals else 0
         max_day_idx  = daily_totals.index(max_day_val) if max_day_val else 0
         max_day_lbl  = chart_labels[max_day_idx] if chart_labels else '—'
 
-        # Brujka bo'yicha breakdown
-        brujka_stats = {}
+        # Brujka bo'yicha breakdown — order.brujka orqali
+        brujka_stats: dict = {}
         for l in all_loglar:
-            brujka = l.jarayon.order.brujka
-            key = brujka.name if brujka else 'Brujkasiz'
+            if l.jarayon.order:
+                brujka = l.jarayon.order.brujka
+                key    = brujka.name if brujka else 'Brujkasiz'
+            else:
+                key = 'Brujkasiz'
             brujka_stats[key] = brujka_stats.get(key, 0) + l.par_soni
         brujka_stats = sorted(brujka_stats.items(), key=lambda x: x[1], reverse=True)
 
         # Bugungi ma'lumot
         bugun_loglar = [l for l in all_loglar if l.sana == today]
-        bugun_kun    = sum(l.par_soni for l in bugun_loglar if l.smena == 'kun')
-        bugun_tun    = sum(l.par_soni for l in bugun_loglar if l.smena == 'tun')
+        bugun_kun    = sum(l.par_soni for l in bugun_loglar if l.smena == QadoqlashLog.Smena.KUN)
+        bugun_tun    = sum(l.par_soni for l in bugun_loglar if l.smena == QadoqlashLog.Smena.TUN)
 
         return render(request, 'ilish/upakovka_stats.html', {
             'active_nav':    'upakovka_stats',
