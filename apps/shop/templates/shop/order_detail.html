@@ -555,18 +555,18 @@ function toggleDept(id) {
     const body = document.getElementById(id);
     const chev = document.getElementById('chev_' + id);
     if (!body) return;
-    body.classList.toggle('open');
-    if (chev) chev.classList.toggle('open');
+    const isOpen = body.classList.contains('open');
+    body.classList.toggle('open', !isOpen);
+    if (chev) chev.classList.toggle('open', !isOpen);
 }
 
-// Auto-open first dept that has logs
+// All departments open by default
 document.addEventListener('DOMContentLoaded', () => {
-    {% for dept in departments %}
-    {% if dept.logs %}
-    toggleDept('dept{{ forloop.counter }}');
-    {% if forloop.first %}{% endif %}
-    {% endif %}
-    {% endfor %}
+    document.querySelectorAll('.dept-body').forEach((el, i) => {
+        el.classList.add('open');
+        const chev = document.getElementById('chev_' + el.id);
+        if (chev) chev.classList.add('open');
+    });
 });
 
 function toggleCustom(e) {

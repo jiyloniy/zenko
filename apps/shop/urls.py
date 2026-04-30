@@ -18,6 +18,9 @@ urlpatterns = [
     path('orders/<int:pk>/delete/', views.ShopOrderDeleteView.as_view(), name='order_delete'),
     path('orders/<int:pk>/cancel/', views.ShopOrderCancelView.as_view(), name='order_cancel'),
 
+    # Kunlik loglar
+    path('logs/', views.ShopLogsView.as_view(), name='logs'),
+
     # Broshkalar
     path('broshkalar/', views.ShopBroshkaListView.as_view(), name='broshka_list'),
     path('broshkalar/<int:pk>/', views.ShopBroshkaDetailView.as_view(), name='broshka_detail'),

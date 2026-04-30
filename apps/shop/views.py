@@ -7,7 +7,7 @@ from django.views import View
 from django.views.generic import ListView, DeleteView
 
 from apps.order.models import Order, Brujka
-from apps.order.forms import OrderForm
+from apps.shop.forms import ShopOrderForm
 from apps.shop.mixins import ShopManagerRequiredMixin
 
 try:
@@ -48,36 +48,36 @@ class ShopDashboardView(ShopManagerRequiredMixin, View):
     template_name = 'shop/dashboard.html'
 
     def get(self, request):
-        my_orders = _order_qs_for_user(request.user)
+        all_orders = Order.objects.select_related('brujka', 'created_by')
         today = timezone.now().date()
 
         status_counts = {
-            'new': my_orders.filter(status=Order.Status.NEW).count(),
-            'accepted': my_orders.filter(status=Order.Status.ACCEPTED).count(),
-            'in_process': my_orders.filter(status=Order.Status.IN_PROCESS).count(),
-            'ready': my_orders.filter(status=Order.Status.READY).count(),
-            'delivered': my_orders.filter(status=Order.Status.DELIVERED).count(),
-            'cancelled': my_orders.filter(status=Order.Status.CANCELLED).count(),
+            'new': all_orders.filter(status=Order.Status.NEW).count(),
+            'accepted': all_orders.filter(status=Order.Status.ACCEPTED).count(),
+            'in_process': all_orders.filter(status=Order.Status.IN_PROCESS).count(),
+            'ready': all_orders.filter(status=Order.Status.READY).count(),
+            'delivered': all_orders.filter(status=Order.Status.DELIVERED).count(),
+            'cancelled': all_orders.filter(status=Order.Status.CANCELLED).count(),
         }
 
-        overdue = my_orders.filter(
+        overdue = all_orders.filter(
             deadline__lt=today,
         ).exclude(status__in=[Order.Status.DELIVERED, Order.Status.CANCELLED]).count()
 
-        recent_orders = my_orders.order_by('-created_at')[:8]
+        recent_orders = all_orders.order_by('-created_at')[:8]
 
-        urgent_orders = my_orders.filter(
+        urgent_orders = all_orders.filter(
             priority=Order.Priority.URGENT,
         ).exclude(status__in=[Order.Status.DELIVERED, Order.Status.CANCELLED]).order_by('deadline')[:5]
 
         return render(request, self.template_name, {
             'active_nav': 'dashboard',
             'status_counts': status_counts,
-            'total': my_orders.count(),
+            'total': all_orders.count(),
             'overdue': overdue,
             'recent_orders': recent_orders,
             'urgent_orders': urgent_orders,
-            'new_orders_count': status_counts['new'],
+            'new_orders_count': _order_qs_for_user(request.user).filter(status=Order.Status.NEW).count(),
         })
 
 
@@ -145,14 +145,14 @@ class ShopOrderCreateView(ShopManagerRequiredMixin, View):
 
     def get(self, request):
         return render(request, self.template_name, {
-            'form': OrderForm(),
+            'form': ShopOrderForm(),
             'title': 'Yangi buyurtma',
             'active_nav': 'order_create',
             'new_orders_count': _order_qs_for_user(request.user).filter(status=Order.Status.NEW).count(),
         })
 
     def post(self, request):
-        form = OrderForm(request.POST, request.FILES)
+        form = ShopOrderForm(request.POST, request.FILES)
         if form.is_valid():
             order = form.save(commit=False)
             order.created_by = request.user
@@ -194,7 +194,7 @@ class ShopOrderUpdateView(ShopManagerRequiredMixin, View):
             messages.error(request, 'Bu buyurtmani tahrirlash mumkin emas — allaqachon ishlab chiqarishga ketgan.')
             return redirect('shop:order_detail', pk=pk)
         return render(request, self.template_name, {
-            'form': OrderForm(instance=order),
+            'form': ShopOrderForm(instance=order),
             'order': order,
             'title': f'{order.name} — tahrirlash',
             'active_nav': 'orders',
@@ -206,7 +206,7 @@ class ShopOrderUpdateView(ShopManagerRequiredMixin, View):
         if order.status not in (Order.Status.NEW, Order.Status.ACCEPTED):
             messages.error(request, 'Bu buyurtmani tahrirlash mumkin emas.')
             return redirect('shop:order_detail', pk=pk)
-        form = OrderForm(request.POST, request.FILES, instance=order)
+        form = ShopOrderForm(request.POST, request.FILES, instance=order)
         if form.is_valid():
             form.save()
             messages.success(request, f'"{order.name}" yangilandi.')
@@ -455,6 +455,178 @@ class ShopOrderDetailView(ShopManagerRequiredMixin, View):
             'period': period,
             'date_from': date_from_str or (date_from.isoformat() if date_from else ''),
             'date_to': date_to_str or (date_to.isoformat() if date_to else ''),
+            'today': today.isoformat(),
+            'new_orders_count': _order_qs_for_user(request.user).filter(status=Order.Status.NEW).count(),
+        })
+
+
+# ── Logs View ──
+
+class ShopLogsView(ShopManagerRequiredMixin, View):
+    template_name = 'shop/logs.html'
+
+    def get(self, request):
+        import datetime
+        from django.db.models import Sum as DSum, Count as DCount
+
+        today = timezone.now().date()
+        period = request.GET.get('period', 'today')
+        date_from_str = request.GET.get('date_from', '')
+        date_to_str = request.GET.get('date_to', '')
+
+        if period == 'today':
+            date_from = date_to = today
+        elif period == 'week':
+            date_from = today - datetime.timedelta(days=6)
+            date_to = today
+        elif period == 'month':
+            date_from = today.replace(day=1)
+            date_to = today
+        elif period == 'custom' and date_from_str and date_to_str:
+            try:
+                date_from = datetime.date.fromisoformat(date_from_str)
+                date_to = datetime.date.fromisoformat(date_to_str)
+            except ValueError:
+                date_from = date_to = today
+        else:
+            date_from = date_to = today
+
+        departments = []
+
+        # ── Quyish ──
+        if QuyishJarayon:
+            try:
+                from apps.casting.models import QuyishJarayonLog
+                logs_qs = QuyishJarayonLog.objects.filter(
+                    created_at__date__gte=date_from,
+                    created_at__date__lte=date_to,
+                ).select_related('jarayon__order__brujka', 'created_by').order_by('-created_at')
+                total = logs_qs.aggregate(s=DSum('miqdor'))['s'] or 0
+                departments.append({
+                    'name': 'Quyish', 'icon': 'casting', 'unit': 'dona',
+                    'total': total, 'count': logs_qs.count(),
+                    'logs': [{'sana': l.created_at.date(), 'smena': None,
+                              'son': l.miqdor, 'hodim': l.created_by,
+                              'order': l.jarayon.order if l.jarayon else None,
+                              'extra': l.get_natija_display() if l.natija else '',
+                              'izoh': l.izoh} for l in logs_qs[:100]],
+                })
+            except Exception:
+                pass
+
+        # ── Ilish ──
+        if IlishJarayon:
+            try:
+                from apps.ilish.models import IlishJarayonLog
+                logs_qs = IlishJarayonLog.objects.filter(
+                    sana__gte=date_from, sana__lte=date_to,
+                ).select_related('jarayon__order__brujka', 'hodim', 'vishilka', 'created_by').order_by('-sana', '-created_at')
+                total = sum(
+                    (l.vishilka.quantity * l.vishilka_soni * 2 if l.vishilka else 0)
+                    for l in logs_qs
+                )
+                departments.append({
+                    'name': 'Ilish', 'icon': 'ilish', 'unit': 'broshka',
+                    'total': total, 'count': logs_qs.count(),
+                    'logs': [{'sana': l.sana, 'smena': l.get_smena_display(),
+                              'son': l.ilingan_broshka, 'hodim': l.hodim,
+                              'order': l.jarayon.order if l.jarayon else None,
+                              'extra': f'{l.vishilka} × {l.vishilka_soni}' if l.vishilka else '',
+                              'izoh': l.izoh} for l in logs_qs[:100]],
+                })
+            except Exception:
+                pass
+
+        # ── Upakovka ──
+        if QadoqlashJarayon:
+            try:
+                from apps.ilish.models import QadoqlashLog
+                logs_qs = QadoqlashLog.objects.filter(
+                    sana__gte=date_from, sana__lte=date_to,
+                ).select_related('jarayon__order__brujka', 'created_by').order_by('-sana', '-created_at')
+                total = logs_qs.aggregate(s=DSum('par_soni'))['s'] or 0
+                departments.append({
+                    'name': 'Upakovka', 'icon': 'upakovka', 'unit': 'par',
+                    'total': total, 'count': logs_qs.count(),
+                    'logs': [{'sana': l.sana, 'smena': l.get_smena_display(),
+                              'son': l.par_soni, 'hodim': l.created_by,
+                              'order': l.jarayon.order if l.jarayon else None,
+                              'extra': '', 'izoh': l.izoh} for l in logs_qs[:100]],
+                })
+            except Exception:
+                pass
+
+        # ── Bo'yash ──
+        if BoyashJarayon:
+            try:
+                from apps.boyash.models import BoyashJarayonLog
+                logs_qs = BoyashJarayonLog.objects.filter(
+                    sana__gte=date_from, sana__lte=date_to,
+                ).select_related('jarayon__order__brujka', 'vishilka', 'created_by').order_by('-sana', '-created_at')
+                total = sum(
+                    (l.vishilka.quantity * l.vishilka_soni if l.vishilka else 0)
+                    for l in logs_qs
+                )
+                departments.append({
+                    'name': "Bo'yash", 'icon': 'boyash', 'unit': 'par',
+                    'total': total, 'count': logs_qs.count(),
+                    'logs': [{'sana': l.sana, 'smena': l.get_smena_display(),
+                              'son': l.boyalgan_par, 'hodim': l.created_by,
+                              'order': l.jarayon.order if l.jarayon else None,
+                              'extra': f'{l.vishilka} × {l.vishilka_soni}' if l.vishilka else '',
+                              'izoh': l.izoh} for l in logs_qs[:100]],
+                })
+            except Exception:
+                pass
+
+        # ── Sepish ──
+        if SepishJarayon:
+            try:
+                from apps.sepish.models import SepishJarayonLog
+                logs_qs = SepishJarayonLog.objects.filter(
+                    sana__gte=date_from, sana__lte=date_to,
+                ).select_related('jarayon__order__brujka', 'kraska', 'created_by').order_by('-sana', '-created_at')
+                total = logs_qs.aggregate(s=DSum('par_soni'))['s'] or 0
+                departments.append({
+                    'name': 'Sepish', 'icon': 'sepish', 'unit': 'par',
+                    'total': total, 'count': logs_qs.count(),
+                    'logs': [{'sana': l.sana, 'smena': l.get_smena_display(),
+                              'son': l.par_soni, 'hodim': l.created_by,
+                              'order': l.jarayon.order if l.jarayon else None,
+                              'extra': f'{l.kraska} {l.kraska_gramm}g' if l.kraska else '',
+                              'izoh': l.izoh} for l in logs_qs[:100]],
+                })
+            except Exception:
+                pass
+
+        # ── Tosh ──
+        if ToshQadashJarayon:
+            try:
+                from apps.tosh.models import ToshQadashLog
+                logs_qs = ToshQadashLog.objects.filter(
+                    sana__gte=date_from, sana__lte=date_to,
+                ).select_related('jarayon__order__brujka', 'hodim', 'tosh', 'created_by').order_by('-sana', '-created_at')
+                total = logs_qs.aggregate(s=DSum('par_soni'))['s'] or 0
+                departments.append({
+                    'name': 'Tosh qadash', 'icon': 'tosh', 'unit': 'par',
+                    'total': total, 'count': logs_qs.count(),
+                    'logs': [{'sana': l.sana, 'smena': l.get_smena_display(),
+                              'son': l.par_soni, 'hodim': l.hodim,
+                              'order': l.jarayon.order if l.jarayon else None,
+                              'extra': str(l.tosh) if l.tosh else '',
+                              'izoh': l.izoh} for l in logs_qs[:100]],
+                })
+            except Exception:
+                pass
+
+        return render(request, self.template_name, {
+            'active_nav': 'logs',
+            'departments': departments,
+            'period': period,
+            'date_from': date_from_str or date_from.isoformat(),
+            'date_to': date_to_str or date_to.isoformat(),
+            'date_from_obj': date_from,
+            'date_to_obj': date_to,
             'today': today.isoformat(),
             'new_orders_count': _order_qs_for_user(request.user).filter(status=Order.Status.NEW).count(),
         })
