@@ -1,0 +1,273 @@
+{% extends "ilish/base.html" %}
+{% block title %}Logni tahrirlash — Qadoqlash — Zenko{% endblock %}
+{% block page_title %}Qadoqlash logni tahrirlash{% endblock %}
+
+{% block extra_css %}
+<style>
+.form-wrapper {
+  max-width: 500px;
+  margin: 0 auto;
+}
+
+.form-card {
+  background: var(--white);
+  border: 1.5px solid var(--gray-200);
+  border-radius: 20px;
+  padding: 28px;
+  box-shadow: 0 2px 10px rgba(0,0,0,.06);
+}
+
+.form-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.form-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #14B8A6, #0D9488);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-size: 20px;
+}
+
+.form-header-text {
+  flex: 1;
+}
+
+.form-header-title {
+  font-size: 16px;
+  font-weight: 900;
+  color: var(--black);
+  margin-bottom: 2px;
+}
+
+.form-header-sub {
+  font-size: 12px;
+  color: var(--gray-500);
+}
+
+.form-group {
+  margin-bottom: 18px;
+}
+
+.form-label {
+  display: block;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--gray-600);
+  margin-bottom: 8px;
+  text-transform: uppercase;
+  letter-spacing: .5px;
+}
+
+.form-input, .form-select, .form-textarea {
+  width: 100%;
+  padding: 12px 14px;
+  border: 1.5px solid var(--gray-200);
+  border-radius: 12px;
+  font-size: 14px;
+  font-family: inherit;
+  color: var(--black);
+  outline: none;
+  transition: border-color .18s;
+}
+
+.form-input:focus, .form-select:focus, .form-textarea:focus {
+  border-color: #14B8A6;
+  box-shadow: 0 0 0 3px rgba(20, 184, 166, .1);
+}
+
+.form-textarea {
+  resize: vertical;
+  min-height: 80px;
+}
+
+.form-error {
+  color: #BE123C;
+  font-size: 12px;
+  margin-top: 6px;
+}
+
+.form-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 28px;
+  padding-top: 24px;
+  border-top: 1px solid var(--gray-100);
+}
+
+.btn-submit {
+  flex: 1;
+  padding: 12px 16px;
+  background: linear-gradient(135deg, #14B8A6, #0D9488);
+  color: #fff;
+  border: none;
+  border-radius: 12px;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  font-family: inherit;
+  transition: all .18s;
+  box-shadow: 0 3px 12px rgba(20, 184, 166, .25);
+}
+
+.btn-submit:hover {
+  background: linear-gradient(135deg, #0D9488, #0F766E);
+  box-shadow: 0 6px 20px rgba(20, 184, 166, .35);
+  transform: translateY(-1px);
+}
+
+.btn-cancel {
+  flex: 1;
+  padding: 12px 16px;
+  background: var(--gray-100);
+  color: var(--gray-600);
+  border: none;
+  border-radius: 12px;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  font-family: inherit;
+  transition: all .15s;
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.btn-cancel:hover {
+  background: var(--gray-200);
+  color: var(--gray-700);
+}
+
+.breadcrumb {
+  margin-bottom: 20px;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+}
+
+.breadcrumb a {
+  color: var(--blue);
+  text-decoration: none;
+  transition: color .18s;
+}
+
+.breadcrumb a:hover {
+  color: var(--dark);
+}
+
+.breadcrumb li:last-child {
+  color: var(--gray-500);
+}
+</style>
+{% endblock %}
+
+{% block topbar_actions %}
+<a href="{% url 'ilish:upakovka_detail' jarayon.pk %}" class="btn btn-secondary btn-sm">
+  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18"/></svg>
+  Ortga
+</a>
+{% endblock %}
+
+{% block content %}
+
+<div class="form-wrapper">
+  <!-- Breadcrumb -->
+  <ul class="breadcrumb">
+    <li><a href="{% url 'ilish:upakovka_list' %}">Qadoqlash</a></li>
+    <li><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width:14px;height:14px;"><path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5L15.75 12l-7.5 7.5"/></svg></li>
+    <li><a href="{% url 'ilish:upakovka_detail' jarayon.pk %}">{{ jarayon.order.name }}</a></li>
+    <li><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width:14px;height:14px;"><path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5L15.75 12l-7.5 7.5"/></svg></li>
+    <li>Logni tahrirlash</li>
+  </ul>
+
+  <!-- Form card -->
+  <div class="form-card">
+    <div class="form-header">
+      <div class="form-icon">✏️</div>
+      <div class="form-header-text">
+        <div class="form-header-title">Qadoqlash logni tahrirlash</div>
+        <div class="form-header-sub">{{ jarayon.order.name }}</div>
+      </div>
+    </div>
+
+    {% if form.non_field_errors %}
+      <div style="padding: 12px 14px; background: #FEF2F2; border: 1px solid #FECDD3; border-radius: 12px; color: #BE123C; font-size: 12px; font-weight: 600; margin-bottom: 16px;">
+        {% for error in form.non_field_errors %}
+          {{ error }}<br>
+        {% endfor %}
+      </div>
+    {% endif %}
+
+    <form method="post" action="">
+      {% csrf_token %}
+
+      <div class="form-group">
+        <label for="id_smena" class="form-label">Smena</label>
+        {{ form.smena }}
+        {% if form.smena.errors %}
+          <div class="form-error">{{ form.smena.errors.0 }}</div>
+        {% endif %}
+      </div>
+
+      <div class="form-group">
+        <label for="id_par_soni" class="form-label">Par soni</label>
+        {{ form.par_soni }}
+        {% if form.par_soni.errors %}
+          <div class="form-error">{{ form.par_soni.errors.0 }}</div>
+        {% endif %}
+      </div>
+
+      <div class="form-group">
+        <label for="id_sana" class="form-label">Sana</label>
+        {{ form.sana }}
+        {% if form.sana.errors %}
+          <div class="form-error">{{ form.sana.errors.0 }}</div>
+        {% endif %}
+      </div>
+
+      <div class="form-group">
+        <label for="id_izoh" class="form-label">Izoh (ixtiyoriy)</label>
+        {{ form.izoh }}
+        {% if form.izoh.errors %}
+          <div class="form-error">{{ form.izoh.errors.0 }}</div>
+        {% endif %}
+      </div>
+
+      <div class="form-actions">
+        <button type="submit" class="btn-submit">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width:18px;height:18px;display:inline;margin-right:6px;"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/></svg>
+          Saqlash
+        </button>
+        <a href="{% url 'ilish:upakovka_detail' jarayon.pk %}" class="btn-cancel">Bekor</a>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+// Customize form inputs
+document.querySelectorAll('select, input[type="date"], input[type="number"], textarea').forEach(el => {
+  if (!el.classList.contains('form-select') && !el.classList.contains('form-input') && !el.classList.contains('form-textarea')) {
+    if (el.tagName === 'SELECT') {
+      el.classList.add('form-select');
+    } else if (el.tagName === 'TEXTAREA') {
+      el.classList.add('form-textarea');
+    } else {
+      el.classList.add('form-input');
+    }
+  }
+});
+</script>
+
+{% endblock %}

@@ -161,11 +161,11 @@ class QadoqlashJarayon(models.Model):
         QADOQLANDI    = 'qadoqlandi',    'Qadoqlandi'
         QADOQLANMADI  = 'qadoqlanmadi',  'Qadoqlanmadi'
 
-    ilish_jarayon = models.OneToOneField(
-        IlishJarayon,
+    order = models.OneToOneField(
+        'order.Order',
         on_delete=models.CASCADE,
         related_name='qadoqlash_jarayon',
-        verbose_name='Ilish jarayoni',
+        verbose_name='Buyurtma',
     )
     status     = models.CharField(
         'Holat', max_length=20,
@@ -195,11 +195,7 @@ class QadoqlashJarayon(models.Model):
         verbose_name_plural = 'Qadoqlash jarayonlari'
 
     def __str__(self):
-        return f'{self.ilish_jarayon.order} — {self.get_status_display()}'
-
-    @property
-    def order(self):
-        return self.ilish_jarayon.order
+        return f'{self.order} — {self.get_status_display()}'
 
     @property
     def status_color(self):
@@ -218,6 +214,12 @@ class QadoqlashLog(models.Model):
         KUN = 'kun', 'Kunduzgi smena'
         TUN = 'tun', 'Tungi smena'
 
+    jarayon    = models.ForeignKey(
+        QadoqlashJarayon,
+        on_delete=models.CASCADE,
+        related_name='loglar',
+        verbose_name='Qadoqlash jarayoni',
+    )
     smena      = models.CharField(
         'Smena', max_length=5,
         choices=Smena.choices, default=Smena.KUN,
@@ -240,4 +242,4 @@ class QadoqlashLog(models.Model):
         verbose_name_plural = 'Qadoqlash loglar'
 
     def __str__(self):
-        return f'{self.get_smena_display()} — {self.par_soni} par ({self.sana})'
+        return f'{self.jarayon} | {self.get_smena_display()} — {self.par_soni} par ({self.sana})'

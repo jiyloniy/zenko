@@ -165,7 +165,7 @@
 {% if jarayonlar %}
 <div class="jgrid">
 {% for j in jarayonlar %}
-{% with order=j.ilish_jarayon.order %}
+{% with order=j.order %}
 <div class="jcard">
   <div class="jcard-accent {{ j.status_color }}"></div>
 
@@ -218,6 +218,12 @@
 
     <!-- Actions -->
     <div class="jcard-actions">
+      <!-- Detail/Log buttons -->
+      <a href="{% url 'ilish:upakovka_detail' j.pk %}" class="btn-log" style="text-decoration:none;display:flex;align-items:center;justify-content:center;">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width:14px;height:14px;"><path stroke-linecap="round" stroke-linejoin="round" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.658 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"/></svg>
+        📋 Batafsil / Loglar
+      </a>
+
       {% if j.status == 'qabul_qilindi' %}
       <form method="post" action="{% url 'ilish:upakovka_set_status' j.pk %}">
         {% csrf_token %}
@@ -236,10 +242,6 @@
       </form>
 
       {% elif j.status == 'qadoqlanmoqda' %}
-      <button type="button" class="btn-log" onclick="openLogModal({{ j.pk }}, '{{ order.name|escapejs }}')">
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width:14px;height:14px;"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v6m3-3H9"/></svg>
-        Log kiritish (par soni)
-      </button>
       <form method="post" action="{% url 'ilish:upakovka_set_status' j.pk %}" id="usf-{{ j.pk }}">
         {% csrf_token %}
         <input type="hidden" name="next_tab" value="{{ tab }}">

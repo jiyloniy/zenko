@@ -1,6 +1,6 @@
 from django import forms
 from apps.users.models import User
-from .models import IlishJarayonLog, Vishilka
+from .models import IlishJarayonLog, Vishilka, QadoqlashLog
 
 
 class IlishLogForm(forms.ModelForm):
@@ -53,6 +53,26 @@ class VishilkaForm(forms.ModelForm):
 
     def clean_quantity(self):
         val = self.cleaned_data.get('quantity', 0)
+        if val < 1:
+            raise forms.ValidationError('Par soni kamida 1 bo\'lishi kerak.')
+        return val
+
+
+class QadoqlashLogForm(forms.ModelForm):
+    """Qadoqlash log forma — par soni bilan."""
+    
+    class Meta:
+        model  = QadoqlashLog
+        fields = ('smena', 'par_soni', 'izoh', 'sana')
+        widgets = {
+            'smena':     forms.Select(attrs={'class': 'f-inp'}),
+            'par_soni':  forms.NumberInput(attrs={'class': 'f-inp', 'min': 1}),
+            'izoh':      forms.Textarea(attrs={'class': 'f-inp', 'rows': 2}),
+            'sana':      forms.DateInput(attrs={'class': 'f-inp', 'type': 'date'}),
+        }
+
+    def clean_par_soni(self):
+        val = self.cleaned_data.get('par_soni', 1)
         if val < 1:
             raise forms.ValidationError('Par soni kamida 1 bo\'lishi kerak.')
         return val
