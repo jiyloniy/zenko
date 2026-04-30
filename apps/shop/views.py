@@ -11,9 +11,9 @@ from apps.shop.mixins import ShopManagerRequiredMixin
 
 # ── Lazy imports — bo'limlar mavjud bo'lmasa None ──
 try:
-    from apps.casting.models import QuyishJarayon, QuyishJarayonLog
+    from apps.casting.models import QuyishJarayon, QuyishJarayonLog, HomMahsulotLog
 except ImportError:
-    QuyishJarayon = QuyishJarayonLog = None
+    QuyishJarayon = QuyishJarayonLog = HomMahsulotLog = None
 
 try:
     from apps.ilish.models import (
@@ -267,22 +267,23 @@ def _build_departments(order, date_from, date_to):
     """Har bir bo'lim uchun jarayon + loglar dict qaytaradi."""
     depts = []
 
-    # ── Quyish ──
-    if QuyishJarayonLog:
+    # ── Quyish — HomMahsulotLog (order.hom_loglar) ──
+    if HomMahsulotLog:
         try:
-            casting   = order.quyish_jarayon          # related_name='quyish_jarayon'
-            all_logs  = casting.loglar.select_related('created_by')
-            filt_logs = _filter_by_date(all_logs, date_from, date_to, field='created_at')
+            casting   = order.quyish_jarayon           # related_name='quyish_jarayon'
+            all_logs  = order.hom_loglar.select_related('stanok', 'created_by')
+            filt_logs = _filter_by_date(all_logs, date_from, date_to, field='sana')
             total     = all_logs.aggregate(s=Sum('miqdor'))['s'] or 0
             filtered  = filt_logs.aggregate(s=Sum('miqdor'))['s'] or 0
             logs = [{
-                'sana': l.created_at.date(), 'smena': None,
+                'sana': l.sana,
+                'smena': l.get_smena_display() if hasattr(l, 'get_smena_display') else l.smena,
                 'son': l.miqdor, 'hodim': l.created_by,
-                'extra': l.get_natija_display() if l.natija else '',
+                'extra': str(l.stanok) if l.stanok else '',
                 'izoh': l.izoh,
-            } for l in filt_logs.order_by('-created_at')]
+            } for l in filt_logs.order_by('-sana', '-created_at')]
             depts.append({
-                'name': 'Quyish', 'icon': 'casting', 'unit': 'dona',
+                'name': 'Quyish', 'icon': 'casting', 'unit': 'par',
                 'status': casting.get_status_display(), 'status_key': casting.status,
                 'created_at': casting.created_at, 'updated_at': casting.updated_at,
                 'total': total, 'filtered': filtered, 'logs': logs,
