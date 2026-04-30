@@ -1,6 +1,6 @@
 {% extends "shop/base.html" %}
 {% block title %}{{ order.name }} — Shop Manager{% endblock %}
-{% block page_title %}Buyurtma tafsilotlari{% endblock %}
+{% block page_title %}Buyurtma tafsiloti{% endblock %}
 
 {% block topbar_actions %}
 <a href="{% url 'shop:order_list' %}" class="btn btn-secondary btn-sm">
@@ -22,430 +22,519 @@
     </button>
 </form>
 {% endif %}
-{% if can_delete %}
-<a href="{% url 'shop:order_delete' order.pk %}" class="btn btn-danger btn-sm">
-    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width:15px;height:15px"><path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0"/></svg>
-    O'chirish
-</a>
-{% endif %}
 {% endblock %}
 
 {% block extra_css %}
 <style>
-.detail-layout { display: grid; grid-template-columns: 1fr 360px; gap: 24px; align-items: start; }
+.page-layout { display: grid; grid-template-columns: 1fr 320px; gap: 22px; align-items: start; }
 
-/* ── Order Header Card ── */
-.order-header-card {
+/* ── Order Header ── */
+.ohc {
     background: var(--white);
     border: 1px solid var(--gray-200);
     border-radius: 18px;
     overflow: hidden;
-    margin-bottom: 22px;
+    margin-bottom: 20px;
     box-shadow: 0 2px 8px rgba(0,0,0,.05);
 }
 .ohc-top {
-    background: linear-gradient(135deg, var(--black) 0%, #2D2D2D 100%);
-    padding: 24px;
-    display: flex;
-    gap: 20px;
-    align-items: flex-start;
+    background: linear-gradient(135deg,#1A1A1A,#2D2D2D);
+    padding: 22px 24px;
+    display: flex; gap: 18px; align-items: flex-start;
 }
-.ohc-img-wrap {
-    width: 100px; height: 100px;
-    border-radius: 14px; overflow: hidden;
-    border: 2px solid rgba(255,255,255,.1);
-    flex-shrink: 0;
-    cursor: pointer;
-}
-.ohc-img { width: 100%; height: 100%; object-fit: cover; }
-.ohc-img-ph {
-    width: 100px; height: 100px; border-radius: 14px;
-    display: flex; align-items: center; justify-content: center;
-    background: rgba(255,255,255,.05);
-    border: 2px solid rgba(255,255,255,.08);
-    flex-shrink: 0;
-}
-.ohc-img-ph svg { width: 36px; height: 36px; color: rgba(255,255,255,.2); }
+.ohc-img { width: 90px; height: 90px; border-radius: 14px; object-fit: cover; flex-shrink: 0; border: 2px solid rgba(255,255,255,.12); cursor: pointer; }
+.ohc-img-ph { width: 90px; height: 90px; border-radius: 14px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; background: rgba(255,255,255,.06); border: 2px solid rgba(255,255,255,.08); }
+.ohc-img-ph svg { width: 32px; height: 32px; color: rgba(255,255,255,.2); }
 .ohc-info { flex: 1; min-width: 0; }
-.ohc-num { font-family: monospace; font-size: 12px; color: rgba(255,255,255,.4); margin-bottom: 4px; }
-.ohc-name { font-size: 22px; font-weight: 800; color: var(--white); margin-bottom: 10px; line-height: 1.2; }
-.ohc-badges { display: flex; flex-wrap: wrap; gap: 8px; }
+.ohc-num { font-family: monospace; font-size: 11px; color: rgba(255,255,255,.35); margin-bottom: 3px; }
+.ohc-name { font-size: 20px; font-weight: 800; color: #fff; margin-bottom: 10px; line-height: 1.25; }
+.ohc-badges { display: flex; flex-wrap: wrap; gap: 7px; }
 
-.ohc-body { padding: 20px 24px; }
-.ohc-meta-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
-.ohc-meta-item { }
-.ohc-meta-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .6px; color: var(--gray-400); margin-bottom: 4px; }
-.ohc-meta-val { font-size: 16px; font-weight: 800; color: var(--black); }
-.ohc-meta-val.late { color: var(--red); }
-.ohc-meta-sub { font-size: 11.5px; color: var(--gray-500); margin-top: 2px; }
+.ohc-meta { display: grid; grid-template-columns: repeat(4,1fr); gap: 0; border-top: 1px solid var(--gray-100); }
+.ohc-meta-item { padding: 14px 20px; border-right: 1px solid var(--gray-100); }
+.ohc-meta-item:last-child { border-right: none; }
+.oml { font-size: 10.5px; font-weight: 700; text-transform: uppercase; letter-spacing: .6px; color: var(--gray-400); margin-bottom: 4px; }
+.omv { font-size: 20px; font-weight: 900; color: var(--black); line-height: 1; }
+.omv.late { color: var(--red); }
+.oms { font-size: 11.5px; color: var(--gray-400); margin-top: 3px; }
 
-/* Broshka chip */
-.broshka-chip {
-    display: inline-flex; align-items: center; gap: 8px;
-    padding: 6px 14px; border-radius: 20px;
-    background: var(--orange-light); color: var(--orange);
-    border: 1px solid #FED7AA;
-    font-size: 13px; font-weight: 700;
-    text-decoration: none;
-}
-.broshka-chip .bc-dot { width: 10px; height: 10px; border-radius: 50%; }
-
-/* ── Timeline ── */
-.timeline-card {
+/* ── Period Filter ── */
+.period-bar {
     background: var(--white);
     border: 1px solid var(--gray-200);
-    border-radius: 18px;
+    border-radius: 14px;
+    padding: 14px 18px;
+    margin-bottom: 20px;
+    display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+}
+.period-title { font-size: 13px; font-weight: 700; color: var(--gray-600); white-space: nowrap; display: flex; align-items: center; gap: 6px; }
+.period-title svg { width: 15px; height: 15px; color: var(--orange); }
+.period-tabs { display: flex; gap: 4px; flex-wrap: wrap; }
+.ptab {
+    padding: 6px 14px; border-radius: 8px;
+    font-size: 12.5px; font-weight: 700;
+    text-decoration: none; border: 1.5px solid var(--gray-200);
+    color: var(--gray-600); background: var(--white);
+    transition: all .15s; white-space: nowrap;
+    cursor: pointer;
+}
+.ptab:hover { border-color: var(--orange); color: var(--orange); background: var(--orange-light); }
+.ptab.active { background: var(--orange); color: #fff; border-color: var(--orange); box-shadow: 0 3px 8px rgba(245,130,32,.3); }
+.custom-range { display: flex; align-items: center; gap: 6px; margin-left: auto; }
+.date-input { padding: 6px 10px; border: 1.5px solid var(--gray-200); border-radius: 8px; font-size: 12.5px; color: var(--black); outline: none; transition: border-color .15s; }
+.date-input:focus { border-color: var(--orange); }
+
+/* ── Dept Section ── */
+.dept-section {
+    background: var(--white);
+    border: 1px solid var(--gray-200);
+    border-radius: 16px;
     overflow: hidden;
-    margin-bottom: 22px;
+    margin-bottom: 18px;
 }
-.tl-head {
-    padding: 18px 24px;
-    border-bottom: 1px solid var(--gray-100);
-    display: flex; align-items: center; gap: 10px;
+.dept-head {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 16px 20px;
+    cursor: pointer;
+    transition: background .12s;
+    user-select: none;
 }
-.tl-head h3 { font-size: 15px; font-weight: 700; color: var(--black); }
-.tl-head svg { width: 18px; height: 18px; color: var(--orange); }
+.dept-head:hover { background: var(--gray-50); }
+.dept-head-left { display: flex; align-items: center; gap: 12px; }
+.dept-icon { width: 38px; height: 38px; border-radius: 10px; background: var(--orange-light); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.dept-icon svg { width: 19px; height: 19px; color: var(--orange); }
+.dept-name { font-size: 14px; font-weight: 800; color: var(--black); }
+.dept-status-badge { display: inline-flex; align-items: center; gap: 5px; padding: 3px 10px; border-radius: 20px; font-size: 11.5px; font-weight: 700; margin-top: 3px; }
+.dept-chevron { width: 18px; height: 18px; color: var(--gray-400); transition: transform .2s; flex-shrink: 0; }
+.dept-chevron.open { transform: rotate(180deg); }
 
-.timeline { padding: 20px 24px; }
-.tl-item {
-    display: flex; gap: 16px; padding-bottom: 24px; position: relative;
+/* Summary stats inside dept head */
+.dept-summary { display: flex; align-items: center; gap: 16px; margin-right: 12px; }
+.ds-item { text-align: right; }
+.ds-val { font-size: 18px; font-weight: 900; color: var(--orange); line-height: 1; }
+.ds-lbl { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .5px; color: var(--gray-400); }
+.ds-divider { width: 1px; height: 32px; background: var(--gray-200); }
+
+/* Logs table */
+.dept-body { display: none; border-top: 1px solid var(--gray-100); }
+.dept-body.open { display: block; }
+
+.logs-stats-row {
+    display: grid; grid-template-columns: repeat(3,1fr);
+    gap: 0; border-bottom: 1px solid var(--gray-100);
+    background: var(--gray-50);
 }
-.tl-item:last-child { padding-bottom: 0; }
-.tl-item:last-child .tl-line { display: none; }
+.lsr-item { padding: 12px 20px; border-right: 1px solid var(--gray-100); }
+.lsr-item:last-child { border-right: none; }
+.lsr-label { font-size: 10.5px; font-weight: 700; text-transform: uppercase; letter-spacing: .5px; color: var(--gray-400); margin-bottom: 3px; }
+.lsr-val { font-size: 22px; font-weight: 900; color: var(--black); }
+.lsr-val.orange { color: var(--orange); }
+.lsr-val.green { color: var(--green); }
+.lsr-sub { font-size: 11px; color: var(--gray-400); margin-top: 2px; }
 
-.tl-dot-wrap { display: flex; flex-direction: column; align-items: center; flex-shrink: 0; }
-.tl-dot {
-    width: 36px; height: 36px; border-radius: 50%;
-    display: flex; align-items: center; justify-content: center;
-    flex-shrink: 0; z-index: 1;
-}
-.tl-dot svg { width: 18px; height: 18px; }
-.tl-line { width: 2px; flex: 1; margin: 4px auto 0; min-height: 20px; }
+/* Progress bar */
+.dept-progress-wrap { padding: 12px 20px; border-bottom: 1px solid var(--gray-100); display: flex; align-items: center; gap: 12px; }
+.prog-bar-bg { flex: 1; height: 8px; background: var(--gray-100); border-radius: 4px; overflow: hidden; }
+.prog-bar-fill { height: 100%; border-radius: 4px; background: linear-gradient(90deg, var(--orange), var(--green)); transition: width .6s; }
+.prog-pct { font-size: 13px; font-weight: 800; color: var(--black); min-width: 42px; text-align: right; }
 
-/* Status colors for dots */
-.tl-dot-order { background: var(--black); } .tl-dot-order svg { color: #fff; }
-.tl-dot-new { background: #EFF6FF; border: 2px solid #3B82F6; } .tl-dot-new svg { color: #3B82F6; }
-.tl-dot-accepted { background: #F5F3FF; border: 2px solid #8B5CF6; } .tl-dot-accepted svg { color: #8B5CF6; }
-.tl-dot-qabul_qilindi { background: #EFF6FF; border: 2px solid #3B82F6; } .tl-dot-qabul_qilindi svg { color: #3B82F6; }
-.tl-dot-ilinmoqda, .tl-dot-qadoqlanmoqda, .tl-dot-boyalmoqda, .tl-dot-sepilmoqda, .tl-dot-quyilmoqda, .tl-dot-tosh_qadalmoqda { background: #FFF7ED; border: 2px solid var(--orange); } .tl-dot-ilinmoqda svg, .tl-dot-qadoqlanmoqda svg, .tl-dot-boyalmoqda svg, .tl-dot-sepilmoqda svg, .tl-dot-quyilmoqda svg, .tl-dot-tosh_qadalmoqda svg { color: var(--orange); }
-.tl-dot-ilib_bolindi, .tl-dot-qadoqlandi, .tl-dot-boyaldi, .tl-dot-sepildi, .tl-dot-quyib_bolindi, .tl-dot-tosh_qadaldi { background: #F0FDF4; border: 2px solid #22C55E; } .tl-dot-ilib_bolindi svg, .tl-dot-qadoqlandi svg, .tl-dot-boyaldi svg, .tl-dot-sepildi svg, .tl-dot-quyib_bolindi svg, .tl-dot-tosh_qadaldi svg { color: #22C55E; }
-.tl-dot-bekor_qilindi, .tl-dot-qadoqlanmadi, .tl-dot-boyalmadi, .tl-dot-sepilmadi, .tl-dot-quyilmadi, .tl-dot-tosh_qadalmadi { background: #FEF2F2; border: 2px solid #EF4444; } .tl-dot-bekor_qilindi svg, .tl-dot-qadoqlanmadi svg, .tl-dot-boyalmadi svg, .tl-dot-sepilmadi svg, .tl-dot-quyilmadi svg, .tl-dot-tosh_qadalmadi svg { color: #EF4444; }
+/* Log table */
+.log-table-wrap { padding: 0 20px 16px; overflow-x: auto; }
+.log-table { width: 100%; border-collapse: collapse; font-size: 13px; margin-top: 14px; }
+.log-table th { text-align: left; padding: 8px 10px; font-size: 10.5px; font-weight: 700; text-transform: uppercase; letter-spacing: .5px; color: var(--gray-500); border-bottom: 2px solid var(--gray-100); }
+.log-table td { padding: 10px 10px; border-bottom: 1px solid var(--gray-100); color: var(--gray-700); vertical-align: middle; }
+.log-table tbody tr:hover { background: var(--gray-50); }
+.log-table tbody tr:last-child td { border-bottom: none; }
 
-.tl-line-active { background: linear-gradient(180deg, #22C55E, #3B82F6); }
-.tl-line-inactive { background: var(--gray-200); }
-.tl-line-process { background: linear-gradient(180deg, var(--orange), var(--gray-200)); }
+.log-son { font-size: 15px; font-weight: 900; color: var(--orange); }
+.log-smena-kun { display: inline-flex; align-items: center; gap: 4px; padding: 3px 8px; border-radius: 6px; font-size: 11px; font-weight: 700; background: #FFF7ED; color: #C2410C; }
+.log-smena-tun { display: inline-flex; align-items: center; gap: 4px; padding: 3px 8px; border-radius: 6px; font-size: 11px; font-weight: 700; background: #1E1B4B; color: #A5B4FC; }
+.log-extra { font-size: 11.5px; color: var(--gray-400); }
 
-.tl-content { flex: 1; padding-top: 6px; }
-.tl-dept-name { font-size: 14px; font-weight: 800; color: var(--black); margin-bottom: 3px; }
-.tl-status { font-size: 12.5px; font-weight: 700; }
-.tl-time { font-size: 11.5px; color: var(--gray-400); margin-top: 4px; }
-.tl-badge { display: inline-flex; align-items: center; gap: 4px; padding: 3px 10px; border-radius: 20px; font-size: 12px; font-weight: 700; }
+.no-logs { padding: 32px 20px; text-align: center; color: var(--gray-400); }
+.no-logs svg { width: 36px; height: 36px; margin-bottom: 8px; opacity: .2; }
+.no-logs p { font-size: 13px; }
 
-/* Dept status colors */
-.dept-green { color: #15803D; } .dept-badge-green { background: #F0FDF4; color: #15803D; border: 1px solid #BBF7D0; }
-.dept-orange { color: #C2410C; } .dept-badge-orange { background: #FFF7ED; color: #C2410C; border: 1px solid #FED7AA; }
-.dept-blue { color: #1D4ED8; } .dept-badge-blue { background: #EFF6FF; color: #1D4ED8; border: 1px solid #BFDBFE; }
-.dept-red { color: #B91C1C; } .dept-badge-red { background: #FEF2F2; color: #B91C1C; border: 1px solid #FECACA; }
+/* ── Timeline (right panel) ── */
+.side-card { background: var(--white); border: 1px solid var(--gray-200); border-radius: 16px; overflow: hidden; margin-bottom: 16px; }
+.side-head { padding: 14px 18px; border-bottom: 1px solid var(--gray-100); display: flex; align-items: center; gap: 8px; }
+.side-head h4 { font-size: 13.5px; font-weight: 700; color: var(--black); margin: 0; }
+.side-head svg { width: 15px; height: 15px; color: var(--orange); flex-shrink: 0; }
+.side-body { padding: 14px 18px; }
 
-/* Order placed initial step */
-.tl-created { background: linear-gradient(135deg, var(--black), #2D2D2D); padding: 14px 18px; border-radius: 12px; display: flex; align-items: center; gap: 12px; margin-bottom: 4px; }
-.tl-created svg { width: 18px; height: 18px; color: var(--orange); flex-shrink: 0; }
-.tl-created-info strong { display: block; font-size: 14px; font-weight: 800; color: #fff; }
-.tl-created-info span { font-size: 12px; color: rgba(255,255,255,.5); }
+.tl { padding: 4px 0; }
+.tl-row { display: flex; gap: 12px; padding-bottom: 18px; position: relative; }
+.tl-row:last-child { padding-bottom: 0; }
+.tl-left { display: flex; flex-direction: column; align-items: center; flex-shrink: 0; }
+.tl-dot { width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; z-index: 1; }
+.tl-dot svg { width: 14px; height: 14px; }
+.tl-line { width: 2px; flex: 1; margin: 3px auto 0; background: var(--gray-200); }
 
-/* ── Right panel ── */
-.side-card { background: var(--white); border: 1px solid var(--gray-200); border-radius: 16px; overflow: hidden; margin-bottom: 18px; }
-.side-card-head { padding: 16px 20px; border-bottom: 1px solid var(--gray-100); display: flex; align-items: center; gap: 8px; }
-.side-card-head h4 { font-size: 14px; font-weight: 700; color: var(--black); margin: 0; }
-.side-card-head svg { width: 16px; height: 16px; color: var(--orange); }
-.side-card-body { padding: 16px 20px; }
+.tld-created { background: var(--black); } .tld-created svg { color: #fff; }
+.tld-green { background: #F0FDF4; border: 2px solid #22C55E; } .tld-green svg { color: #22C55E; }
+.tld-orange { background: #FFF7ED; border: 2px solid var(--orange); } .tld-orange svg { color: var(--orange); }
+.tld-blue { background: #EFF6FF; border: 2px solid #3B82F6; } .tld-blue svg { color: #3B82F6; }
+.tld-red { background: #FEF2F2; border: 2px solid #EF4444; } .tld-red svg { color: #EF4444; }
 
-.info-row { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid var(--gray-100); font-size: 13.5px; }
+.tl-content { flex: 1; padding-top: 5px; }
+.tl-dept { font-size: 12.5px; font-weight: 700; color: var(--black); margin-bottom: 3px; }
+.tl-status { font-size: 11.5px; }
+.tl-time { font-size: 10.5px; color: var(--gray-400); margin-top: 3px; }
+
+/* Info rows */
+.info-row { display: flex; justify-content: space-between; align-items: center; padding: 9px 0; border-bottom: 1px solid var(--gray-100); font-size: 13px; }
 .info-row:last-child { border-bottom: none; }
-.info-row .ir-label { color: var(--gray-500); font-weight: 500; }
-.info-row .ir-val { font-weight: 700; color: var(--black); text-align: right; }
+.ir-l { color: var(--gray-500); font-weight: 500; }
+.ir-v { font-weight: 700; color: var(--black); text-align: right; }
 
-/* note */
-.note-box { background: #FAFAFA; border: 1px solid var(--gray-200); border-radius: 10px; padding: 14px 16px; font-size: 13.5px; color: var(--gray-600); line-height: 1.6; }
-
-/* lightbox */
+/* Lightbox */
 .lightbox { display: none; position: fixed; inset: 0; z-index: 9999; background: rgba(0,0,0,.92); align-items: center; justify-content: center; backdrop-filter: blur(8px); }
 .lightbox.show { display: flex; }
 .lightbox img { max-width: 90vw; max-height: 88vh; object-fit: contain; border-radius: 12px; }
 .lb-close { position: absolute; top: 20px; right: 20px; width: 40px; height: 40px; border-radius: 50%; background: rgba(255,255,255,.15); border: none; color: #fff; cursor: pointer; display: grid; place-items: center; }
 .lb-close svg { width: 20px; height: 20px; }
 
-@media(max-width:960px){ .detail-layout { grid-template-columns: 1fr; } .ohc-meta-grid { grid-template-columns: repeat(2,1fr); } }
-@media(max-width:600px){ .ohc-top { flex-direction: column; } .ohc-meta-grid { grid-template-columns: 1fr 1fr; } }
+@keyframes pulse { 0%,100%{opacity:1;} 50%{opacity:.4;} }
+
+@media(max-width:960px){ .page-layout { grid-template-columns: 1fr; } .ohc-meta { grid-template-columns: repeat(2,1fr); } }
+@media(max-width:600px){ .ohc-top { flex-direction: column; } .ohc-meta { grid-template-columns: 1fr 1fr; } .logs-stats-row { grid-template-columns: 1fr; } .period-bar { flex-direction: column; align-items: flex-start; } .custom-range { margin-left: 0; } }
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="detail-layout">
-    <div>
-        <!-- Order Header -->
-        <div class="order-header-card">
-            <div class="ohc-top">
-                {% if order.image %}
-                <div class="ohc-img-wrap" onclick="openLb('{{ order.image.url }}')">
-                    <img src="{{ order.image.url }}" class="ohc-img" alt="">
-                </div>
-                {% elif order.brujka and order.brujka.image %}
-                <div class="ohc-img-wrap" onclick="openLb('{{ order.brujka.image.url }}')">
-                    <img src="{{ order.brujka.image.url }}" class="ohc-img" alt="">
-                </div>
-                {% else %}
-                <div class="ohc-img-ph">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m2.25 15.75 5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159m-1.5-1.5 1.409-1.409a2.25 2.25 0 0 1 3.182 0l2.909 2.909M3.75 21h16.5A2.25 2.25 0 0 0 22.5 18.75V5.25A2.25 2.25 0 0 0 20.25 3H3.75A2.25 2.25 0 0 0 1.5 5.25v13.5A2.25 2.25 0 0 0 3.75 21Z"/></svg>
-                </div>
-                {% endif %}
-                <div class="ohc-info">
-                    <div class="ohc-num">{{ order.order_number }}</div>
-                    <div class="ohc-name">{{ order.name }}</div>
-                    <div class="ohc-badges">
-                        <span class="status-badge sb-{{ order.status }}"><span class="dot"></span>{{ order.get_status_display }}</span>
-                        <span class="prio-badge prio-{{ order.priority }}">{{ order.get_priority_display }}</span>
-                        {% if order.is_overdue %}<span style="background:rgba(239,68,68,.9);color:#fff;font-size:11px;font-weight:800;padding:4px 10px;border-radius:20px;">⚠ Kechikkan</span>{% endif %}
-                    </div>
-                </div>
+<div class="page-layout">
+
+  <!-- LEFT: Main content -->
+  <div>
+
+    <!-- Order Header -->
+    <div class="ohc">
+      <div class="ohc-top">
+        {% if order.image %}
+          <img src="{{ order.image.url }}" class="ohc-img" onclick="openLb('{{ order.image.url }}')" alt="">
+        {% elif order.brujka and order.brujka.image %}
+          <img src="{{ order.brujka.image.url }}" class="ohc-img" onclick="openLb('{{ order.brujka.image.url }}')" alt="">
+        {% else %}
+          <div class="ohc-img-ph"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m2.25 15.75 5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159m-1.5-1.5 1.409-1.409a2.25 2.25 0 0 1 3.182 0l2.909 2.909M3.75 21h16.5A2.25 2.25 0 0 0 22.5 18.75V5.25A2.25 2.25 0 0 0 20.25 3H3.75A2.25 2.25 0 0 0 1.5 5.25v13.5A2.25 2.25 0 0 0 3.75 21Z"/></svg></div>
+        {% endif %}
+        <div class="ohc-info">
+          <div class="ohc-num">{{ order.order_number }}</div>
+          <div class="ohc-name">{{ order.name }}</div>
+          <div class="ohc-badges">
+            <span class="status-badge sb-{{ order.status }}"><span class="dot"></span>{{ order.get_status_display }}</span>
+            <span class="prio-badge prio-{{ order.priority }}">{{ order.get_priority_display }}</span>
+            {% if order.is_overdue %}<span style="background:rgba(239,68,68,.9);color:#fff;font-size:11px;font-weight:800;padding:3px 9px;border-radius:20px;">⚠ Kechikkan</span>{% endif %}
+          </div>
+        </div>
+      </div>
+      <div class="ohc-meta">
+        <div class="ohc-meta-item">
+          <div class="oml">Miqdori</div>
+          <div class="omv" style="color:var(--orange);">{{ order.quantity }}</div>
+          <div class="oms">dona</div>
+        </div>
+        <div class="ohc-meta-item">
+          <div class="oml">Muddat</div>
+          <div class="omv {% if order.is_overdue %}late{% endif %}">{{ order.deadline|date:"d.m.Y" }}</div>
+          <div class="oms">{% if order.is_overdue %}⚠ o'tib ketdi{% else %}tugash sanasi{% endif %}</div>
+        </div>
+        <div class="ohc-meta-item">
+          <div class="oml">Yaratilgan</div>
+          <div class="omv" style="font-size:15px;">{{ order.created_at|date:"d.m.Y" }}</div>
+          <div class="oms">{{ order.created_at|date:"H:i" }} · {{ order.created_by.name|default:"—" }}</div>
+        </div>
+        <div class="ohc-meta-item">
+          <div class="oml">Broshka</div>
+          {% if order.brujka %}
+          <div style="display:flex;align-items:center;gap:6px;margin-top:2px;">
+            <span style="width:14px;height:14px;border-radius:4px;background:{{ order.brujka.color }};border:1px solid rgba(0,0,0,.1);flex-shrink:0;display:inline-block;"></span>
+            <span style="font-size:14px;font-weight:700;">{{ order.brujka.name }}</span>
+          </div>
+          <div class="oms">{{ order.brujka.get_coating_type_display }}</div>
+          {% else %}
+          <div class="omv" style="font-size:14px;color:var(--gray-400);">—</div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+    <!-- Period Filter -->
+    <form class="period-bar" method="get" id="periodForm">
+      <div class="period-title">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5"/></svg>
+        Davr:
+      </div>
+      <div class="period-tabs">
+        <a href="?period=all" class="ptab {% if period == 'all' %}active{% endif %}">Hammasi</a>
+        <a href="?period=today" class="ptab {% if period == 'today' %}active{% endif %}">Bugun</a>
+        <a href="?period=week" class="ptab {% if period == 'week' %}active{% endif %}">Hafta</a>
+        <a href="?period=month" class="ptab {% if period == 'month' %}active{% endif %}">Oy</a>
+        <a href="#" class="ptab {% if period == 'custom' %}active{% endif %}" onclick="toggleCustom(event)">Tanlash</a>
+      </div>
+      <div class="custom-range" id="customRange" style="{% if period != 'custom' %}display:none;{% endif %}">
+        <input type="hidden" name="period" value="custom">
+        <input type="date" name="date_from" class="date-input" value="{{ date_from }}" max="{{ today }}" placeholder="Boshlanish">
+        <span style="color:var(--gray-400);font-size:13px;">—</span>
+        <input type="date" name="date_to" class="date-input" value="{{ date_to }}" max="{{ today }}" placeholder="Tugash">
+        <button type="submit" class="btn btn-primary btn-sm">Ko'rish</button>
+      </div>
+    </form>
+
+    <!-- Departments with logs -->
+    {% if departments %}
+      {% for dept in departments %}
+      <div class="dept-section">
+        <!-- Head (clickable toggle) -->
+        <div class="dept-head" onclick="toggleDept('dept{{ forloop.counter }}')">
+          <div class="dept-head-left">
+            <div class="dept-icon">
+              {% if dept.icon == 'casting' %}<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M11.42 15.17L17.25 21A2.652 2.652 0 0021 17.25l-5.877-5.877M11.42 15.17l2.496-3.03c.317-.384.74-.626 1.208-.766M11.42 15.17l-4.655 5.653a2.548 2.548 0 11-3.586-3.586l6.837-5.63m5.108-.233c.55-.164 1.163-.188 1.743-.14a4.5 4.5 0 004.486-6.336l-3.276 3.277a3.004 3.004 0 01-2.25-2.25l3.276-3.276a4.5 4.5 0 00-6.336 4.486c.091 1.076-.071 2.264-.904 2.95l-.102.085m-1.745 1.437L5.909 7.5H4.5L2.25 3.75l1.5-1.5L7.5 4.5v1.409l4.26 4.26m-1.745 1.437l1.745-1.437m6.615 8.206L15.75 15.75M4.867 19.125h.008v.008h-.008v-.008z"/></svg>
+              {% elif dept.icon == 'ilish' %}<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6.429 9.75L2.25 12l4.179 2.25m0-4.5l5.571 3 5.571-3m-11.142 0L2.25 7.5 12 2.25l9.75 5.25-4.179 2.25m0 0L21.75 12l-4.179 2.25m0 0l4.179 2.25L12 21.75 2.25 16.5l4.179-2.25m11.142 0l-5.571 3-5.571-3"/></svg>
+              {% elif dept.icon == 'upakovka' %}<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m20.25 7.5-.625 10.632a2.25 2.25 0 0 1-2.247 2.118H6.622a2.25 2.25 0 0 1-2.247-2.118L3.75 7.5M10 11.25h4M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125z"/></svg>
+              {% elif dept.icon == 'boyash' %}<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9.53 16.122a3 3 0 0 0-5.78 1.128 2.25 2.25 0 0 1-2.4 2.245 4.5 4.5 0 0 0 8.4-2.245c0-.399-.078-.78-.22-1.128Zm0 0a15.998 15.998 0 0 0 3.388-1.62m-5.043-.025a15.994 15.994 0 0 1 1.622-3.395m3.42 3.42a15.995 15.995 0 0 0 4.764-4.648l3.876-5.814a1.151 1.151 0 0 0-1.597-1.597L14.146 6.32a15.996 15.996 0 0 0-4.649 4.763m3.42 3.42a6.776 6.776 0 0 0-3.42-3.42"/></svg>
+              {% elif dept.icon == 'sepish' %}<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15.362 5.214A8.252 8.252 0 0 1 12 21 8.25 8.25 0 0 1 6.038 7.047 8.287 8.287 0 0 0 9 9.601a8.983 8.983 0 0 1 3.361-6.867 8.21 8.21 0 0 0 3 2.48Z"/></svg>
+              {% else %}<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.325.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 0 1 1.37.49l1.296 2.247a1.125 1.125 0 0 1-.26 1.431l-1.003.827c-.293.241-.438.613-.43.992a7.723 7.723 0 0 1 0 .255c-.008.378.137.75.43.991l1.004.827c.424.35.534.955.26 1.43l-1.298 2.247a1.125 1.125 0 0 1-1.369.491l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.47 6.47 0 0 1-.22.128c-.331.183-.581.495-.644.869l-.213 1.281c-.09.543-.56.94-1.11.94h-2.594c-.55 0-1.019-.398-1.11-.94l-.213-1.281c-.062-.374-.312-.686-.644-.87a6.52 6.52 0 0 1-.22-.127c-.325-.196-.72-.257-1.076-.124l-1.217.456a1.125 1.125 0 0 1-1.369-.49l-1.297-2.247a1.125 1.125 0 0 1 .26-1.431l1.004-.827c.292-.24.437-.613.43-.991a6.932 6.932 0 0 1 0-.255c.007-.38-.138-.751-.43-.992l-1.004-.827a1.125 1.125 0 0 1-.26-1.43l1.297-2.247a1.125 1.125 0 0 1 1.37-.491l1.216.456c.356.133.751.072 1.076-.124.072-.044.146-.086.22-.128.332-.183.582-.495.644-.869l.214-1.28Z"/></svg>
+              {% endif %}
             </div>
-            <div class="ohc-body">
-                <div class="ohc-meta-grid">
-                    <div class="ohc-meta-item">
-                        <div class="ohc-meta-label">Miqdori</div>
-                        <div class="ohc-meta-val" style="color:var(--orange);">{{ order.quantity }}</div>
-                        <div class="ohc-meta-sub">dona</div>
-                    </div>
-                    <div class="ohc-meta-item">
-                        <div class="ohc-meta-label">Muddat</div>
-                        <div class="ohc-meta-val {% if order.is_overdue %}late{% endif %}">{{ order.deadline|date:"d.m.Y" }}</div>
-                        <div class="ohc-meta-sub">{% if order.is_overdue %}⚠ Kechikkan{% else %}tugash sanasi{% endif %}</div>
-                    </div>
-                    <div class="ohc-meta-item">
-                        <div class="ohc-meta-label">Yaratilgan</div>
-                        <div class="ohc-meta-val" style="font-size:14px;">{{ order.created_at|date:"d.m.Y" }}</div>
-                        <div class="ohc-meta-sub">{{ order.created_at|date:"H:i" }}</div>
-                    </div>
-                </div>
-                {% if order.brujka %}
-                <div style="margin-top:16px;padding-top:16px;border-top:1px solid var(--gray-100);">
-                    <div class="ohc-meta-label" style="margin-bottom:8px;">Broshka</div>
-                    <a href="{% url 'shop:broshka_detail' order.brujka.pk %}" class="broshka-chip">
-                        <span class="bc-dot" style="background:{{ order.brujka.color }};"></span>
-                        {{ order.brujka.name }}
-                        <span style="font-size:11px;font-weight:600;background:#FFF7ED;color:#C2410C;padding:2px 7px;border-radius:8px;">{{ order.brujka.get_coating_type_display }}</span>
-                    </a>
-                </div>
-                {% endif %}
+            <div>
+              <div class="dept-name">{{ dept.name }}</div>
+              <div>
+                <span class="dept-status-badge
+                  {% if 'bolindi' in dept.status_key or 'qadoqlandi' in dept.status_key or 'boyaldi' in dept.status_key or 'sepildi' in dept.status_key %}
+                    dept-badge-green
+                  {% elif 'moqda' in dept.status_key or 'quyilmoqda' in dept.status_key %}
+                    dept-badge-orange
+                  {% elif 'qabul' in dept.status_key %}
+                    dept-badge-blue
+                  {% else %}
+                    dept-badge-red
+                  {% endif %}
+                ">{{ dept.status }}</span>
+              </div>
             </div>
+          </div>
+          <div style="display:flex;align-items:center;gap:16px;">
+            <div class="dept-summary">
+              <div class="ds-item">
+                <div class="ds-val">{{ dept.filtered }}</div>
+                <div class="ds-lbl">{% if period == 'today' %}bugun{% elif period == 'week' %}hafta{% elif period == 'month' %}oy{% elif period == 'custom' %}tanlangan{% else %}filtr{% endif %}</div>
+              </div>
+              <div class="ds-divider"></div>
+              <div class="ds-item">
+                <div class="ds-val" style="color:var(--green);">{{ dept.total }}</div>
+                <div class="ds-lbl">jami {{ dept.unit }}</div>
+              </div>
+            </div>
+            <svg class="dept-chevron" id="chev_dept{{ forloop.counter }}" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5"/></svg>
+          </div>
         </div>
 
-        <!-- Timeline -->
-        <div class="timeline-card">
-            <div class="tl-head">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5"/></svg>
-                <h3>Ishlab chiqarish jarayoni</h3>
-            </div>
-            <div class="timeline">
-                <!-- Order created -->
-                <div class="tl-item">
-                    <div class="tl-dot-wrap">
-                        <div class="tl-dot tl-dot-order">
-                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>
-                        </div>
-                        {% if departments %}<div class="tl-line tl-line-active"></div>{% endif %}
-                    </div>
-                    <div class="tl-content">
-                        <div class="tl-created">
-                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h3.75M9 15h3.75M9 18h3.75m3 .75H18a2.25 2.25 0 002.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.424 48.424 0 00-1.123-.08m-5.801 0c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 00.75-.75 2.25 2.25 0 00-.1-.664m-5.8 0A2.251 2.251 0 0113.5 2.25H15c1.012 0 1.867.668 2.15 1.586m-5.8 0c-.376.023-.75.05-1.124.08C9.095 4.01 8.25 4.973 8.25 6.108V8.25m0 0H4.875c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V9.375c0-.621-.504-1.125-1.125-1.125H8.25z"/></svg>
-                            <div class="tl-created-info">
-                                <strong>Buyurtma yaratildi</strong>
-                                <span>{{ order.created_at|date:"d.m.Y H:i" }} · {{ order.created_by.name|default:"Noma'lum" }}</span>
-                            </div>
-                        </div>
-                        <div style="margin-top:8px;">
-                            <span class="tl-badge dept-badge-{% if order.status == 'new' %}blue{% elif order.status == 'accepted' %}blue{% elif order.status in 'in_process ready' %}orange{% elif order.status == 'delivered' %}green{% else %}red{% endif %}">
-                                {{ order.get_status_display }}
-                            </span>
-                        </div>
-                    </div>
-                </div>
+        <!-- Body -->
+        <div class="dept-body" id="dept{{ forloop.counter }}">
 
-                {% for dept in departments %}
-                {% with is_last=forloop.last %}
-                <div class="tl-item">
-                    <div class="tl-dot-wrap">
-                        <div class="tl-dot tl-dot-{{ dept.status_key }}">
-                            {% if dept.icon == 'casting' %}
-                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M11.42 15.17L17.25 21A2.652 2.652 0 0021 17.25l-5.877-5.877M11.42 15.17l2.496-3.03c.317-.384.74-.626 1.208-.766M11.42 15.17l-4.655 5.653a2.548 2.548 0 11-3.586-3.586l6.837-5.63m5.108-.233c.55-.164 1.163-.188 1.743-.14a4.5 4.5 0 004.486-6.336l-3.276 3.277a3.004 3.004 0 01-2.25-2.25l3.276-3.276a4.5 4.5 0 00-6.336 4.486c.091 1.076-.071 2.264-.904 2.95l-.102.085m-1.745 1.437L5.909 7.5H4.5L2.25 3.75l1.5-1.5L7.5 4.5v1.409l4.26 4.26m-1.745 1.437l1.745-1.437m6.615 8.206L15.75 15.75M4.867 19.125h.008v.008h-.008v-.008z"/></svg>
-                            {% elif dept.icon == 'ilish' %}
-                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6.429 9.75L2.25 12l4.179 2.25m0-4.5l5.571 3 5.571-3m-11.142 0L2.25 7.5 12 2.25l9.75 5.25-4.179 2.25m0 0L21.75 12l-4.179 2.25m0 0l4.179 2.25L12 21.75 2.25 16.5l4.179-2.25m11.142 0l-5.571 3-5.571-3"/></svg>
-                            {% elif dept.icon == 'upakovka' %}
-                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m20.25 7.5-.625 10.632a2.25 2.25 0 0 1-2.247 2.118H6.622a2.25 2.25 0 0 1-2.247-2.118L3.75 7.5M10 11.25h4M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125z"/></svg>
-                            {% elif dept.icon == 'boyash' %}
-                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9.53 16.122a3 3 0 0 0-5.78 1.128 2.25 2.25 0 0 1-2.4 2.245 4.5 4.5 0 0 0 8.4-2.245c0-.399-.078-.78-.22-1.128Zm0 0a15.998 15.998 0 0 0 3.388-1.62m-5.043-.025a15.994 15.994 0 0 1 1.622-3.395m3.42 3.42a15.995 15.995 0 0 0 4.764-4.648l3.876-5.814a1.151 1.151 0 0 0-1.597-1.597L14.146 6.32a15.996 15.996 0 0 0-4.649 4.763m3.42 3.42a6.776 6.776 0 0 0-3.42-3.42"/></svg>
-                            {% elif dept.icon == 'sepish' %}
-                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15.362 5.214A8.252 8.252 0 0 1 12 21 8.25 8.25 0 0 1 6.038 7.047 8.287 8.287 0 0 0 9 9.601a8.983 8.983 0 0 1 3.361-6.867 8.21 8.21 0 0 0 3 2.48Z"/></svg>
-                            {% elif dept.icon == 'tosh' %}
-                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.325.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 0 1 1.37.49l1.296 2.247a1.125 1.125 0 0 1-.26 1.431l-1.003.827c-.293.241-.438.613-.43.992a7.723 7.723 0 0 1 0 .255c-.008.378.137.75.43.991l1.004.827c.424.35.534.955.26 1.43l-1.298 2.247a1.125 1.125 0 0 1-1.369.491l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.47 6.47 0 0 1-.22.128c-.331.183-.581.495-.644.869l-.213 1.281c-.09.543-.56.94-1.11.94h-2.594c-.55 0-1.019-.398-1.11-.94l-.213-1.281c-.062-.374-.312-.686-.644-.87a6.52 6.52 0 0 1-.22-.127c-.325-.196-.72-.257-1.076-.124l-1.217.456a1.125 1.125 0 0 1-1.369-.49l-1.297-2.247a1.125 1.125 0 0 1 .26-1.431l1.004-.827c.292-.24.437-.613.43-.991a6.932 6.932 0 0 1 0-.255c.007-.38-.138-.751-.43-.992l-1.004-.827a1.125 1.125 0 0 1-.26-1.43l1.297-2.247a1.125 1.125 0 0 1 1.37-.491l1.216.456c.356.133.751.072 1.076-.124.072-.044.146-.086.22-.128.332-.183.582-.495.644-.869l.214-1.28Z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"/></svg>
-                            {% else %}
-                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/></svg>
-                            {% endif %}
-                        </div>
-                        {% if not is_last %}<div class="tl-line {% if 'bolindi' in dept.status_key or 'qadoqlandi' in dept.status_key or 'boyaldi' in dept.status_key or 'sepildi' in dept.status_key %}tl-line-active{% elif 'moqda' in dept.status_key %}tl-line-process{% else %}tl-line-inactive{% endif %}"></div>{% endif %}
-                    </div>
-                    <div class="tl-content">
-                        <div class="tl-dept-name">{{ dept.name }}</div>
-                        <span class="tl-badge
-                            {% if 'bolindi' in dept.status_key or 'qadoqlandi' in dept.status_key or 'boyaldi' in dept.status_key or 'sepildi' in dept.status_key %}dept-badge-green
-                            {% elif 'moqda' in dept.status_key %}dept-badge-orange
-                            {% elif 'qabul' in dept.status_key %}dept-badge-blue
-                            {% else %}dept-badge-red{% endif %}">
-                            {{ dept.status }}
-                        </span>
-                        <div class="tl-time">
-                            Qabul: {{ dept.created_at|date:"d.m.Y H:i" }}
-                            &nbsp;·&nbsp;
-                            Yangilangan: {{ dept.updated_at|date:"d.m.Y H:i" }}
-                        </div>
-                    </div>
-                </div>
-                {% endwith %}
+          <!-- 3 stats -->
+          <div class="logs-stats-row">
+            <div class="lsr-item">
+              <div class="lsr-label">Jami (barcha vaqt)</div>
+              <div class="lsr-val green">{{ dept.total }}</div>
+              <div class="lsr-sub">{{ dept.unit }}</div>
+            </div>
+            <div class="lsr-item">
+              <div class="lsr-label">Tanlangan davr</div>
+              <div class="lsr-val orange">{{ dept.filtered }}</div>
+              <div class="lsr-sub">{{ dept.unit }} · {{ dept.logs|length }} ta yozuv</div>
+            </div>
+            <div class="lsr-item">
+              <div class="lsr-label">Buyurtma miqdori</div>
+              <div class="lsr-val">{{ order.quantity }}</div>
+              <div class="lsr-sub">dona buyurtma qilingan</div>
+            </div>
+          </div>
+
+          <!-- Progress -->
+          {% if order.quantity > 0 and dept.total > 0 %}
+          <div class="dept-progress-wrap">
+            <span style="font-size:12px;font-weight:700;color:var(--gray-500);white-space:nowrap;">Bajarilishi:</span>
+            <div class="prog-bar-bg">
+              {% widthratio dept.total order.quantity 100 as pct %}
+              <div class="prog-bar-fill" style="width:{% if dept.total >= order.quantity %}100{% else %}{{ pct }}{% endif %}%;"></div>
+            </div>
+            <span class="prog-pct">
+              {% if dept.total >= order.quantity %}✓ 100%{% else %}{{ pct }}%{% endif %}
+            </span>
+            <span style="font-size:12px;color:var(--gray-400);">{{ dept.total }}/{{ order.quantity }} {{ dept.unit }}</span>
+          </div>
+          {% endif %}
+
+          <!-- Log table -->
+          <div class="log-table-wrap">
+            {% if dept.logs %}
+            <table class="log-table">
+              <thead>
+                <tr>
+                  <th>Sana</th>
+                  <th>Smena</th>
+                  <th>Miqdor</th>
+                  <th>Hodim</th>
+                  <th>Qo'shimcha</th>
+                  <th>Izoh</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for log in dept.logs %}
+                <tr>
+                  <td style="font-weight:600;white-space:nowrap;color:var(--black);">{{ log.sana|date:"d.m.Y" }}</td>
+                  <td>
+                    {% if log.smena %}
+                      {% if 'Kunduz' in log.smena %}<span class="log-smena-kun">☀ {{ log.smena }}</span>
+                      {% else %}<span class="log-smena-tun">🌙 {{ log.smena }}</span>{% endif %}
+                    {% else %}<span style="color:var(--gray-400);font-size:12px;">—</span>{% endif %}
+                  </td>
+                  <td><span class="log-son">{{ log.son }}</span> <span style="font-size:11px;color:var(--gray-400);">{{ dept.unit }}</span></td>
+                  <td style="font-size:12.5px;color:var(--gray-700);">{{ log.hodim.name|default:"—" }}</td>
+                  <td class="log-extra">{{ log.extra|default:"—" }}</td>
+                  <td style="font-size:12px;color:var(--gray-500);max-width:160px;">{{ log.izoh|default:"—"|truncatechars:50 }}</td>
+                </tr>
                 {% endfor %}
-
-                {% if not departments %}
-                <div style="padding:20px;text-align:center;color:var(--gray-400);">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1" stroke="currentColor" style="width:36px;height:36px;margin-bottom:8px;opacity:.2;"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                    <p style="font-size:13px;">Buyurtma hali hech bir bo'limga o'tmagan</p>
-                    {% if order.status == 'new' %}
-                    <p style="font-size:12px;color:var(--orange);margin-top:4px;">CEO qabul qilishini kuting</p>
-                    {% endif %}
-                </div>
-                {% endif %}
+              </tbody>
+            </table>
+            {% else %}
+            <div class="no-logs">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z"/></svg>
+              <p>{% if period != 'all' %}Bu davr uchun log yozuvlari yo'q{% else %}Hali log kiritilmagan{% endif %}</p>
             </div>
+            {% endif %}
+          </div>
         </div>
+      </div>
+      {% endfor %}
+    {% else %}
+    <div style="background:var(--white);border:1px solid var(--gray-200);border-radius:16px;padding:50px;text-align:center;color:var(--gray-400);">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1" stroke="currentColor" style="width:48px;height:48px;margin-bottom:12px;opacity:.15;"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+      <p style="font-size:14px;">Buyurtma hali hech bir bo'limga o'tmagan</p>
+      {% if order.status == 'new' %}<p style="font-size:12px;color:var(--orange);margin-top:6px;">CEO qabul qilishini kuting</p>{% endif %}
+    </div>
+    {% endif %}
+
+  </div><!-- /left -->
+
+  <!-- RIGHT: sidebar -->
+  <div>
+
+    <!-- Order info -->
+    <div class="side-card">
+      <div class="side-head">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m11.25 11.25.041-.02a.75.75 0 0 1 1.063.852l-.708 2.836a.75.75 0 0 0 1.063.853l.041-.021M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9-3.75h.008v.008H12V8.25z"/></svg>
+        <h4>Ma'lumotlar</h4>
+      </div>
+      <div class="side-body">
+        <div class="info-row"><span class="ir-l">Raqam</span><span class="ir-v" style="font-family:monospace;color:var(--orange);">{{ order.order_number }}</span></div>
+        <div class="info-row"><span class="ir-l">Holati</span><span class="ir-v"><span class="status-badge sb-{{ order.status }}" style="font-size:11px;"><span class="dot"></span>{{ order.get_status_display }}</span></span></div>
+        <div class="info-row"><span class="ir-l">Muhimlik</span><span class="ir-v"><span class="prio-badge prio-{{ order.priority }}">{{ order.get_priority_display }}</span></span></div>
+        <div class="info-row"><span class="ir-l">Miqdori</span><span class="ir-v" style="color:var(--orange);font-size:16px;">{{ order.quantity }} <small style="font-size:11px;color:var(--gray-400);">dona</small></span></div>
+        <div class="info-row"><span class="ir-l">Muddat</span><span class="ir-v {% if order.is_overdue %}late{% endif %}">{{ order.deadline|date:"d.m.Y" }}</span></div>
+        <div class="info-row"><span class="ir-l">Yaratilgan</span><span class="ir-v">{{ order.created_at|date:"d.m.Y H:i" }}</span></div>
+        <div class="info-row"><span class="ir-l">Yaratuvchi</span><span class="ir-v">{{ order.created_by.name|default:"—" }}</span></div>
+      </div>
     </div>
 
-    <!-- Right Side -->
-    <div>
-        <!-- Order Info -->
-        <div class="side-card">
-            <div class="side-card-head">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m11.25 11.25.041-.02a.75.75 0 0 1 1.063.852l-.708 2.836a.75.75 0 0 0 1.063.853l.041-.021M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9-3.75h.008v.008H12V8.25z"/></svg>
-                <h4>Buyurtma ma'lumotlari</h4>
+    <!-- Timeline -->
+    <div class="side-card">
+      <div class="side-head">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M8.25 6.75h12M8.25 12h12m-12 5.25h12M3.75 6.75h.007v.008H3.75V6.75Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0ZM3.75 12h.007v.008H3.75V12Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm-.375 5.25h.007v.008H3.75v-.008Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Z"/></svg>
+        <h4>Jarayon yo'li</h4>
+      </div>
+      <div class="side-body">
+        <div class="tl">
+          <!-- Created -->
+          <div class="tl-row">
+            <div class="tl-left">
+              <div class="tl-dot tld-created"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg></div>
+              {% if departments %}<div class="tl-line"></div>{% endif %}
             </div>
-            <div class="side-card-body">
-                <div class="info-row">
-                    <span class="ir-label">Buyurtma #</span>
-                    <span class="ir-val" style="font-family:monospace;color:var(--orange);">{{ order.order_number }}</span>
-                </div>
-                <div class="info-row">
-                    <span class="ir-label">Holati</span>
-                    <span class="ir-val"><span class="status-badge sb-{{ order.status }}" style="font-size:12px;"><span class="dot"></span>{{ order.get_status_display }}</span></span>
-                </div>
-                <div class="info-row">
-                    <span class="ir-label">Muhimlik</span>
-                    <span class="ir-val"><span class="prio-badge prio-{{ order.priority }}">{{ order.get_priority_display }}</span></span>
-                </div>
-                <div class="info-row">
-                    <span class="ir-label">Miqdori</span>
-                    <span class="ir-val" style="color:var(--orange);font-size:16px;">{{ order.quantity }} <small style="font-size:12px;color:var(--gray-400);">dona</small></span>
-                </div>
-                <div class="info-row">
-                    <span class="ir-label">Muddat</span>
-                    <span class="ir-val {% if order.is_overdue %}late{% endif %}">{{ order.deadline|date:"d.m.Y" }}</span>
-                </div>
-                <div class="info-row">
-                    <span class="ir-label">Yaratilgan</span>
-                    <span class="ir-val">{{ order.created_at|date:"d.m.Y H:i" }}</span>
-                </div>
-                <div class="info-row">
-                    <span class="ir-label">Yaratuvchi</span>
-                    <span class="ir-val">{{ order.created_by.name|default:"—" }}</span>
-                </div>
+            <div class="tl-content">
+              <div class="tl-dept">Buyurtma yaratildi</div>
+              <div class="tl-time">{{ order.created_at|date:"d.m.Y H:i" }}</div>
             </div>
+          </div>
+          <!-- Departments -->
+          {% for dept in departments %}
+          <div class="tl-row">
+            <div class="tl-left">
+              <div class="tl-dot
+                {% if 'bolindi' in dept.status_key or 'qadoqlandi' in dept.status_key or 'boyaldi' in dept.status_key or 'sepildi' in dept.status_key %}tld-green
+                {% elif 'moqda' in dept.status_key or 'quyilmoqda' in dept.status_key %}tld-orange
+                {% elif 'qabul' in dept.status_key %}tld-blue
+                {% else %}tld-red{% endif %}">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/></svg>
+              </div>
+              {% if not forloop.last %}<div class="tl-line"></div>{% endif %}
+            </div>
+            <div class="tl-content">
+              <div class="tl-dept">{{ dept.name }}</div>
+              <div class="tl-status" style="color:{% if 'bolindi' in dept.status_key or 'qadoqlandi' in dept.status_key or 'boyaldi' in dept.status_key or 'sepildi' in dept.status_key %}var(--green){% elif 'moqda' in dept.status_key or 'quyilmoqda' in dept.status_key %}var(--orange){% elif 'qabul' in dept.status_key %}var(--blue){% else %}var(--red){% endif %};">
+                {{ dept.status }} · <strong>{{ dept.total }} {{ dept.unit }}</strong>
+              </div>
+              <div class="tl-time">{{ dept.updated_at|date:"d.m.Y H:i" }}</div>
+            </div>
+          </div>
+          {% endfor %}
         </div>
-
-        {% if order.brujka %}
-        <div class="side-card">
-            <div class="side-card-head">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M20.25 7.5l-.625 10.632a2.25 2.25 0 01-2.247 2.118H6.622a2.25 2.25 0 01-2.247-2.118L3.75 7.5M10 11.25h4M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125z"/></svg>
-                <h4>Broshka</h4>
-            </div>
-            <div class="side-card-body">
-                {% if order.brujka.image %}
-                <img src="{{ order.brujka.image.url }}" style="width:100%;border-radius:10px;margin-bottom:14px;max-height:160px;object-fit:cover;border:1px solid var(--gray-200);" alt="">
-                {% endif %}
-                <div class="info-row">
-                    <span class="ir-label">Nomi</span>
-                    <span class="ir-val">{{ order.brujka.name }}</span>
-                </div>
-                <div class="info-row">
-                    <span class="ir-label">Rang</span>
-                    <span class="ir-val" style="display:flex;align-items:center;gap:6px;">
-                        <span style="display:inline-block;width:14px;height:14px;border-radius:3px;background:{{ order.brujka.color }};border:1px solid rgba(0,0,0,.1);"></span>
-                        {{ order.brujka.color }}
-                    </span>
-                </div>
-                <div class="info-row">
-                    <span class="ir-label">Qoplama</span>
-                    <span class="ir-val">{{ order.brujka.get_coating_type_display }}</span>
-                </div>
-                <div style="margin-top:12px;">
-                    <a href="{% url 'shop:broshka_detail' order.brujka.pk %}" class="btn btn-secondary btn-sm" style="width:100%;justify-content:center;">Ko'rish</a>
-                </div>
-            </div>
-        </div>
-        {% endif %}
-
-        {% if order.note %}
-        <div class="side-card">
-            <div class="side-card-head">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z"/></svg>
-                <h4>Izoh</h4>
-            </div>
-            <div class="side-card-body">
-                <div class="note-box">{{ order.note }}</div>
-            </div>
-        </div>
-        {% endif %}
-
-        <!-- Actions -->
-        <div class="side-card">
-            <div class="side-card-head">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5"/></svg>
-                <h4>Amallar</h4>
-            </div>
-            <div class="side-card-body" style="display:flex;flex-direction:column;gap:8px;">
-                {% if can_edit %}
-                <a href="{% url 'shop:order_edit' order.pk %}" class="btn btn-primary" style="justify-content:center;">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Z"/></svg>
-                    Tahrirlash
-                </a>
-                {% endif %}
-                {% if can_cancel %}
-                <form method="post" action="{% url 'shop:order_cancel' order.pk %}" onsubmit="return confirm('Bekor qilmoqchimisiz?')">
-                    {% csrf_token %}
-                    <button type="submit" class="btn btn-danger" style="width:100%;justify-content:center;">
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12"/></svg>
-                        Bekor qilish
-                    </button>
-                </form>
-                {% endif %}
-                {% if can_delete %}
-                <a href="{% url 'shop:order_delete' order.pk %}" class="btn btn-secondary" style="justify-content:center;color:var(--red);">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0"/></svg>
-                    O'chirish
-                </a>
-                {% endif %}
-            </div>
-        </div>
+      </div>
     </div>
+
+    <!-- Actions -->
+    {% if can_edit or can_cancel or can_delete %}
+    <div class="side-card">
+      <div class="side-head">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5"/></svg>
+        <h4>Amallar</h4>
+      </div>
+      <div class="side-body" style="display:flex;flex-direction:column;gap:8px;">
+        {% if can_edit %}
+        <a href="{% url 'shop:order_edit' order.pk %}" class="btn btn-primary" style="justify-content:center;">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Z"/></svg>
+          Tahrirlash
+        </a>
+        {% endif %}
+        {% if can_cancel %}
+        <form method="post" action="{% url 'shop:order_cancel' order.pk %}" onsubmit="return confirm('Bekor qilmoqchimisiz?')">
+          {% csrf_token %}
+          <button type="submit" class="btn btn-danger" style="width:100%;justify-content:center;">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12"/></svg>
+            Bekor qilish
+          </button>
+        </form>
+        {% endif %}
+        {% if can_delete %}
+        <a href="{% url 'shop:order_delete' order.pk %}" class="btn btn-secondary" style="justify-content:center;color:var(--red);">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0"/></svg>
+          O'chirish
+        </a>
+        {% endif %}
+      </div>
+    </div>
+    {% endif %}
+
+    {% if order.note %}
+    <div class="side-card">
+      <div class="side-head">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z"/></svg>
+        <h4>Izoh</h4>
+      </div>
+      <div class="side-body">
+        <div style="font-size:13.5px;color:var(--gray-600);line-height:1.6;">{{ order.note }}</div>
+      </div>
+    </div>
+    {% endif %}
+
+  </div><!-- /right -->
 </div>
 
+<!-- Lightbox -->
 <div class="lightbox" id="lightbox" onclick="if(event.target===this)closeLb()">
-    <button class="lb-close" onclick="closeLb()"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12"/></svg></button>
-    <img id="lbImg" src="" alt="">
+  <button class="lb-close" onclick="closeLb()"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12"/></svg></button>
+  <img id="lbImg" src="" alt="">
 </div>
 {% endblock %}
 
@@ -454,5 +543,30 @@
 function openLb(url){ document.getElementById('lbImg').src=url; document.getElementById('lightbox').classList.add('show'); document.body.style.overflow='hidden'; }
 function closeLb(){ document.getElementById('lightbox').classList.remove('show'); document.body.style.overflow=''; }
 document.addEventListener('keydown',e=>{ if(e.key==='Escape')closeLb(); });
+
+function toggleDept(id) {
+    const body = document.getElementById(id);
+    const chev = document.getElementById('chev_' + id);
+    if (!body) return;
+    body.classList.toggle('open');
+    if (chev) chev.classList.toggle('open');
+}
+
+// Auto-open first dept that has logs
+document.addEventListener('DOMContentLoaded', () => {
+    {% for dept in departments %}
+    {% if dept.logs %}
+    toggleDept('dept{{ forloop.counter }}');
+    {% if forloop.first %}{% endif %}
+    {% endif %}
+    {% endfor %}
+});
+
+function toggleCustom(e) {
+    e.preventDefault();
+    const el = document.getElementById('customRange');
+    const isHidden = el.style.display === 'none';
+    el.style.display = isHidden ? 'flex' : 'none';
+}
 </script>
 {% endblock %}

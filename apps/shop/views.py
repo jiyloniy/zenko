@@ -266,94 +266,174 @@ class ShopOrderDetailView(ShopManagerRequiredMixin, View):
     template_name = 'shop/order_detail.html'
 
     def get(self, request, pk):
+        from django.db.models import Sum as DSum
+        import datetime
+
         order = get_object_or_404(
             Order.objects.select_related('brujka', 'created_by'),
             pk=pk,
         )
 
-        # Bo'limlar bo'yicha jarayonlar
+        # Date range filter
+        today = timezone.now().date()
+        period = request.GET.get('period', 'all')
+        date_from_str = request.GET.get('date_from', '')
+        date_to_str = request.GET.get('date_to', '')
+
+        if period == 'today':
+            date_from = date_to = today
+        elif period == 'week':
+            date_from = today - datetime.timedelta(days=6)
+            date_to = today
+        elif period == 'month':
+            date_from = today.replace(day=1)
+            date_to = today
+        elif period == 'custom' and date_from_str and date_to_str:
+            try:
+                date_from = datetime.date.fromisoformat(date_from_str)
+                date_to = datetime.date.fromisoformat(date_to_str)
+            except ValueError:
+                date_from = date_to = None
+        else:
+            date_from = date_to = None
+
+        def filter_logs(qs, date_field='sana'):
+            if date_from and date_to:
+                return qs.filter(**{f'{date_field}__gte': date_from, f'{date_field}__lte': date_to})
+            return qs
+
         departments = []
 
+        # ── Quyish ──
         if QuyishJarayon:
             try:
+                from apps.casting.models import QuyishJarayonLog
                 casting = order.quyish_jarayon
+                logs_qs = filter_logs(casting.loglar.select_related('created_by').order_by('-created_at'))
+                total_miqdor = casting.loglar.aggregate(s=DSum('miqdor'))['s'] or 0
+                filtered_miqdor = logs_qs.aggregate(s=DSum('miqdor'))['s'] or 0
+                logs = [{'sana': l.created_at.date(), 'smena': None, 'son': l.miqdor,
+                         'izoh': l.izoh, 'hodim': l.created_by, 'created_at': l.created_at,
+                         'extra': l.get_natija_display() if l.natija else ''} for l in logs_qs]
                 departments.append({
-                    'name': 'Quyish (Casting)',
-                    'icon': 'casting',
-                    'status': casting.get_status_display(),
-                    'status_key': casting.status,
-                    'created_at': casting.created_at,
-                    'updated_at': casting.updated_at,
+                    'name': 'Quyish', 'icon': 'casting',
+                    'status': casting.get_status_display(), 'status_key': casting.status,
+                    'created_at': casting.created_at, 'updated_at': casting.updated_at,
+                    'unit': 'dona', 'total': total_miqdor, 'filtered': filtered_miqdor,
+                    'logs': logs,
                 })
             except Exception:
                 pass
 
+        # ── Ilish ──
         if IlishJarayon:
             try:
                 ilish = order.ilish_jarayon
+                logs_qs = filter_logs(ilish.loglar.select_related('hodim', 'vishilka', 'created_by').order_by('-sana', '-created_at'))
+                total_broshka = sum(
+                    (l.vishilka.quantity * l.vishilka_soni * 2 if l.vishilka else 0)
+                    for l in ilish.loglar.all()
+                )
+                filtered_broshka = sum(
+                    (l.vishilka.quantity * l.vishilka_soni * 2 if l.vishilka else 0)
+                    for l in logs_qs
+                )
+                logs = [{'sana': l.sana, 'smena': l.get_smena_display(), 'son': l.ilingan_broshka,
+                         'izoh': l.izoh, 'hodim': l.hodim, 'created_at': l.created_at,
+                         'extra': f'{l.vishilka} × {l.vishilka_soni}' if l.vishilka else ''} for l in logs_qs]
                 departments.append({
-                    'name': 'Ilish (Stitching)',
-                    'icon': 'ilish',
-                    'status': ilish.get_status_display(),
-                    'status_key': ilish.status,
-                    'created_at': ilish.created_at,
-                    'updated_at': ilish.updated_at,
+                    'name': 'Ilish', 'icon': 'ilish',
+                    'status': ilish.get_status_display(), 'status_key': ilish.status,
+                    'created_at': ilish.created_at, 'updated_at': ilish.updated_at,
+                    'unit': 'broshka', 'total': total_broshka, 'filtered': filtered_broshka,
+                    'logs': logs,
                 })
             except Exception:
                 pass
 
+        # ── Upakovka ──
         if QadoqlashJarayon:
             try:
                 upakovka = order.qadoqlash_jarayon
+                logs_qs = filter_logs(upakovka.loglar.select_related('created_by').order_by('-sana', '-created_at'))
+                total_par = upakovka.loglar.aggregate(s=DSum('par_soni'))['s'] or 0
+                filtered_par = logs_qs.aggregate(s=DSum('par_soni'))['s'] or 0
+                logs = [{'sana': l.sana, 'smena': l.get_smena_display(), 'son': l.par_soni,
+                         'izoh': l.izoh, 'hodim': l.created_by, 'created_at': l.created_at,
+                         'extra': ''} for l in logs_qs]
                 departments.append({
-                    'name': 'Upakovka (Qadoqlash)',
-                    'icon': 'upakovka',
-                    'status': upakovka.get_status_display(),
-                    'status_key': upakovka.status,
-                    'created_at': upakovka.created_at,
-                    'updated_at': upakovka.updated_at,
+                    'name': 'Upakovka', 'icon': 'upakovka',
+                    'status': upakovka.get_status_display(), 'status_key': upakovka.status,
+                    'created_at': upakovka.created_at, 'updated_at': upakovka.updated_at,
+                    'unit': 'par', 'total': total_par, 'filtered': filtered_par,
+                    'logs': logs,
                 })
             except Exception:
                 pass
 
+        # ── Bo'yash ──
         if BoyashJarayon:
             try:
+                from apps.boyash.models import BoyashJarayonLog
                 boyash = order.boyash_jarayon
+                logs_qs = filter_logs(boyash.loglar.select_related('vishilka', 'created_by').order_by('-sana', '-created_at'))
+                total_par = sum(
+                    (l.vishilka.quantity * l.vishilka_soni if l.vishilka else 0)
+                    for l in boyash.loglar.all()
+                )
+                filtered_par = sum(
+                    (l.vishilka.quantity * l.vishilka_soni if l.vishilka else 0)
+                    for l in logs_qs
+                )
+                logs = [{'sana': l.sana, 'smena': l.get_smena_display(), 'son': l.boyalgan_par,
+                         'izoh': l.izoh, 'hodim': l.created_by, 'created_at': l.created_at,
+                         'extra': f'{l.vishilka} × {l.vishilka_soni}' if l.vishilka else ''} for l in logs_qs]
                 departments.append({
-                    'name': "Bo'yash (Painting)",
-                    'icon': 'boyash',
-                    'status': boyash.get_status_display(),
-                    'status_key': boyash.status,
-                    'created_at': boyash.created_at,
-                    'updated_at': boyash.updated_at,
+                    'name': "Bo'yash", 'icon': 'boyash',
+                    'status': boyash.get_status_display(), 'status_key': boyash.status,
+                    'created_at': boyash.created_at, 'updated_at': boyash.updated_at,
+                    'unit': 'par', 'total': total_par, 'filtered': filtered_par,
+                    'logs': logs,
                 })
             except Exception:
                 pass
 
+        # ── Sepish ──
         if SepishJarayon:
             try:
                 sepish = order.sepish_jarayon
+                logs_qs = filter_logs(sepish.loglar.select_related('kraska', 'created_by').order_by('-sana', '-created_at'))
+                total_par = sepish.loglar.aggregate(s=DSum('par_soni'))['s'] or 0
+                filtered_par = logs_qs.aggregate(s=DSum('par_soni'))['s'] or 0
+                logs = [{'sana': l.sana, 'smena': l.get_smena_display(), 'son': l.par_soni,
+                         'izoh': l.izoh, 'hodim': l.created_by, 'created_at': l.created_at,
+                         'extra': f'{l.kraska} {l.kraska_gramm}g' if l.kraska else ''} for l in logs_qs]
                 departments.append({
-                    'name': 'Sepish (Spraying)',
-                    'icon': 'sepish',
-                    'status': sepish.get_status_display(),
-                    'status_key': sepish.status,
-                    'created_at': sepish.created_at,
-                    'updated_at': sepish.updated_at,
+                    'name': 'Sepish', 'icon': 'sepish',
+                    'status': sepish.get_status_display(), 'status_key': sepish.status,
+                    'created_at': sepish.created_at, 'updated_at': sepish.updated_at,
+                    'unit': 'par', 'total': total_par, 'filtered': filtered_par,
+                    'logs': logs,
                 })
             except Exception:
                 pass
 
+        # ── Tosh ──
         if ToshQadashJarayon:
             try:
                 tosh = order.tosh_qadash_jarayon
+                logs_qs = filter_logs(tosh.loglar.select_related('hodim', 'tosh', 'created_by').order_by('-sana', '-created_at'))
+                total_par = tosh.loglar.aggregate(s=DSum('par_soni'))['s'] or 0
+                filtered_par = logs_qs.aggregate(s=DSum('par_soni'))['s'] or 0
+                logs = [{'sana': l.sana, 'smena': l.get_smena_display(), 'son': l.par_soni,
+                         'izoh': l.izoh, 'hodim': l.hodim, 'created_at': l.created_at,
+                         'extra': str(l.tosh) if l.tosh else ''} for l in logs_qs]
                 departments.append({
-                    'name': 'Tosh qadash (Polishing)',
-                    'icon': 'tosh',
-                    'status': tosh.get_status_display(),
-                    'status_key': tosh.status,
-                    'created_at': tosh.created_at,
-                    'updated_at': tosh.updated_at,
+                    'name': 'Tosh qadash', 'icon': 'tosh',
+                    'status': tosh.get_status_display(), 'status_key': tosh.status,
+                    'created_at': tosh.created_at, 'updated_at': tosh.updated_at,
+                    'unit': 'par', 'total': total_par, 'filtered': filtered_par,
+                    'logs': logs,
                 })
             except Exception:
                 pass
@@ -370,6 +450,10 @@ class ShopOrderDetailView(ShopManagerRequiredMixin, View):
             'can_cancel': can_cancel,
             'can_delete': can_delete,
             'active_nav': 'orders',
+            'period': period,
+            'date_from': date_from_str or (date_from.isoformat() if date_from else ''),
+            'date_to': date_to_str or (date_to.isoformat() if date_to else ''),
+            'today': today.isoformat(),
             'new_orders_count': _order_qs_for_user(request.user).filter(status=Order.Status.NEW).count(),
         })
 
