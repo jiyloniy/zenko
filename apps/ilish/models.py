@@ -163,7 +163,7 @@ class QadoqlashJarayon(models.Model):
 
     order = models.OneToOneField(
         'order.Order',
-        on_delete=models.CASCADE,
+        on_delete=models.SET_NULL,
         related_name='qadoqlash_jarayon',
         verbose_name='Buyurtma',
         null=True, blank=True
