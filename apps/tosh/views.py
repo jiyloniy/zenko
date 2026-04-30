@@ -13,7 +13,7 @@ from apps.users.models import User
 from .forms import ToshForm, ToshLogForm, KleyRasxodForm, ToshRasxodForm
 from .models import (
     Tosh, ToshQadashJarayon, ToshQadashLog,
-    KleyRasxod, ToshRasxod, QabulJarayon,
+    KleyRasxod, ToshRasxod,
 )
 
 
@@ -38,21 +38,19 @@ class ToshManagerRequiredMixin(LoginRequiredMixin):
 
 class ToshJarayonListView(ToshManagerRequiredMixin, View):
     def get(self, request):
-        from apps.casting.models import QuyishJarayon
+        from apps.ilish.models import IlishJarayon
 
         tab = request.GET.get('tab', 'qabul_qilindi')
         q   = request.GET.get('q', '').strip()
 
-        quyilgan_orders = Order.objects.filter(
-            status__in=[Order.Status.IN_PROCESS, Order.Status.READY],
-            quyish_jarayon__status__in=[QuyishJarayon.Status.QUYIB_BOLINDI, QuyishJarayon.Status.QUYILMOQDA],
-            
+        # Faqat ilinmoqda yoki ilib_bolindi statusli IlishJarayon orderlarini tosh qadashga qo'shish
+        ilinayotgan_orders = Order.objects.filter(
+            ilish_jarayon__status__in=[
+                IlishJarayon.Status.ILINMOQDA,
+                IlishJarayon.Status.ILIB_BOLINDI,
+            ]
         )
-        for order in quyilgan_orders:
-            ToshQadashJarayon.objects.get_or_create(
-                order=order, defaults={'created_by': request.user},
-            )
-        for order in Order.objects.filter(status=Order.Status.READY):
+        for order in ilinayotgan_orders:
             ToshQadashJarayon.objects.get_or_create(
                 order=order, defaults={'created_by': request.user},
             )
@@ -134,7 +132,7 @@ class ToshJarayonSetStatusView(ToshManagerRequiredMixin, View):
             jarayon.izoh       = izoh
             jarayon.updated_by = request.user
             jarayon.save()
-            messages.success(request, f'Holat yangilandi.')
+            messages.success(request, 'Holat yangilandi.')
         else:
             messages.error(request, 'Noto\'g\'ri holat.')
         return redirect(f'{reverse_lazy("tosh:jarayon_list")}?tab={next_tab}')
@@ -222,85 +220,7 @@ class ToshBulkLogCreateView(ToshManagerRequiredMixin, View):
 
 
 # ─────────────────────────────────────────────
-# Qabul jarayonlari
-# ─────────────────────────────────────────────
-
-class QabulJarayonListView(ToshManagerRequiredMixin, View):
-    def get(self, request):
-        tab = request.GET.get('tab', 'kutilmoqda')
-        q   = request.GET.get('q', '').strip()
-
-        # Auto-create QabulJarayon for completed tosh process
-        tosh_completed = ToshQadashJarayon.objects.filter(
-            status__in=[ToshQadashJarayon.Status.TOSH_QADALDI]
-        )
-        for tosh_j in tosh_completed:
-            QabulJarayon.objects.get_or_create(
-                tosh_jarayon=tosh_j,
-                defaults={'updated_by': request.user},
-            )
-
-        qs = QabulJarayon.objects.select_related(
-            'tosh_jarayon', 'tosh_jarayon__order', 'tosh_jarayon__order__brujka', 'updated_by',
-        ).order_by('-tosh_jarayon__order__deadline', '-updated_at')
-
-        if q:
-            qs = qs.filter(
-                Q(tosh_jarayon__order__name__icontains=q) |
-                Q(tosh_jarayon__order__order_number__icontains=q)
-            )
-
-        valid_tabs = {s.value for s in QabulJarayon.Status}
-        if tab not in valid_tabs:
-            tab = 'kutilmoqda'
-
-        jarayonlar = qs.filter(status=tab)
-        counts     = {s.value: qs.filter(status=s.value).count() for s in QabulJarayon.Status}
-
-        return render(request, 'tosh/qabul_list.html', {
-            'active_nav': 'qabul',
-            'tab': tab,
-            'q': q,
-            'jarayonlar': jarayonlar,
-            'counts': counts,
-            'today': timezone.now().date().isoformat(),
-        })
-
-
-class QabulJarayonDetailView(ToshManagerRequiredMixin, View):
-    def get(self, request, pk):
-        qabul = get_object_or_404(
-            QabulJarayon.objects.select_related('tosh_jarayon', 'tosh_jarayon__order', 'tosh_jarayon__order__brujka'),
-            pk=pk,
-        )
-        return render(request, 'tosh/qabul_detail.html', {
-            'active_nav': 'qabul',
-            'qabul': qabul,
-            'today': timezone.now().date().isoformat(),
-        })
-
-
-class QabulJarayonSetStatusView(ToshManagerRequiredMixin, View):
-    def post(self, request, pk):
-        qabul  = get_object_or_404(QabulJarayon, pk=pk)
-        status = request.POST.get('status', '').strip()
-        izoh   = request.POST.get('izoh', '').strip()
-        next_tab = request.POST.get('next_tab', 'kutilmoqda')
-
-        valid = {s.value for s in QabulJarayon.Status}
-        if status in valid:
-            qabul.status     = status
-            qabul.izoh       = izoh
-            qabul.updated_by = request.user
-            qabul.save()
-            messages.success(request, f'Qabul holati yangilandi.')
-        else:
-            messages.error(request, 'Noto\'g\'ri holat.')
-        return redirect(f'{reverse_lazy("tosh:qabul_list")}?tab={next_tab}')
-
-
-# ─────────────────────────────────────────────
-# Kley rasxod — alohida bo'lim (jarayonsiz)
+# Kley rasxod — alohida bo'lim
 # ─────────────────────────────────────────────
 
 class KleyRasxodListView(ToshManagerRequiredMixin, View):
@@ -371,7 +291,7 @@ class KleyRasxodDeleteView(ToshManagerRequiredMixin, View):
 
 
 # ─────────────────────────────────────────────
-# Tosh rasxod — alohida bo'lim (jarayonsiz)
+# Tosh rasxod — alohida bo'lim
 # ─────────────────────────────────────────────
 
 class ToshRasxodListView(ToshManagerRequiredMixin, View):
@@ -533,36 +453,34 @@ class ToshStatsView(ToshManagerRequiredMixin, View):
         days      = int(request.GET.get('days', 14))
         date_from = today - datetime.timedelta(days=days - 1)
 
-        # Database queries bilan optimized
         loglar             = ToshQadashLog.objects.filter(sana__gte=date_from, sana__lte=today).select_related('hodim', 'tosh', 'jarayon__order')
         kley_loglar        = KleyRasxod.objects.filter(sana__gte=date_from, sana__lte=today)
         tosh_rasxod_loglar = ToshRasxod.objects.filter(sana__gte=date_from, sana__lte=today).select_related('tosh')
 
-        # Par soni hisoblash (smena bo'yicha)
-        kun_loglar = [l for l in loglar if l.smena == 'kun']
-        tun_loglar = [l for l in loglar if l.smena == 'tun']
+        # Par soni (smena bo'yicha)
+        all_loglar = list(loglar)
+        kun_loglar = [l for l in all_loglar if l.smena == 'kun']
+        tun_loglar = [l for l in all_loglar if l.smena == 'tun']
         kun_par    = sum(l.par_soni for l in kun_loglar)
         tun_par    = sum(l.par_soni for l in tun_loglar)
         umumiy_par = kun_par + tun_par
 
-        # Kley rasxodi hisoblash (smena bo'yicha)
+        # Kley rasxodi (smena bo'yicha)
         kun_kley   = float(kley_loglar.filter(smena='kun').aggregate(s=Sum('kley_gramm'))['s'] or 0)
         tun_kley   = float(kley_loglar.filter(smena='tun').aggregate(s=Sum('kley_gramm'))['s'] or 0)
         total_kley = kun_kley + tun_kley
-        
-        # Tosh rasxodi hisoblash (smena bo'yicha)
-        kun_tr     = float(tosh_rasxod_loglar.filter(smena='kun').aggregate(s=Sum('tosh_gramm'))['s'] or 0)
-        tun_tr     = float(tosh_rasxod_loglar.filter(smena='tun').aggregate(s=Sum('tosh_gramm'))['s'] or 0)
-        total_tr   = kun_tr + tun_tr
 
-        # Chart labels
+        # Tosh rasxodi (smena bo'yicha)
+        kun_tr   = float(tosh_rasxod_loglar.filter(smena='kun').aggregate(s=Sum('tosh_gramm'))['s'] or 0)
+        tun_tr   = float(tosh_rasxod_loglar.filter(smena='tun').aggregate(s=Sum('tosh_gramm'))['s'] or 0)
+        total_tr = kun_tr + tun_tr
+
+        # Chart
         date_range   = [date_from + datetime.timedelta(days=i) for i in range(days)]
         chart_labels = [d.strftime('%d.%m') for d in date_range]
-        all_loglar   = list(loglar)
         all_kley     = list(kley_loglar)
         all_tr       = list(tosh_rasxod_loglar)
 
-        # Kunlik statistika
         kun_by_day  = [sum(l.par_soni for l in all_loglar if l.sana == d and l.smena == 'kun') for d in date_range]
         tun_by_day  = [sum(l.par_soni for l in all_loglar if l.sana == d and l.smena == 'tun') for d in date_range]
         kley_by_day = [sum(float(k.kley_gramm) for k in all_kley if k.sana == d) for d in date_range]
@@ -571,7 +489,7 @@ class ToshStatsView(ToshManagerRequiredMixin, View):
         # Jarayon holatlari
         status_counts = {s.value: ToshQadashJarayon.objects.filter(status=s.value).count() for s in ToshQadashJarayon.Status}
 
-        # Hodim statistika (reytingi)
+        # Hodim statistika
         hodim_stats = []
         hodimlar = User.objects.filter(tosh_loglar__sana__gte=date_from).distinct()
         for hodim in hodimlar:
@@ -582,75 +500,45 @@ class ToshStatsView(ToshManagerRequiredMixin, View):
             hodim_stats.append({'hodim': hodim, 'par': h_par, 'kun': h_kun, 'tun': h_tun})
         hodim_stats.sort(key=lambda x: x['par'], reverse=True)
 
-        # Tosh turi bo'yicha breakdown (par soni)
+        # Tosh turi bo'yicha breakdown
         tosh_stats = {}
         for l in all_loglar:
             key = l.tosh.name if l.tosh else 'Tosh ko\'rsatilmagan'
             tosh_stats[key] = tosh_stats.get(key, 0) + l.par_soni
         tosh_stats = sorted(tosh_stats.items(), key=lambda x: x[1], reverse=True)
 
-        # Kunlik eng ko'p (max day)
         daily_totals = [k + t for k, t in zip(kun_by_day, tun_by_day)]
         max_day_val  = max(daily_totals) if daily_totals else 0
         max_day_idx  = daily_totals.index(max_day_val) if max_day_val else 0
         max_day_lbl  = chart_labels[max_day_idx] if chart_labels else '—'
 
-        # Oxirgi 7 kunlik trendlar
         last7_kley = sum(kley_by_day[-7:]) if len(kley_by_day) >= 7 else sum(kley_by_day)
         last7_tr   = sum(tr_by_day[-7:]) if len(tr_by_day) >= 7 else sum(tr_by_day)
 
         return render(request, 'tosh/stats.html', {
-            'active_nav':    'stats',
-            'days':          days,
-            'date_from':     date_from,
-            'today':         today,
-            'kun_par':       kun_par,
-            'tun_par':       tun_par,
-            'umumiy_par':    umumiy_par,
-            'kun_kley':      kun_kley,
-            'tun_kley':      tun_kley,
-            'total_kley':    total_kley,
-            'kun_tr':        kun_tr,
-            'tun_tr':        tun_tr,
-            'total_tr':      total_tr,
-            'chart_labels':  chart_labels,
-            'kun_by_day':    kun_by_day,
-            'tun_by_day':    tun_by_day,
-            'kley_by_day':   kley_by_day,
-            'tr_by_day':     tr_by_day,
+            'active_nav':   'stats',
+            'days':         days,
+            'date_from':    date_from,
+            'today':        today,
+            'kun_par':      kun_par,
+            'tun_par':      tun_par,
+            'umumiy_par':   umumiy_par,
+            'kun_kley':     kun_kley,
+            'tun_kley':     tun_kley,
+            'total_kley':   total_kley,
+            'kun_tr':       kun_tr,
+            'tun_tr':       tun_tr,
+            'total_tr':     total_tr,
+            'chart_labels': chart_labels,
+            'kun_by_day':   kun_by_day,
+            'tun_by_day':   tun_by_day,
+            'kley_by_day':  kley_by_day,
+            'tr_by_day':    tr_by_day,
             'status_counts': status_counts,
-            'hodim_stats':   hodim_stats,
-            'tosh_stats':    tosh_stats,
-            'max_day_val':   max_day_val,
-            'max_day_lbl':   max_day_lbl,
-            'last7_kley':    last7_kley,
-            'last7_tr':      last7_tr,
-        })
-
-        return render(request, 'tosh/stats.html', {
-            'active_nav':    'stats',
-            'days':          days,
-            'date_from':     date_from,
-            'today':         today,
-            'kun_par':       kun_par,
-            'tun_par':       tun_par,
-            'umumiy_par':    umumiy_par,
-            'kun_kley':      kun_kley,
-            'tun_kley':      tun_kley,
-            'total_kley':    total_kley,
-            'kun_tr':        kun_tr,
-            'tun_tr':        tun_tr,
-            'total_tr':      total_tr,
-            'chart_labels':  chart_labels,
-            'kun_by_day':    kun_by_day,
-            'tun_by_day':    tun_by_day,
-            'kley_by_day':   kley_by_day,
-            'tr_by_day':     tr_by_day,
-            'status_counts': status_counts,
-            'hodim_stats':   hodim_stats,
-            'tosh_stats':    tosh_stats,
-            'max_day_val':   max_day_val,
-            'max_day_lbl':   max_day_lbl,
-            'last7_kley':    last7_kley,
-            'last7_tr':      last7_tr,
+            'hodim_stats':  hodim_stats,
+            'tosh_stats':   tosh_stats,
+            'max_day_val':  max_day_val,
+            'max_day_lbl':  max_day_lbl,
+            'last7_kley':   last7_kley,
+            'last7_tr':     last7_tr,
         })

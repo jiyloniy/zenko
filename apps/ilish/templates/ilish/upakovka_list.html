@@ -1,0 +1,369 @@
+{% extends "ilish/base.html" %}
+{% block title %}Upakovka (Qadoqlash) — Zenko{% endblock %}
+{% block page_title %}Qadoqlash bo'limi{% endblock %}
+
+{% block extra_css %}
+<style>
+/* Mini stats */
+.mini-stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-bottom:22px;}
+.mstat{background:var(--white);border:1.5px solid var(--gray-200);border-radius:14px;padding:14px 16px;position:relative;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.04);}
+.mstat::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;}
+.mstat.teal::before{background:linear-gradient(90deg,#14B8A6,#0D9488);}
+.mstat.orange::before{background:linear-gradient(90deg,#F97316,#FBBF24);}
+.mstat.blue::before{background:linear-gradient(90deg,#3B82F6,#60A5FA);}
+.mstat.green::before{background:linear-gradient(90deg,#22C55E,#4ADE80);}
+.mstat-val{font-size:26px;font-weight:900;line-height:1.1;}
+.mstat-val.teal{color:#14B8A6;}.mstat-val.orange{color:#F97316;}.mstat-val.blue{color:#3B82F6;}.mstat-val.green{color:#22C55E;}
+.mstat-lbl{font-size:10px;font-weight:700;color:var(--gray-400);text-transform:uppercase;letter-spacing:.5px;margin-top:3px;}
+
+/* Tabs */
+.tab-bar{display:flex;gap:8px;margin-bottom:20px;flex-wrap:wrap;}
+.tab-btn{display:inline-flex;align-items:center;gap:7px;padding:9px 18px;border-radius:11px;font-size:13px;font-weight:700;cursor:pointer;border:1.5px solid var(--gray-200);background:var(--white);color:var(--gray-500);text-decoration:none;transition:all .18s;}
+.tab-btn:hover{border-color:var(--gray-300);color:var(--black);}
+.tab-btn.active-qabul_qilindi{background:linear-gradient(135deg,#EFF6FF,#DBEAFE);border-color:#60A5FA;color:#1D4ED8;}
+.tab-btn.active-qadoqlanmoqda{background:linear-gradient(135deg,#FFF7ED,#FFEDD5);border-color:#FB923C;color:#C2410C;}
+.tab-btn.active-qadoqlandi{background:linear-gradient(135deg,#F0FDF4,#DCFCE7);border-color:#4ADE80;color:#15803D;}
+.tab-btn.active-qadoqlanmadi{background:linear-gradient(135deg,#FFF1F2,#FFE4E6);border-color:#FB7185;color:#BE123C;}
+.tab-badge{font-size:11px;font-weight:800;padding:2px 7px;border-radius:20px;background:rgba(0,0,0,.08);}
+
+/* Toolbar */
+.toolbar{display:flex;gap:8px;margin-bottom:20px;flex-wrap:wrap;align-items:center;}
+.toolbar input{flex:1;min-width:180px;padding:9px 14px;background:var(--white);border:1.5px solid var(--gray-200);border-radius:10px;font-size:13px;font-family:inherit;color:var(--black);outline:none;transition:border-color .18s;}
+.toolbar input:focus{border-color:#14B8A6;}
+
+/* Grid & Card */
+.jgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:20px;}
+.jcard{background:var(--white);border:1.5px solid var(--gray-200);border-radius:20px;overflow:hidden;transition:box-shadow .22s,transform .18s;box-shadow:0 2px 10px rgba(0,0,0,.06);}
+.jcard:hover{box-shadow:0 12px 36px rgba(0,0,0,.11);transform:translateY(-3px);}
+.jcard-accent{height:5px;}
+.jcard-accent.blue{background:linear-gradient(90deg,#3B82F6,#60A5FA);}
+.jcard-accent.orange{background:linear-gradient(90deg,#F97316,#FBBF24);}
+.jcard-accent.green{background:linear-gradient(90deg,#22C55E,#4ADE80);}
+.jcard-accent.red{background:linear-gradient(90deg,#EF4444,#FB7185);}
+
+/* Card image */
+.jcard-img-wrap{position:relative;height:160px;overflow:hidden;background:var(--gray-100);}
+.jcard-img-wrap img{width:100%;height:100%;object-fit:cover;transition:transform .3s;}
+.jcard:hover .jcard-img-wrap img{transform:scale(1.04);}
+.jcard-img-ph{width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#F0FDFA,#CCFBF1);}
+.jcard-img-ph svg{width:44px;height:44px;color:#5EEAD4;}
+.deadline-badge{position:absolute;top:10px;right:10px;padding:4px 10px;border-radius:20px;font-size:11px;font-weight:800;backdrop-filter:blur(8px);}
+.db-overdue{background:rgba(239,68,68,.9);color:#fff;}
+.db-ok{background:rgba(255,255,255,.85);color:#374151;}
+
+/* Card body */
+.jcard-body{padding:16px 18px 18px;}
+.jcard-title{font-size:18px;font-weight:900;color:var(--black);margin-bottom:2px;}
+.jcard-num{font-size:10px;color:var(--gray-300);font-family:monospace;margin-bottom:10px;}
+.jcard-meta{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;}
+.qty-big{font-size:24px;font-weight:900;color:#14B8A6;}
+.qty-big span{font-size:12px;font-weight:600;color:var(--gray-400);margin-left:2px;}
+
+/* Pills */
+.pill-row{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px;}
+.pill{display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;}
+.pill-dot{width:6px;height:6px;border-radius:50%;}
+.p-qabul{background:#EFF6FF;color:#1D4ED8;border:1px solid #BFDBFE;}.p-qabul .pill-dot{background:#3B82F6;}
+.p-qadoqlanmoqda{background:#FFF7ED;color:#C2410C;border:1px solid #FED7AA;}.p-qadoqlanmoqda .pill-dot{background:#F97316;animation:blink 1.6s infinite;}
+.p-qadoqlandi{background:#F0FDF4;color:#15803D;border:1px solid #BBF7D0;}.p-qadoqlandi .pill-dot{background:#22C55E;}
+.p-qadoqlanmadi{background:#FFF1F2;color:#BE123C;border:1px solid #FECDD3;}.p-qadoqlanmadi .pill-dot{background:#EF4444;}
+
+/* Log mini panel */
+.logs-mini{background:var(--gray-50);border-radius:10px;padding:10px 12px;margin-bottom:12px;}
+.lm-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:7px;}
+.lm-title{font-size:11px;font-weight:700;color:var(--gray-600);}
+.lm-chips{display:flex;gap:6px;}
+.lm-chip{font-size:11px;font-weight:700;padding:2px 8px;border-radius:5px;}
+.lm-kun{background:#FFF7ED;color:#C2410C;}
+.lm-tun{background:#EFF6FF;color:#1D4ED8;}
+.lm-row{display:flex;justify-content:space-between;font-size:11px;color:var(--gray-500);padding:3px 0;border-bottom:1px dashed var(--gray-100);}
+.lm-row:last-child{border-bottom:none;}
+.lm-row strong{color:var(--black);}
+
+/* Actions */
+.jcard-actions{border-top:1px solid var(--gray-100);padding-top:12px;display:flex;flex-direction:column;gap:8px;}
+.btn-start{background:linear-gradient(135deg,#8B5CF6,#7C3AED);color:#fff;border:none;border-radius:11px;padding:11px 16px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;display:flex;align-items:center;gap:7px;transition:all .18s;width:100%;justify-content:center;box-shadow:0 3px 12px rgba(139,92,246,.25);}
+.btn-start:hover{background:linear-gradient(135deg,#7C3AED,#6D28D9);box-shadow:0 6px 20px rgba(139,92,246,.4);transform:translateY(-1px);}
+.btn-log{background:linear-gradient(135deg,#14B8A6,#0D9488);color:#fff;border:none;border-radius:9px;padding:8px 14px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;display:flex;align-items:center;gap:5px;transition:all .18s;width:100%;justify-content:center;}
+.btn-log:hover{box-shadow:0 4px 12px rgba(20,184,166,.3);}
+.izoh-inp{width:100%;padding:7px 11px;border:1.5px solid var(--gray-200);border-radius:9px;font-size:12px;font-family:inherit;color:var(--black);outline:none;transition:border-color .18s;margin-bottom:7px;}
+.izoh-inp:focus{border-color:#8B5CF6;}
+.status-row{display:flex;gap:5px;flex-wrap:wrap;}
+.btn-s{flex:1;min-width:80px;padding:7px 8px;border:none;border-radius:8px;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:3px;transition:all .15s;}
+.bs-qadoqlandi{background:#F0FDF4;color:#15803D;border:1.5px solid #BBF7D0;}.bs-qadoqlandi:hover{background:#DCFCE7;}
+.bs-bekor{background:#FFF1F2;color:#BE123C;border:1.5px solid #FECDD3;}.bs-bekor:hover{background:#FFE4E6;}
+.bs-qayta{background:#FFF7ED;color:#C2410C;border:1.5px solid #FED7AA;}.bs-qayta:hover{background:#FFEDD5;}
+
+.empty-wrap{padding:60px 20px;text-align:center;color:var(--gray-400);}
+.empty-wrap svg{width:52px;height:52px;margin:0 auto 14px;display:block;opacity:.2;}
+
+@keyframes blink{0%,100%{opacity:1;}50%{opacity:.3;}}
+@media(max-width:640px){.jgrid{grid-template-columns:1fr;}}
+</style>
+{% endblock %}
+
+{% block topbar_actions %}
+<a href="{% url 'ilish:upakovka_stats' %}" class="btn btn-secondary btn-sm">
+  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75"/></svg>
+  Statistika
+</a>
+{% endblock %}
+
+{% block content %}
+
+<!-- Bugungi mini statistika -->
+<div class="mini-stats">
+  <div class="mstat teal">
+    <div class="mstat-val teal">{{ bugun_kun_par|add:bugun_tun_par }}</div>
+    <div class="mstat-lbl">Bugun jami qadoqlandi</div>
+  </div>
+  <div class="mstat orange">
+    <div class="mstat-val orange">{{ bugun_kun_par }}</div>
+    <div class="mstat-lbl">☀️ Kunduzgi smena</div>
+  </div>
+  <div class="mstat blue">
+    <div class="mstat-val blue">{{ bugun_tun_par }}</div>
+    <div class="mstat-lbl">🌙 Tungi smena</div>
+  </div>
+  <div class="mstat green">
+    <div class="mstat-val green">{{ counts.qadoqlanmoqda }}</div>
+    <div class="mstat-lbl">Hozir qadoqlanmoqda</div>
+  </div>
+</div>
+
+<!-- Tabs -->
+<div class="tab-bar">
+  <a href="?tab=qabul_qilindi&q={{ q }}" class="tab-btn {% if tab == 'qabul_qilindi' %}active-qabul_qilindi{% endif %}">
+    <span style="width:8px;height:8px;border-radius:50%;background:#3B82F6;flex-shrink:0;"></span>
+    Qabul qilindi <span class="tab-badge">{{ counts.qabul_qilindi }}</span>
+  </a>
+  <a href="?tab=qadoqlanmoqda&q={{ q }}" class="tab-btn {% if tab == 'qadoqlanmoqda' %}active-qadoqlanmoqda{% endif %}">
+    <span style="width:8px;height:8px;border-radius:50%;background:#F97316;{% if tab == 'qadoqlanmoqda' %}animation:blink 1.6s infinite;{% endif %}flex-shrink:0;"></span>
+    Qadoqlanmoqda <span class="tab-badge">{{ counts.qadoqlanmoqda }}</span>
+  </a>
+  <a href="?tab=qadoqlandi&q={{ q }}" class="tab-btn {% if tab == 'qadoqlandi' %}active-qadoqlandi{% endif %}">
+    <span style="width:8px;height:8px;border-radius:50%;background:#22C55E;flex-shrink:0;"></span>
+    Qadoqlandi <span class="tab-badge">{{ counts.qadoqlandi }}</span>
+  </a>
+  <a href="?tab=qadoqlanmadi&q={{ q }}" class="tab-btn {% if tab == 'qadoqlanmadi' %}active-qadoqlanmadi{% endif %}">
+    <span style="width:8px;height:8px;border-radius:50%;background:#EF4444;flex-shrink:0;"></span>
+    Qadoqlanmadi <span class="tab-badge">{{ counts.qadoqlanmadi }}</span>
+  </a>
+</div>
+
+<!-- Toolbar -->
+<form class="toolbar" method="get">
+  <input type="hidden" name="tab" value="{{ tab }}">
+  <input type="text" name="q" value="{{ q }}" placeholder="Buyurtma nomi yoki raqami...">
+  <button type="submit" class="btn btn-secondary btn-sm">
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z"/></svg>
+    Qidirish
+  </button>
+  {% if q %}<a href="?tab={{ tab }}" class="btn btn-sm" style="background:#FEF2F2;color:#DC2626;border:1px solid #FECACA;">✕ Tozalash</a>{% endif %}
+</form>
+
+{% if jarayonlar %}
+<div class="jgrid">
+{% for j in jarayonlar %}
+{% with order=j.ilish_jarayon.order %}
+<div class="jcard">
+  <div class="jcard-accent {{ j.status_color }}"></div>
+
+  <div class="jcard-img-wrap">
+    {% if order.brujka and order.brujka.image %}
+      <img src="{{ order.brujka.image.url }}" alt="{{ order.brujka.name }}" loading="lazy">
+    {% elif order.image %}
+      <img src="{{ order.image.url }}" alt="" loading="lazy">
+    {% else %}
+      <div class="jcard-img-ph">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M21 7.5l-9-5.25L3 7.5m18 0l-9 5.25m9-5.25v9l-9 5.25M3 7.5l9 5.25M3 7.5v9l9 5.25m0-9v9"/></svg>
+      </div>
+    {% endif %}
+    <div class="deadline-badge {% if order.is_overdue %}db-overdue{% else %}db-ok{% endif %}">
+      {% if order.is_overdue %}⚠ Muddati o'tgan{% else %}📅 {{ order.deadline|date:"d.m.Y" }}{% endif %}
+    </div>
+  </div>
+
+  <div class="jcard-body">
+    {% if order.brujka %}
+    <div style="font-size:11px;font-weight:700;color:var(--gray-400);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px;display:flex;align-items:center;gap:6px;">
+      <span style="width:8px;height:8px;border-radius:50%;background:{{ order.brujka.color }};flex-shrink:0;"></span>
+      {{ order.brujka.name }}
+    </div>
+    {% endif %}
+
+    <div class="jcard-title">{{ order.name }}</div>
+    <div class="jcard-num">{{ order.order_number }}</div>
+
+    <div class="jcard-meta">
+      <div class="qty-big">{{ order.quantity }}<span>dona</span></div>
+      <div style="text-align:right;">
+        <div style="font-size:9px;font-weight:700;color:var(--gray-400);text-transform:uppercase;margin-bottom:3px;">Muddat</div>
+        <div style="font-size:12px;font-weight:700;padding:4px 10px;border-radius:8px;background:var(--gray-100);color:{% if order.is_overdue %}#DC2626{% else %}var(--gray-600){% endif %};">
+          {{ order.deadline|date:"d.m.Y" }}
+        </div>
+      </div>
+    </div>
+
+    <!-- Status pill -->
+    <div class="pill-row">
+      <span class="pill {% if j.status == 'qabul_qilindi' %}p-qabul{% elif j.status == 'qadoqlanmoqda' %}p-qadoqlanmoqda{% elif j.status == 'qadoqlandi' %}p-qadoqlandi{% else %}p-qadoqlanmadi{% endif %}">
+        <span class="pill-dot"></span>{{ j.get_status_display }}
+      </span>
+    </div>
+
+    {% if j.izoh %}
+    <div style="font-size:11.5px;color:var(--gray-500);font-style:italic;padding:7px 11px;background:var(--gray-50);border-radius:9px;border-left:3px solid var(--gray-300);margin-bottom:12px;">{{ j.izoh }}</div>
+    {% endif %}
+
+    <!-- Actions -->
+    <div class="jcard-actions">
+      {% if j.status == 'qabul_qilindi' %}
+      <form method="post" action="{% url 'ilish:upakovka_set_status' j.pk %}">
+        {% csrf_token %}
+        <input type="hidden" name="next_tab" value="{{ tab }}">
+        <input type="hidden" name="status" value="qadoqlanmoqda">
+        <button type="submit" class="btn-start">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" style="width:15px;height:15px;"><path stroke-linecap="round" stroke-linejoin="round" d="M5.25 5.653c0-.856.917-1.398 1.667-.986l11.54 6.347a1.125 1.125 0 0 1 0 1.972l-11.54 6.347a1.125 1.125 0 0 1-1.667-.986V5.653Z"/></svg>
+          Qadoqlashni boshlash
+        </button>
+      </form>
+      <form method="post" action="{% url 'ilish:upakovka_set_status' j.pk %}" onsubmit="return confirm('Qadoqlanmadi deb belgilaysizmi?')">
+        {% csrf_token %}
+        <input type="hidden" name="next_tab" value="{{ tab }}">
+        <input type="hidden" name="status" value="qadoqlanmadi">
+        <button type="submit" class="btn-s bs-bekor" style="width:100%;padding:8px;">✗ Qadoqlanmadi / Bekor</button>
+      </form>
+
+      {% elif j.status == 'qadoqlanmoqda' %}
+      <button type="button" class="btn-log" onclick="openLogModal({{ j.pk }}, '{{ order.name|escapejs }}')">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width:14px;height:14px;"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v6m3-3H9"/></svg>
+        Log kiritish (par soni)
+      </button>
+      <form method="post" action="{% url 'ilish:upakovka_set_status' j.pk %}" id="usf-{{ j.pk }}">
+        {% csrf_token %}
+        <input type="hidden" name="next_tab" value="{{ tab }}">
+        <input type="hidden" name="status" id="ust-{{ j.pk }}" value="">
+        <input class="izoh-inp" type="text" name="izoh" value="{{ j.izoh }}" placeholder="Izoh (ixtiyoriy)...">
+        <div class="status-row">
+          <button type="button" class="btn-s bs-qadoqlandi" onclick="setUSt('{{ j.pk }}','qadoqlandi')">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" style="width:12px;height:12px;"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5"/></svg>
+            Qadoqlandi
+          </button>
+          <button type="button" class="btn-s bs-bekor" onclick="setUSt('{{ j.pk }}','qadoqlanmadi')">✗ Qadoqlanmadi</button>
+        </div>
+      </form>
+
+      {% else %}
+      <form method="post" action="{% url 'ilish:upakovka_set_status' j.pk %}" id="usf-{{ j.pk }}">
+        {% csrf_token %}
+        <input type="hidden" name="next_tab" value="{{ tab }}">
+        <input type="hidden" name="status" id="ust-{{ j.pk }}" value="">
+        <input class="izoh-inp" type="text" name="izoh" value="{{ j.izoh }}" placeholder="Izoh...">
+        <div class="status-row">
+          {% if j.status != 'qadoqlanmoqda' %}<button type="button" class="btn-s bs-qayta" onclick="setUSt('{{ j.pk }}','qadoqlanmoqda')">↺ Qayta boshlash</button>{% endif %}
+          {% if j.status != 'qadoqlandi' %}<button type="button" class="btn-s bs-qadoqlandi" onclick="setUSt('{{ j.pk }}','qadoqlandi')">✓ Qadoqlandi</button>{% endif %}
+          {% if j.status != 'qadoqlanmadi' %}<button type="button" class="btn-s bs-bekor" onclick="setUSt('{{ j.pk }}','qadoqlanmadi')">✗ Qadoqlanmadi</button>{% endif %}
+        </div>
+      </form>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endwith %}
+{% endfor %}
+</div>
+
+{% else %}
+<div class="empty-wrap">
+  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1" stroke="currentColor">
+    <path stroke-linecap="round" stroke-linejoin="round" d="M21 7.5l-9-5.25L3 7.5m18 0l-9 5.25m9-5.25v9l-9 5.25M3 7.5l9 5.25M3 7.5v9l9 5.25m0-9v9"/>
+  </svg>
+  <p>
+    {% if q %}Qidiruv bo'yicha topilmadi
+    {% elif tab == 'qabul_qilindi' %}Qabul qilingan upakovkalar yo'q
+    {% elif tab == 'qadoqlanmoqda' %}Qadoqlanayotgan buyurtmalar yo'q
+    {% elif tab == 'qadoqlandi' %}Qadoqlandi belgilangan buyurtmalar yo'q
+    {% else %}Qadoqlanmadi belgilangan buyurtmalar yo'q{% endif %}
+  </p>
+</div>
+{% endif %}
+
+<!-- Log modal -->
+<div class="modal-bg" id="logModal">
+  <div class="modal">
+    <div class="modal-head">
+      <div class="modal-title">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="#8B5CF6" style="width:18px;height:18px;display:inline;margin-right:6px;vertical-align:-3px;"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v6m3-3H9m12 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/></svg>
+        Qadoqlash log kiritish
+      </div>
+      <button class="modal-close" onclick="closeLogModal()">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width:14px;height:14px;"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12"/></svg>
+      </button>
+    </div>
+    <form id="logForm" method="post" action="">
+      {% csrf_token %}
+      <div class="modal-body">
+        <div style="background:var(--gray-50);border-radius:10px;padding:12px;margin-bottom:16px;font-size:14px;font-weight:700;color:var(--black);" id="logOrderName">—</div>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px;">
+          <div>
+            <label style="display:block;font-size:11px;font-weight:700;color:var(--gray-600);margin-bottom:5px;text-transform:uppercase;letter-spacing:.5px;">Smena</label>
+            <select name="smena" style="width:100%;padding:8px 12px;border:1.5px solid var(--gray-200);border-radius:9px;font-size:13px;font-family:inherit;outline:none;">
+              <option value="kun">☀️ Kunduzgi</option>
+              <option value="tun">🌙 Tungi</option>
+            </select>
+          </div>
+          <div>
+            <label style="display:block;font-size:11px;font-weight:700;color:var(--gray-600);margin-bottom:5px;text-transform:uppercase;letter-spacing:.5px;">Sana</label>
+            <input type="date" name="sana" value="{{ today }}" style="width:100%;padding:8px 12px;border:1.5px solid var(--gray-200);border-radius:9px;font-size:13px;font-family:inherit;outline:none;">
+          </div>
+        </div>
+
+        <div style="margin-bottom:14px;">
+          <label style="display:block;font-size:11px;font-weight:700;color:var(--gray-600);margin-bottom:5px;text-transform:uppercase;letter-spacing:.5px;">Par soni</label>
+          <input type="number" name="par_soni" value="1" min="1" required
+            style="width:100%;padding:12px;border:1.5px solid var(--gray-200);border-radius:9px;font-size:28px;font-weight:900;text-align:center;color:#8B5CF6;font-family:inherit;outline:none;">
+        </div>
+
+        <div>
+          <label style="display:block;font-size:11px;font-weight:700;color:var(--gray-600);margin-bottom:5px;text-transform:uppercase;letter-spacing:.5px;">Izoh (ixtiyoriy)</label>
+          <input type="text" name="izoh" style="width:100%;padding:8px 12px;border:1.5px solid var(--gray-200);border-radius:9px;font-size:13px;font-family:inherit;outline:none;" placeholder="Izoh...">
+        </div>
+
+        <input type="hidden" name="next_tab" value="qadoqlanmoqda">
+      </div>
+      <div class="modal-foot">
+        <button type="button" class="btn btn-secondary" onclick="closeLogModal()">Bekor</button>
+        <button type="submit" class="btn btn-primary" style="background:linear-gradient(135deg,#8B5CF6,#7C3AED);box-shadow:0 3px 10px rgba(139,92,246,.3);">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5"/></svg>
+          Saqlash
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function setUSt(pk, status) {
+  const labels = {qadoqlanmoqda:'Qadoqlanmoqda',qadoqlandi:'Qadoqlandi',qadoqlanmadi:'Qadoqlanmadi'};
+  if (!confirm((labels[status]||status) + ' deb belgilaysizmi?')) return;
+  document.getElementById('ust-'+pk).value = status;
+  document.getElementById('usf-'+pk).submit();
+}
+function openLogModal(pk, name) {
+  document.getElementById('logForm').action = `/ilish/upakovka/${pk}/log/add/`;
+  document.getElementById('logOrderName').textContent = name;
+  document.getElementById('logModal').classList.add('open');
+  document.body.style.overflow = 'hidden';
+  setTimeout(() => { const inp = document.querySelector('#logForm [name="par_soni"]'); if(inp) inp.focus(); }, 80);
+}
+function closeLogModal() {
+  document.getElementById('logModal').classList.remove('open');
+  document.body.style.overflow = '';
+}
+document.getElementById('logModal').addEventListener('click', function(e) { if(e.target===this) closeLogModal(); });
+</script>
+{% endblock %}

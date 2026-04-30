@@ -20,4 +20,11 @@ urlpatterns = [
 
     # Statistika
     path('stats/', views.IlishStatsView.as_view(), name='stats'),
+
+    # Upakovka (Qadoqlash)
+    path('upakovka/', views.UpakovkaListView.as_view(), name='upakovka_list'),
+    path('upakovka/<int:pk>/set-status/', views.UpakovkaSetStatusView.as_view(), name='upakovka_set_status'),
+    path('upakovka/<int:pk>/log/add/', views.UpakovkaLogCreateView.as_view(), name='upakovka_log_create'),
+    path('upakovka/log/<int:log_pk>/delete/', views.UpakovkaLogDeleteView.as_view(), name='upakovka_log_delete'),
+    path('upakovka/stats/', views.UpakovkaStatsView.as_view(), name='upakovka_stats'),
 ]

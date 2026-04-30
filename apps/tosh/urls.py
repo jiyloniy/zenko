@@ -14,19 +14,14 @@ urlpatterns = [
     path('<int:pk>/log/bulk/', views.ToshBulkLogCreateView.as_view(), name='log_bulk'),
     path('<int:pk>/log/<int:log_pk>/delete/', views.ToshLogDeleteView.as_view(), name='log_delete'),
 
-    # ── Qabul jarayonlari ──
-    path('qabul/', views.QabulJarayonListView.as_view(), name='qabul_list'),
-    path('qabul/<int:pk>/', views.QabulJarayonDetailView.as_view(), name='qabul_detail'),
-    path('qabul/<int:pk>/set-status/', views.QabulJarayonSetStatusView.as_view(), name='qabul_set_status'),
-
-    # ── Kley rasxod — alohida bo'lim ──
+    # ── Kley rasxod ──
     path('kley/', views.KleyRasxodListView.as_view(), name='kley_list'),
-    path('kley/<int:pk>/add/', views.KleyRasxodCreateView.as_view(), name='kley_create'),
+    path('kley/add/', views.KleyRasxodCreateView.as_view(), name='kley_create'),
     path('kley/<int:pk>/delete/', views.KleyRasxodDeleteView.as_view(), name='kley_delete'),
 
-    # ── Tosh rasxod — alohida bo'lim ──
+    # ── Tosh rasxod ──
     path('tosh-rasxod/', views.ToshRasxodListView.as_view(), name='tosh_rasxod_list'),
-    path('tosh-rasxod/<int:pk>/add/', views.ToshRasxodCreateView.as_view(), name='tosh_rasxod_create'),
+    path('tosh-rasxod/add/', views.ToshRasxodCreateView.as_view(), name='tosh_rasxod_create'),
     path('tosh-rasxod/<int:pk>/delete/', views.ToshRasxodDeleteView.as_view(), name='tosh_rasxod_delete'),
 
     # ── Toshlar ro'yhati (CRUD) ──
@@ -37,10 +32,4 @@ urlpatterns = [
 
     # ── Statistika ──
     path('stats/', views.ToshStatsView.as_view(), name='stats'),
-        # ── Kley rasxod — alohida bo'lim ──
-    path('kley/add/', views.KleyRasxodCreateView.as_view(), name='kley_create'),
-    path('kley/<int:pk>/add/', views.KleyRasxodCreateView.as_view(), name='kley_create_with_pk'),
-    
-    path('tosh-rasxod/add/', views.ToshRasxodCreateView.as_view(), name='tosh_rasxod_create'),
-    path('tosh-rasxod/<int:pk>/add/', views.ToshRasxodCreateView.as_view(), name='tosh_rasxod_create_with_pk'),
 ]

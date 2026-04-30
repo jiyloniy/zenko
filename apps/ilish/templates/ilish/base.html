@@ -96,7 +96,17 @@ html,body{height:100%;font-family:'Inter',system-ui,sans-serif;background:var(--
         Statistika
       </a>
 
-      <div class="nav-label">Vishilkalar</div>
+      <div class="nav-label">Upakovka</div>
+      <a href="{% url 'ilish:upakovka_list' %}" class="nav-link {% if active_nav == 'upakovka' %}active{% endif %}">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M21 7.5l-9-5.25L3 7.5m18 0l-9 5.25m9-5.25v9l-9 5.25M3 7.5l9 5.25M3 7.5v9l9 5.25m0-9v9"/></svg>
+        Qadoqlash (Upakovka)
+      </a>
+      <a href="{% url 'ilish:upakovka_stats' %}" class="nav-link {% if active_nav == 'upakovka_stats' %}active{% endif %}">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75"/></svg>
+        Upakovka statistika
+      </a>
+
+      <div class="nav-label">Ma'lumotnoma</div>
       <a href="{% url 'ilish:vishilka_list' %}" class="nav-link {% if active_nav == 'vishilkalar' %}active{% endif %}">
         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9.568 3H5.25A2.25 2.25 0 0 0 3 5.25v4.318c0 .597.237 1.17.659 1.591l9.581 9.581c.699.699 1.78.872 2.607.33a18.095 18.095 0 0 0 5.223-5.223c.542-.827.369-1.908-.33-2.607L11.16 3.66A2.25 2.25 0 0 0 9.568 3Z"/><path stroke-linecap="round" stroke-linejoin="round" d="M6 6h.008v.008H6V6Z"/></svg>
         Vishilkalar

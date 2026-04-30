@@ -1,0 +1,178 @@
+{% extends "ilish/base.html" %}
+{% block title %}Upakovka Statistika — Zenko{% endblock %}
+{% block page_title %}Upakovka Statistika{% endblock %}
+
+{% block extra_css %}
+<style>
+.kpi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:22px;}
+.kpi{background:var(--white);border:1.5px solid var(--gray-200);border-radius:14px;padding:16px 18px;position:relative;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.04);}
+.kpi::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;}
+.kpi.purple::before{background:linear-gradient(90deg,#8B5CF6,#A78BFA);}
+.kpi.orange::before{background:linear-gradient(90deg,#F97316,#FBBF24);}
+.kpi.blue::before{background:linear-gradient(90deg,#3B82F6,#60A5FA);}
+.kpi.green::before{background:linear-gradient(90deg,#22C55E,#4ADE80);}
+.kpi-val{font-size:28px;font-weight:900;line-height:1.1;}
+.kpi-val.purple{color:#8B5CF6;}.kpi-val.orange{color:#F97316;}.kpi-val.blue{color:#3B82F6;}.kpi-val.green{color:#22C55E;}
+.kpi-lbl{font-size:10px;font-weight:700;color:var(--gray-400);text-transform:uppercase;letter-spacing:.5px;margin-top:4px;}
+
+.card{background:var(--white);border:1.5px solid var(--gray-200);border-radius:18px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,.04);margin-bottom:18px;}
+.card-head{padding:16px 20px;border-bottom:1px solid var(--gray-100);display:flex;align-items:center;justify-content:space-between;}
+.card-title{font-size:14px;font-weight:800;color:var(--black);display:flex;align-items:center;gap:8px;}
+.card-title svg{width:16px;height:16px;color:#8B5CF6;}
+.card-body{padding:18px 20px;}
+.chart-wrap{height:220px;position:relative;}
+
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-bottom:18px;}
+@media(max-width:768px){.grid2{grid-template-columns:1fr;}}
+
+.status-bars{display:flex;flex-direction:column;gap:12px;}
+.status-bar-item{display:flex;flex-direction:column;gap:4px;}
+.sbi-head{display:flex;justify-content:space-between;align-items:center;}
+.sbi-label{font-size:12px;font-weight:700;}
+.sbi-count{font-size:14px;font-weight:900;}
+.sbi-bar{height:6px;border-radius:3px;background:var(--gray-100);overflow:hidden;}
+.sbi-fill{height:100%;border-radius:3px;}
+
+.highlight-card{background:linear-gradient(135deg,rgba(139,92,246,.06),rgba(109,40,217,.04));border:1.5px solid rgba(139,92,246,.2);border-radius:14px;padding:16px 18px;}
+</style>
+{% endblock %}
+
+{% block topbar_actions %}
+<form method="get" style="display:flex;gap:8px;align-items:center;">
+  <span style="font-size:13px;font-weight:600;color:var(--gray-600);">Davr:</span>
+  <select name="days" onchange="this.form.submit()" style="padding:7px 12px;border:1.5px solid var(--gray-200);border-radius:9px;font-size:13px;font-family:inherit;outline:none;background:var(--white);">
+    <option value="7" {% if days == 7 %}selected{% endif %}>7 kun</option>
+    <option value="14" {% if days == 14 %}selected{% endif %}>14 kun</option>
+    <option value="30" {% if days == 30 %}selected{% endif %}>30 kun</option>
+  </select>
+</form>
+{% endblock %}
+
+{% block content %}
+
+<!-- KPI -->
+<div class="kpi-grid">
+  <div class="kpi purple">
+    <div class="kpi-val purple">{{ umumiy_par }}</div>
+    <div class="kpi-lbl">Jami qadoqlandi (par)</div>
+  </div>
+  <div class="kpi orange">
+    <div class="kpi-val orange">{{ kun_par }}</div>
+    <div class="kpi-lbl">☀️ Kunduzgi smena</div>
+  </div>
+  <div class="kpi blue">
+    <div class="kpi-val blue">{{ tun_par }}</div>
+    <div class="kpi-lbl">🌙 Tungi smena</div>
+  </div>
+  <div class="kpi green">
+    <div class="kpi-val green">{{ max_day_val }}</div>
+    <div class="kpi-lbl">Eng yaxshi kun ({{ max_day_lbl }})</div>
+  </div>
+</div>
+
+<!-- Kunlik chart -->
+<div class="card">
+  <div class="card-head">
+    <div class="card-title">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75"/></svg>
+      Kunlik qadoqlash (smena bo'yicha)
+    </div>
+    <span style="font-size:12px;color:var(--gray-500);">{{ date_from|date:"d.m" }} — {{ today|date:"d.m.Y" }}</span>
+  </div>
+  <div class="card-body">
+    <div class="chart-wrap"><canvas id="mainChart"></canvas></div>
+  </div>
+</div>
+
+<!-- Holat bars -->
+<div class="grid2">
+  <div class="card" style="margin-bottom:0;">
+    <div class="card-head">
+      <div class="card-title">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/></svg>
+        Qadoqlash holatlari (jami)
+      </div>
+    </div>
+    <div class="card-body">
+      {% with tot=status_counts.qabul_qilindi|add:status_counts.qadoqlanmoqda|add:status_counts.qadoqlandi|add:status_counts.qadoqlanmadi %}
+      <div class="status-bars">
+        <div class="status-bar-item">
+          <div class="sbi-head"><span class="sbi-label" style="color:#1D4ED8;">Qabul qilindi</span><span class="sbi-count">{{ status_counts.qabul_qilindi }}</span></div>
+          <div class="sbi-bar"><div class="sbi-fill" style="width:{% if tot %}{% widthratio status_counts.qabul_qilindi tot 100 %}{% else %}0{% endif %}%;background:#3B82F6;"></div></div>
+        </div>
+        <div class="status-bar-item">
+          <div class="sbi-head"><span class="sbi-label" style="color:#C2410C;">Qadoqlanmoqda</span><span class="sbi-count">{{ status_counts.qadoqlanmoqda }}</span></div>
+          <div class="sbi-bar"><div class="sbi-fill" style="width:{% if tot %}{% widthratio status_counts.qadoqlanmoqda tot 100 %}{% else %}0{% endif %}%;background:#F97316;"></div></div>
+        </div>
+        <div class="status-bar-item">
+          <div class="sbi-head"><span class="sbi-label" style="color:#15803D;">Qadoqlandi</span><span class="sbi-count">{{ status_counts.qadoqlandi }}</span></div>
+          <div class="sbi-bar"><div class="sbi-fill" style="width:{% if tot %}{% widthratio status_counts.qadoqlandi tot 100 %}{% else %}0{% endif %}%;background:#22C55E;"></div></div>
+        </div>
+        <div class="status-bar-item">
+          <div class="sbi-head"><span class="sbi-label" style="color:#BE123C;">Qadoqlanmadi</span><span class="sbi-count">{{ status_counts.qadoqlanmadi }}</span></div>
+          <div class="sbi-bar"><div class="sbi-fill" style="width:{% if tot %}{% widthratio status_counts.qadoqlanmadi tot 100 %}{% else %}0{% endif %}%;background:#EF4444;"></div></div>
+        </div>
+        <div style="margin-top:8px;padding-top:10px;border-top:1px solid var(--gray-100);display:flex;justify-content:space-between;">
+          <span style="font-size:12px;color:var(--gray-500);">Jami jarayon</span>
+          <span style="font-size:14px;font-weight:900;">{{ tot }}</span>
+        </div>
+      </div>
+      {% endwith %}
+    </div>
+  </div>
+
+  <div class="card" style="margin-bottom:0;">
+    <div class="card-head">
+      <div class="card-title">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 3v2.25m6.364.386-1.591 1.591M21 12h-2.25m-.386 6.364-1.591-1.591M12 18.75V21m-4.773-4.227-1.591 1.591M5.25 12H3m4.227-4.773L5.636 5.636"/></svg>
+        Smena taqqoslama
+      </div>
+    </div>
+    <div class="card-body">
+      <div class="highlight-card" style="margin-bottom:12px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <div>
+            <div style="font-size:11px;font-weight:700;color:var(--gray-500);text-transform:uppercase;margin-bottom:4px;">☀️ Kunduzgi jami</div>
+            <div style="font-size:28px;font-weight:900;color:#F97316;">{{ kun_par }} <span style="font-size:14px;color:var(--gray-400);">par</span></div>
+          </div>
+          <div style="font-size:36px;">☀️</div>
+        </div>
+      </div>
+      <div class="highlight-card" style="background:linear-gradient(135deg,rgba(59,130,246,.06),rgba(37,99,235,.04));border-color:rgba(59,130,246,.2);">
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <div>
+            <div style="font-size:11px;font-weight:700;color:var(--gray-500);text-transform:uppercase;margin-bottom:4px;">🌙 Tungi jami</div>
+            <div style="font-size:28px;font-weight:900;color:#3B82F6;">{{ tun_par }} <span style="font-size:14px;color:var(--gray-400);">par</span></div>
+          </div>
+          <div style="font-size:36px;">🌙</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script>
+Chart.defaults.font.family = "'Inter',system-ui,sans-serif";
+Chart.defaults.font.size = 12;
+const labels = {{ chart_labels|safe }};
+new Chart(document.getElementById('mainChart'), {
+  type: 'bar',
+  data: {
+    labels,
+    datasets: [
+      {label:'☀️ Kunduzgi', data:{{ kun_by_day|safe }}, backgroundColor:'rgba(249,115,22,.75)', borderRadius:5},
+      {label:'🌙 Tungi',    data:{{ tun_by_day|safe }}, backgroundColor:'rgba(139,92,246,.75)',  borderRadius:5},
+    ]
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false,
+    plugins: {legend: {position:'top'}},
+    scales: {x:{stacked:true,grid:{display:false}}, y:{stacked:true,beginAtZero:true}}
+  }
+});
+</script>
+{% endblock %}

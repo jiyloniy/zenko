@@ -485,15 +485,15 @@ class OrderSetStatusView(CastingManagerRequiredMixin, View):
 
 class RasxodListView(CastingManagerRequiredMixin, View):
     def get(self, request):
-        q        = request.GET.get('q', '').strip()
         stanok_f = request.GET.get('stanok', '').strip()
         zamak_f  = request.GET.get('zamak', '').strip()
+        smena_f  = request.GET.get('smena', '').strip()
         today    = timezone.localdate()
 
         try:
             date_from = datetime.date.fromisoformat(request.GET.get('from', ''))
         except ValueError:
-            date_from = today - datetime.timedelta(days=29)
+            date_from = today - datetime.timedelta(days=6)
         try:
             date_to = datetime.date.fromisoformat(request.GET.get('to', ''))
         except ValueError:
@@ -504,34 +504,52 @@ class RasxodListView(CastingManagerRequiredMixin, View):
             qs = qs.filter(stanok_id=stanok_f)
         if zamak_f:
             qs = qs.filter(zamak_id=zamak_f)
-        if q:
-            qs = qs.filter(izoh__icontains=q)
+        if smena_f:
+            qs = qs.filter(smena=smena_f)
         qs = qs.filter(sana__range=(date_from, date_to)).order_by('-sana', '-created_at')
 
-        # Statistika
-        from django.db.models import Count
-        stanok_stats = list(
-            qs.values('stanok__name').annotate(j=Sum('miqdor')).order_by('-j')[:6]
-        )
-        zamak_stats = list(
-            qs.values('zamak__name', 'zamak__unit').annotate(j=Sum('miqdor')).order_by('-j')[:6]
-        )
-        jami = qs.aggregate(j=Sum('miqdor'))['j'] or 0
+        qs_list  = list(qs)
+        kun_jami = sum(float(r.miqdor) for r in qs_list if r.smena == 'kun')
+        tun_jami = sum(float(r.miqdor) for r in qs_list if r.smena == 'tun')
+        jami     = kun_jami + tun_jami
+
+        # Kunlik chart (date_range bo'yicha)
+        date_range   = [date_from + datetime.timedelta(days=i) for i in range((date_to - date_from).days + 1)]
+        chart_labels = [d.strftime('%d.%m') for d in date_range]
+        kun_chart    = [sum(float(r.miqdor) for r in qs_list if r.sana == d and r.smena == 'kun') for d in date_range]
+        tun_chart    = [sum(float(r.miqdor) for r in qs_list if r.sana == d and r.smena == 'tun') for d in date_range]
+
+        stanok_stats = {}
+        for r in qs_list:
+            key = r.stanok.name if r.stanok else '—'
+            stanok_stats[key] = stanok_stats.get(key, 0) + float(r.miqdor)
+        stanok_stats = sorted(stanok_stats.items(), key=lambda x: x[1], reverse=True)[:6]
+
+        zamak_stats = {}
+        for r in qs_list:
+            key = f'{r.zamak.name} ({r.zamak.unit})' if r.zamak else '—'
+            zamak_stats[key] = zamak_stats.get(key, 0) + float(r.miqdor)
+        zamak_stats = sorted(zamak_stats.items(), key=lambda x: x[1], reverse=True)[:6]
 
         return render(request, 'casting/rasxod_list.html', {
-            'rasxodlar':   qs,
-            'stanoklar':   Stanok.objects.filter(status=Stanok.Status.ACTIVE),
-            'zamaklar':    Zamak.objects.filter(is_active=True),
-            'stanok_f':    stanok_f,
-            'zamak_f':     zamak_f,
-            'q':           q,
-            'date_from':   date_from,
-            'date_to':     date_to,
-            'today':       today,
+            'rasxodlar':    qs_list,
+            'stanoklar':    Stanok.objects.filter(status=Stanok.Status.ACTIVE),
+            'zamaklar':     Zamak.objects.filter(is_active=True),
+            'stanok_f':     stanok_f,
+            'zamak_f':      zamak_f,
+            'smena_f':      smena_f,
+            'date_from':    date_from,
+            'date_to':      date_to,
+            'today':        today,
+            'kun_jami':     kun_jami,
+            'tun_jami':     tun_jami,
+            'jami':         jami,
             'stanok_stats': stanok_stats,
             'zamak_stats':  zamak_stats,
-            'jami':         jami,
-            'active_nav':  'rasxod',
+            'chart_labels': chart_labels,
+            'kun_chart':    kun_chart,
+            'tun_chart':    tun_chart,
+            'active_nav':   'rasxod',
         })
 
 
@@ -539,6 +557,7 @@ class RasxodCreateView(CastingManagerRequiredMixin, View):
     def post(self, request):
         stanok_id = request.POST.get('stanok', '').strip()
         zamak_id  = request.POST.get('zamak', '').strip()
+        smena     = request.POST.get('smena', 'kun').strip()
         try:
             miqdor = float(request.POST.get('miqdor', 0))
             assert miqdor > 0
@@ -557,10 +576,12 @@ class RasxodCreateView(CastingManagerRequiredMixin, View):
         from decimal import Decimal
         RasxodLog.objects.create(
             stanok=stanok, zamak=zamak, miqdor=Decimal(str(miqdor)),
-            sana=sana, izoh=request.POST.get('izoh', '').strip(),
+            smena=smena, sana=sana,
+            izoh=request.POST.get('izoh', '').strip(),
             created_by=request.user,
         )
-        messages.success(request, f'{miqdor} {zamak.unit} rasxod yozildi.')
+        smena_label = '☀️ Kunduzgi' if smena == 'kun' else '🌙 Tungi'
+        messages.success(request, f'{miqdor} {zamak.unit} rasxod yozildi ({smena_label}).')
         return redirect('casting:rasxod_list')
 
 

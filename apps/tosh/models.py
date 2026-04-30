@@ -30,10 +30,10 @@ class ToshQadashJarayon(models.Model):
     """Har bir order uchun tosh qadash jarayoni."""
 
     class Status(models.TextChoices):
-        QABUL_QILINDI  = 'qabul_qilindi',  'Qabul qilindi'
+        QABUL_QILINDI   = 'qabul_qilindi',   'Qabul qilindi'
         TOSH_QADALMOQDA = 'tosh_qadalmoqda', 'Tosh qadalmoqda'
-        TOSH_QADALDI   = 'tosh_qadaldi',   "Tosh qadaldi"
-        TOSH_QADALMADI = 'tosh_qadalmadi', 'Tosh qadalmadi'
+        TOSH_QADALDI    = 'tosh_qadaldi',    "Tosh qadaldi"
+        TOSH_QADALMADI  = 'tosh_qadalmadi',  'Tosh qadalmadi'
 
     order      = models.OneToOneField(
         'order.Order',
@@ -78,7 +78,7 @@ class ToshQadashJarayon(models.Model):
             self.Status.TOSH_QADALMOQDA: 'orange',
             self.Status.TOSH_QADALDI:    'green',
             self.Status.TOSH_QADALMADI:  'red',
-        }.get(self.status, 'gray') # type: ignore
+        }.get(self.status, 'gray')  # type: ignore
 
 
 class ToshQadashLog(models.Model):
@@ -138,7 +138,7 @@ class ToshQadashLog(models.Model):
 
 
 class KleyRasxod(models.Model):
-    """Kunlik kley rasxodi — tun/kun uchun alohida, gramda. Jarayonga bog'liq emas."""
+    """Kunlik kley rasxodi — tun/kun uchun alohida, gramda."""
 
     class Smena(models.TextChoices):
         KUN = 'kun', 'Kunduzgi smena'
@@ -173,7 +173,7 @@ class KleyRasxod(models.Model):
 
 
 class ToshRasxod(models.Model):
-    """Kunlik tosh rasxodi — tun/kun uchun alohida, gramda. Jarayonga bog'liq emas."""
+    """Kunlik tosh rasxodi — tun/kun uchun alohida, gramda."""
 
     class Smena(models.TextChoices):
         KUN = 'kun', 'Kunduzgi smena'
@@ -213,51 +213,3 @@ class ToshRasxod(models.Model):
     def __str__(self):
         tosh_nomi = self.tosh.name if self.tosh else '—'
         return f'{tosh_nomi} | {self.get_smena_display()} — {self.tosh_gramm}g ({self.sana})'
-
-
-class QabulJarayon(models.Model):
-    """Qabul qilish bo'limi — tosh qadashdan keyin qabul."""
-
-    class Status(models.TextChoices):
-        KUTILMOQDA   = 'kutilmoqda',   'Kutilmoqda'
-        ILINMOQDA    = 'ilinmoqda',    'Ilinmoqda'
-        ILIB_BOLINDI = 'ilib_bolindi', "Ilib bo'lindi"
-        BEKOR_QILINDI = 'bekor_qilindi', 'Bekor qilindi'
-
-    tosh_jarayon = models.OneToOneField(
-        ToshQadashJarayon,
-        on_delete=models.CASCADE,
-        related_name='qabul_jarayon',
-        verbose_name='Tosh qadash jarayoni',
-    )
-    status     = models.CharField(
-        'Holat', max_length=20,
-        choices=Status.choices, default=Status.KUTILMOQDA,
-    )
-    izoh       = models.TextField('Izoh', blank=True)
-    updated_by = models.ForeignKey(
-        settings.AUTH_USER_MODEL,
-        on_delete=models.SET_NULL,
-        null=True, blank=True,
-        related_name='qabul_jarayon_updates',
-        verbose_name="Oxirgi o'zgartirgan",
-    )
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
-
-    class Meta:
-        ordering            = ['-updated_at']
-        verbose_name        = 'Qabul jarayoni'
-        verbose_name_plural = 'Qabul jarayonlari'
-
-    def __str__(self):
-        return f'{self.tosh_jarayon.order} — {self.get_status_display()}'
-
-    @property
-    def status_color(self):
-        return {
-            self.Status.KUTILMOQDA:   'gray',
-            self.Status.ILINMOQDA:    'orange',
-            self.Status.ILIB_BOLINDI: 'green',
-            self.Status.BEKOR_QILINDI: 'red',
-        }.get(self.status, 'gray')

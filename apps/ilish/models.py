@@ -2,6 +2,7 @@ from django.db import models
 from django.conf import settings
 
 
+
 class Vishilka(models.Model):
     """Ilish bo'limi uchun vishilka — quantity par hisobida."""
 
@@ -145,3 +146,98 @@ class IlishJarayonLog(models.Model):
     def ilingan_broshka(self):
         """Ilingan broshka soni: par × 2 (o'ng + chap tomon)."""
         return self.ilingan_par * 2
+
+
+# ─────────────────────────────────────────────
+# Upakovka (Qadoqlash) — ilish tugagach
+# ─────────────────────────────────────────────
+
+class QadoqlashJarayon(models.Model):
+    """Upakovka jarayoni — ilib_bolindi statusli IlishJarayon dan avtomatik yaratiladi."""
+
+    class Status(models.TextChoices):
+        QABUL_QILINDI = 'qabul_qilindi', 'Qabul qilindi'
+        QADOQLANMOQDA = 'qadoqlanmoqda', 'Qadoqlanmoqda'
+        QADOQLANDI    = 'qadoqlandi',    'Qadoqlandi'
+        QADOQLANMADI  = 'qadoqlanmadi',  'Qadoqlanmadi'
+
+    ilish_jarayon = models.OneToOneField(
+        IlishJarayon,
+        on_delete=models.CASCADE,
+        related_name='qadoqlash_jarayon',
+        verbose_name='Ilish jarayoni',
+    )
+    status     = models.CharField(
+        'Holat', max_length=20,
+        choices=Status.choices, default=Status.QABUL_QILINDI,
+    )
+    izoh       = models.TextField('Izoh', blank=True)
+    created_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True, blank=True,
+        related_name='qadoqlash_jarayonlar',
+        verbose_name='Yaratgan',
+    )
+    updated_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True, blank=True,
+        related_name='qadoqlash_jarayon_updates',
+        verbose_name="Oxirgi o'zgartirgan",
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering            = ['-updated_at']
+        verbose_name        = 'Qadoqlash jarayoni'
+        verbose_name_plural = 'Qadoqlash jarayonlari'
+
+    def __str__(self):
+        return f'{self.ilish_jarayon.order} — {self.get_status_display()}'
+
+    @property
+    def order(self):
+        return self.ilish_jarayon.order
+
+    @property
+    def status_color(self):
+        return {
+            self.Status.QABUL_QILINDI: 'blue',
+            self.Status.QADOQLANMOQDA: 'orange',
+            self.Status.QADOQLANDI:    'green',
+            self.Status.QADOQLANMADI:  'red',
+        }.get(self.status, 'gray')  # type: ignore
+
+
+class QadoqlashLog(models.Model):
+    """Upakovka log — nechi par qadoqlandi (kun/tun smena)."""
+
+    class Smena(models.TextChoices):
+        KUN = 'kun', 'Kunduzgi smena'
+        TUN = 'tun', 'Tungi smena'
+
+    smena      = models.CharField(
+        'Smena', max_length=5,
+        choices=Smena.choices, default=Smena.KUN,
+    )
+    par_soni   = models.PositiveIntegerField('Par soni', default=1)
+    izoh       = models.TextField('Izoh', blank=True)
+    sana       = models.DateField('Sana')
+    created_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True, blank=True,
+        related_name='qadoqlash_log_yozuvlar',
+        verbose_name="Qo'shgan",
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering            = ['-sana', '-created_at']
+        verbose_name        = 'Qadoqlash log'
+        verbose_name_plural = 'Qadoqlash loglar'
+
+    def __str__(self):
+        return f'{self.get_smena_display()} — {self.par_soni} par ({self.sana})'

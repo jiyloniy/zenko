@@ -11,7 +11,7 @@ from django.views.generic import CreateView, DeleteView, ListView, UpdateView
 from apps.order.models import Order
 from apps.users.models import User
 from .forms import IlishLogForm, VishilkaForm
-from .models import IlishJarayon, Vishilka,IlishJarayonLog
+from .models import IlishJarayon, Vishilka, IlishJarayonLog, QadoqlashJarayon, QadoqlashLog
 
 
 class AttachManagerRequiredMixin(LoginRequiredMixin):
@@ -38,8 +38,7 @@ class IlishJarayonListView(AttachManagerRequiredMixin, View):
         tab = request.GET.get('tab', 'ilinmoqda')
         q   = request.GET.get('q', '').strip()
 
-        # Quyish holati QUYILMOQDA yoki QUYIB_BOLINDI bo'lgan orderlar uchun
-        # IlishJarayon avtomatik yaratish
+        # Quyib_bolindi yoki quyilmoqda statusli orderlar uchun IlishJarayon avtomatik yaratish
         quyilgan_orders = Order.objects.filter(
             status__in=[Order.Status.IN_PROCESS, Order.Status.READY],
             quyish_jarayon__status__in=[
@@ -48,12 +47,6 @@ class IlishJarayonListView(AttachManagerRequiredMixin, View):
             ],
         )
         for order in quyilgan_orders:
-            IlishJarayon.objects.get_or_create(
-                order=order,
-                defaults={'created_by': request.user},
-            )
-        # READY statusli orderlar ham
-        for order in Order.objects.filter(status=Order.Status.READY):
             IlishJarayon.objects.get_or_create(
                 order=order,
                 defaults={'created_by': request.user},
@@ -392,4 +385,156 @@ class IlishStatsView(AttachManagerRequiredMixin, View):
             'tun_by_day':    tun_by_day,
             'status_counts': status_counts,
             'hodim_stats':   hodim_stats,
+        })
+
+
+# ─────────────────────────────────────────────
+# Upakovka (Qadoqlash) jarayonlari
+# ─────────────────────────────────────────────
+
+class UpakovkaListView(AttachManagerRequiredMixin, View):
+    def get(self, request):
+        today = timezone.now().date()
+        tab = request.GET.get('tab', 'qabul_qilindi')
+        q   = request.GET.get('q', '').strip()
+
+        # ilib_bolindi statusli IlishJarayon lar uchun avtomatik QadoqlashJarayon yaratish
+        ilinib_jarayonlar = IlishJarayon.objects.filter(status=IlishJarayon.Status.ILIB_BOLINDI)
+        for ij in ilinib_jarayonlar:
+            QadoqlashJarayon.objects.get_or_create(
+                ilish_jarayon=ij, defaults={'created_by': request.user},
+            )
+
+        qs = QadoqlashJarayon.objects.select_related(
+            'ilish_jarayon__order',
+            'ilish_jarayon__order__brujka',
+            'updated_by',
+        ).order_by('-ilish_jarayon__order__deadline', '-updated_at')
+
+        if q:
+            qs = qs.filter(
+                Q(ilish_jarayon__order__name__icontains=q) |
+                Q(ilish_jarayon__order__order_number__icontains=q)
+            )
+
+        valid_tabs = {s.value for s in QadoqlashJarayon.Status}
+        if tab not in valid_tabs:
+            tab = 'qabul_qilindi'
+
+        jarayonlar = qs.filter(status=tab)
+        counts     = {s.value: qs.filter(status=s.value).count() for s in QadoqlashJarayon.Status}
+
+        # Bugungi kun/tun mini statistika
+        bugungi_loglar = QadoqlashLog.objects.filter(sana=today)
+        bugun_kun_par  = sum(l.par_soni for l in bugungi_loglar if l.smena == 'kun')
+        bugun_tun_par  = sum(l.par_soni for l in bugungi_loglar if l.smena == 'tun')
+
+        return render(request, 'ilish/upakovka_list.html', {
+            'active_nav':    'upakovka',
+            'tab':           tab,
+            'q':             q,
+            'jarayonlar':    jarayonlar,
+            'counts':        counts,
+            'bugun_kun_par': bugun_kun_par,
+            'bugun_tun_par': bugun_tun_par,
+            'today':         today.isoformat(),
+        })
+
+
+class UpakovkaSetStatusView(AttachManagerRequiredMixin, View):
+    def post(self, request, pk):
+        jarayon  = get_object_or_404(QadoqlashJarayon, pk=pk)
+        status   = request.POST.get('status', '').strip()
+        izoh     = request.POST.get('izoh', '').strip()
+        next_tab = request.POST.get('next_tab', 'qabul_qilindi')
+        valid = {s.value for s in QadoqlashJarayon.Status}
+        if status in valid:
+            jarayon.status     = status
+            jarayon.izoh       = izoh
+            jarayon.updated_by = request.user
+            jarayon.save()
+            messages.success(request, 'Upakovka holati yangilandi.')
+        else:
+            messages.error(request, "Noto'g'ri holat.")
+        return redirect(f'{reverse_lazy("ilish:upakovka_list")}?tab={next_tab}')
+
+
+class UpakovkaLogCreateView(AttachManagerRequiredMixin, View):
+    def post(self, request, pk):
+        jarayon  = get_object_or_404(QadoqlashJarayon, pk=pk)
+        sana_str = request.POST.get('sana', timezone.now().date().isoformat())
+        smena    = request.POST.get('smena', 'kun')
+        par_str  = request.POST.get('par_soni', '1')
+        izoh     = request.POST.get('izoh', '').strip()
+        next_tab = request.POST.get('next_tab', 'qadoqlanmoqda')
+        try:
+            sana = datetime.date.fromisoformat(sana_str)
+        except ValueError:
+            sana = timezone.now().date()
+        try:
+            par_soni = max(1, int(par_str))
+        except (ValueError, TypeError):
+            par_soni = 1
+
+        QadoqlashLog.objects.create(
+            smena=smena, par_soni=par_soni,
+            sana=sana, izoh=izoh, created_by=request.user,
+        )
+        if jarayon.status == QadoqlashJarayon.Status.QABUL_QILINDI:
+            jarayon.status     = QadoqlashJarayon.Status.QADOQLANMOQDA
+            jarayon.updated_by = request.user
+            jarayon.save()
+        messages.success(request, f'{par_soni} par qadoqlash logi saqlandi.')
+        return redirect(f'{reverse_lazy("ilish:upakovka_list")}?tab={next_tab}')
+
+
+class UpakovkaLogDeleteView(AttachManagerRequiredMixin, View):
+    def post(self, request, log_pk):
+        log = get_object_or_404(QadoqlashLog, pk=log_pk)
+        log.delete()
+        messages.success(request, "Log o'chirildi.")
+        return redirect(f'{reverse_lazy("ilish:upakovka_list")}?tab=qadoqlanmoqda')
+
+
+class UpakovkaStatsView(AttachManagerRequiredMixin, View):
+    """Upakovka uchun alohida statistika sahifasi."""
+    def get(self, request):
+        today     = timezone.now().date()
+        days      = int(request.GET.get('days', 14))
+        date_from = today - datetime.timedelta(days=days - 1)
+
+        loglar = QadoqlashLog.objects.filter(sana__gte=date_from, sana__lte=today)
+        all_loglar   = list(loglar)
+        kun_loglar   = [l for l in all_loglar if l.smena == 'kun']
+        tun_loglar   = [l for l in all_loglar if l.smena == 'tun']
+        kun_par      = sum(l.par_soni for l in kun_loglar)
+        tun_par      = sum(l.par_soni for l in tun_loglar)
+        umumiy_par   = kun_par + tun_par
+
+        date_range   = [date_from + datetime.timedelta(days=i) for i in range(days)]
+        chart_labels = [d.strftime('%d.%m') for d in date_range]
+        kun_by_day   = [sum(l.par_soni for l in all_loglar if l.sana == d and l.smena == 'kun') for d in date_range]
+        tun_by_day   = [sum(l.par_soni for l in all_loglar if l.sana == d and l.smena == 'tun') for d in date_range]
+
+        status_counts = {s.value: QadoqlashJarayon.objects.filter(status=s.value).count() for s in QadoqlashJarayon.Status}
+
+        daily_totals = [k + t for k, t in zip(kun_by_day, tun_by_day)]
+        max_day_val  = max(daily_totals) if daily_totals else 0
+        max_day_idx  = daily_totals.index(max_day_val) if max_day_val else 0
+        max_day_lbl  = chart_labels[max_day_idx] if chart_labels else '—'
+
+        return render(request, 'ilish/upakovka_stats.html', {
+            'active_nav':    'upakovka_stats',
+            'days':          days,
+            'date_from':     date_from,
+            'today':         today,
+            'kun_par':       kun_par,
+            'tun_par':       tun_par,
+            'umumiy_par':    umumiy_par,
+            'chart_labels':  chart_labels,
+            'kun_by_day':    kun_by_day,
+            'tun_by_day':    tun_by_day,
+            'status_counts': status_counts,
+            'max_day_val':   max_day_val,
+            'max_day_lbl':   max_day_lbl,
         })

@@ -38,7 +38,12 @@ class Zamak(models.Model):
 
 
 class RasxodLog(models.Model):
-    """Stanokda ishlatiladigan zamak rasxodi."""
+    """Stanokda ishlatiladigan zamak rasxodi — smena bo'yicha."""
+
+    class Smena(models.TextChoices):
+        KUN = 'kun', 'Kunduzgi smena'
+        TUN = 'tun', 'Tungi smena'
+
     stanok     = models.ForeignKey(
         Stanok,
         on_delete=models.CASCADE,
@@ -52,6 +57,10 @@ class RasxodLog(models.Model):
         verbose_name='Zamak',
     )
     miqdor     = models.DecimalField('Miqdor', max_digits=10, decimal_places=2)
+    smena      = models.CharField(
+        'Smena', max_length=5,
+        choices=Smena.choices, default=Smena.KUN,
+    )
     sana       = models.DateField('Sana')
     izoh       = models.TextField('Izoh', blank=True)
     created_by = models.ForeignKey(
@@ -68,7 +77,7 @@ class RasxodLog(models.Model):
         verbose_name_plural = 'Rasxodlar'
 
     def __str__(self):
-        return f'{self.stanok} | {self.zamak} — {self.miqdor} ({self.sana})'
+        return f'{self.stanok} | {self.zamak} — {self.miqdor} [{self.get_smena_display()}] ({self.sana})'
 
 
 class AdditionalOrder(models.Model):

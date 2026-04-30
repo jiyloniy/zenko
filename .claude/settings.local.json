@@ -28,7 +28,9 @@
       "Bash(python manage.py migrate boyash)",
       "Bash(python manage.py setup_boyashmanager)",
       "Bash(python manage.py makemigrations tosh)",
-      "Bash(python manage.py migrate tosh)"
+      "Bash(python manage.py migrate tosh)",
+      "Bash(del \"d:\\\\dasturllash\\\\zenko\\\\apps\\\\tosh\\\\templates\\\\tosh\\\\qabul_list.html\" \"d:\\\\dasturllash\\\\zenko\\\\apps\\\\tosh\\\\templates\\\\tosh\\\\qabul_detail.html\")",
+      "Bash(del \"d:\\\\dasturllash\\\\zenko\\\\apps\\\\tosh\\\\templates\\\\tosh\\\\upakovka_list.html\")"
     ]
   }
 }
