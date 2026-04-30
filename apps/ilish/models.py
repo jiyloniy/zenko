@@ -166,6 +166,7 @@ class QadoqlashJarayon(models.Model):
         on_delete=models.CASCADE,
         related_name='qadoqlash_jarayon',
         verbose_name='Buyurtma',
+        null=True, blank=True
     )
     status     = models.CharField(
         'Holat', max_length=20,
