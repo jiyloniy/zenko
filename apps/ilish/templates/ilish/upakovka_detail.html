@@ -1,990 +1,872 @@
 {% extends "ilish/base.html" %}
-{% block title %}{{ jarayon.ilish_jarayon.order.name }} — Qadoqlash — Zenko{% endblock %}
+{% block title %}{{ jarayon.order.name }} — Qadoqlash — Zenko{% endblock %}
 {% block page_title %}Qadoqlash batafsili{% endblock %}
 
 {% block extra_css %}
 <style>
-/* Main layout */
-.detail-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 24px; margin-bottom: 24px; }
+:root {
+  --teal-50: #F0FDFA;
+  --teal-100: #CCFBF1;
+  --teal-200: #99F6E4;
+  --teal-400: #2DD4BF;
+  --teal-500: #14B8A6;
+  --teal-600: #0D9488;
+  --teal-700: #0F766E;
+}
+
+/* ── Grid ── */
+.detail-grid {
+  display: grid;
+  grid-template-columns: 1fr 340px;
+  gap: 20px;
+  align-items: start;
+}
 @media (max-width: 1024px) { .detail-grid { grid-template-columns: 1fr; } }
 
-/* Header card */
-.header-card {
-  background: var(--white);
-  border: 1px solid var(--gray-100);
-  border-radius: 24px;
-  padding: 32px;
-  box-shadow: 0 4px 20px rgba(0,0,0,.08), 0 1px 0 rgba(0,0,0,.03);
-  transition: box-shadow .3s ease, transform .3s ease;
+/* ── Cards ── */
+.card {
+  background: #fff;
+  border-radius: 20px;
+  border: 1px solid #F1F5F9;
+  box-shadow: 0 1px 4px rgba(0,0,0,.06), 0 4px 24px rgba(0,0,0,.04);
+  overflow: hidden;
+  transition: box-shadow .25s;
 }
+.card:hover { box-shadow: 0 2px 8px rgba(0,0,0,.08), 0 8px 32px rgba(0,0,0,.06); }
 
-.header-card:hover {
-  box-shadow: 0 8px 32px rgba(0,0,0,.12), 0 1px 0 rgba(0,0,0,.03);
-  transform: translateY(-2px);
+/* ── Hero header ── */
+.hero {
+  padding: 28px;
+  background: linear-gradient(135deg, #fff 0%, var(--teal-50) 100%);
+  border-bottom: 1px solid #F1F5F9;
 }
-
-.header-top {
+.hero-top {
   display: flex;
   align-items: flex-start;
-  gap: 28px;
-  margin-bottom: 24px;
+  gap: 22px;
 }
-
-.header-img {
-  width: 160px;
-  height: 160px;
-  border-radius: 20px;
+.hero-img {
+  width: 88px;
+  height: 88px;
+  border-radius: 18px;
   overflow: hidden;
-  background: linear-gradient(135deg, #F0FDFA, #CCFBF1);
+  background: linear-gradient(135deg, var(--teal-50), var(--teal-100));
+  border: 2px solid var(--teal-100);
   flex-shrink: 0;
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 8px 24px rgba(20, 184, 166, .15);
-  border: 1px solid rgba(20, 184, 166, .1);
-  transition: transform .3s ease;
+  font-size: 36px;
+  box-shadow: 0 4px 16px rgba(20,184,166,.15);
 }
+.hero-img img { width: 100%; height: 100%; object-fit: cover; }
 
-.header-img:hover {
-  transform: scale(1.05);
-}
-
-.header-img img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-.header-img-ph {
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(135deg, #F0FDFA, #CCFBF1);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 56px;
-}
-
-.header-info {
-  flex: 1;
-}
-
-.h-title {
-  font-size: 28px;
-  font-weight: 900;
-  color: var(--black);
-  margin-bottom: 8px;
+.hero-info { flex: 1; }
+.hero-title {
+  font-size: 22px;
+  font-weight: 800;
+  color: #0F172A;
   letter-spacing: -0.5px;
+  margin-bottom: 4px;
+  line-height: 1.2;
 }
-
-.h-num {
+.hero-order-num {
   font-size: 11px;
-  color: var(--gray-500);
   font-family: monospace;
-  margin-bottom: 16px;
-  letter-spacing: 1px;
+  color: #94A3B8;
+  letter-spacing: 1.5px;
   font-weight: 600;
+  margin-bottom: 12px;
 }
-
-.h-meta {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  margin-bottom: 16px;
-  flex-wrap: wrap;
-}
-
-.h-badge {
+.hero-badges { display: flex; gap: 8px; flex-wrap: wrap; }
+.badge {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
-  padding: 8px 16px;
-  background: var(--gray-50);
-  border: 1px solid var(--gray-200);
-  border-radius: 14px;
+  gap: 6px;
+  padding: 5px 12px;
+  border-radius: 10px;
   font-size: 12px;
   font-weight: 700;
-  color: var(--gray-700);
-  transition: all .2s ease;
+  border: 1.5px solid transparent;
+}
+.badge-gray { background: #F8FAFC; color: #475569; border-color: #E2E8F0; }
+.badge-teal { background: var(--teal-50); color: var(--teal-700); border-color: var(--teal-200); }
+.badge-green { background: #F0FDF4; color: #166534; border-color: #BBF7D0; }
+.badge-red { background: #FEF2F2; color: #991B1B; border-color: #FECDD3; animation: pulseBorder 1.5s ease infinite; }
+
+@keyframes pulseBorder {
+  0%, 100% { border-color: #FECDD3; }
+  50% { border-color: #F87171; }
 }
 
-.h-badge:hover {
-  background: var(--gray-100);
-  border-color: var(--gray-300);
+/* ── Status buttons ── */
+.status-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-top: 20px;
 }
-
-.h-badge.qty {
-  background: linear-gradient(135deg, #F0FDFA, #CCFBF1);
-  color: #0D9488;
-  border-color: #A7F3D0;
-  font-size: 13px;
-  font-weight: 800;
-}
-
-.h-deadline {
-  padding: 8px 16px;
-  border-radius: 14px;
-  font-size: 12px;
-  font-weight: 700;
-  border: 1px solid transparent;
-  transition: all .2s ease;
-}
-
-.h-deadline.ok {
-  background: #F0FDF4;
-  color: #166534;
-  border-color: #BBF7D0;
-}
-
-.h-deadline.ok:hover {
-  background: #DCFCE7;
-}
-
-.h-deadline.overdue {
-  background: #FEF2F2;
-  color: #991B1B;
-  border-color: #FECDD3;
-  animation: pulse-red .2s ease;
-}
-
-.h-deadline.overdue:hover {
-  background: #FFE4E6;
-}
-
-@keyframes pulse-red {
-  0% { transform: scale(1); }
-  50% { transform: scale(1.02); }
-  100% { transform: scale(1); }
-}
-
-/* Status section */
-.status-section {
-  display: flex;
-  gap: 12px;
-  flex-wrap: wrap;
-  padding: 16px 0;
-}
-
 .status-btn {
-  flex: 1;
-  min-width: 100px;
-  padding: 12px 18px;
-  border: 1px solid var(--gray-200);
-  border-radius: 14px;
+  padding: 11px 16px;
+  border-radius: 12px;
   font-size: 13px;
   font-weight: 700;
+  border: 1.5px solid transparent;
   cursor: pointer;
-  background: var(--white);
-  color: var(--gray-600);
-  transition: all .2s ease;
+  font-family: inherit;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
-  box-shadow: 0 2px 8px rgba(0,0,0,.04);
+  gap: 7px;
+  transition: all .2s;
 }
-
-.status-btn:hover {
-  border-color: var(--gray-300);
-  color: var(--black);
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0,0,0,.08);
-}
-
-.status-btn.qadoqlandi {
+.status-btn.ok {
   background: linear-gradient(135deg, #F0FDF4, #DCFCE7);
   color: #166534;
   border-color: #BBF7D0;
 }
-
-.status-btn.qadoqlandi:hover {
-  background: linear-gradient(135deg, #DCFCE7, #BBFBDC);
-}
-
-.status-btn.bekor {
-  background: linear-gradient(135deg, #FEF2F2, #FFE4E6);
+.status-btn.ok:hover { background: linear-gradient(135deg, #DCFCE7, #A7F3D0); transform: translateY(-1px); box-shadow: 0 4px 12px rgba(22,163,74,.15); }
+.status-btn.cancel {
+  background: #FEF2F2;
   color: #991B1B;
   border-color: #FECDD3;
 }
+.status-btn.cancel:hover { background: #FFE4E6; transform: translateY(-1px); box-shadow: 0 4px 12px rgba(239,68,68,.15); }
 
-.status-btn.bekor:hover {
-  background: linear-gradient(135deg, #FFE4E6, #FECDD3);
-}
-
-/* Stats grid */
+/* ── Stats ── */
+.stats-section { padding: 24px 28px; border-bottom: 1px solid #F8FAFC; }
 .stats-grid {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 16px;
-  margin-top: 28px;
-  padding-top: 24px;
-  border-top: 2px solid var(--gray-50);
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
 }
-
-.stat-box {
-  background: linear-gradient(135deg, #F9FAFB, #F3F4F6);
-  border-radius: 16px;
-  padding: 18px;
+@media (max-width: 768px) { .stats-grid { grid-template-columns: repeat(2, 1fr); } }
+.stat-card {
+  background: #FAFAFA;
+  border: 1px solid #F1F5F9;
+  border-radius: 14px;
+  padding: 16px 12px;
   text-align: center;
-  transition: all .3s ease;
-  border: 1px solid var(--gray-100);
-  box-shadow: 0 2px 8px rgba(0,0,0,.03);
+  transition: all .2s;
 }
-
-.stat-box:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 8px 16px rgba(0,0,0,.08);
-  background: linear-gradient(135deg, #F3F4F6, #E5E7EB);
-}
-
+.stat-card:hover { background: #F8FAFC; transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,.06); }
+.stat-icon { font-size: 20px; margin-bottom: 8px; }
 .stat-val {
-  font-size: 28px;
+  font-size: 26px;
   font-weight: 900;
-  color: var(--black);
-  line-height: 1;
-  margin-bottom: 6px;
+  color: #0F172A;
   letter-spacing: -1px;
+  line-height: 1;
+  margin-bottom: 5px;
+  transition: color .3s;
 }
+.stat-val.teal { color: var(--teal-600); }
+.stat-val.red { color: #EF4444; }
+.stat-label { font-size: 10px; font-weight: 700; color: #94A3B8; text-transform: uppercase; letter-spacing: .8px; }
 
-.stat-lbl {
-  font-size: 11px;
-  font-weight: 700;
-  color: var(--gray-600);
-  text-transform: uppercase;
-  letter-spacing: .8px;
-}
-
-/* Progress bar */
-.progress-section {
-  margin-top: 28px;
-}
-
-.progress-label {
+/* ── Progress ── */
+.progress-section { padding: 20px 28px 24px; }
+.progress-header {
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  margin-bottom: 12px;
+  justify-content: space-between;
+  margin-bottom: 14px;
 }
-
-.progress-label-text {
-  font-size: 13px;
-  font-weight: 700;
-  color: var(--gray-700);
-  letter-spacing: -0.3px;
-}
-
+.progress-title { font-size: 13px; font-weight: 700; color: #475569; }
 .progress-pct {
-  font-size: 16px;
+  font-size: 24px;
   font-weight: 900;
-  color: #0D9488;
-  letter-spacing: -0.5px;
+  letter-spacing: -1px;
+  color: var(--teal-600);
+  transition: color .5s;
 }
-
-.progress-bar {
+.progress-pct.full { color: #16A34A; }
+.progress-pct.low { color: #EF4444; }
+.progress-track {
   width: 100%;
-  height: 12px;
-  background: var(--gray-200);
+  height: 14px;
+  background: #F1F5F9;
   border-radius: 100px;
   overflow: hidden;
-  box-shadow: inset 0 1px 3px rgba(0,0,0,.1);
+  box-shadow: inset 0 2px 4px rgba(0,0,0,.06);
+  position: relative;
 }
-
 .progress-fill {
   height: 100%;
-  background: linear-gradient(90deg, #14B8A6, #0D9488);
   border-radius: 100px;
-  transition: width .5s cubic-bezier(0.4, 0, 0.2, 1);
-  box-shadow: 0 0 12px rgba(20, 184, 166, .4);
-}
-
-/* Right sidebar */
-.sidebar-col {
-  display: flex;
-  flex-direction: column;
-}
-
-@media (max-width: 768px) {
-  .sidebar-col {
-    order: -1;
-  }
-  
-  .status-section {
-    flex-direction: column;
-  }
-  
-  .status-btn {
-    min-width: auto;
-  }
-}
-
-
-/* Form card */
-.form-card {
-  background: var(--white);
-  border: 1px solid var(--gray-100);
-  border-radius: 24px;
-  padding: 24px;
-  box-shadow: 0 4px 20px rgba(0,0,0,.06), 0 1px 0 rgba(0,0,0,.03);
-  margin-bottom: 20px;
-  transition: all .3s ease;
-}
-
-.form-card:hover {
-  box-shadow: 0 8px 32px rgba(0,0,0,.1), 0 1px 0 rgba(0,0,0,.03);
-}
-
-.form-title {
-  font-size: 15px;
-  font-weight: 900;
-  color: var(--black);
-  margin-bottom: 18px;
-  padding-bottom: 14px;
-  border-bottom: 2px solid var(--gray-50);
-  letter-spacing: -0.3px;
-}
-
-.form-group {
-  margin-bottom: 16px;
-}
-
-.form-label {
-  display: block;
-  font-size: 11px;
-  font-weight: 800;
-  color: var(--gray-700);
-  margin-bottom: 8px;
-  text-transform: uppercase;
-  letter-spacing: .8px;
-}
-
-.form-input, .form-select, .form-textarea {
-  width: 100%;
-  padding: 12px 14px;
-  border: 1.5px solid var(--gray-200);
-  border-radius: 12px;
-  font-size: 13px;
-  font-family: inherit;
-  color: var(--black);
-  outline: none;
-  transition: all .2s ease;
-  background: var(--white);
-}
-
-.form-input:hover, .form-select:hover, .form-textarea:hover {
-  border-color: var(--gray-300);
-}
-
-.form-input:focus, .form-select:focus, .form-textarea:focus {
-  border-color: #0D9488;
-  box-shadow: 0 0 0 4px rgba(13, 148, 136, .1), inset 0 1px 2px rgba(0,0,0,.05);
-}
-
-.form-textarea {
-  resize: vertical;
-  min-height: 80px;
-}
-
-.form-submit {
-  width: 100%;
-  padding: 13px 18px;
-  background: linear-gradient(135deg, #14B8A6, #0D9488);
-  color: #fff;
-  border: none;
-  border-radius: 12px;
-  font-size: 13px;
-  font-weight: 800;
-  cursor: pointer;
-  font-family: inherit;
-  transition: all .2s ease;
-  box-shadow: 0 4px 16px rgba(20, 184, 166, .3), 0 1px 0 rgba(0,0,0,.1);
-  letter-spacing: -0.2px;
-}
-
-.form-submit:hover {
-  background: linear-gradient(135deg, #0D9488, #0F766E);
-  box-shadow: 0 8px 24px rgba(20, 184, 166, .4), 0 2px 0 rgba(0,0,0,.1);
-  transform: translateY(-2px);
-}
-
-.form-submit:active {
-  transform: translateY(0);
-}
-
-/* Logs section */
-.logs-section {
-  background: var(--white);
-  border: 1px solid var(--gray-100);
-  border-radius: 24px;
+  transition: width .8s cubic-bezier(.4,0,.2,1);
+  background: linear-gradient(90deg, var(--teal-400), var(--teal-600));
+  box-shadow: 0 0 16px rgba(20,184,166,.35);
+  position: relative;
   overflow: hidden;
-  box-shadow: 0 4px 20px rgba(0,0,0,.06), 0 1px 0 rgba(0,0,0,.03);
-  transition: all .3s ease;
+}
+.progress-fill::after {
+  content: '';
+  position: absolute;
+  top: 0; left: -100%; right: 0; bottom: 0;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,.3), transparent);
+  animation: shimmer 2s ease infinite;
+}
+.progress-fill.full { background: linear-gradient(90deg, #4ADE80, #16A34A); box-shadow: 0 0 16px rgba(22,163,74,.35); }
+.progress-fill.low { background: linear-gradient(90deg, #F87171, #EF4444); box-shadow: 0 0 16px rgba(239,68,68,.35); }
+
+@keyframes shimmer {
+  0% { left: -100%; }
+  100% { left: 100%; }
 }
 
-.logs-section:hover {
-  box-shadow: 0 8px 32px rgba(0,0,0,.1), 0 1px 0 rgba(0,0,0,.03);
-}
-
-.logs-header {
-  padding: 22px 24px;
-  border-bottom: 1px solid var(--gray-100);
-  background: linear-gradient(135deg, #F9FAFB, #F3F4F6);
-}
-
-.logs-title {
-  font-size: 15px;
-  font-weight: 900;
-  color: var(--black);
-  margin: 0;
-  letter-spacing: -0.3px;
-}
-
-.logs-content {
-  max-height: 600px;
-  overflow-y: auto;
-}
-
-.logs-content::-webkit-scrollbar {
-  width: 6px;
-}
-
-.logs-content::-webkit-scrollbar-track {
-  background: var(--gray-50);
-}
-
-.logs-content::-webkit-scrollbar-thumb {
-  background: var(--gray-300);
-  border-radius: 3px;
-}
-
-.logs-content::-webkit-scrollbar-thumb:hover {
-  background: var(--gray-400);
-}
-
-.log-item {
-  padding: 18px 24px;
-  border-bottom: 1px solid var(--gray-50);
+.progress-details {
   display: flex;
-  align-items: flex-start;
-  gap: 16px;
-  transition: all .2s ease;
-  background: var(--white);
+  justify-content: space-between;
+  margin-top: 10px;
+  font-size: 11px;
+  font-weight: 600;
+  color: #94A3B8;
 }
 
-.log-item:hover {
-  background: #F9FAFB;
+/* ── Logs ── */
+.logs-card { margin-top: 16px; }
+.logs-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 18px 24px;
+  border-bottom: 1px solid #F8FAFC;
+  background: linear-gradient(90deg, #FAFAFA, #fff);
 }
-
-.log-item:last-child {
-  border-bottom: none;
-}
-
-.log-badge {
-  padding: 6px 10px;
-  border-radius: 10px;
-  font-size: 10px;
+.logs-head-title { font-size: 14px; font-weight: 800; color: #0F172A; letter-spacing: -0.2px; }
+.logs-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  background: var(--teal-50);
+  color: var(--teal-600);
+  border-radius: 8px;
+  font-size: 12px;
   font-weight: 800;
-  text-transform: uppercase;
-  letter-spacing: .6px;
+  border: 1.5px solid var(--teal-100);
+}
+
+/* Timeline */
+.timeline { padding: 12px 24px; }
+.timeline-item {
+  display: flex;
+  gap: 16px;
+  padding: 14px 0;
+  position: relative;
+}
+.timeline-item:not(:last-child)::after {
+  content: '';
+  position: absolute;
+  left: 19px;
+  top: 46px;
+  bottom: -14px;
+  width: 2px;
+  background: linear-gradient(to bottom, #E2E8F0, transparent);
+}
+.timeline-dot {
+  width: 38px;
+  height: 38px;
+  border-radius: 12px;
   flex-shrink: 0;
-  margin-top: 2px;
-  box-shadow: 0 2px 4px rgba(0,0,0,.08);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: 800;
+  border: 2px solid transparent;
+  z-index: 1;
 }
-
-.log-badge.kun {
-  background: linear-gradient(135deg, #FFF7ED, #FFE4D5);
-  color: #9A3412;
+.timeline-dot.kun {
+  background: linear-gradient(135deg, #FFF7ED, #FED7AA);
+  color: #C2410C;
+  border-color: #FED7AA;
 }
-
-.log-badge.tun {
-  background: linear-gradient(135deg, #EFF6FF, #DBEAFE);
-  color: #1e40af;
+.timeline-dot.tun {
+  background: linear-gradient(135deg, #EFF6FF, #BFDBFE);
+  color: #1D4ED8;
+  border-color: #BFDBFE;
 }
-
-.log-content {
+.timeline-body {
   flex: 1;
   min-width: 0;
+  padding-bottom: 4px;
 }
-
-.log-par {
-  font-size: 18px;
-  font-weight: 900;
-  color: #0D9488;
-  line-height: 1;
+.timeline-top {
+  display: flex;
+  align-items: center;
+  gap: 10px;
   margin-bottom: 6px;
-  letter-spacing: -0.5px;
 }
-
-.log-par span {
+.timeline-par {
+  font-size: 20px;
+  font-weight: 900;
+  color: var(--teal-600);
+  letter-spacing: -0.5px;
+  line-height: 1;
+}
+.timeline-par-unit {
   font-size: 11px;
   font-weight: 700;
-  color: var(--gray-500);
+  color: #94A3B8;
   text-transform: uppercase;
   letter-spacing: .5px;
 }
-
-.log-meta {
+.timeline-meta {
   display: flex;
   align-items: center;
-  gap: 12px;
-  font-size: 11px;
-  color: var(--gray-600);
-  margin-bottom: 8px;
+  gap: 10px;
   flex-wrap: wrap;
 }
-
-.log-meta-item {
-  display: flex;
+.timeline-meta-chip {
+  display: inline-flex;
   align-items: center;
-  gap: 5px;
+  gap: 4px;
+  font-size: 11px;
   font-weight: 600;
+  color: #64748B;
 }
-
-.log-note {
-  font-size: 12px;
-  color: var(--gray-700);
-  line-height: 1.5;
+.timeline-note {
   margin-top: 10px;
-  padding: 12px 14px;
-  background: linear-gradient(135deg, #F0FDFA, #CCFBF1);
-  border-radius: 10px;
-  border-left: 4px solid #0D9488;
+  padding: 10px 14px;
+  background: linear-gradient(135deg, var(--teal-50), var(--teal-100));
+  border-left: 3px solid var(--teal-400);
+  border-radius: 0 10px 10px 0;
+  font-size: 12px;
+  color: var(--teal-700);
+  line-height: 1.6;
   font-weight: 500;
 }
-
-.log-actions {
+.timeline-actions {
   display: flex;
-  gap: 8px;
+  gap: 6px;
   flex-shrink: 0;
-  margin-top: 2px;
+  align-self: flex-start;
+  margin-top: 4px;
 }
-
-.log-btn {
+.icon-btn {
   width: 32px;
   height: 32px;
-  border-radius: 10px;
-  border: 1px solid var(--gray-200);
-  background: var(--white);
-  color: var(--gray-600);
+  border-radius: 9px;
+  border: 1.5px solid #E2E8F0;
+  background: #fff;
+  color: #64748B;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all .15s ease;
   font-size: 14px;
-  flex-shrink: 0;
-  box-shadow: 0 1px 3px rgba(0,0,0,.05);
+  transition: all .15s;
+  text-decoration: none;
 }
+.icon-btn:hover { border-color: #CBD5E1; color: #0F172A; background: #F8FAFC; transform: translateY(-1px); }
+.icon-btn.del:hover { border-color: #FECDD3; color: #991B1B; background: #FEF2F2; }
 
-.log-btn:hover {
-  border-color: var(--gray-300);
-  color: var(--black);
-  background: var(--gray-50);
-  transform: translateY(-1px);
-  box-shadow: 0 2px 6px rgba(0,0,0,.1);
-}
-
-.log-btn.delete:hover {
-  border-color: #FECDD3;
-  color: #991B1B;
-  background: #FEF2F2;
-}
-
-.empty-logs {
-  padding: 60px 20px;
+.empty-state {
+  padding: 56px 20px;
   text-align: center;
-  color: var(--gray-400);
 }
+.empty-icon { font-size: 40px; margin-bottom: 12px; opacity: .4; }
+.empty-text { font-size: 13px; font-weight: 600; color: #94A3B8; }
 
-.empty-logs svg {
-  width: 56px;
-  height: 56px;
-  margin: 0 auto 16px;
+/* ── Sidebar form ── */
+.sidebar { display: flex; flex-direction: column; gap: 16px; }
+
+.form-card {
+  background: #fff;
+  border: 1px solid #F1F5F9;
+  border-radius: 20px;
+  overflow: hidden;
+  box-shadow: 0 1px 4px rgba(0,0,0,.06), 0 4px 24px rgba(0,0,0,.04);
+}
+.form-head {
+  padding: 18px 22px;
+  border-bottom: 1px solid #F8FAFC;
+  background: linear-gradient(90deg, #FAFAFA, #fff);
+}
+.form-head-title {
+  font-size: 14px;
+  font-weight: 800;
+  color: #0F172A;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.form-body { padding: 20px 22px; }
+
+.field { margin-bottom: 16px; }
+.field:last-child { margin-bottom: 0; }
+.field-label {
   display: block;
-  opacity: .15;
+  font-size: 11px;
+  font-weight: 800;
+  color: #475569;
+  text-transform: uppercase;
+  letter-spacing: .8px;
+  margin-bottom: 7px;
 }
-
-.empty-logs p {
+.field input, .field select, .field textarea {
+  width: 100%;
+  padding: 11px 14px;
+  border: 1.5px solid #E2E8F0;
+  border-radius: 11px;
   font-size: 13px;
-  font-weight: 600;
-  color: var(--gray-500);
+  font-family: inherit;
+  color: #0F172A;
+  outline: none;
+  transition: all .2s;
+  background: #FAFAFA;
 }
+.field input:hover, .field select:hover, .field textarea:hover { border-color: #CBD5E1; background: #fff; }
+.field input:focus, .field select:focus, .field textarea:focus {
+  border-color: var(--teal-500);
+  background: #fff;
+  box-shadow: 0 0 0 4px rgba(20,184,166,.08);
+}
+.field textarea { resize: vertical; min-height: 76px; }
+.field-error { font-size: 11px; color: #BE123C; font-weight: 600; margin-top: 5px; }
 
-/* Errors */
-.error-msg {
-  padding: 14px 16px;
-  background: linear-gradient(135deg, #FEF2F2, #FFE4E6);
+.form-err-banner {
+  padding: 12px 14px;
+  background: #FEF2F2;
   border: 1.5px solid #FECDD3;
-  border-radius: 12px;
+  border-radius: 11px;
   color: #991B1B;
   font-size: 12px;
   font-weight: 700;
   margin-bottom: 16px;
-  box-shadow: 0 2px 8px rgba(190, 24, 93, .1);
 }
 
-/* Modal for delete confirmation */
+.submit-btn {
+  width: 100%;
+  padding: 13px;
+  background: linear-gradient(135deg, var(--teal-500), var(--teal-600));
+  color: #fff;
+  border: none;
+  border-radius: 12px;
+  font-size: 13px;
+  font-weight: 800;
+  cursor: pointer;
+  font-family: inherit;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: all .2s;
+  box-shadow: 0 4px 14px rgba(20,184,166,.3);
+  letter-spacing: -0.2px;
+  margin-top: 20px;
+}
+.submit-btn:hover {
+  background: linear-gradient(135deg, var(--teal-600), var(--teal-700));
+  box-shadow: 0 6px 20px rgba(20,184,166,.4);
+  transform: translateY(-2px);
+}
+.submit-btn:active { transform: translateY(0); }
+
+/* ── Info card ── */
+.info-card {
+  background: linear-gradient(135deg, var(--teal-50), #E0F9F7);
+  border: 1.5px solid var(--teal-200);
+  border-radius: 20px;
+  padding: 20px 22px;
+}
+.info-card-title {
+  font-size: 13px;
+  font-weight: 800;
+  color: var(--teal-700);
+  margin-bottom: 14px;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+.info-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 0;
+  border-bottom: 1px solid rgba(20,184,166,.12);
+  font-size: 12px;
+}
+.info-row:last-child { border-bottom: none; padding-bottom: 0; }
+.info-key { color: #0F766E; font-weight: 600; }
+.info-val { color: var(--teal-600); font-weight: 700; }
+
+/* ── Modal ── */
 .modal-overlay {
   display: none;
   position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0,0,0,.5);
+  inset: 0;
+  background: rgba(15,23,42,.5);
+  backdrop-filter: blur(4px);
   z-index: 1000;
   align-items: center;
   justify-content: center;
-  animation: fadeIn .2s ease;
 }
+.modal-overlay.open { display: flex; animation: fadeIn .2s ease; }
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
-@keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
-}
-
-.modal-overlay.active {
-  display: flex;
-}
-
-.modal {
-  background: var(--white);
+.modal-box {
+  background: #fff;
   border-radius: 20px;
-  padding: 32px;
-  max-width: 420px;
+  padding: 30px;
+  max-width: 400px;
   width: 90%;
-  box-shadow: 0 25px 50px rgba(0,0,0,.25);
-  animation: slideUp .3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 20px 60px rgba(15,23,42,.25);
+  animation: slideUp .25s cubic-bezier(.4,0,.2,1);
 }
-
 @keyframes slideUp {
-  from { 
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  to { 
-    opacity: 1;
-    transform: translateY(0);
-  }
+  from { opacity: 0; transform: translateY(16px); }
+  to { opacity: 1; transform: translateY(0); }
 }
-
-.modal-title {
-  font-size: 18px;
-  font-weight: 900;
-  color: var(--black);
-  margin-bottom: 12px;
-  letter-spacing: -0.3px;
-}
-
-.modal-text {
-  font-size: 13px;
-  color: var(--gray-600);
-  margin-bottom: 24px;
-  line-height: 1.6;
-}
-
-.modal-actions {
-  display: flex;
-  gap: 12px;
-}
-
+.modal-icon { font-size: 40px; text-align: center; margin-bottom: 16px; }
+.modal-title { font-size: 18px; font-weight: 800; color: #0F172A; margin-bottom: 8px; text-align: center; letter-spacing: -0.3px; }
+.modal-desc { font-size: 13px; color: #64748B; text-align: center; margin-bottom: 24px; line-height: 1.6; }
+.modal-btns { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
 .modal-btn {
-  flex: 1;
   padding: 12px;
   border-radius: 12px;
-  border: none;
   font-size: 13px;
   font-weight: 700;
   cursor: pointer;
   font-family: inherit;
-  transition: all .2s ease;
-  letter-spacing: -0.2px;
+  border: none;
+  transition: all .2s;
 }
-
-.modal-btn.cancel {
-  background: var(--gray-100);
-  color: var(--gray-700);
-  border: 1px solid var(--gray-200);
-}
-
-.modal-btn.cancel:hover {
-  background: var(--gray-200);
-  border-color: var(--gray-300);
-}
-
-.modal-btn.confirm {
-  background: linear-gradient(135deg, #EF4444, #DC2626);
-  color: #fff;
-  box-shadow: 0 4px 12px rgba(239, 68, 68, .3);
-}
-
-.modal-btn.confirm:hover {
-  background: linear-gradient(135deg, #DC2626, #B91C1C);
-  box-shadow: 0 6px 16px rgba(239, 68, 68, .4);
-  transform: translateY(-1px);
-}
+.modal-btn.sec { background: #F1F5F9; color: #475569; border: 1.5px solid #E2E8F0; }
+.modal-btn.sec:hover { background: #E2E8F0; }
+.modal-btn.danger { background: linear-gradient(135deg, #EF4444, #DC2626); color: #fff; box-shadow: 0 4px 12px rgba(239,68,68,.3); }
+.modal-btn.danger:hover { background: linear-gradient(135deg, #DC2626, #B91C1C); box-shadow: 0 6px 16px rgba(239,68,68,.4); transform: translateY(-1px); }
 </style>
 {% endblock %}
 
 {% block topbar_actions %}
 <a href="{% url 'ilish:upakovka_list' %}" class="btn btn-secondary btn-sm">
-  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18"/></svg>
+  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width:14px;height:14px;"><path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18"/></svg>
   Ortga
 </a>
 {% endblock %}
 
 {% block content %}
-
 <div class="detail-grid">
-  <!-- Main content -->
-  <div>
-    <!-- Header card -->
-    <div class="header-card">
-      <div class="header-top">
-        {% if jarayon.order.brujka.image %}
-          <div class="header-img">
-            <img src="{{ jarayon.order.brujka.image.url }}" alt="{{ jarayon.order.brujka.name }}" loading="lazy">
-          </div>
-        {% elif jarayon.order.image %}
-          <div class="header-img">
-            <img src="{{ jarayon.order.image.url }}" alt="" loading="lazy">
-          </div>
-        {% else %}
-          <div class="header-img">
-            <div class="header-img-ph">📦</div>
-          </div>
-        {% endif %}
 
-        <div class="header-info">
-          <div class="h-title">{{ jarayon.order.name }}</div>
-          <div class="h-num">#{{ jarayon.order.order_number }}</div>
-          
-          <div class="h-meta">
-            {% if jarayon.order.brujka %}
-              <div class="h-badge">
-                <span style="width:8px;height:8px;border-radius:50%;background:{{ jarayon.order.brujka.color }};display:inline-block;"></span>
-                {{ jarayon.order.brujka.name }}
-              </div>
-            {% endif %}
-            <div class="h-badge qty">
-              {{ jarayon.order.quantity }} dona
-            </div>
-            <div class="h-deadline {% if jarayon.order.is_overdue %}overdue{% else %}ok{% endif %}">
+  <!-- ══ LEFT COLUMN ══ -->
+  <div>
+
+    <!-- Hero card -->
+    <div class="card">
+      <div class="hero">
+        <div class="hero-top">
+          {% if jarayon.order.brujka.image %}
+            <div class="hero-img"><img src="{{ jarayon.order.brujka.image.url }}" alt="{{ jarayon.order.brujka.name }}" loading="lazy"></div>
+          {% elif jarayon.order.image %}
+            <div class="hero-img"><img src="{{ jarayon.order.image.url }}" alt="" loading="lazy"></div>
+          {% else %}
+            <div class="hero-img">📦</div>
+          {% endif %}
+
+          <div class="hero-info">
+            <div class="hero-title">{{ jarayon.order.name }}</div>
+            <div class="hero-order-num">#{{ jarayon.order.order_number }}</div>
+            <div class="hero-badges">
+              {% if jarayon.order.brujka %}
+                <span class="badge badge-gray">
+                  <span style="width:8px;height:8px;border-radius:50%;background:{{ jarayon.order.brujka.color }};display:inline-block;flex-shrink:0;"></span>
+                  {{ jarayon.order.brujka.name }}
+                </span>
+              {% endif %}
+              <span class="badge badge-teal">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width:12px;height:12px;"><path stroke-linecap="round" stroke-linejoin="round" d="M20.25 7.5l-.625 10.632a2.25 2.25 0 01-2.247 2.118H6.622a2.25 2.25 0 01-2.247-2.118L3.75 7.5M10 11.25h4M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125z"/></svg>
+                {{ jarayon.order.quantity }} dona
+              </span>
               {% if jarayon.order.is_overdue %}
-                ⚠ Muddati o'tgan
+                <span class="badge badge-red">⚠ Muddati o'tgan</span>
               {% else %}
-                📅 {{ jarayon.order.deadline|date:"d.m.Y" }}
+                <span class="badge badge-green">
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width:12px;height:12px;"><path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5"/></svg>
+                  {{ jarayon.order.deadline|date:"d.m.Y" }}
+                </span>
               {% endif %}
             </div>
-          </div>
 
-          <!-- Status buttons -->
-          <div class="status-section" style="margin-top: 16px;">
-            <form method="post" action="{% url 'ilish:upakovka_set_status' jarayon.pk %}" style="flex: 1;">
-              {% csrf_token %}
-              <input type="hidden" name="status" value="qadoqlandi">
-              <input type="hidden" name="next_tab" value="qadoqlanmoqda">
-              <button type="submit" class="status-btn qadoqlandi">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width:14px;height:14px;"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                Tayyor
-              </button>
-            </form>
-            <form method="post" action="{% url 'ilish:upakovka_set_status' jarayon.pk %}" style="flex: 1;">
-              {% csrf_token %}
-              <input type="hidden" name="status" value="qadoqlanmadi">
-              <input type="hidden" name="next_tab" value="qadoqlanmoqda">
-              <button type="submit" class="status-btn bekor">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width:14px;height:14px;"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
-                Bekor
-              </button>
-            </form>
+            <!-- Status buttons -->
+            <div class="status-row">
+              <form method="post" action="{% url 'ilish:upakovka_set_status' jarayon.pk %}">
+                {% csrf_token %}
+                <input type="hidden" name="status" value="qadoqlandi">
+                <input type="hidden" name="next_tab" value="qadoqlanmoqda">
+                <button type="submit" class="status-btn ok" style="width:100%;">
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width:15px;height:15px;"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                  Tayyor
+                </button>
+              </form>
+              <form method="post" action="{% url 'ilish:upakovka_set_status' jarayon.pk %}">
+                {% csrf_token %}
+                <input type="hidden" name="status" value="qadoqlanmadi">
+                <input type="hidden" name="next_tab" value="qadoqlanmoqda">
+                <button type="submit" class="status-btn cancel" style="width:100%;">
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width:15px;height:15px;"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+                  Bekor
+                </button>
+              </form>
+            </div>
           </div>
         </div>
       </div>
 
       <!-- Stats -->
-      <div class="stats-grid">
-        <div class="stat-box">
-          <div class="stat-val">{{ kun_par }}</div>
-          <div class="stat-lbl">☀️ Kunduzgi</div>
-        </div>
-        <div class="stat-box">
-          <div class="stat-val">{{ tun_par }}</div>
-          <div class="stat-lbl">🌙 Tungi</div>
-        </div>
-        <div class="stat-box">
-          <div class="stat-val">{{ total_par }}</div>
-          <div class="stat-lbl">Jami qadoq</div>
-        </div>
-        <div class="stat-box">
-          <div class="stat-val" style="color:#EF4444;">{{ qoldiq_par }}</div>
-          <div class="stat-lbl">Qoldiq</div>
+      <div class="stats-section">
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-icon">☀️</div>
+            <div class="stat-val teal" data-count="{{ kun_par }}">{{ kun_par }}</div>
+            <div class="stat-label">Kunduzgi</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon">🌙</div>
+            <div class="stat-val teal" data-count="{{ tun_par }}">{{ tun_par }}</div>
+            <div class="stat-label">Tungi</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon">📦</div>
+            <div class="stat-val" data-count="{{ total_par }}">{{ total_par }}</div>
+            <div class="stat-label">Jami qadoq</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon">⏳</div>
+            <div class="stat-val red" data-count="{{ qoldiq_par }}">{{ qoldiq_par }}</div>
+            <div class="stat-label">Qoldiq</div>
+          </div>
         </div>
       </div>
 
       <!-- Progress -->
       <div class="progress-section">
-        <div class="progress-label">
-          <span class="progress-label-text">Qadoqlash jarayoni</span>
-          <span class="progress-pct">{{ progress_pct }}%</span>
+        <div class="progress-header">
+          <span class="progress-title">Qadoqlash jarayoni</span>
+          <span class="progress-pct {% if progress_pct >= 100 %}full{% elif progress_pct < 30 %}low{% endif %}" id="pctDisplay">{{ progress_pct }}%</span>
         </div>
-        <div class="progress-bar">
-          <div class="progress-fill" style="width: {{ progress_pct }}%;"></div>
+        <div class="progress-track">
+          <div class="progress-fill {% if progress_pct >= 100 %}full{% elif progress_pct < 30 %}low{% endif %}"
+               id="progressFill"
+               style="width: 0%;"
+               data-target="{{ progress_pct }}">
+          </div>
+        </div>
+        <div class="progress-details">
+          <span>{{ total_par }} / {{ target_par }} dona qadoqlandi</span>
+          <span>{{ qoldiq_par }} qoldi</span>
         </div>
       </div>
     </div>
 
-    <!-- Logs section -->
-    <div class="logs-section" style="margin-top: 20px;">
-      <div class="logs-header">
-        <h3 class="logs-title">Qadoqlash loglar ({{ loglar|length }})</h3>
+    <!-- Logs card -->
+    <div class="card logs-card">
+      <div class="logs-head">
+        <span class="logs-head-title">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width:16px;height:16px;color:#0D9488;"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h3.75M9 15h3.75M9 18h3.75m3 .75H18a2.25 2.25 0 002.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.424 48.424 0 00-1.123-.08m-5.801 0c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 00.75-.75 2.25 2.25 0 00-.1-.664m-5.8 0A2.251 2.251 0 0113.5 2.25H15c1.012 0 1.867.668 2.15 1.586m-5.8 0c-.376.023-.75.05-1.124.08C9.095 4.01 8.25 4.973 8.25 6.108V8.25m0 0H4.875c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V9.375c0-.621-.504-1.125-1.125-1.125H8.25zM6.75 12h.008v.008H6.75V12zm0 3h.008v.008H6.75V15zm0 3h.008v.008H6.75V18z"/></svg>
+          Qadoqlash loglari
+        </span>
+        <span class="logs-count">{{ loglar|length }}</span>
       </div>
-      <div class="logs-content">
+
+      <div style="max-height: 520px; overflow-y: auto; scrollbar-width: thin; scrollbar-color: #CBD5E1 transparent;">
         {% if loglar %}
-          {% for log in loglar %}
-            <div class="log-item" data-log-id="{{ log.id }}">
-              <div class="log-badge {% if log.smena == 'kun' %}kun{% else %}tun{% endif %}">
-                {{ log.get_smena_display|slice:":3" }}
-              </div>
-              <div class="log-content">
-                <div class="log-par">{{ log.par_soni }} <span>par</span></div>
-                <div class="log-meta">
-                  <div class="log-meta-item">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width:12px;height:12px;"><path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5"/></svg>
-                    {{ log.sana|date:"d.m.Y" }}
+          <div class="timeline">
+            {% for log in loglar %}
+              <div class="timeline-item" data-log-id="{{ log.id }}">
+                <div class="timeline-dot {% if log.smena == 'kun' %}kun{% else %}tun{% endif %}">
+                  {% if log.smena == 'kun' %}☀{% else %}🌙{% endif %}
+                </div>
+                <div class="timeline-body">
+                  <div class="timeline-top">
+                    <span class="timeline-par">{{ log.par_soni }}</span>
+                    <span class="timeline-par-unit">par</span>
                   </div>
-                  {% if log.created_by %}
-                    <div class="log-meta-item">
-                      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width:12px;height:12px;"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z"/></svg>
-                      {{ log.created_by.name }}
-                    </div>
+                  <div class="timeline-meta">
+                    <span class="timeline-meta-chip">
+                      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width:11px;height:11px;"><path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5"/></svg>
+                      {{ log.sana|date:"d.m.Y" }}
+                    </span>
+                    <span class="timeline-meta-chip" style="color:#94A3B8;">•</span>
+                    <span class="timeline-meta-chip">
+                      {% if log.smena == 'kun' %}☀️ Kunduzgi{% else %}🌙 Tungi{% endif %}
+                    </span>
+                    {% if log.created_by %}
+                      <span class="timeline-meta-chip" style="color:#94A3B8;">•</span>
+                      <span class="timeline-meta-chip">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width:11px;height:11px;"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z"/></svg>
+                        {{ log.created_by.name }}
+                      </span>
+                    {% endif %}
+                  </div>
+                  {% if log.izoh %}
+                    <div class="timeline-note">💬 {{ log.izoh }}</div>
                   {% endif %}
                 </div>
-                {% if log.izoh %}
-                  <div class="log-note">{{ log.izoh }}</div>
-                {% endif %}
+                <div class="timeline-actions">
+                  <a href="{% url 'ilish:upakovka_log_update' log.pk %}" class="icon-btn" title="Tahrirlash">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width:14px;height:14px;"><path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931z"/></svg>
+                  </a>
+                  <button type="button" class="icon-btn del" onclick="confirmDelete({{ log.pk }}, '{% url 'ilish:upakovka_log_delete' log.pk %}')" title="O'chirish">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width:14px;height:14px;"><path stroke-linecap="round" stroke-linejoin="round" d="M14.74 9l-.356 9m-4.368 0l-.356-9m1.978 0h.776m5.656 0h.776M9.172 9l.487 9.073A2.25 2.25 0 0011.382 20h1.236a2.25 2.25 0 002.723-2.127l.487-9.073m-1.06 0H5.25M7.5 5V3.375c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V5m4.5 0V3.375c0-.621.504-1.125-1.125-1.125h-2.25C6.504 2.25 6 2.754 6 3.375V5"/></svg>
+                  </button>
+                </div>
               </div>
-              <div class="log-actions">
-                <a href="{% url 'ilish:upakovka_log_update' log.pk %}" class="log-btn" title="Tahrirlash">
-                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 9.75a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0z"/></svg>
-                </a>
-                <button type="button" class="log-btn delete" onclick="confirmDelete({{ log.pk }}, '{% url 'ilish:upakovka_log_delete' log.pk %}')" title="O'chirish">
-                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M14.74 9l-.356 9m-4.368 0l-.356-9m1.978 0h.776m5.656 0h.776M9.172 9l.487 9.073A2.25 2.25 0 0011.382 20h1.236a2.25 2.25 0 002.723-2.127l.487-9.073m-1.06 0H5.25M7.5 5V3.375c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V5m4.5 0V3.375c0-.621.504-1.125-1.125-1.125h-2.25C6.504 2.25 6 2.754 6 3.375V5"/></svg>
-                </button>
-              </div>
-            </div>
-          {% endfor %}
+            {% endfor %}
+          </div>
         {% else %}
-          <div class="empty-logs">
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z"/></svg>
-            <p>Hali hech qanday log yo'q</p>
+          <div class="empty-state">
+            <div class="empty-icon">📋</div>
+            <div class="empty-text">Hali hech qanday log qo'shilmagan</div>
           </div>
         {% endif %}
       </div>
     </div>
+
   </div>
 
-  <!-- Sidebar -->
-  <div class="sidebar-col">
-    <!-- Form card -->
+  <!-- ══ RIGHT SIDEBAR ══ -->
+  <div class="sidebar">
+
+    <!-- Log form -->
     <div class="form-card">
-      <div class="form-title">✏️ Yangi log qo'shish</div>
-
-      {% if form.non_field_errors %}
-        {% for error in form.non_field_errors %}
-          <div class="error-msg">{{ error }}</div>
-        {% endfor %}
-      {% endif %}
-
-      <form method="post" action="{% url 'ilish:upakovka_log_create' jarayon.pk %}">
-        {% csrf_token %}
-
-        <div class="form-group">
-          <label for="id_smena" class="form-label">Smena</label>
-          {{ form.smena }}
-          {% if form.smena.errors %}<small style="color:#BE123C;">{{ form.smena.errors.0 }}</small>{% endif %}
+      <div class="form-head">
+        <div class="form-head-title">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width:16px;height:16px;color:#0D9488;"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>
+          Yangi log qo'shish
         </div>
+      </div>
+      <div class="form-body">
+        {% if form.non_field_errors %}
+          {% for error in form.non_field_errors %}
+            <div class="form-err-banner">{{ error }}</div>
+          {% endfor %}
+        {% endif %}
 
-        <div class="form-group">
-          <label for="id_par_soni" class="form-label">Par soni</label>
-          {{ form.par_soni }}
-          {% if form.par_soni.errors %}<small style="color:#BE123C;">{{ form.par_soni.errors.0 }}</small>{% endif %}
-        </div>
+        <form method="post" action="{% url 'ilish:upakovka_log_create' jarayon.pk %}">
+          {% csrf_token %}
 
-        <div class="form-group">
-          <label for="id_sana" class="form-label">Sana</label>
-          {{ form.sana }}
-          {% if form.sana.errors %}<small style="color:#BE123C;">{{ form.sana.errors.0 }}</small>{% endif %}
-        </div>
+          <div class="field">
+            <label for="id_smena" class="field-label">Smena</label>
+            {{ form.smena }}
+            {% if form.smena.errors %}<div class="field-error">{{ form.smena.errors.0 }}</div>{% endif %}
+          </div>
 
-        <div class="form-group">
-          <label for="id_izoh" class="form-label">Izoh (ixtiyoriy)</label>
-          {{ form.izoh }}
-          {% if form.izoh.errors %}<small style="color:#BE123C;">{{ form.izoh.errors.0 }}</small>{% endif %}
-        </div>
+          <div class="field">
+            <label for="id_par_soni" class="field-label">Par soni</label>
+            {{ form.par_soni }}
+            {% if form.par_soni.errors %}<div class="field-error">{{ form.par_soni.errors.0 }}</div>{% endif %}
+          </div>
 
-        <button type="submit" class="form-submit">
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width:16px;height:16px;"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>
-          Log qo'shish
-        </button>
-      </form>
+          <div class="field">
+            <label for="id_sana" class="field-label">Sana</label>
+            {{ form.sana }}
+            {% if form.sana.errors %}<div class="field-error">{{ form.sana.errors.0 }}</div>{% endif %}
+          </div>
+
+          <div class="field">
+            <label for="id_izoh" class="field-label">Izoh <span style="font-weight:600;color:#94A3B8;text-transform:none;letter-spacing:0;">(ixtiyoriy)</span></label>
+            {{ form.izoh }}
+            {% if form.izoh.errors %}<div class="field-error">{{ form.izoh.errors.0 }}</div>{% endif %}
+          </div>
+
+          <button type="submit" class="submit-btn">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width:16px;height:16px;"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>
+            Log qo'shish
+          </button>
+        </form>
+      </div>
     </div>
 
     <!-- Info card -->
-    <div class="form-card" style="background: linear-gradient(135deg, #F0FDFA, #E0F9F7); border-color: #A7F3D0; border: 1.5px solid #A7F3D0;">
-      <div style="font-size: 12px; color: #0D7E7E; line-height: 1.8;">
-        <div style="font-weight: 800; margin-bottom: 12px; font-size: 13px; letter-spacing: -0.2px;">📋 Qadoqlash holati</div>
-        <div style="padding: 8px 0; border-bottom: 1px solid rgba(13, 148, 136, .1);"><strong style="color: #0D7E7E;">Status:</strong> <span style="font-weight: 600; color: #0D9488;">{{ jarayon.get_status_display }}</span></div>
-        <div style="padding: 8px 0; border-bottom: 1px solid rgba(13, 148, 136, .1);"><strong style="color: #0D7E7E;">Yaratilgan:</strong> <span style="color: #0D9488; font-weight: 600;">{{ jarayon.created_at|date:"d.m.Y H:i" }}</span></div>
-        <div style="padding: 8px 0; border-bottom: 1px solid rgba(13, 148, 136, .1);"><strong style="color: #0D7E7E;">Yangilangan:</strong> <span style="color: #0D9488; font-weight: 600;">{{ jarayon.updated_at|date:"d.m.Y H:i" }}</span></div>
-        {% if jarayon.updated_by %}
-          <div style="padding: 8px 0;"><strong style="color: #0D7E7E;">Admin:</strong> <span style="color: #0D9488; font-weight: 600;">{{ jarayon.updated_by.name }}</span></div>
-        {% endif %}
+    <div class="info-card">
+      <div class="info-card-title">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width:15px;height:15px;"><path stroke-linecap="round" stroke-linejoin="round" d="M11.25 11.25l.041-.02a.75.75 0 011.063.852l-.708 2.836a.75.75 0 001.063.853l.041-.021M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9-3.75h.008v.008H12V8.25z"/></svg>
+        Qadoqlash holati
       </div>
+      <div class="info-row">
+        <span class="info-key">Status</span>
+        <span class="info-val">{{ jarayon.get_status_display }}</span>
+      </div>
+      <div class="info-row">
+        <span class="info-key">Yaratilgan</span>
+        <span class="info-val">{{ jarayon.created_at|date:"d.m.Y H:i" }}</span>
+      </div>
+      <div class="info-row">
+        <span class="info-key">Yangilangan</span>
+        <span class="info-val">{{ jarayon.updated_at|date:"d.m.Y H:i" }}</span>
+      </div>
+      {% if jarayon.updated_by %}
+        <div class="info-row">
+          <span class="info-key">Admin</span>
+          <span class="info-val">{{ jarayon.updated_by.name }}</span>
+        </div>
+      {% endif %}
     </div>
+
   </div>
 </div>
 
 <!-- Delete modal -->
 <div class="modal-overlay" id="deleteModal">
-  <div class="modal">
+  <div class="modal-box">
+    <div class="modal-icon">🗑️</div>
     <div class="modal-title">Logni o'chirish</div>
-    <div class="modal-text">
-      Haqiqatan ham bu logni o'chirmoqchisiz? Bu amalni qaytara olmaysiz.
-    </div>
-    <div class="modal-actions">
-      <button type="button" class="modal-btn cancel" onclick="closeDeleteModal()">Bekor qilish</button>
-      <form id="deleteForm" method="post" style="flex: 1;">
+    <div class="modal-desc">Haqiqatan ham bu logni o'chirmoqchisiz?<br>Bu amalni qaytara olmaysiz.</div>
+    <div class="modal-btns">
+      <button type="button" class="modal-btn sec" onclick="closeDeleteModal()">Bekor qilish</button>
+      <form id="deleteForm" method="post" style="display:contents;">
         {% csrf_token %}
-        <button type="submit" class="modal-btn confirm" style="width: 100%; margin: 0;">O'chirish</button>
+        <button type="submit" class="modal-btn danger">O'chirish</button>
       </form>
     </div>
   </div>
 </div>
 
 <script>
-function confirmDelete(logId, deleteUrl) {
-  const modal = document.getElementById('deleteModal');
-  const form = document.getElementById('deleteForm');
-  form.action = deleteUrl;
-  modal.classList.add('active');
-}
+// ── Progress bar animation ──
+window.addEventListener('DOMContentLoaded', () => {
+  const fill = document.getElementById('progressFill');
+  if (fill) {
+    const target = parseFloat(fill.dataset.target) || 0;
+    requestAnimationFrame(() => {
+      setTimeout(() => { fill.style.width = target + '%'; }, 100);
+    });
+  }
 
+  // ── Stat counter animation ──
+  document.querySelectorAll('.stat-val[data-count]').forEach(el => {
+    const end = parseInt(el.dataset.count, 10);
+    if (!end) return;
+    let start = 0;
+    const dur = 800;
+    const step = Math.ceil(end / (dur / 16));
+    const timer = setInterval(() => {
+      start = Math.min(start + step, end);
+      el.textContent = start;
+      if (start >= end) clearInterval(timer);
+    }, 16);
+  });
+});
+
+// ── Delete modal ──
+function confirmDelete(logId, url) {
+  document.getElementById('deleteForm').action = url;
+  document.getElementById('deleteModal').classList.add('open');
+}
 function closeDeleteModal() {
-  const modal = document.getElementById('deleteModal');
-  modal.classList.remove('active');
+  document.getElementById('deleteModal').classList.remove('open');
 }
-
-// Close modal on outside click
 document.getElementById('deleteModal').addEventListener('click', function(e) {
   if (e.target === this) closeDeleteModal();
 });
 
-// Customize form inputs
-document.querySelectorAll('.form-input, .form-select, .form-textarea').forEach(el => {
-  if (!el.classList.contains('form-input') && !el.classList.contains('form-select') && !el.classList.contains('form-textarea')) {
-    el.classList.add('form-input');
-  }
+// ── Apply form classes ──
+document.querySelectorAll('.field input, .field select, .field textarea').forEach(el => {
+  el.style.boxSizing = 'border-box';
 });
 </script>
-
 {% endblock %}
