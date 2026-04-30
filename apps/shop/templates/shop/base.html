@@ -1,0 +1,388 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Shop Manager — Zenko{% endblock %}</title>
+    <style>
+        :root {
+            --orange: #F58220;
+            --orange-hover: #E0741A;
+            --orange-light: #FFF3E6;
+            --black: #1A1A1A;
+            --dark: #2D2D2D;
+            --gray-50: #FAFAFA;
+            --gray-100: #F7F7F8;
+            --gray-200: #E8E8EC;
+            --gray-300: #D1D1D8;
+            --gray-400: #A1A1AA;
+            --gray-500: #71717A;
+            --gray-600: #52525B;
+            --gray-700: #3F3F46;
+            --white: #FFFFFF;
+            --red: #EF4444;
+            --green: #22C55E;
+            --blue: #3B82F6;
+            --purple: #8B5CF6;
+            --sidebar-w: 268px;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background: var(--gray-100);
+            color: var(--black);
+            min-height: 100vh;
+        }
+
+        /* ── SIDEBAR ── */
+        .sidebar {
+            position: fixed;
+            top: 0; left: 0;
+            width: var(--sidebar-w);
+            height: 100vh;
+            background: var(--black);
+            display: flex;
+            flex-direction: column;
+            z-index: 100;
+            transition: transform .3s;
+            overflow: hidden;
+        }
+
+        .sidebar-brand {
+            padding: 22px 20px 18px;
+            border-bottom: 1px solid rgba(255,255,255,.07);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-shrink: 0;
+        }
+
+        .sidebar-brand .logo {
+            width: 40px;
+            height: 40px;
+            background: var(--orange);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 900;
+            color: var(--white);
+            font-size: 20px;
+            flex-shrink: 0;
+        }
+
+        .brand-text { flex: 1; }
+        .brand-text strong { display: block; color: var(--white); font-size: 18px; font-weight: 800; letter-spacing: .5px; }
+        .brand-text small { color: var(--orange); font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 2px; }
+
+        .sidebar-nav {
+            flex: 1;
+            padding: 14px 12px;
+            overflow-y: auto;
+            scrollbar-width: thin;
+            scrollbar-color: rgba(255,255,255,.1) transparent;
+        }
+
+        .nav-section { margin-bottom: 8px; }
+        .nav-label {
+            color: rgba(255,255,255,.3);
+            font-size: 10.5px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            padding: 14px 12px 6px;
+        }
+
+        .nav-link {
+            display: flex;
+            align-items: center;
+            gap: 11px;
+            padding: 10px 12px;
+            color: rgba(255,255,255,.6);
+            text-decoration: none;
+            border-radius: 9px;
+            font-size: 13.5px;
+            font-weight: 500;
+            transition: all .18s;
+            margin-bottom: 1px;
+            position: relative;
+        }
+        .nav-link:hover { background: rgba(255,255,255,.08); color: var(--white); }
+        .nav-link.active { background: var(--orange); color: var(--white); box-shadow: 0 4px 12px rgba(245,130,32,.35); }
+        .nav-link svg { width: 18px; height: 18px; flex-shrink: 0; }
+        .nav-link .badge-count {
+            margin-left: auto;
+            background: rgba(255,255,255,.15);
+            color: rgba(255,255,255,.8);
+            font-size: 11px;
+            font-weight: 700;
+            padding: 2px 7px;
+            border-radius: 10px;
+            min-width: 22px;
+            text-align: center;
+        }
+        .nav-link.active .badge-count { background: rgba(255,255,255,.25); color: var(--white); }
+
+        .sidebar-footer {
+            padding: 14px;
+            border-top: 1px solid rgba(255,255,255,.07);
+            flex-shrink: 0;
+        }
+
+        .sidebar-user {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 12px;
+            background: rgba(255,255,255,.05);
+            border-radius: 10px;
+        }
+
+        .user-avatar {
+            width: 36px;
+            height: 36px;
+            background: var(--orange);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            color: var(--white);
+            font-size: 14px;
+            flex-shrink: 0;
+        }
+
+        .user-info { flex: 1; min-width: 0; }
+        .user-info strong { display: block; color: var(--white); font-size: 13px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .user-info small { color: rgba(255,255,255,.4); font-size: 11px; }
+
+        .logout-btn {
+            color: rgba(255,255,255,.3);
+            text-decoration: none;
+            font-size: 12px;
+            transition: color .18s;
+            flex-shrink: 0;
+        }
+        .logout-btn:hover { color: var(--red); }
+        .logout-btn svg { width: 16px; height: 16px; }
+
+        /* ── MAIN ── */
+        .main {
+            margin-left: var(--sidebar-w);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .topbar {
+            background: var(--white);
+            border-bottom: 1px solid var(--gray-200);
+            padding: 14px 28px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            z-index: 50;
+            min-height: 62px;
+        }
+
+        .topbar-left { display: flex; align-items: center; gap: 14px; }
+        .topbar-left h1 { font-size: 19px; font-weight: 700; color: var(--black); }
+
+        .topbar-actions { display: flex; align-items: center; gap: 10px; }
+
+        .hamburger {
+            display: none;
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 4px;
+        }
+        .hamburger svg { width: 22px; height: 22px; color: var(--black); }
+
+        .content { padding: 28px 28px 40px; flex: 1; }
+
+        /* ── BUTTONS ── */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            padding: 9px 18px;
+            border-radius: 9px;
+            font-size: 13.5px;
+            font-weight: 600;
+            text-decoration: none;
+            border: none;
+            cursor: pointer;
+            transition: all .18s;
+            white-space: nowrap;
+        }
+        .btn svg { width: 16px; height: 16px; }
+        .btn-primary { background: var(--orange); color: var(--white); }
+        .btn-primary:hover { background: var(--orange-hover); transform: translateY(-1px); box-shadow: 0 4px 12px rgba(245,130,32,.3); }
+        .btn-secondary { background: var(--gray-100); color: var(--gray-700); border: 1.5px solid var(--gray-200); }
+        .btn-secondary:hover { background: var(--gray-200); }
+        .btn-danger { background: #FEF2F2; color: #DC2626; border: 1.5px solid #FECACA; }
+        .btn-danger:hover { background: var(--red); color: var(--white); }
+        .btn-success { background: #F0FDF4; color: #15803D; border: 1.5px solid #BBF7D0; }
+        .btn-success:hover { background: var(--green); color: var(--white); }
+        .btn-sm { padding: 6px 12px; font-size: 12.5px; }
+        .btn-lg { padding: 12px 24px; font-size: 15px; }
+
+        /* ── STATUS BADGES ── */
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 700;
+        }
+        .status-badge .dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
+        .sb-new { background: #EFF6FF; color: #1D4ED8; } .sb-new .dot { background: #3B82F6; }
+        .sb-accepted { background: #F5F3FF; color: #6D28D9; } .sb-accepted .dot { background: #8B5CF6; }
+        .sb-in_process { background: #FFF7ED; color: #C2410C; } .sb-in_process .dot { background: #F97316; animation: pulse 2s infinite; }
+        .sb-ready { background: #F0FDF4; color: #15803D; } .sb-ready .dot { background: #22C55E; }
+        .sb-delivered { background: #F0F9FF; color: #0369A1; } .sb-delivered .dot { background: #06B6D4; }
+        .sb-cancelled { background: #FEF2F2; color: #B91C1C; } .sb-cancelled .dot { background: #EF4444; }
+
+        /* ── PRIORITY BADGES ── */
+        .prio-badge { display: inline-flex; align-items: center; gap: 4px; padding: 3px 8px; border-radius: 6px; font-size: 11px; font-weight: 700; }
+        .prio-low { background: #DCFCE7; color: #15803D; }
+        .prio-normal { background: #EFF6FF; color: #1D4ED8; }
+        .prio-high { background: #FEF3C7; color: #B45309; }
+        .prio-urgent { background: #FEE2E2; color: #DC2626; }
+
+        /* ── MESSAGES ── */
+        .messages-wrap { margin-bottom: 16px; }
+        .alert { padding: 12px 16px; border-radius: 10px; font-size: 13.5px; margin-bottom: 8px; display: flex; align-items: center; gap: 10px; }
+        .alert-success { background: #F0FDF4; border: 1px solid #BBF7D0; color: #15803D; }
+        .alert-error { background: #FEF2F2; border: 1px solid #FECACA; color: #B91C1C; }
+        .alert-info { background: #EFF6FF; border: 1px solid #BFDBFE; color: #1D4ED8; }
+
+        @keyframes pulse { 0%,100%{opacity:1;} 50%{opacity:.4;} }
+
+        /* ── RESPONSIVE ── */
+        .overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.5); z-index: 99; }
+
+        @media(max-width:1024px) {
+            .sidebar { transform: translateX(-100%); }
+            .sidebar.open { transform: translateX(0); }
+            .main { margin-left: 0; }
+            .topbar { padding: 12px 16px; }
+            .content { padding: 16px; }
+            .hamburger { display: block; }
+            .overlay.show { display: block; }
+        }
+    </style>
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+
+<div class="overlay" id="overlay" onclick="closeSidebar()"></div>
+
+<aside class="sidebar" id="sidebar">
+    <div class="sidebar-brand">
+        <div class="logo">Z</div>
+        <div class="brand-text">
+            <strong>Zenko</strong>
+            <small>Shop Manager</small>
+        </div>
+    </div>
+
+    <nav class="sidebar-nav">
+        <div class="nav-section">
+            <div class="nav-label">Asosiy</div>
+            <a href="{% url 'shop:dashboard' %}" class="nav-link {% if active_nav == 'dashboard' %}active{% endif %}">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6A2.25 2.25 0 016 3.75h2.25A2.25 2.25 0 0110.5 6v2.25a2.25 2.25 0 01-2.25 2.25H6a2.25 2.25 0 01-2.25-2.25V6zM3.75 15.75A2.25 2.25 0 016 13.5h2.25a2.25 2.25 0 012.25 2.25V18a2.25 2.25 0 01-2.25 2.25H6A2.25 2.25 0 013.75 18v-2.25zM13.5 6a2.25 2.25 0 012.25-2.25H18A2.25 2.25 0 0120.25 6v2.25A2.25 2.25 0 0118 10.5h-2.25a2.25 2.25 0 01-2.25-2.25V6zM13.5 15.75a2.25 2.25 0 012.25-2.25H18a2.25 2.25 0 012.25 2.25V18A2.25 2.25 0 0118 20.25h-2.25A2.25 2.25 0 0113.5 18v-2.25z"/></svg>
+                Dashboard
+            </a>
+            <a href="{% url 'shop:stats' %}" class="nav-link {% if active_nav == 'stats' %}active{% endif %}">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 013 19.875v-6.75zM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V8.625zM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V4.125z"/></svg>
+                Statistika
+            </a>
+        </div>
+
+        <div class="nav-section">
+            <div class="nav-label">Buyurtmalar</div>
+            <a href="{% url 'shop:order_create' %}" class="nav-link {% if active_nav == 'order_create' %}active{% endif %}">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>
+                Yangi buyurtma
+            </a>
+            <a href="{% url 'shop:order_list' %}" class="nav-link {% if active_nav == 'orders' %}active{% endif %}">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h3.75M9 15h3.75M9 18h3.75m3 .75H18a2.25 2.25 0 002.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.424 48.424 0 00-1.123-.08m-5.801 0c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 00.75-.75 2.25 2.25 0 00-.1-.664m-5.8 0A2.251 2.251 0 0113.5 2.25H15c1.012 0 1.867.668 2.15 1.586m-5.8 0c-.376.023-.75.05-1.124.08C9.095 4.01 8.25 4.973 8.25 6.108V8.25m0 0H4.875c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V9.375c0-.621-.504-1.125-1.125-1.125H8.25zM6.75 12h.008v.008H6.75V12zm0 3h.008v.008H6.75V15zm0 3h.008v.008H6.75V18z"/></svg>
+                Barcha buyurtmalar
+                {% if new_orders_count %}<span class="badge-count">{{ new_orders_count }}</span>{% endif %}
+            </a>
+        </div>
+
+        <div class="nav-section">
+            <div class="nav-label">Katalog</div>
+            <a href="{% url 'shop:broshka_list' %}" class="nav-link {% if active_nav == 'broshkalar' %}active{% endif %}">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M20.25 7.5l-.625 10.632a2.25 2.25 0 01-2.247 2.118H6.622a2.25 2.25 0 01-2.247-2.118L3.75 7.5M10 11.25h4M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125z"/></svg>
+                Broshkalar
+            </a>
+        </div>
+    </nav>
+
+    <div class="sidebar-footer">
+        <div class="sidebar-user">
+            <div class="user-avatar">{{ request.user.name|first|upper }}</div>
+            <div class="user-info">
+                <strong>{{ request.user.name }}</strong>
+                <small>Shop Manager</small>
+            </div>
+            <a href="{% url 'logout' %}" class="logout-btn" title="Chiqish">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15m3 0l3-3m0 0l-3-3m3 3H9"/></svg>
+            </a>
+        </div>
+    </div>
+</aside>
+
+<div class="main">
+    <div class="topbar">
+        <div class="topbar-left">
+            <button class="hamburger" onclick="toggleSidebar()">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5"/></svg>
+            </button>
+            <h1>{% block page_title %}{% endblock %}</h1>
+        </div>
+        <div class="topbar-actions">
+            {% block topbar_actions %}{% endblock %}
+        </div>
+    </div>
+
+    <div class="content">
+        {% if messages %}
+        <div class="messages-wrap">
+            {% for msg in messages %}
+            <div class="alert alert-{% if msg.tags == 'error' %}error{% elif msg.tags == 'success' %}success{% else %}info{% endif %}">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width:18px;height:18px;flex-shrink:0;"><path stroke-linecap="round" stroke-linejoin="round" d="M11.25 11.25l.041-.02a.75.75 0 011.063.852l-.708 2.836a.75.75 0 001.063.853l.041-.021M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9-3.75h.008v.008H12V8.25z"/></svg>
+                {{ msg }}
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        {% block content %}{% endblock %}
+    </div>
+</div>
+
+<script>
+function toggleSidebar(){
+    document.getElementById('sidebar').classList.toggle('open');
+    document.getElementById('overlay').classList.toggle('show');
+}
+function closeSidebar(){
+    document.getElementById('sidebar').classList.remove('open');
+    document.getElementById('overlay').classList.remove('show');
+}
+</script>
+{% block extra_js %}{% endblock %}
+</body>
+</html>

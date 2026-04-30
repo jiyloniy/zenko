@@ -1,0 +1,447 @@
+{% extends "shop/base.html" %}
+{% block title %}{{ title }} — Shop Manager{% endblock %}
+{% block page_title %}{{ title }}{% endblock %}
+
+{% block topbar_actions %}
+<a href="{% url 'shop:order_list' %}" class="btn btn-secondary btn-sm">
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width:15px;height:15px"><path stroke-linecap="round" stroke-linejoin="round" d="M9 15 3 9m0 0 6-6M3 9h12a6 6 0 0 1 0 12h-3"/></svg>
+    Ro'yxatga qaytish
+</a>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.form-layout { display: grid; grid-template-columns: 1fr 340px; gap: 24px; align-items: start; }
+.form-card { background: var(--white); border: 1px solid var(--gray-200); border-radius: 16px; overflow: hidden; box-shadow: 0 1px 4px rgba(0,0,0,.05); }
+.form-card-head { background: var(--black); padding: 20px 24px; display: flex; align-items: center; gap: 12px; }
+.hico { width: 42px; height: 42px; background: var(--orange); border-radius: 11px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.hico svg { width: 22px; height: 22px; color: #fff; }
+.form-card-head h2 { font-size: 16px; font-weight: 700; color: #fff; margin: 0; }
+.form-card-head p { font-size: 12px; color: rgba(255,255,255,.45); margin: 2px 0 0; }
+.form-card-body { padding: 24px; }
+
+.section-sep { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .8px; color: var(--orange); margin: 0 0 12px; display: flex; align-items: center; gap: 8px; }
+.section-sep::after { content: ''; flex: 1; height: 1px; background: var(--gray-200); }
+.two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.f-group { margin-bottom: 16px; }
+.f-label { display: block; font-size: 12.5px; font-weight: 600; color: var(--gray-700); margin-bottom: 5px; }
+.f-required { color: #EF4444; margin-left: 2px; }
+.f-input { width: 100%; padding: 9px 13px; border: 1.5px solid var(--gray-200); border-radius: 9px; font-size: 13.5px; color: var(--black); background: var(--white); transition: border-color .18s; box-sizing: border-box; }
+.f-input:focus { outline: none; border-color: var(--orange); box-shadow: 0 0 0 3px rgba(245,130,32,.1); }
+.form-actions { display: flex; gap: 10px; padding-top: 16px; border-top: 1px solid var(--gray-200); }
+
+/* image upload */
+.img-upload-zone { border: 2px dashed var(--gray-200); border-radius: 12px; padding: 20px; text-align: center; cursor: pointer; position: relative; transition: border-color .18s, background .18s; }
+.img-upload-zone:hover { border-color: var(--orange); background: var(--orange-light); }
+.img-upload-zone input { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%; }
+.img-upload-zone svg { width: 32px; height: 32px; color: var(--gray-300); margin-bottom: 6px; }
+.img-upload-zone p { font-size: 13px; color: var(--gray-500); font-weight: 500; margin: 0 0 3px; }
+.img-upload-zone small { font-size: 11px; color: var(--gray-400); }
+.img-preview-wrap { position: relative; }
+.img-preview-wrap img { width: 100%; border-radius: 10px; border: 1px solid var(--gray-200); display: block; max-height: 200px; object-fit: cover; }
+.img-clear-btn { position: absolute; top: 7px; right: 7px; width: 26px; height: 26px; background: #EF4444; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; border: none; }
+.img-clear-btn svg { width: 12px; height: 12px; color: #fff; }
+
+/* broshka picker */
+.broshka-search-wrap { position: relative; }
+.broshka-search-input { width: 100%; padding: 9px 13px 9px 38px; border: 1.5px solid var(--gray-200); border-radius: 9px; font-size: 13.5px; color: var(--black); background: var(--white); transition: border-color .18s; box-sizing: border-box; }
+.broshka-search-input:focus { outline: none; border-color: var(--orange); box-shadow: 0 0 0 3px rgba(245,130,32,.1); }
+.broshka-search-icon { position: absolute; left: 11px; top: 50%; transform: translateY(-50%); width: 16px; height: 16px; color: var(--gray-400); pointer-events: none; }
+.broshka-dropdown { position: absolute; top: calc(100% + 4px); left: 0; right: 0; background: var(--white); border: 1.5px solid var(--gray-200); border-radius: 10px; box-shadow: 0 8px 24px rgba(0,0,0,.12); z-index: 100; max-height: 280px; overflow-y: auto; display: none; }
+.broshka-dropdown.open { display: block; }
+.broshka-option { display: flex; align-items: center; gap: 10px; padding: 10px 12px; cursor: pointer; transition: background .12s; }
+.broshka-option:hover { background: var(--gray-50); }
+.broshka-option.selected { background: var(--orange-light); }
+.bo-img { width: 40px; height: 40px; border-radius: 8px; object-fit: cover; flex-shrink: 0; }
+.bo-img-ph { width: 40px; height: 40px; border-radius: 8px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; }
+.bo-name { font-size: 13.5px; font-weight: 700; color: var(--black); }
+.bo-sub { font-size: 11px; color: var(--gray-400); margin-top: 1px; display: flex; align-items: center; gap: 6px; }
+.bo-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+.broshka-selected-card { display: none; align-items: center; gap: 12px; padding: 12px 14px; background: var(--orange-light); border: 1.5px solid var(--orange); border-radius: 10px; margin-top: 8px; }
+.broshka-selected-card.show { display: flex; }
+.bsc-img { width: 50px; height: 50px; border-radius: 8px; object-fit: cover; flex-shrink: 0; }
+.bsc-clear { margin-left: auto; width: 26px; height: 26px; background: rgba(255,255,255,.8); border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; border: none; flex-shrink: 0; }
+.bsc-clear svg { width: 13px; height: 13px; color: #DC2626; }
+
+/* auto name */
+.auto-name-box { display: flex; align-items: center; border: 1.5px solid var(--gray-200); border-radius: 10px; overflow: hidden; background: var(--gray-50); min-height: 44px; }
+.auto-name-prefix { padding: 0 14px; font-size: 13px; font-weight: 800; color: var(--orange); background: var(--orange-light); border-right: 1.5px solid #FED7AA; height: 100%; display: flex; align-items: center; white-space: nowrap; min-height: 44px; letter-spacing: .5px; }
+.auto-name-parts { flex: 1; padding: 8px 14px; display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.anp-placeholder { font-size: 12.5px; color: var(--gray-400); font-style: italic; }
+.anp-chip { display: inline-flex; align-items: center; gap: 5px; padding: 3px 10px; border-radius: 20px; font-size: 12.5px; font-weight: 700; white-space: nowrap; }
+.anp-chip-broshka { background: #FFF7ED; color: #C2410C; border: 1px solid #FED7AA; }
+.anp-chip-date { background: #EFF6FF; color: #1D4ED8; border: 1px solid #BFDBFE; }
+.anp-sep { color: var(--gray-300); font-size: 14px; }
+.auto-name-badge { padding: 0 12px; font-size: 10.5px; font-weight: 700; color: #15803D; background: #F0FDF4; border-left: 1.5px solid #BBF7D0; height: 100%; display: flex; align-items: center; min-height: 44px; white-space: nowrap; }
+
+/* radio cards */
+.radio-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px,1fr)); gap: 8px; margin-bottom: 4px; }
+.rc { position: relative; display: flex; flex-direction: column; align-items: center; gap: 7px; padding: 12px 10px; border: 2px solid var(--gray-200); border-radius: 12px; cursor: pointer; background: var(--white); transition: all .18s; min-height: 80px; justify-content: center; }
+.rc input[type="radio"] { position: absolute; opacity: 0; cursor: pointer; }
+.rc:hover { border-color: var(--orange); background: var(--orange-light); }
+.rc-icon { width: 26px; height: 26px; display: flex; align-items: center; justify-content: center; border-radius: 7px; transition: all .18s; }
+.rc-icon svg { width: 20px; height: 20px; transition: all .18s; stroke-width: 2; }
+.rc-lbl { font-size: 12px; font-weight: 700; color: var(--gray-700); text-align: center; transition: color .18s; white-space: nowrap; }
+
+.rc-prio-low .rc-icon { background: #DCFCE7; color: #15803D; }
+.rc-prio-low.active { background: linear-gradient(135deg,#10B981,#059669); border-color: #059669; }
+.rc-prio-normal .rc-icon { background: #EFF6FF; color: #1D4ED8; }
+.rc-prio-normal.active { background: linear-gradient(135deg,#3B82F6,#2563EB); border-color: #2563EB; }
+.rc-prio-high .rc-icon { background: #FEF3C7; color: #B45309; }
+.rc-prio-high.active { background: linear-gradient(135deg,#F59E0B,#D97706); border-color: #D97706; }
+.rc-prio-urgent .rc-icon { background: #FEE2E2; color: #DC2626; }
+.rc-prio-urgent.active { background: linear-gradient(135deg,#EF4444,#DC2626); border-color: #DC2626; }
+.rc.active .rc-icon { background: rgba(255,255,255,.2); color: #fff; }
+.rc.active .rc-lbl { color: #fff; }
+
+/* info card */
+.info-card { background: var(--white); border: 1px solid var(--gray-200); border-radius: 16px; overflow: hidden; margin-bottom: 18px; }
+.info-card-head { background: var(--gray-50); padding: 14px 18px; border-bottom: 1px solid var(--gray-200); }
+.info-card-head h4 { font-size: 13px; font-weight: 700; color: var(--black); margin: 0; }
+.info-card-body { padding: 16px 18px; }
+.info-tip { display: flex; gap: 10px; padding: 9px 0; border-bottom: 1px solid var(--gray-100); font-size: 12.5px; color: var(--gray-600); }
+.info-tip:last-child { border-bottom: none; }
+.info-tip svg { width: 15px; height: 15px; color: var(--orange); flex-shrink: 0; margin-top: 1px; }
+
+/* warning box */
+.edit-warning { background: #FFF7ED; border: 1.5px solid #FED7AA; border-radius: 12px; padding: 14px 18px; margin-bottom: 20px; display: flex; gap: 12px; align-items: flex-start; }
+.edit-warning svg { width: 18px; height: 18px; color: var(--orange); flex-shrink: 0; margin-top: 1px; }
+.edit-warning p { font-size: 13px; color: #92400E; margin: 0; line-height: 1.5; }
+
+@media(max-width:900px){ .form-layout { grid-template-columns: 1fr; } .two-col { grid-template-columns: 1fr; } }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="form-layout">
+    <div>
+        <div class="form-card">
+            <div class="form-card-head">
+                <div class="hico">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M20.25 7.5l-.625 10.632a2.25 2.25 0 01-2.247 2.118H6.622a2.25 2.25 0 01-2.247-2.118L3.75 7.5M10 11.25h4M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125z"/></svg>
+                </div>
+                <div>
+                    <h2>{{ title }}</h2>
+                    <p>Buyurtma ma'lumotlarini to'ldiring</p>
+                </div>
+            </div>
+            <div class="form-card-body">
+                {% if order %}
+                <div class="edit-warning">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z"/></svg>
+                    <p>Faqat <strong>Yangi</strong> va <strong>Qabul qilindi</strong> statusidagi buyurtmalarni tahrirlash mumkin. CEO qabul qilgandan keyin status o'zgartirib bo'lmaydi.</p>
+                </div>
+                {% endif %}
+
+                {% if form.errors %}
+                <div style="background:#FEF2F2;border:1px solid #FECACA;border-radius:10px;padding:12px 16px;margin-bottom:18px;">
+                    <strong style="color:#B91C1C;font-size:13px;">Xatoliklar:</strong>
+                    <ul style="margin:6px 0 0 16px;color:#DC2626;font-size:12.5px;">
+                    {% for field in form %}{% for error in field.errors %}<li>{{ field.label }}: {{ error }}</li>{% endfor %}{% endfor %}
+                    </ul>
+                </div>
+                {% endif %}
+
+                <form method="post" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    <input type="hidden" name="brujka" id="broshkaHidden" value="{{ form.brujka.value|default:'' }}">
+
+                    <div class="section-sep">Broshka tanlash</div>
+
+                    <div class="f-group">
+                        <label class="f-label">Broshka</label>
+                        <div class="broshka-search-wrap">
+                            <svg class="broshka-search-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z"/></svg>
+                            <input type="text" class="broshka-search-input" id="broshkaSearch" placeholder="Broshka nomini qidirish..." autocomplete="off">
+                            <div class="broshka-dropdown" id="broshkaDropdown"></div>
+                        </div>
+                        <div class="broshka-selected-card" id="broshkaSelectedCard">
+                            <div id="bscImgWrap"></div>
+                            <div>
+                                <div style="font-size:14px;font-weight:700;color:var(--black);" id="bscName"></div>
+                                <div style="font-size:11.5px;color:var(--gray-600);margin-top:2px;" id="bscSub"></div>
+                            </div>
+                            <button type="button" class="bsc-clear" onclick="clearBroshka()">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12"/></svg>
+                            </button>
+                        </div>
+                        <div style="margin-top:6px;font-size:12px;color:var(--gray-400);">
+                            Yo'q bo'lsa — <a href="{% url 'shop:broshka_list' %}" target="_blank" style="color:var(--orange);font-weight:600;">broshkalar katalogini ko'ring</a>
+                        </div>
+                    </div>
+
+                    <div class="section-sep">Asosiy ma'lumotlar</div>
+
+                    <input type="hidden" name="name" id="orderNameHidden" value="{{ form.name.value|default:'' }}">
+                    <div class="f-group">
+                        <label class="f-label">Buyurtma nomi</label>
+                        <div class="auto-name-box" id="autoNameBox">
+                            <div class="auto-name-prefix" id="autoNamePrefix">#XXXX</div>
+                            <div class="auto-name-parts" id="autoNameParts">
+                                <span class="anp-placeholder">Broshka va sana tanlanganida avtomatik yaratiladi</span>
+                            </div>
+                            <div class="auto-name-badge">Avtomatik</div>
+                        </div>
+                    </div>
+
+                    <div class="two-col">
+                        <div class="f-group">
+                            <label class="f-label">Miqdori <span class="f-required">*</span></label>
+                            <input type="number" name="quantity" class="f-input" value="{{ form.quantity.value|default:'' }}" min="1" required placeholder="100">
+                        </div>
+                        <div class="f-group">
+                            <label class="f-label">Tayyor bo'lish sanasi <span class="f-required">*</span></label>
+                            <input type="date" name="deadline" id="deadlineInput" class="f-input" value="{{ form.deadline.value|default:'' }}" required oninput="updateAutoName()">
+                        </div>
+                    </div>
+
+                    <div class="section-sep">Muhimlik darajasi</div>
+                    <div class="f-group">
+                        <label class="f-label">Muhimlik</label>
+                        <div class="radio-cards" id="priorityCards">
+                            {% with cv=form.priority.value|default:'normal' %}
+                            <label class="rc rc-prio-low {% if cv == 'low' %}active{% endif %}">
+                                <input type="radio" name="priority" value="low" {% if cv == 'low' %}checked{% endif %} onchange="syncCards('priorityCards')">
+                                <span class="rc-icon"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 13.5L12 21m0 0l-7.5-7.5M12 21V3"/></svg></span>
+                                <span class="rc-lbl">Past</span>
+                            </label>
+                            <label class="rc rc-prio-normal {% if cv == 'normal' %}active{% endif %}">
+                                <input type="radio" name="priority" value="normal" {% if cv == 'normal' %}checked{% endif %} onchange="syncCards('priorityCards')">
+                                <span class="rc-icon"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><circle cx="12" cy="12" r="9" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+                                <span class="rc-lbl">Oddiy</span>
+                            </label>
+                            <label class="rc rc-prio-high {% if cv == 'high' %}active{% endif %}">
+                                <input type="radio" name="priority" value="high" {% if cv == 'high' %}checked{% endif %} onchange="syncCards('priorityCards')">
+                                <span class="rc-icon"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 10.5 12 3m0 0 7.5 7.5M12 3v18"/></svg></span>
+                                <span class="rc-lbl">Yuqori</span>
+                            </label>
+                            <label class="rc rc-prio-urgent {% if cv == 'urgent' %}active{% endif %}">
+                                <input type="radio" name="priority" value="urgent" {% if cv == 'urgent' %}checked{% endif %} onchange="syncCards('priorityCards')">
+                                <span class="rc-icon"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg></span>
+                                <span class="rc-lbl">Shoshilinch</span>
+                            </label>
+                            {% endwith %}
+                        </div>
+                    </div>
+
+                    <div class="section-sep">Rasm va izoh</div>
+
+                    <div class="f-group">
+                        <label class="f-label">Mahsulot rasmi</label>
+                        {% if order and order.image %}
+                        <div class="img-preview-wrap" id="previewWrap">
+                            <img src="{{ order.image.url }}" alt="" id="previewImg">
+                            <button type="button" class="img-clear-btn" onclick="clearImage()"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12"/></svg></button>
+                        </div>
+                        <input type="file" name="image" id="imageInput" accept="image/*" style="display:none;" onchange="previewImage(event)">
+                        <button type="button" onclick="document.getElementById('imageInput').click()" class="btn btn-secondary btn-sm" style="margin-top:8px;">Rasmni almashtirish</button>
+                        {% else %}
+                        <div class="img-upload-zone" id="uploadZone">
+                            <input type="file" name="image" id="imageInput" accept="image/*" onchange="previewImage(event)">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m2.25 15.75 5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159m-1.5-1.5 1.409-1.409a2.25 2.25 0 0 1 3.182 0l2.909 2.909M3.75 21h16.5A2.25 2.25 0 0 0 22.5 18.75V5.25A2.25 2.25 0 0 0 20.25 3H3.75A2.25 2.25 0 0 0 1.5 5.25v13.5A2.25 2.25 0 0 0 3.75 21Z"/></svg>
+                            <p>Rasm yuklash uchun bosing</p>
+                            <small>PNG, JPG, WEBP — max 5MB</small>
+                        </div>
+                        <div id="previewWrap" style="display:none;margin-top:10px;">
+                            <div class="img-preview-wrap">
+                                <img id="previewImg" src="" alt="">
+                                <button type="button" class="img-clear-btn" onclick="clearImage()"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12"/></svg></button>
+                            </div>
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="f-group">
+                        <label class="f-label">Izoh</label>
+                        <textarea name="note" class="f-input" rows="3" placeholder="Qo'shimcha ma'lumotlar...">{{ form.note.value|default:'' }}</textarea>
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="submit" class="btn btn-primary btn-lg">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5"/></svg>
+                            {% if order %}Yangilash{% else %}Buyurtma yaratish{% endif %}
+                        </button>
+                        {% if order %}
+                        <a href="{% url 'shop:order_detail' order.pk %}" class="btn btn-secondary">Bekor qilish</a>
+                        {% else %}
+                        <a href="{% url 'shop:order_list' %}" class="btn btn-secondary">Bekor qilish</a>
+                        {% endif %}
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Side info -->
+    <div>
+        <div class="info-card">
+            <div class="info-card-head"><h4>📋 Qo'llanma</h4></div>
+            <div class="info-card-body">
+                <div class="info-tip">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>
+                    Buyurtma raqami avtomatik beriladi.
+                </div>
+                <div class="info-tip">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/></svg>
+                    Yaratilgandan so'ng CEO qabul qiladi.
+                </div>
+                <div class="info-tip">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Z"/></svg>
+                    CEO qabul qilguncha tahrirlash mumkin.
+                </div>
+                <div class="info-tip">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25"/></svg>
+                    Muddat o'tsa kechikkan deb belgilanadi.
+                </div>
+            </div>
+        </div>
+
+        <div class="info-card">
+            <div class="info-card-head"><h4>⚡ Muhimlik darajalari</h4></div>
+            <div class="info-card-body">
+                <div class="info-tip"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg><span><strong style="color:#DC2626;">Shoshilinch</strong> — darhol ishlanishi kerak</span></div>
+                <div class="info-tip"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 10.5 12 3m0 0 7.5 7.5M12 3v18"/></svg><span><strong style="color:#B45309;">Yuqori</strong> — ustuvor buyurtma</span></div>
+                <div class="info-tip"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><circle cx="12" cy="12" r="9" stroke-linecap="round" stroke-linejoin="round"/></svg><span><strong style="color:#1D4ED8;">Oddiy</strong> — standart buyurtma</span></div>
+                <div class="info-tip"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 13.5L12 21m0 0l-7.5-7.5M12 21V3"/></svg><span><strong style="color:#15803D;">Past</strong> — vaqti bor buyurtma</span></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function syncCards(groupId) {
+    const cards = document.getElementById(groupId);
+    if (!cards) return;
+    cards.querySelectorAll('label').forEach(label => {
+        const input = label.querySelector('input[type="radio"]');
+        label.classList.toggle('active', input && input.checked);
+    });
+}
+document.addEventListener('DOMContentLoaded', () => syncCards('priorityCards'));
+
+function previewImage(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = e => {
+        const wrap = document.getElementById('previewWrap');
+        const img = document.getElementById('previewImg');
+        const zone = document.getElementById('uploadZone');
+        if (img) img.src = e.target.result;
+        if (wrap) wrap.style.display = 'block';
+        if (zone) zone.style.display = 'none';
+    };
+    reader.readAsDataURL(file);
+}
+function clearImage() {
+    const input = document.getElementById('imageInput');
+    const wrap = document.getElementById('previewWrap');
+    const zone = document.getElementById('uploadZone');
+    if (input) input.value = '';
+    if (wrap) wrap.style.display = 'none';
+    if (zone) zone.style.display = 'block';
+}
+
+let searchTimer = null, selectedBroshka = null;
+
+(function() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const bp = urlParams.get('broshka');
+    if (bp) fetchAndSelectBroshka(bp);
+    else {
+        const val = document.getElementById('broshkaHidden').value;
+        if (val) fetchAndSelectBroshka(val);
+    }
+})();
+
+function fetchAndSelectBroshka(id) {
+    fetch('{% url "order:broshka_search" %}?q=')
+        .then(r => r.json())
+        .then(data => {
+            const found = data.results.find(b => b.id == id);
+            if (found) selectBroshka(found);
+        });
+}
+
+document.getElementById('broshkaSearch').addEventListener('input', function() {
+    clearTimeout(searchTimer);
+    const q = this.value.trim();
+    searchTimer = setTimeout(() => doSearch(q), 200);
+});
+document.getElementById('broshkaSearch').addEventListener('focus', function() { doSearch(this.value.trim()); });
+document.addEventListener('click', e => {
+    if (!e.target.closest('.broshka-search-wrap')) document.getElementById('broshkaDropdown').classList.remove('open');
+});
+
+function doSearch(q) {
+    fetch('{% url "order:broshka_search" %}?q=' + encodeURIComponent(q))
+        .then(r => r.json())
+        .then(data => renderDropdown(data.results));
+}
+
+function renderDropdown(results) {
+    const dd = document.getElementById('broshkaDropdown');
+    if (!results.length) {
+        dd.innerHTML = '<div style="padding:14px 16px;font-size:13px;color:var(--gray-400);text-align:center;">Topilmadi</div>';
+        dd.classList.add('open'); return;
+    }
+    dd.innerHTML = results.map(b => `
+        <div class="broshka-option ${selectedBroshka && selectedBroshka.id == b.id ? 'selected' : ''}" onclick="selectBroshka(${JSON.stringify(b).replace(/"/g,'&quot;')})">
+            ${b.image ? `<img src="${b.image}" class="bo-img" alt="">` : `<div class="bo-img-ph" style="background:${b.color}22;"><span style="width:18px;height:18px;border-radius:4px;background:${b.color};display:inline-block;"></span></div>`}
+            <div style="flex:1;">
+                <div class="bo-name">${b.name}</div>
+                <div class="bo-sub"><span class="bo-dot" style="background:${b.color};"></span><span>${b.color}</span><span style="background:#FFF7ED;color:#C2410C;padding:1px 6px;border-radius:4px;font-size:10.5px;font-weight:600;">${b.coating}</span></div>
+            </div>
+        </div>
+    `).join('');
+    dd.classList.add('open');
+}
+
+function selectBroshka(b) {
+    selectedBroshka = b;
+    document.getElementById('broshkaHidden').value = b.id;
+    document.getElementById('broshkaSearch').value = b.name;
+    document.getElementById('broshkaDropdown').classList.remove('open');
+    const card = document.getElementById('broshkaSelectedCard');
+    document.getElementById('bscName').textContent = b.name;
+    document.getElementById('bscSub').innerHTML = `<span style="display:inline-block;width:12px;height:12px;border-radius:3px;background:${b.color};border:1px solid rgba(0,0,0,.1);margin-right:4px;vertical-align:middle;"></span>${b.color} · ${b.coating}`;
+    const imgWrap = document.getElementById('bscImgWrap');
+    imgWrap.innerHTML = b.image ? `<img src="${b.image}" class="bsc-img" alt="">` : `<div style="width:50px;height:50px;border-radius:8px;background:${b.color}22;display:flex;align-items:center;justify-content:center;"><span style="width:24px;height:24px;border-radius:6px;background:${b.color};display:inline-block;"></span></div>`;
+    card.classList.add('show');
+    updateAutoName();
+}
+
+function clearBroshka() {
+    selectedBroshka = null;
+    document.getElementById('broshkaHidden').value = '';
+    document.getElementById('broshkaSearch').value = '';
+    document.getElementById('broshkaSelectedCard').classList.remove('show');
+    updateAutoName();
+}
+
+function updateAutoName() {
+    const parts = document.getElementById('autoNameParts');
+    const hidden = document.getElementById('orderNameHidden');
+    const b = selectedBroshka;
+    const dateVal = document.getElementById('deadlineInput').value;
+    if (!b && !dateVal) {
+        parts.innerHTML = '<span class="anp-placeholder">Broshka va sana tanlanganida avtomatik yaratiladi</span>';
+        hidden.value = ''; return;
+    }
+    let dateFormatted = '';
+    if (dateVal) {
+        const d = new Date(dateVal);
+        dateFormatted = `${String(d.getDate()).padStart(2,'0')}.${String(d.getMonth()+1).padStart(2,'0')}.${d.getFullYear()}`;
+    }
+    const chips = [];
+    if (b) chips.push(`<span class="anp-chip anp-chip-broshka">${b.name}</span>`);
+    if (dateFormatted) { if (chips.length) chips.push(`<span class="anp-sep">-</span>`); chips.push(`<span class="anp-chip anp-chip-date">${dateFormatted}</span>`); }
+    parts.innerHTML = chips.join('');
+    let autoName = '#XXXX';
+    if (b && dateFormatted) autoName = `#XXXX ${b.name} - ${dateFormatted}`;
+    else if (b) autoName = `#XXXX ${b.name}`;
+    else if (dateFormatted) autoName = `#XXXX - ${dateFormatted}`;
+    hidden.value = autoName;
+}
+</script>
+{% endblock %}

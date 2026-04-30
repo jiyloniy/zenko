@@ -1,0 +1,158 @@
+{% extends "shop/base.html" %}
+{% block title %}{{ broshka.name }} — Broshka{% endblock %}
+{% block page_title %}Broshka tafsiloti{% endblock %}
+
+{% block topbar_actions %}
+<a href="{% url 'shop:broshka_list' %}" class="btn btn-secondary btn-sm">
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width:15px;height:15px"><path stroke-linecap="round" stroke-linejoin="round" d="M9 15 3 9m0 0 6-6M3 9h12a6 6 0 0 1 0 12h-3"/></svg>
+    Katalog
+</a>
+<a href="{% url 'shop:order_create' %}?broshka={{ broshka.pk }}" class="btn btn-primary">
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>
+    Buyurtma berish
+</a>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.detail-layout { display: grid; grid-template-columns: 400px 1fr; gap: 24px; align-items: start; }
+.img-card { background: var(--white); border: 1px solid var(--gray-200); border-radius: 18px; overflow: hidden; }
+.b-img { width: 100%; object-fit: cover; cursor: pointer; display: block; max-height: 400px; }
+.b-img-ph { width: 100%; height: 300px; display: flex; align-items: center; justify-content: center; }
+
+.info-section { background: var(--white); border: 1px solid var(--gray-200); border-radius: 18px; padding: 28px; margin-bottom: 20px; }
+.b-name { font-size: 28px; font-weight: 900; color: var(--black); margin-bottom: 14px; }
+.b-tags { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 20px; }
+.b-tag { display: inline-flex; align-items: center; gap: 6px; padding: 6px 14px; border-radius: 20px; font-size: 13px; font-weight: 700; }
+.b-dot { width: 12px; height: 12px; border-radius: 50%; }
+
+.info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.ig-item { background: var(--gray-50); border: 1px solid var(--gray-200); border-radius: 12px; padding: 14px 16px; }
+.ig-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .6px; color: var(--gray-400); margin-bottom: 6px; }
+.ig-val { font-size: 16px; font-weight: 800; color: var(--black); }
+
+.orders-section { background: var(--white); border: 1px solid var(--gray-200); border-radius: 18px; overflow: hidden; }
+.os-head { padding: 18px 24px; border-bottom: 1px solid var(--gray-100); display: flex; align-items: center; justify-content: space-between; }
+.os-head h3 { font-size: 15px; font-weight: 700; color: var(--black); }
+
+.or { display: flex; align-items: center; gap: 14px; padding: 13px 24px; border-bottom: 1px solid var(--gray-100); transition: background .12s; text-decoration: none; }
+.or:last-child { border-bottom: none; }
+.or:hover { background: var(--gray-50); }
+.or-info { flex: 1; min-width: 0; }
+.or-name { font-size: 13.5px; font-weight: 700; color: var(--black); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.or-num { font-size: 11px; color: var(--gray-400); font-family: monospace; }
+
+.lightbox { display: none; position: fixed; inset: 0; z-index: 9999; background: rgba(0,0,0,.92); align-items: center; justify-content: center; backdrop-filter: blur(8px); }
+.lightbox.show { display: flex; }
+.lightbox img { max-width: 90vw; max-height: 88vh; object-fit: contain; border-radius: 12px; }
+.lb-close { position: absolute; top: 20px; right: 20px; width: 40px; height: 40px; border-radius: 50%; background: rgba(255,255,255,.15); border: none; color: #fff; cursor: pointer; display: grid; place-items: center; }
+.lb-close svg { width: 20px; height: 20px; }
+
+@media(max-width:900px){ .detail-layout { grid-template-columns: 1fr; } .info-grid { grid-template-columns: 1fr 1fr; } }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="detail-layout">
+    <div>
+        <div class="img-card">
+            <div style="height:4px;background:{{ broshka.color }};"></div>
+            {% if broshka.image %}
+            <img src="{{ broshka.image.url }}" class="b-img" alt="{{ broshka.name }}" onclick="openLb('{{ broshka.image.url }}')">
+            {% else %}
+            <div class="b-img-ph" style="background:{{ broshka.color }}15;">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1" stroke="{{ broshka.color }}" style="width:64px;height:64px;opacity:.3;"><path stroke-linecap="round" stroke-linejoin="round" d="m2.25 15.75 5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159m-1.5-1.5 1.409-1.409a2.25 2.25 0 0 1 3.182 0l2.909 2.909M3.75 21h16.5A2.25 2.25 0 0 0 22.5 18.75V5.25A2.25 2.25 0 0 0 20.25 3H3.75A2.25 2.25 0 0 0 1.5 5.25v13.5A2.25 2.25 0 0 0 3.75 21Z"/></svg>
+            </div>
+            {% endif %}
+            <div style="padding:20px 22px;">
+                <a href="{% url 'shop:order_create' %}?broshka={{ broshka.pk }}" class="btn btn-primary" style="width:100%;justify-content:center;">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>
+                    Shu broshkaga buyurtma berish
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div>
+        <div class="info-section">
+            <div class="b-name">{{ broshka.name }}</div>
+            <div class="b-tags">
+                <span class="b-tag" style="background:{{ broshka.color }}18;color:var(--black);border:1.5px solid {{ broshka.color }}30;">
+                    <span class="b-dot" style="background:{{ broshka.color }};"></span>
+                    {{ broshka.color }}
+                </span>
+                <span class="b-tag" style="background:#FFF7ED;color:#C2410C;border:1px solid #FED7AA;">{{ broshka.get_coating_type_display }}</span>
+            </div>
+            <div class="info-grid">
+                <div class="ig-item">
+                    <div class="ig-label">Rang kodi</div>
+                    <div class="ig-val" style="display:flex;align-items:center;gap:8px;">
+                        <span style="display:inline-block;width:20px;height:20px;border-radius:5px;background:{{ broshka.color }};border:1px solid rgba(0,0,0,.12);"></span>
+                        {{ broshka.color }}
+                    </div>
+                </div>
+                <div class="ig-item">
+                    <div class="ig-label">Qoplama turi</div>
+                    <div class="ig-val">{{ broshka.get_coating_type_display }}</div>
+                </div>
+                <div class="ig-item">
+                    <div class="ig-label">Holati</div>
+                    <div class="ig-val" style="color:{% if broshka.is_active %}var(--green){% else %}var(--red){% endif %};">
+                        {% if broshka.is_active %}✓ Faol{% else %}✗ Faol emas{% endif %}
+                    </div>
+                </div>
+                <div class="ig-item">
+                    <div class="ig-label">Mening buyurtmalarim</div>
+                    <div class="ig-val" style="color:var(--orange);">{{ my_orders|length }}</div>
+                </div>
+            </div>
+            {% if broshka.description %}
+            <div style="margin-top:20px;padding-top:16px;border-top:1px solid var(--gray-100);">
+                <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:var(--gray-400);margin-bottom:8px;">Tavsif</div>
+                <p style="font-size:13.5px;color:var(--gray-600);line-height:1.7;">{{ broshka.description }}</p>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- My orders with this broshka -->
+        <div class="orders-section">
+            <div class="os-head">
+                <h3>Bu broshkaga mening buyurtmalarim</h3>
+                <span style="font-size:12.5px;color:var(--gray-400);">{{ my_orders|length }} ta</span>
+            </div>
+            {% if my_orders %}
+                {% for order in my_orders %}
+                <a href="{% url 'shop:order_detail' order.pk %}" class="or">
+                    <div class="or-info">
+                        <div class="or-name">{{ order.name }}</div>
+                        <div class="or-num">{{ order.order_number }} · {{ order.created_at|date:"d.m.Y" }}</div>
+                    </div>
+                    <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;">
+                        <span class="status-badge sb-{{ order.status }}"><span class="dot"></span>{{ order.get_status_display }}</span>
+                        <span style="font-size:13px;font-weight:800;color:var(--orange);">{{ order.quantity }} dona</span>
+                    </div>
+                </a>
+                {% endfor %}
+            {% else %}
+            <div style="padding:40px;text-align:center;color:var(--gray-400);">
+                <p style="font-size:13px;">Bu broshkaga hali buyurtma bermagansiz</p>
+                <a href="{% url 'shop:order_create' %}?broshka={{ broshka.pk }}" class="btn btn-primary btn-sm" style="margin-top:10px;">Buyurtma berish</a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<div class="lightbox" id="lightbox" onclick="if(event.target===this)closeLb()">
+    <button class="lb-close" onclick="closeLb()"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12"/></svg></button>
+    <img id="lbImg" src="" alt="">
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function openLb(url){ document.getElementById('lbImg').src=url; document.getElementById('lightbox').classList.add('show'); document.body.style.overflow='hidden'; }
+function closeLb(){ document.getElementById('lightbox').classList.remove('show'); document.body.style.overflow=''; }
+document.addEventListener('keydown',e=>{ if(e.key==='Escape')closeLb(); });
+</script>
+{% endblock %}

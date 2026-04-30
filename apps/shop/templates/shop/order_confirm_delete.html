@@ -1,0 +1,36 @@
+{% extends "shop/base.html" %}
+{% block title %}Buyurtmani o'chirish — Shop Manager{% endblock %}
+{% block page_title %}Buyurtmani o'chirish{% endblock %}
+
+{% block content %}
+<div style="max-width:500px;margin:0 auto;">
+    <div style="background:var(--white);border:1px solid var(--gray-200);border-radius:18px;overflow:hidden;">
+        <div style="background:linear-gradient(135deg,#FEF2F2,#FFF5F5);padding:28px 28px 20px;text-align:center;">
+            <div style="width:64px;height:64px;background:#FEE2E2;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 14px;">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="#DC2626" style="width:32px;height:32px;"><path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0"/></svg>
+            </div>
+            <h2 style="font-size:20px;font-weight:800;color:#B91C1C;margin-bottom:8px;">O'chirishni tasdiqlang</h2>
+            <p style="font-size:13.5px;color:#DC2626;">Bu amalni bekor qilib bo'lmaydi!</p>
+        </div>
+        <div style="padding:24px 28px;">
+            <div style="background:var(--gray-50);border:1px solid var(--gray-200);border-radius:12px;padding:16px;margin-bottom:20px;">
+                <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:var(--gray-400);margin-bottom:6px;">O'chiriladigan buyurtma</div>
+                <div style="font-size:16px;font-weight:800;color:var(--black);">{{ order.name }}</div>
+                <div style="font-size:12px;color:var(--gray-400);font-family:monospace;margin-top:2px;">{{ order.order_number }}</div>
+                <div style="margin-top:10px;display:flex;gap:8px;">
+                    <span class="status-badge sb-{{ order.status }}"><span class="dot"></span>{{ order.get_status_display }}</span>
+                    <span style="font-size:13px;color:var(--gray-600);font-weight:600;">{{ order.quantity }} dona</span>
+                </div>
+            </div>
+            <form method="post" style="display:flex;gap:10px;">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-danger btn-lg" style="flex:1;justify-content:center;">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0"/></svg>
+                    Ha, o'chirish
+                </button>
+                <a href="{% url 'shop:order_detail' order.pk %}" class="btn btn-secondary btn-lg" style="flex:1;justify-content:center;">Bekor qilish</a>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -18,6 +18,7 @@ urlpatterns = [
     path('boyash/', include('apps.boyash.urls')),
     path('sepish/', include('apps.sepish.urls')),
     path('tosh/', include('apps.tosh.urls')),
+    path('shop/', include('apps.shop.urls')),
     path('', include('apps.manage.urls')),
 ]
 

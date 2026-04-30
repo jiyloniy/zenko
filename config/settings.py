@@ -58,6 +58,7 @@ LOCAL_APPS = [
     'apps.boyash',
     'apps.sepish',
     'apps.tosh',
+    'apps.shop',
 ]
 
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
