@@ -299,6 +299,8 @@ class ShopOrderDetailView(ShopManagerRequiredMixin, View):
 
         def filter_logs(qs, date_field='sana'):
             if date_from and date_to:
+                if date_field == 'created_at':
+                    return qs.filter(created_at__date__gte=date_from, created_at__date__lte=date_to)
                 return qs.filter(**{f'{date_field}__gte': date_from, f'{date_field}__lte': date_to})
             return qs
 
@@ -309,7 +311,7 @@ class ShopOrderDetailView(ShopManagerRequiredMixin, View):
             try:
                 from apps.casting.models import QuyishJarayonLog
                 casting = order.quyish_jarayon
-                logs_qs = filter_logs(casting.loglar.select_related('created_by').order_by('-created_at'))
+                logs_qs = filter_logs(casting.loglar.select_related('created_by').order_by('-created_at'), date_field='created_at')
                 total_miqdor = casting.loglar.aggregate(s=DSum('miqdor'))['s'] or 0
                 filtered_miqdor = logs_qs.aggregate(s=DSum('miqdor'))['s'] or 0
                 logs = [{'sana': l.created_at.date(), 'smena': None, 'son': l.miqdor,

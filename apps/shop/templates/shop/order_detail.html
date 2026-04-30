@@ -155,6 +155,12 @@
 .no-logs svg { width: 36px; height: 36px; margin-bottom: 8px; opacity: .2; }
 .no-logs p { font-size: 13px; }
 
+/* dept status badge colors */
+.dept-badge-green  { background:#F0FDF4; color:#15803D; border:1px solid #BBF7D0; }
+.dept-badge-orange { background:#FFF7ED; color:#C2410C; border:1px solid #FED7AA; }
+.dept-badge-blue   { background:#EFF6FF; color:#1D4ED8; border:1px solid #BFDBFE; }
+.dept-badge-red    { background:#FEF2F2; color:#B91C1C; border:1px solid #FECACA; }
+
 /* ── Timeline (right panel) ── */
 .side-card { background: var(--white); border: 1px solid var(--gray-200); border-radius: 16px; overflow: hidden; margin-bottom: 16px; }
 .side-head { padding: 14px 18px; border-bottom: 1px solid var(--gray-100); display: flex; align-items: center; gap: 8px; }
@@ -195,6 +201,7 @@
 .lb-close svg { width: 20px; height: 20px; }
 
 @keyframes pulse { 0%,100%{opacity:1;} 50%{opacity:.4;} }
+.late { color: var(--red) !important; }
 
 @media(max-width:960px){ .page-layout { grid-template-columns: 1fr; } .ohc-meta { grid-template-columns: repeat(2,1fr); } }
 @media(max-width:600px){ .ohc-top { flex-direction: column; } .ohc-meta { grid-template-columns: 1fr 1fr; } .logs-stats-row { grid-template-columns: 1fr; } .period-bar { flex-direction: column; align-items: flex-start; } .custom-range { margin-left: 0; } }
