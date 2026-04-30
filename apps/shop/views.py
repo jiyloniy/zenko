@@ -599,6 +599,29 @@ def _build_global_logs(date_from, date_to):
         except Exception:
             pass
 
+    if HomMahsulotLog:
+        try:
+            qs = _filter_by_date(
+                HomMahsulotLog.objects.select_related(
+                    'order__brujka', 'stanok', 'created_by'
+                ).order_by('-sana', '-created_at'),
+                date_from, date_to
+            )
+            total = qs.aggregate(s=Sum('miqdor'))['s'] or 0
+            depts.append({
+                'name': 'Hom mahsulot', 'icon': 'casting', 'unit': 'dona',
+                'total': total, 'count': qs.count(),
+                'logs': [{
+                    'sana': l.sana, 'smena': l.get_smena_display(),
+                    'son': l.miqdor, 'hodim': l.created_by,
+                    'order': l.order,
+                    'extra': str(l.stanok) if l.stanok else '',
+                    'izoh': l.izoh,
+                } for l in qs[:200]],
+            })
+        except Exception:
+            pass
+
     return depts
 
 
