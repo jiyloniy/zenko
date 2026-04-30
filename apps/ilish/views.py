@@ -402,8 +402,11 @@ class UpakovkaListView(AttachManagerRequiredMixin, View):
         # Model: QadoqlashJarayon.order = OneToOneField('order.Order')
         # Shuning uchun ilish_jarayon orqali emas, order orqali bog'laymiz
         ilinib_jarayonlar = IlishJarayon.objects.filter(
-            status_in=[IlishJarayon.Status.ILIB_BOLINDI, IlishJarayon.Status.ILINMOQDA]
-        )
+    status__in=[
+        IlishJarayon.Status.ILIB_BOLINDI,
+        IlishJarayon.Status.ILINMOQDA
+    ]
+)
         for ij in ilinib_jarayonlar:
             QadoqlashJarayon.objects.get_or_create(
                 order=ij.order,
