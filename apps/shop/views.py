@@ -454,29 +454,6 @@ def _build_global_logs(date_from, date_to):
     """Barcha bo'limlar uchun global log ro'yxati."""
     depts = []
 
-    if QuyishJarayonLog:
-        try:
-            qs = _filter_by_date(
-                QuyishJarayonLog.objects.select_related(
-                    'jarayon__order__brujka', 'created_by'
-                ).order_by('-created_at'),
-                date_from, date_to, field='created_at'
-            )
-            total = qs.aggregate(s=Sum('miqdor'))['s'] or 0
-            depts.append({
-                'name': 'Quyish', 'icon': 'casting', 'unit': 'dona',
-                'total': total, 'count': qs.count(),
-                'logs': [{
-                    'sana': l.created_at.date(), 'smena': None,
-                    'son': l.miqdor, 'hodim': l.created_by,
-                    'order': l.jarayon.order if l.jarayon_id else None,
-                    'extra': l.get_natija_display() if l.natija else '',
-                    'izoh': l.izoh,
-                } for l in qs[:200]],
-            })
-        except Exception:
-            pass
-
     if IlishJarayonLog:
         try:
             qs = _filter_by_date(
@@ -609,7 +586,7 @@ def _build_global_logs(date_from, date_to):
             )
             total = qs.aggregate(s=Sum('miqdor'))['s'] or 0
             depts.append({
-                'name': 'Hom mahsulot', 'icon': 'casting', 'unit': 'dona',
+                'name': 'Quyilgan mahsulot', 'icon': 'casting', 'unit': 'dona',
                 'total': total, 'count': qs.count(),
                 'logs': [{
                     'sana': l.sana, 'smena': l.get_smena_display(),
