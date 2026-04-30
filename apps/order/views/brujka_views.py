@@ -109,10 +109,12 @@ class BrujkaDeleteView(CEORequiredMixin, DeleteView):
         return super().form_valid(form)
 
 
-class BrujkaSearchAPIView(CEORequiredMixin, View):
-    """AJAX qidiruv — order formidagi broshka select uchun."""
+class BrujkaSearchAPIView(View):
+    """AJAX qidiruv — order formidagi broshka select uchun. Login bo'lgan har kim."""
 
     def get(self, request):
+        if not request.user.is_authenticated:
+            return JsonResponse({'results': []}, status=403)
         q = request.GET.get('q', '').strip()
         qs = Brujka.objects.filter(is_active=True)
         if q:
